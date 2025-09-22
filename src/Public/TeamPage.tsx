@@ -1,5 +1,7 @@
 import { Linkedin, Github, Mail, Target, Users, Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
+import ContributorSection from "../Component/Global/ContributorSection";
+import { Link } from "react-router-dom";
 
 export function TeamPage() {
   const teamMembers = [
@@ -90,56 +92,7 @@ export function TeamPage() {
       </motion.section>
 
       {/* Team Members */}
-      <motion.section
-        className="py-16 px-6 lg:px-16 max-w-7xl mx-auto"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        <motion.h2
-          variants={fadeUp}
-          transition={{ duration: 0.6 }}
-          className="text-3xl font-bold text-center mb-12"
-        >
-          Our Teams
-        </motion.h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.map((member, idx) => (
-            <motion.div
-              key={idx}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 p-6 text-center group relative overflow-hidden"
-              variants={fadeUp}
-              transition={{ delay: idx * 0.2 }}
-            >
-              <div
-                className="absolute top-0 left-0 w-full h-2 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
-                style={{ backgroundColor: "#00ADB5" }}
-              ></div>
-              <img
-                src={member.image}
-                alt={member.name}
-                className="w-32 h-32 mx-auto rounded-full object-cover border-4 mb-4 group-hover:scale-105 transform transition"
-                style={{ borderColor: "#00ADB5" }}
-              />
-              <h3 className="text-xl font-semibold mb-1">{member.name}</h3>
-              <p className="mb-4" style={{ color: "#00ADB5" }}>
-                {member.role}
-              </p>
-              <div className="flex justify-center gap-4 text-gray-500 hover:text-blue-600 transition">
-                <a href={member.socials.linkedin} aria-label="LinkedIn">
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a href={member.socials.github} aria-label="GitHub">
-                  <Github className="w-5 h-5" />
-                </a>
-                <a href={member.socials.email} aria-label="Email">
-                  <Mail className="w-5 h-5" />
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
+      <ContributorSection />
 
       {/* Highlights */}
       <motion.section
@@ -234,9 +187,11 @@ export function TeamPage() {
         <p className="max-w-2xl mx-auto mb-8 text-purple-100">
           Join us on this exciting journey of creativity, collaboration, and innovation.
         </p>
-        <button className="px-8 py-3 bg-white text-black rounded-lg font-semibold hover:bg-purple-100 transition">
+        <Link 
+        to={'https://forms.gle/RKYHdpAxvZxyMb5o8'}
+        className="px-8 py-3 bg-white text-black rounded-lg font-semibold hover:bg-purple-100 transition">
           Connect Now
-        </button>
+        </Link>
       </motion.section>
     </div>
   );

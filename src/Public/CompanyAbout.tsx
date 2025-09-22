@@ -1,5 +1,5 @@
 import { Lightbulb, Users, Zap, BookOpen, Shield, Globe } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {useState } from "react";
 
 export function AboutPage() {
   const [visibleSections, setVisibleSections] = useState<string[]>([]);

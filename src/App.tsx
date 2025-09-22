@@ -2,7 +2,7 @@ import { useState, type JSX, Suspense, lazy } from "react";
 import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 
 import Navigation from "./Component/Nevigation";
-import type { TabType } from "./data";
+
 
 import { AuthProvider, useAuth } from "./Context/AuthContext";
 import { DataProvider } from "./Context/UserDataContext";
@@ -22,7 +22,7 @@ const Signup = lazy(() => import("./Auth/SignupScreen"));
 
 const Dashboard = lazy(() => import("./Pages/Dashboard/Dashboard"));
 const Showcase = lazy(() => import("./Pages/Showcase"));
-const ProjectContribution = lazy(() => import("./Pages/ProjectContribution"));
+// const ProjectContribution = lazy(() => import("./Pages/ProjectContribution"));
 const OpenProject = lazy(() => import("./Pages/Projects/OpenProject"));
 const Courses = lazy(() => import("./Pages/Courses"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
@@ -31,14 +31,15 @@ const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const Marathon = lazy(() => import("./Pages/Marathon/Marathon"));
-const CourseAbout = lazy(() => import("./Pages/CouseAbout"));
+const CommingSoon = lazy(()=>import('./Component/Global/CommingSoon'))
+// const CourseAbout = lazy(() => import("./Pages/CouseAbout"));
 
 function PublicLayout() {
-  const [activeTab, setActiveTab] = useState<TabType>("cartoon");
+
 
   return (
     <div className="min-h-screen bg-background">
-      <PublicNavBar activeTab={activeTab} onChange={setActiveTab} />
+      <PublicNavBar />
 
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
@@ -47,6 +48,8 @@ function PublicLayout() {
           <Route path="/teamElevana" element={<TeamPage />} />
           <Route path="/login" element={<LoginRedirect />} />
           <Route path="/signup" element={<SignupRedirect />} />
+          <Route path="/commingsoon" element={<CommingSoon  />} />
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
@@ -57,7 +60,7 @@ function PublicLayout() {
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                   <img src="./src/assets/logo.svg" ></img>
+                  <img src="./src/assets/logo.svg" ></img>
                 </div>
                 <span className="text-lg font-semibold">Skill India</span>
               </div>
@@ -82,7 +85,7 @@ function PublicLayout() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>About Us</li>
                 <li>Our Team</li>
-                
+
                 <li>Contact</li>
               </ul>
             </div>
@@ -118,8 +121,8 @@ function SignupRedirect() {
 }
 
 function PrivateLayout() {
-  const [activeTab, setActiveTab] = useState<TabType>("cartoon");
-  
+
+
 
   return (
     <motion.div
@@ -130,7 +133,7 @@ function PrivateLayout() {
       transition={{ duration: 0.8 }}
     >
       <div className="transition-all duration-300 ease-in-out">
-        <Navigation activeTab={activeTab} onChange={setActiveTab} />
+        <Navigation />
       </div>
       <div className="flex-1 overflow-y-auto">
         <Outlet />
@@ -180,30 +183,6 @@ const App: React.FC = () => {
                 <Route path="company_req" element={<Company_Req />} />
                 <Route path="marathon" element={<Marathon />} />
                 <Route path="profile" element={<ProfileInfo />} />
-                <Route
-                  path="course/:id"
-                  element={
-                    <CourseAbout
-                      project={{
-                        id: "p-001",
-                        title: "Open Source Learning Platform",
-                        description:
-                          "A collaborative project where students can learn, contribute, and share resources in real-time. Built with React, Node.js, and Firebase.",
-                        tags: ["React", "Node.js", "Firebase", "OpenSource"],
-                        repoUrl: "https://github.com/example/repo",
-                        websiteUrl: "https://example.com",
-                        coverImage:
-                          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1350&q=80",
-                        contributors: [
-                          { id: "u1", name: "Mohit Sharma", avatar: "https://i.pravatar.cc/100?img=3" },
-                          { id: "u2", name: "Sneha Rao" },
-                          { id: "u3", name: "Arjun Patel", avatar: "https://i.pravatar.cc/100?img=6" },
-                        ],
-                      }}
-                      onContribute={() => console.log("Contribute Clicked")}
-                    />
-                  }
-                />
               </Route>
             </Routes>
           </AnimatePresence>

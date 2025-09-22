@@ -1,11 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useDataContext } from "../../Context/UserDataContext";
 
-// Simple reusable animation variants
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
+const slideVariants = {
+  hiddenLeft: { opacity: 0, x: -50, y: 30 },
+  hiddenRight: { opacity: 0, x: 50, y: 30 },
+  visible: { opacity: 1, x: 0, y: 0 },
 };
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -63,17 +63,10 @@ function Avatar({ className = "", children, ...props }: AvatarProps) {
 }
 
 function AvatarImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  return (
-    <img
-      className="aspect-square h-full w-full object-cover"
-      {...props}
-    />
-  );
+  return <img className="aspect-square h-full w-full object-cover" {...props} />;
 }
 
-function AvatarFallback({
-  children,
-}: React.HTMLAttributes<HTMLDivElement>) {
+function AvatarFallback({ children }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className="flex h-full w-full items-center justify-center rounded-full bg-muted">
       {children}
@@ -90,30 +83,32 @@ interface Contributor {
   joinDate: string;
   specialties: string[];
   isTopContributor: boolean;
+  from: string
 }
 
 function ContributorCard({
   contributor,
   isHighlighted = false,
+  index,
 }: {
   contributor: Contributor;
   isHighlighted?: boolean;
+  index: number;
 }) {
   return (
     <motion.div
-      variants={fadeUp}
-      initial="hidden"
+      variants={slideVariants}
+      initial={index % 2 === 0 ? "hiddenLeft" : "hiddenRight"}
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <Card
-        className={`transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
-          isHighlighted ? "bg-primary/5" : ""
-        }`}
+        className={`transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${isHighlighted ? "bg-primary/5" : ""
+          }`}
       >
         <CardContent>
-          <div className="flex items-start gap-4 mb-4">
+          <div className="flex items-start gap-4 mb-4 mt-4">
             <Avatar className="h-12 w-12">
               <AvatarImage src={contributor.avatar} alt={contributor.name} />
               <AvatarFallback>
@@ -137,6 +132,7 @@ function ContributorCard({
                 <span>{contributor.contributions} contributions</span>
                 <span>Since {contributor.joinDate}</span>
               </div>
+              <p className="text-sm text-gray-800 mb-2 mt-2" style={{ fontWeight: 'bold' }} >{contributor.from}</p>
             </div>
           </div>
 
@@ -164,47 +160,63 @@ function ContributorCard({
 const contributors: Contributor[] = [
   {
     id: 1,
-    name: "Sarah Chen",
+    name: "Mohit Sharma",
     avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b766?w=400&h=400&fit=crop&crop=face",
-    contributions: 147,
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758555573/MohitSharma.png",
+    contributions: 45,
     role: "Lead Developer",
-    joinDate: "Jan 2023",
-    specialties: ["React", "TypeScript", "UI/UX"],
+    joinDate: "June 2025",
+    specialties: ["React", "TypeScript", "Cloud Computing", "Machine Learning"],
     isTopContributor: true,
+    from: 'BBD University'
   },
   {
     id: 2,
-    name: "Alex Rodriguez",
+    name: "Ansh Jaiswal",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-    contributions: 98,
-    role: "Backend Engineer",
-    joinDate: "Mar 2023",
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758558389/Ansh_ek6vtz.jpg",
+    contributions: 20,
+    role: "Backend Developer",
+    joinDate: "July 2025",
     specialties: ["Node.js", "Database", "API Design"],
     isTopContributor: true,
+    from: 'BBD University'
   },
   {
     id: 3,
-    name: "Maya Patel",
+    name: "Sumit Rathore",
     avatar:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
-    contributions: 89,
-    role: "Designer",
-    joinDate: "Feb 2023",
-    specialties: ["Figma", "Design Systems", "Accessibility"],
+    contributions: 15,
+    role: "AI/ML Engineer",
+    joinDate: "July 2025",
+    specialties: ["Figma", "Backend", "AI/ML Engineer"],
     isTopContributor: true,
+    from: 'Future University '
   },
   {
     id: 4,
-    name: "David Kim",
+    name: "Diwakar Kumar",
     avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-    contributions: 76,
-    role: "DevOps Engineer",
-    joinDate: "Apr 2023",
-    specialties: ["Docker", "CI/CD", "Cloud"],
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758559963/Diwaker_olmh3o.jpg",
+    contributions: 10,
+    role: "Python Developer",
+    joinDate: "Aug 2025",
+    specialties: ["Python", "Problem Solving", "DSA"],
     isTopContributor: false,
+    from: 'Indian Institute of Engineering Science And Technology'
+  },
+  {
+    id: 5,
+    name: "Mohd Abbas Haider",
+    avatar:
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758560710/Valorent_iimzws.jpg",
+    contributions: 10,
+    role: "Cyber Security",
+    joinDate: "Aug 2025",
+    specialties: ["C", "Problem Solving", "Computer Networking", "Cyber Security"],
+    isTopContributor: false,
+    from: 'BBD University'
   },
 ];
 
@@ -216,14 +228,16 @@ export default function ContributorSection() {
     0
   );
 
+  const { pushDataToFirestore } = useDataContext()
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto p-6 max-w-7xl">
         {/* Header Section */}
         <motion.div
           className="text-center mb-12"
-          variants={fadeUp}
-          initial="hidden"
+          variants={slideVariants}
+          initial="hiddenLeft"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
@@ -241,8 +255,8 @@ export default function ContributorSection() {
         {/* Top Contributors */}
         <section className="mb-16">
           <motion.div
-            variants={fadeUp}
-            initial="hidden"
+            variants={slideVariants}
+            initial="hiddenRight"
             whileInView="visible"
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
@@ -257,8 +271,8 @@ export default function ContributorSection() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topContributors.map((c) => (
-              <ContributorCard key={c.id} contributor={c} isHighlighted />
+            {topContributors.map((c, i) => (
+              <ContributorCard key={c.id} contributor={c} isHighlighted index={i} />
             ))}
           </div>
         </section>
@@ -266,8 +280,8 @@ export default function ContributorSection() {
         {/* Recent Contributors */}
         <section>
           <motion.div
-            variants={fadeUp}
-            initial="hidden"
+            variants={slideVariants}
+            initial="hiddenLeft"
             whileInView="visible"
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
@@ -280,8 +294,8 @@ export default function ContributorSection() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentContributors.map((c) => (
-              <ContributorCard key={c.id} contributor={c} />
+            {recentContributors.map((c, i) => (
+              <ContributorCard key={c.id} contributor={c} index={i} />
             ))}
           </div>
         </section>

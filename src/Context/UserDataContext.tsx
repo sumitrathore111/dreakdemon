@@ -17,9 +17,23 @@ interface DataContextType {
     profile: UserProfile | null;
     writeQueryOnDate: (question_data: Query) => void;
     fetchTodayQueries: () => Promise<Object[]>;
-    addObjectToUserArray: (uid : string , arrayField: string, objectToAdd: any) => void
-}
+    addObjectToUserArray: (uid: string, arrayField: string, objectToAdd: any) => void
+    pushDataToFirestore: (collectionName: string, dataList: object[]) => void
+    contributors: Contributor[] | undefined
 
+
+}
+interface Contributor {
+    id: string;
+    name: string;
+    avatar: string;
+    contributions: number;
+    role: string;
+    joinDate: string;
+    specialties: string[];
+    isTopContributor: boolean;
+    from: string
+}
 interface UserProfile {
     id: string;
     name: string;
@@ -43,6 +57,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [contributors, setcontributers] = useState<Contributor[]>()
 
     const getTodayRange = () => {
         const now = new Date();
@@ -95,6 +110,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
 
+    async function pushDataToFirestore(collectionName: string, dataList: object[]) {
+        try {
+            const colRef = collection(db, collectionName);
+            for (const item of dataList) {
+                await addDoc(colRef, item);
+            }
+            console.log("All data added to Firestore!");
+        } catch (error) {
+            console.error("Error adding data: ", error);
+        }
+    }
     useEffect(() => {
         if (!user) {
             setProfile(null);
@@ -124,44 +150,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchUserProfile();
     }, [user]);
 
-    // useEffect(() => {
-    //     if (!user) {
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const colRef = collection(db, "Contributers"); // your collection name
+                const snapshot = await getDocs(colRef);
+                const data: Contributor[] = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    name: doc.data().name,
+                    avatar: doc.data().avatar,
+                    role: doc.data().role,
+                    contributions: doc.data().contributions,
+                    joinDate: doc.data().joinDate,
+                    specialties: doc.data().specialties,
+                    isTopContributor: doc.data().isTopContributor,
+                    from: doc.data().from
 
-    //         setCourses([]);
-    //         return;
-    //     }
 
-    //     const fetchCourses = async () => {
-    //         setLoading(true);
-    //         try {
-    //             const querySnapshot = await getDocs(collection(db, "Courses"));
-    //             const courseList: Course[] = querySnapshot.docs.map((doc) => ({
-    //                 id: doc.id,
-    //                 ...doc.data(),
-    //             })) as Course[];
-    //             setCourses(courseList);
-    //         } catch (error) {
-    //             console.error("Error fetching courses:", error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
+                   
+                
+                    
+                }));
+    setcontributers(data); // store in variable
+} catch (error) {
+    console.error("Error fetching data:", error);
+}
+        };
 
-    //     fetchCourses();
-    // }, [user]);
-
-    return (
-        <DataContext.Provider value={{
-            courses,
-            loading,
-            profile,
-            writeQueryOnDate,
-            fetchTodayQueries,
-            addObjectToUserArray
-        }}>
-            {children}
-        </DataContext.Provider>
-    );
+fetchData();
+    }, []);
+return (
+    <DataContext.Provider value={{
+        courses,
+        loading,
+        profile,
+        writeQueryOnDate,
+        fetchTodayQueries,
+        addObjectToUserArray,
+        pushDataToFirestore,
+        contributors
+    }}>
+        {children}
+    </DataContext.Provider>
+);
 };
 
 export const useDataContext = () => {

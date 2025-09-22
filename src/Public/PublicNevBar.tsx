@@ -23,7 +23,7 @@ const PublicNavBar = () => {
     ];
 
     const authItems = user
-        ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/dashboard' }]
+        ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/commingsoon' }]
         : [{ id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' }];
 
     const allItems = [...navItems, ...authItems];
@@ -94,7 +94,7 @@ const PublicNavBar = () => {
                                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                                         <img src="./src/assets/logo.svg" alt="logo" />
                                     </div>
-                                    <span className="font-semibold text-lg">Skillora</span>
+                                    <span className="font-semibold text-lg">Skillindia</span>
                                 </div>
                                 <button onClick={() => setIsOpen(false)} className="p-2 rounded-md hover:bg-accent">
                                     <X size={24} />

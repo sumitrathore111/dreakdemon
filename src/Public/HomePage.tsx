@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Code, Brain, Zap, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import ContributorSection from "../Component/Global/ContributorSection";
 
 export function HomePage() {
@@ -62,7 +63,22 @@ export function HomePage() {
 
     return { ref, isVisible };
   };
-
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0 },
+  };
+  const testimonials = [
+    {
+      name: "Neha Sharma",
+      quote: "The platform has been a game-changer for connecting with like-minded people and exploring new opportunities!",
+      image: "https://randomuser.me/api/portraits/women/44.jpg",
+    },
+    {
+      name: "Raj Verma",
+      quote: "A great initiative with a supportive community. It’s amazing to see how much this team cares about making an impact.",
+      image: "https://randomuser.me/api/portraits/men/33.jpg",
+    },
+  ];
   return (
     <div className="min-h-screen">
       {/* Hero Section with Parallax */}
@@ -89,10 +105,7 @@ export function HomePage() {
               </span>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900">
                 Learn by Doing
-                <span style={{ color: "#00ADB5" }}>
-                  {" "}
-                  Grow by Contributing
-                </span>
+                <span style={{ color: "#00ADB5" }}> Grow by Contributing</span>
               </h1>
               <p className="text-lg text-gray-600 max-w-xl">
                 Skillora is a smart platform designed for students who want to
@@ -116,7 +129,7 @@ export function HomePage() {
               </Link>
             </div>
 
-            <div className="flex items-center space-x-8 pt-4">
+            {/* <div className="flex items-center space-x-8 pt-4">
               <div>
                 <div className="text-2xl font-bold text-gray-900">500+</div>
                 <div className="text-sm text-gray-600">Students Trained</div>
@@ -129,7 +142,7 @@ export function HomePage() {
                 <div className="text-2xl font-bold text-gray-900">95%</div>
                 <div className="text-sm text-gray-600">Success Rate</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -151,7 +164,12 @@ export function HomePage() {
                   key={index}
                   ref={ref}
                   className={`p-6 rounded-lg shadow transition-all duration-1000 transform
-                  ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}
+                    ${isVisible
+                      ? "opacity-100 translate-x-0"
+                      : index % 2 === 0
+                        ? "opacity-0 -translate-x-10"
+                        : "opacity-0 translate-x-10"
+                    }
                   `}
                 >
                   <div className="space-y-4">
@@ -175,7 +193,46 @@ export function HomePage() {
         </div>
       </section>
 
+
       <ContributorSection />
+      <motion.section
+        className="py-16 px-6 lg:px-16"
+        style={{ backgroundColor: "#b5fcff" }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.h2
+          variants={fadeUp}
+          transition={{ duration: 0.6 }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          What Our Users Say
+        </motion.h2>
+        <div className="grid sm:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {testimonials.map((testi, idx) => (
+            <motion.div
+              key={idx}
+              className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition relative group"
+              variants={fadeUp}
+              transition={{ delay: idx * 0.2 }}
+            >
+              <p className="text-gray-700 mb-4 italic">"{testi.quote}"</p>
+              <div className="flex items-center gap-4">
+                <img
+                  src={testi.image}
+                  alt={testi.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+                />
+                <div>
+                  <h4 className="font-semibold">{testi.name}</h4>
+                  <p className="text-sm text-gray-500">Community Member</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
     </div>
   );
 }
