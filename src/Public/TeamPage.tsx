@@ -1,4 +1,5 @@
-import { Linkedin, Github, Mail, Target, Users, Lightbulb, Star } from "lucide-react";
+import { Linkedin, Github, Mail, Target, Users, Lightbulb } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function TeamPage() {
   const teamMembers = [
@@ -11,7 +12,8 @@ export function TeamPage() {
         github: "#",
         email: "itzmohitsharma20@gmail.com",
       },
-    }, {
+    },
+    {
       name: "Ansh Jaiswal",
       role: "HR Executive / Manager",
       image: "https://randomuser.me/api/portraits/men/45.jpg",
@@ -31,7 +33,6 @@ export function TeamPage() {
         email: "mailto:sumit@example.com",
       },
     },
-
   ];
 
   const highlights = [
@@ -65,35 +66,65 @@ export function TeamPage() {
     },
   ];
 
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Hero Section */}
-      <section className="relative py-20 px-6 lg:px-16  text-white text-center overflow-hidden" style={{ backgroundColor: '#00ADB5' }}>
-        <div className="absolute top-0 left-0 w-full h-full  pointer-events-none"></div>
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        transition={{ duration: 0.8 }}
+        className="relative py-20 px-6 lg:px-16 text-white text-center overflow-hidden"
+        style={{ backgroundColor: "#00ADB5" }}
+      >
         <h1 className="text-5xl font-extrabold relative z-10">Meet Our Team</h1>
         <p className="max-w-2xl mx-auto mt-4 relative z-10 text-lg text-purple-100">
           We are three passionate individuals who started this project to bring ideas to life and build a community around innovation and purpose.
         </p>
-      </section>
+      </motion.section>
 
-      {/* Founders Section */}
-      <section className="py-16 px-6 lg:px-16 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">Our Teams</h2>
+      {/* Team Members */}
+      <motion.section
+        className="py-16 px-6 lg:px-16 max-w-7xl mx-auto"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.h2
+          variants={fadeUp}
+          transition={{ duration: 0.6 }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          Our Teams
+        </motion.h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {teamMembers.map((member, idx) => (
-            <div
+            <motion.div
               key={idx}
               className="bg-white rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 p-6 text-center group relative overflow-hidden"
+              variants={fadeUp}
+              transition={{ delay: idx * 0.2 }}
             >
-              <div className="absolute top-0 left-0 w-full h-2  transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" style={{ backgroundColor: '#00ADB5' }} ></div>
+              <div
+                className="absolute top-0 left-0 w-full h-2 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
+                style={{ backgroundColor: "#00ADB5" }}
+              ></div>
               <img
                 src={member.image}
                 alt={member.name}
-                className="w-32 h-32 mx-auto rounded-full object-cover border-4  mb-4 group-hover:scale-105 transform transition"
-                style={{ borderColor: '#00ADB5' }}
+                className="w-32 h-32 mx-auto rounded-full object-cover border-4 mb-4 group-hover:scale-105 transform transition"
+                style={{ borderColor: "#00ADB5" }}
               />
               <h3 className="text-xl font-semibold mb-1">{member.name}</h3>
-              <p className=" mb-4" style={{ color: '#00ADB5' }} >{member.role}</p>
+              <p className="mb-4" style={{ color: "#00ADB5" }}>
+                {member.role}
+              </p>
               <div className="flex justify-center gap-4 text-gray-500 hover:text-blue-600 transition">
                 <a href={member.socials.linkedin} aria-label="LinkedIn">
                   <Linkedin className="w-5 h-5" />
@@ -105,48 +136,73 @@ export function TeamPage() {
                   <Mail className="w-5 h-5" />
                 </a>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      {/* Our Journey Section */}
-      <section className="py-16 px-6 lg:px-16 bg-white">
-        <h2 className="text-3xl font-bold text-center mb-8">Our Journey</h2>
-        <p className="max-w-3xl mx-auto text-center text-gray-700 mb-4">
-          It all began with <span className="font-semibold" style={{ color: '#00ADB5' }} >Mohit Sharma’s vision</span> to create something impactful. His idea to solve real problems and empower people became the driving force behind this project. Together with Sumit and Ansh, they turned that dream into a thriving community where creativity and collaboration flourish.
-        </p>
-        <p className="max-w-3xl mx-auto text-center text-gray-700">
-          From brainstorming sessions to late-night coding and endless discussions, their passion and perseverance have laid the foundation of a platform built on innovation, teamwork, and purpose.
-        </p>
-      </section>
-
-      {/* Highlights Section */}
-      <section className="py-16 px-6 lg:px-16 " style={{ backgroundColor: '#f0feff' }}>
-        <h2 className="text-3xl font-bold text-center mb-12">Why We Do This</h2>
+      {/* Highlights */}
+      <motion.section
+        className="py-16 px-6 lg:px-16"
+        style={{ backgroundColor: "#f0feff" }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.h2
+          variants={fadeUp}
+          transition={{ duration: 0.6 }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          Why We Do This
+        </motion.h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {highlights.map((item, idx) => {
             const Icon = item.icon;
             return (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow hover:shadow-md transition text-center">
-                <div className="w-14 h-14 mx-auto flex items-center justify-center  rounded-full mb-4" style={{ backgroundColor: '#8efaff' }}>
-                  <Icon className="w-6 h-6" style={{ color: '#ffffffff' }} />
+              <motion.div
+                key={idx}
+                className="bg-white p-6 rounded-xl shadow hover:shadow-md transition text-center"
+                variants={fadeUp}
+                transition={{ delay: idx * 0.2 }}
+              >
+                <div
+                  className="w-14 h-14 mx-auto flex items-center justify-center rounded-full mb-4"
+                  style={{ backgroundColor: "#8efaff" }}
+                >
+                  <Icon className="w-6 h-6" style={{ color: "#000" }} />
                 </div>
                 <h3 className="font-semibold mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.desc}</p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
-      {/* Testimonials Section */}
-      <section className="py-16 px-6 lg:px-16 " style={{ backgroundColor: '#b5fcff' }} >
-        <h2 className="text-3xl font-bold text-center mb-12">What Our Users Say</h2>
+      {/* Testimonials */}
+      <motion.section
+        className="py-16 px-6 lg:px-16"
+        style={{ backgroundColor: "#b5fcff" }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.h2
+          variants={fadeUp}
+          transition={{ duration: 0.6 }}
+          className="text-3xl font-bold text-center mb-12"
+        >
+          What Our Users Say
+        </motion.h2>
         <div className="grid sm:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {testimonials.map((testi, idx) => (
-            <div key={idx} className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition relative group">
-
+            <motion.div
+              key={idx}
+              className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition relative group"
+              variants={fadeUp}
+              transition={{ delay: idx * 0.2 }}
+            >
               <p className="text-gray-700 mb-4 italic">"{testi.quote}"</p>
               <div className="flex items-center gap-4">
                 <img
@@ -159,16 +215,21 @@ export function TeamPage() {
                   <p className="text-sm text-gray-500">Community Member</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-
-
-
-      {/* Final CTA */}
-      <section className="py-16 px-6 lg:px-16  text-white text-center" style={{ backgroundColor: '#01787cff' }}>
+      {/* CTA */}
+      <motion.section
+        className="py-16 px-6 lg:px-16 text-white text-center"
+        style={{ backgroundColor: "#01787cff" }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        transition={{ duration: 0.6 }}
+      >
         <h2 className="text-4xl font-bold mb-4">Let’s Build Together</h2>
         <p className="max-w-2xl mx-auto mb-8 text-purple-100">
           Join us on this exciting journey of creativity, collaboration, and innovation.
@@ -176,7 +237,7 @@ export function TeamPage() {
         <button className="px-8 py-3 bg-white text-black rounded-lg font-semibold hover:bg-purple-100 transition">
           Connect Now
         </button>
-      </section>
+      </motion.section>
     </div>
   );
 }

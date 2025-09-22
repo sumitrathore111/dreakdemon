@@ -1,113 +1,129 @@
-import { useState } from "react";
-import { Home, Users, FolderKanban, BarChart3, Info, Menu, X, LogIn, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Users, BarChart3, Info, Menu, X, LogIn } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext"; 
-import type { TabType } from "../data";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface NavigationProps {
-    activeTab: TabType;
-    onChange: (tab: TabType) => void;
-}
-
-const PublicNavBar: React.FC<NavigationProps> = () => {
+const PublicNavBar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const location = useLocation();
-    const { user } = useAuth(); 
+    const { user } = useAuth();
+
+    useEffect(() => {
+        const onScroll = () => setIsScrolled(window.scrollY > 50);
+        window.addEventListener("scroll", onScroll);
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
     const navItems = [
         { id: "home", label: "Home", icon: <Home className="w-5 h-5" />, path: '/' },
         { id: "about", label: "About", icon: <Info className="w-5 h-5" />, path: '/about' },
         { id: "team", label: "Team", icon: <Users className="w-5 h-5" />, path: '/teamElevana' },
-        // { id: "projects", label: "Projects", icon: <FolderKanban className="w-5 h-5" />, path: '/projects' },
     ];
 
-    
     const authItems = user
         ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/dashboard' }]
-        : [
-            { id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' },
-
-          ];
+        : [{ id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' }];
 
     const allItems = [...navItems, ...authItems];
 
+    const linkAnimation = { hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } };
+    const MotionLink = motion(Link)
     return (
-        <nav className="bg-white shadow-md fixed w-full z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-white">
-                <div className="flex justify-between items-center h-16 ">
+        <nav className={`fixed top-0 left-0 w-full z-50 bg-white transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <div className="flex items-center space-x-2">
+                    <Link to="/" className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <img src="./src/assets/logo.svg" ></img>
+                            <img src="./src/assets/logo.svg" alt="logo" />
                         </div>
                         <span className="font-semibold text-lg">Skillindia</span>
-                    </div>
+                    </Link>
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex space-x-6">
-                        {allItems.map((item) => (
-                            <Link
+                        {allItems.map((item, idx) => (
+                            <MotionLink
                                 key={item.id}
                                 to={item.path}
-                                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === item.path
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${
+                                    location.pathname === item.path
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
                                 }`}
+                                initial="hidden"
+                                animate="visible"
+                                variants={linkAnimation}
+                                transition={{ delay: idx * 0.05 }}
                             >
                                 {item.icon}
                                 <span>{item.label}</span>
-                            </Link>
+                            </MotionLink>
                         ))}
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden">
-                        <button
-                            onClick={() => setIsOpen(true)}
-                            className="p-2 rounded-md hover:bg-accent transition"
-                        >
-                            <Menu size={24} />
-                        </button>
-                    </div>
+                    <button onClick={() => setIsOpen(true)} className="md:hidden p-2 rounded-md hover:bg-accent">
+                        <Menu size={24} />
+                    </button>
                 </div>
             </div>
 
-            {/* Mobile Sidebar Menu */}
-            <div className={`fixed inset-0 z-40 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
-                <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
-                <div className="relative bg-card w-64 h-full shadow-lg p-6 space-y-6 bg-white">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                                 <img src="./src/assets/logo.svg" ></img>
-                            </div>
-                            <span className="font-semibold text-lg">Skillora</span>
-                        </div>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            className="p-2 rounded-md hover:bg-accent transition"
+            {/* Mobile Sidebar */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        className="fixed inset-0 z-40 bg-black/40"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsOpen(false)}
+                    >
+                        <motion.div
+                            className="absolute left-0 top-0 w-64 h-full bg-white p-6 shadow-lg"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'tween', duration: 0.3 }}
+                            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
                         >
-                            <X size={24} />
-                        </button>
-                    </div>
-                    <div className="flex flex-col space-y-3 mt-6">
-                        {allItems.map((item) => (
-                            <Link
-                                key={item.id}
-                                to={item.path}
-                                onClick={() => setIsOpen(false)} 
-                                className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition ${location.pathname === item.path
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                                }`}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                        <img src="./src/assets/logo.svg" alt="logo" />
+                                    </div>
+                                    <span className="font-semibold text-lg">Skillora</span>
+                                </div>
+                                <button onClick={() => setIsOpen(false)} className="p-2 rounded-md hover:bg-accent">
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="flex flex-col space-y-3">
+                                {allItems.map((item, idx) => (
+                                    <MotionLink
+                                        key={item.id}
+                                        to={item.path}
+                                        onClick={() => setIsOpen(false)}
+                                        className={`flex items-center space-x-3 px-4 py-3 rounded-md text-sm font-medium transition ${
+                                            location.pathname === item.path
+                                                ? "bg-primary text-primary-foreground"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        }`}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                    >
+                                        {item.icon}
+                                        <span>{item.label}</span>
+                                    </MotionLink>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </nav>
     );
 };
