@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
 
-interface Course {
-    id: string;
-    name: string;
-    description: string;
-}
+// interface Course {
+//     id: string;
+//     name: string;
+//     description: string;
+// }
 
 interface DataContextType {
-    courses: Course[];
+    // courses: Course[];
     loading: boolean;
     profile: UserProfile | null;
     writeQueryOnDate: (question_data: Query) => void;
@@ -54,7 +54,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const [courses, setCourses] = useState<Course[]>([]);
+    // const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [contributors, setcontributers] = useState<Contributor[]>()
@@ -181,7 +181,7 @@ fetchData();
     }, []);
 return (
     <DataContext.Provider value={{
-        courses,
+        // courses,
         loading,
         profile,
         writeQueryOnDate,

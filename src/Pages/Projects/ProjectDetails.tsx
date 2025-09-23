@@ -1,9 +1,9 @@
 // src/components/ProjectDetail.tsx
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   doc,
-  getDoc,
+
   onSnapshot,
   collection,
   query,
@@ -11,15 +11,15 @@ import {
   addDoc,
   updateDoc,
   serverTimestamp,
-  runTransaction,
+  // runTransaction,
 } from "firebase/firestore";
 import type { DocumentData } from "firebase/firestore";
-import { Edit2, MessageCircle, UserPlus, AlertTriangle, Plus, Send } from "lucide-react";
+import { Edit2, MessageCircle, UserPlus,  Plus, Send } from "lucide-react";
 import { db } from "../../service/Firebase";
 import { useAuth } from "../../Context/AuthContext";
 import { IssueModal } from "../../Component/ProjectComponent/Modal/IssueModal";
 import CreateNewPost from "../../Component/ProjectComponent/Modal/CreateNewPost";
-import { useDataContext } from "../../Context/UserDataContext";
+// import { useDataContext } from "../../Context/UserDataContext";
 import ApplyModal from "../../Component/ProjectComponent/Modal/ApplyModal";
 
 type Role = "Creator" | "Contributor" | "Viewer" | "Guest" | "HR";
@@ -36,7 +36,7 @@ export default function ProjectDetail() {
   const [modalType, setModalType] = useState<ModalType>(null);
   // Context 
   const { user } = useAuth()
-  const { addObjectToUserArray } = useDataContext()
+  // const { addObjectToUserArray } = useDataContext()
 
   const [role, setRole] = useState<Role>('Creator');
 
@@ -181,66 +181,66 @@ export default function ProjectDetail() {
 
   // Apply Application
 
-  const applyApplication = async (
-    projectId: string,
-    des: string,
-    role: string,
+  // const applyApplication = async (
+  //   projectId: string,
+  //   des: string,
+  //   role: string,
    
-  ) => {
-    if (!user) return alert("Please log in to apply");
-    if (!projectId) return alert("Invalid project ID");
-    try {
-      const updateProfile = {
-        project_id: id,
-        appliedAt: serverTimestamp(),
-        role: role,
-        status: 'Pending'
-      }
-      const newApp = {
-        userId: user.uid,
-        name: user.displayName || user.email || "Anonymous",
-        description: des,
-        role: role,
-        status: "Pending",
-        appliedAt: serverTimestamp(),
+  // ) => {
+  //   if (!user) return alert("Please log in to apply");
+  //   if (!projectId) return alert("Invalid project ID");
+  //   try {
+  //     const updateProfile = {
+  //       project_id: id,
+  //       appliedAt: serverTimestamp(),
+  //       role: role,
+  //       status: 'Pending'
+  //     }
+  //     const newApp = {
+  //       userId: user.uid,
+  //       name: user.displayName || user.email || "Anonymous",
+  //       description: des,
+  //       role: role,
+  //       status: "Pending",
+  //       appliedAt: serverTimestamp(),
 
-      };
-      addObjectToUserArray(user?.uid, 'applied_project_list', updateProfile)
-      await addDoc(collection(db, "Open_Projects", id as string, "applications"), newApp);
+  //     };
+  //     addObjectToUserArray(user?.uid, 'applied_project_list', updateProfile)
+  //     await addDoc(collection(db, "Open_Projects", id as string, "applications"), newApp);
 
-    } catch (err: any) {
-      console.error("Application error:", err);
-      alert(err.message || "Failed to apply");
-    }
-  };
+  //   } catch (err: any) {
+  //     console.error("Application error:", err);
+  //     alert(err.message || "Failed to apply");
+  //   }
+  // };
 
   // Apply for a vacant member slot (transaction safe)
-  const acceptContributer = async (postid: string, userUId: string, UserName: String, userEmail: string) => {
-    if (!user) return alert("Please login to apply");
-    if (!id) return;
-    setLoadingAction(true);
-    const memberRef = doc(db, "Open_Projects", id, "members", postid);
-    try {
-      await runTransaction(db, async (tx) => {
-        const mSnap = await tx.get(memberRef);
-        if (!mSnap.exists()) throw new Error("Member slot not found");
-        const data = mSnap.data() as any;
-        if (data.userId) throw new Error("Slot already taken");
-        tx.update(memberRef, {
-          userId: userUId,
-          name: UserName,
-          email: userEmail,
-          status: "Occupied",
-        });
-      });
+  // const acceptContributer = async (postid: string, userUId: string, UserName: String, userEmail: string) => {
+  //   if (!user) return alert("Please login to apply");
+  //   if (!id) return;
+  //   setLoadingAction(true);
+  //   const memberRef = doc(db, "Open_Projects", id, "members", postid);
+  //   try {
+  //     await runTransaction(db, async (tx) => {
+  //       const mSnap = await tx.get(memberRef);
+  //       if (!mSnap.exists()) throw new Error("Member slot not found");
+  //       const data = mSnap.data() as any;
+  //       if (data.userId) throw new Error("Slot already taken");
+  //       tx.update(memberRef, {
+  //         userId: userUId,
+  //         name: UserName,
+  //         email: userEmail,
+  //         status: "Occupied",
+  //       });
+  //     });
 
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || "Could not apply");
-    } finally {
-      setLoadingAction(false);
-    }
-  };
+  //   } catch (err: any) {
+  //     console.error(err);
+  //     alert(err.message || "Could not apply");
+  //   } finally {
+  //     setLoadingAction(false);
+  //   }
+  // };
 
   // Add issue (Creator & Contributor)
   const handleAddIssue = async (title: String, description: String) => {

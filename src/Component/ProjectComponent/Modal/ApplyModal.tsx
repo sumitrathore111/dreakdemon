@@ -1,5 +1,5 @@
 // ApplicationModal.tsx
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type FormData = {
     des: string;
@@ -15,7 +15,7 @@ type Props = {
 export default function ApplyModal({
 
     onClose,
-    onSubmit
+    // onSubmit
 
 }: Props) {
     const initialState: FormData = { des: "" };
@@ -44,39 +44,41 @@ export default function ApplyModal({
         []
     );
 
-    const validate = (data: FormData) => {
-        const e: typeof errors = {};
-        if (!data.des.trim()) e.des = "Please describe how you fit for this role.";
-        return e;
-    };
+    // const validate = (data: FormData) => {
+    //     const e: typeof errors = {};
+    //     if (!data.des.trim()) e.des = "Please describe how you fit for this role.";
+    //     return e;
+    // };
 
-    const handleSubmit = async (ev?: React.FormEvent) => {
-        ev?.preventDefault();
-        setErrors({});
-        const validation = validate(form);
-        if (Object.keys(validation).length > 0) {
-            setErrors(validation);
-            answerRef.current?.focus();
-            return;
-        }
+    // const handleSubmit = async (ev?: React.FormEvent) => {
+    //     ev?.preventDefault();
+    //     setErrors({});
+    //     const validation = validate(form);
+    //     if (Object.keys(validation).length > 0) {
+    //         setErrors(validation);
+    //         answerRef.current?.focus();
+    //         return;
+    //     }
 
-        setIsSubmitting(true);
-        try {
-            if (onSubmit) {
-                await onSubmit(form);
-            } else {
-                // default behavior: just wait a tick (useful if parent didn't provide handler)
-                await new Promise((r) => setTimeout(r, 500));
-            }
-            setIsSubmitting(false);
-            onClose();
-        } catch (err: any) {
-            setIsSubmitting(false);
-            setErrors({ submit: err?.message ?? "Failed to submit. Please try again." });
-        }
-    };
+    //     setIsSubmitting(true);
+    //     try {
+    //         if (onSubmit) {
+    //             await onSubmit(form);
+    //         } else {
+    //             // default behavior: just wait a tick (useful if parent didn't provide handler)
+    //             await new Promise((r) => setTimeout(r, 500));
+    //         }
+    //         setIsSubmitting(false);
+    //         onClose();
+    //     } catch (err: any) {
+    //         setIsSubmitting(false);
+    //         setErrors({ submit: err?.message ?? "Failed to submit. Please try again." });
+    //     }
+    // };
 
-
+    useEffect(()=>{
+        setIsSubmitting(false)
+    })
 
     return (
         <div

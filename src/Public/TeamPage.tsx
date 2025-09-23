@@ -33,7 +33,7 @@ export function TeamPage() {
     {
       name: "Geet Srivastava",
       quote: "A great initiative with a supportive community. It’s amazing to see how much this team cares about making an impact.",
-      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758643144/Geet_y3etiz.jpg",
     },
   ];
 

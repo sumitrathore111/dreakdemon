@@ -221,7 +221,7 @@ const contributors: Contributor[] = [
     id: 6,
     name: "Geet Srivastava",
     avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758643144/Geet_y3etiz.jpg",
     contributions: 10,
     role: "Figma Expert",
     joinDate: "Sep 2025",

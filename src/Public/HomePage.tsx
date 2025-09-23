@@ -76,7 +76,7 @@ export function HomePage() {
     {
       name: "Geet Srivastava",
       quote: "A great initiative with a supportive community. It’s amazing to see how much this team cares about making an impact.",
-      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758643144/Geet_y3etiz.jpg",
     },
   ];
   return (
@@ -119,7 +119,7 @@ export function HomePage() {
 
             <div className="flex flex-wrap gap-4">
               <Link
-                to={"/about"}
+                to={"/commingsoon"}
                 className="px-6 py-3 text-white bg-black rounded-lg flex items-center"
               >
                 Get Started <ArrowRight className="w-4 h-4 ml-2" />

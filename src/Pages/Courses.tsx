@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useDataContext } from "../Context/UserDataContext";
+// import { useDataContext } from "../Context/UserDataContext";
 
 type Course = {
   id: string;
@@ -26,7 +26,7 @@ type EnrolledCourse = {
 };
 const Courses: React.FC = () => {
   
-  const { courses } = useDataContext()
+  // const { courses } = useDataContext()
   const navigation = useNavigate()
 
  
@@ -171,9 +171,9 @@ const Courses: React.FC = () => {
         </div>
 
 
-        {courses.length === 0 && (
+        {/* {courses.length === 0 && (
           <div className="mt-8 text-center text-gray-500">You haven’t enrolled in any courses yet.</div>
-        )}
+        )} */}
       </section>
 
       {/* Available Courses */}
@@ -251,9 +251,9 @@ const Courses: React.FC = () => {
         </div>
 
 
-        {courses.length === 0 && (
+        {/* {courses.length === 0 && (
           <div className="mt-8 text-center text-gray-500">No courses available right now.</div>
-        )}
+        )} */}
       </section>
 
     </div>

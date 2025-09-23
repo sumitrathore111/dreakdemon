@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../Context/AuthContext";
 import {
