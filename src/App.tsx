@@ -1,4 +1,4 @@
-import { useState, type JSX, Suspense, lazy } from "react";
+import { type JSX, Suspense, lazy } from "react";
 import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 
 import Navigation from "./Component/Nevigation";
@@ -45,7 +45,7 @@ function PublicLayout() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/teamElevana" element={<TeamPage />} />
+          <Route path="/team" element={<TeamPage />} />
           <Route path="/login" element={<LoginRedirect />} />
           <Route path="/signup" element={<SignupRedirect />} />
           <Route path="/commingsoon" element={<CommingSoon  />} />
@@ -62,7 +62,7 @@ function PublicLayout() {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <img src="./src/assets/logo.svg" ></img>
                 </div>
-                <span className="text-lg font-semibold">Skill India</span>
+                <span className="text-lg font-semibold">NextStep</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Empowering the next generation of tech professionals through
@@ -102,7 +102,7 @@ function PublicLayout() {
           </div>
 
           <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Skillindia. All rights reserved.</p>
+            <p>&copy; 2024 NextStep. All rights reserved.</p>
           </div>
         </div>
       </footer>

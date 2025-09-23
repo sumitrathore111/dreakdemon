@@ -19,7 +19,7 @@ const PublicNavBar = () => {
     const navItems = [
         { id: "home", label: "Home", icon: <Home className="w-5 h-5" />, path: '/' },
         { id: "about", label: "About", icon: <Info className="w-5 h-5" />, path: '/about' },
-        { id: "team", label: "Team", icon: <Users className="w-5 h-5" />, path: '/teamElevana' },
+        { id: "team", label: "Team", icon: <Users className="w-5 h-5" />, path: '/team' },
     ];
 
     const authItems = user
@@ -37,9 +37,9 @@ const PublicNavBar = () => {
                     {/* Logo */}
                     <Link to="/" className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <img src="./src/assets/logo.svg" alt="logo" />
+                            <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                         </div>
-                        <span className="font-semibold text-lg">Skillindia</span>
+                        <span className="font-semibold text-lg">NextStep</span>
                     </Link>
 
                     {/* Desktop Menu */}
@@ -92,9 +92,9 @@ const PublicNavBar = () => {
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center space-x-2">
                                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                                        <img src="./src/assets/logo.svg" alt="logo" />
+                                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                                     </div>
-                                    <span className="font-semibold text-lg">Skillindia</span>
+                                    <span className="font-semibold text-lg">NextStep</span>
                                 </div>
                                 <button onClick={() => setIsOpen(false)} className="p-2 rounded-md hover:bg-accent">
                                     <X size={24} />

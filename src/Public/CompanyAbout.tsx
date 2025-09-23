@@ -90,7 +90,7 @@ export function AboutPage() {
           <p className="text-gray-700">
             As students ourselves, we wanted to learn, build projects, and grow
             — but we didn’t always have the right support or structure. That’s
-            why we created Skillindia — a place where learning isn’t just about
+            why we created NextStep — a place where learning isn’t just about
             theory, but about action, collaboration, and growth.
           </p>
         </div>
@@ -134,7 +134,7 @@ export function AboutPage() {
         </div>
         <div className="overflow-hidden rounded-2xl shadow">
           <img
-            src="https://cdn.pixabay.com/photo/2024/04/18/10/09/ai-generated-8703972_1280.jpg"
+            src="https://res.cloudinary.com/doytvgisa/image/upload/v1758624468/Gemini_Generated_Image_c414u6c414u6c414_elixe0.png"
             alt="Mission"
             className="w-full h-96 object-cover transform transition-transform duration-1000 hover:scale-105"
           />

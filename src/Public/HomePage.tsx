@@ -69,14 +69,14 @@ export function HomePage() {
   };
   const testimonials = [
     {
-      name: "Neha Sharma",
+      name: "Diwakar Kumar",
       quote: "The platform has been a game-changer for connecting with like-minded people and exploring new opportunities!",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758559963/Diwaker_olmh3o.jpg",
     },
     {
-      name: "Raj Verma",
+      name: "Geet Srivastava",
       quote: "A great initiative with a supportive community. It’s amazing to see how much this team cares about making an impact.",
-      image: "https://randomuser.me/api/portraits/men/33.jpg",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
     },
   ];
   return (
@@ -108,7 +108,7 @@ export function HomePage() {
                 <span style={{ color: "#00ADB5" }}> Grow by Contributing</span>
               </h1>
               <p className="text-lg text-gray-600 max-w-xl">
-                Skillora is a smart platform designed for students who want to
+                NextStep is a smart platform designed for students who want to
                 learn, grow, and showcase their abilities. It’s more than just a
                 resume builder – it’s a complete ecosystem where students can
                 contribute to real open-source projects, gain practical

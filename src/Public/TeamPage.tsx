@@ -1,41 +1,10 @@
-import { Linkedin, Github, Mail, Target, Users, Lightbulb } from "lucide-react";
+import { Target, Users, Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
 import ContributorSection from "../Component/Global/ContributorSection";
 import { Link } from "react-router-dom";
 
 export function TeamPage() {
-  const teamMembers = [
-    {
-      name: "Mohit Sharma",
-      role: "Founder & Visionary",
-      image: "https://randomuser.me/api/portraits/men/75.jpg",
-      socials: {
-        linkedin: "#",
-        github: "#",
-        email: "itzmohitsharma20@gmail.com",
-      },
-    },
-    {
-      name: "Ansh Jaiswal",
-      role: "HR Executive / Manager",
-      image: "https://randomuser.me/api/portraits/men/45.jpg",
-      socials: {
-        linkedin: "#",
-        github: "#",
-        email: "mailto:ansh@example.com",
-      },
-    },
-    {
-      name: "Sumit Rathore",
-      role: "Community Head && AI / ML Engineer",
-      image: "https://randomuser.me/api/portraits/women/65.jpg",
-      socials: {
-        linkedin: "#",
-        github: "#",
-        email: "mailto:sumit@example.com",
-      },
-    },
-  ];
+  
 
   const highlights = [
     {
@@ -57,14 +26,14 @@ export function TeamPage() {
 
   const testimonials = [
     {
-      name: "Neha Sharma",
+      name: "Diwakar Kumar",
       quote: "The platform has been a game-changer for connecting with like-minded people and exploring new opportunities!",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758559963/Diwaker_olmh3o.jpg",
     },
     {
-      name: "Raj Verma",
+      name: "Geet Srivastava",
       quote: "A great initiative with a supportive community. It’s amazing to see how much this team cares about making an impact.",
-      image: "https://randomuser.me/api/portraits/men/33.jpg",
+      image: "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
     },
   ];
 

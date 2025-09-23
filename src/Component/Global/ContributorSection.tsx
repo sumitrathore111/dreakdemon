@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useDataContext } from "../../Context/UserDataContext";
 
 const slideVariants = {
   hiddenLeft: { opacity: 0, x: -50, y: 30 },
@@ -186,7 +185,7 @@ const contributors: Contributor[] = [
     id: 3,
     name: "Sumit Rathore",
     avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758621217/Sumit_tbrblr.jpg",
     contributions: 15,
     role: "AI/ML Engineer",
     joinDate: "July 2025",
@@ -218,6 +217,18 @@ const contributors: Contributor[] = [
     isTopContributor: false,
     from: 'BBD University'
   },
+  {
+    id: 6,
+    name: "Geet Srivastava",
+    avatar:
+      "https://res.cloudinary.com/doytvgisa/image/upload/v1758623925/Screenshot_2025-09-23_160822_wamrtb.png",
+    contributions: 10,
+    role: "Figma Expert",
+    joinDate: "Sep 2025",
+    specialties: ["Figma", "Java", "Backend"],
+    isTopContributor: false,
+    from: 'BBD University'
+  },
 ];
 
 export default function ContributorSection() {
@@ -228,7 +239,6 @@ export default function ContributorSection() {
     0
   );
 
-  const { pushDataToFirestore } = useDataContext()
 
   return (
     <div className="min-h-screen bg-white">
