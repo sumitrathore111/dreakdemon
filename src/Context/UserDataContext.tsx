@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, query, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
@@ -14,14 +14,14 @@ import { db } from "../service/Firebase";
 interface DataContextType {
     // courses: Course[];
     loading: boolean;
-    profile: UserProfile | null;
+    userprofile:any
     writeQueryOnDate: (question_data: Query) => void;
     fetchTodayQueries: () => Promise<Object[]>;
     addObjectToUserArray: (uid: string, arrayField: string, objectToAdd: any) => void
     pushDataToFirestore: (collectionName: string, dataList: object[]) => void
     contributors: Contributor[] | undefined
-    avatrUrl:string
-
+    avatrUrl: string
+    pushDataWithId: (data: any) => void
 }
 interface Contributor {
     id: string;
@@ -34,12 +34,7 @@ interface Contributor {
     isTopContributor: boolean;
     from: string
 }
-interface UserProfile {
-    id: string;
-    name: string;
-    email: string;
-    role?: string;
-}
+
 
 type Query = {
     id: number;
@@ -55,7 +50,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { user } = useAuth();
     // const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [userprofile, setProfile] = useState<any>(null);
     const [contributors, setcontributers] = useState<Contributor[]>()
     const [avatrUrl, setAvatarUrl] = useState('')
 
@@ -134,6 +129,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }
 
+    const pushDataWithId = async (data: any) => {
+        if (user) {
+            await setDoc(doc(db, "users", user?.uid), data);
+
+        }
+    };
+
     useEffect(() => {
         const seed = Math.floor(Math.random() * maleAvatarLilst.length) + 1;
         const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${maleAvatarLilst[seed]}`;
@@ -155,7 +157,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    setProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+                    setProfile({ id: docSnap.id, ...docSnap.data() });
                 } else {
                     console.warn("No user profile found in Firestore");
                     setProfile(null);
@@ -185,13 +187,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     specialties: doc.data().specialties,
                     isTopContributor: doc.data().isTopContributor,
                     from: doc.data().from
-
-
-
-
-
                 }));
-                setcontributers(data); // store in variable
+                setcontributers(data);
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -203,13 +200,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         <DataContext.Provider value={{
             // courses,
             loading,
-            profile,
+            userprofile,
             writeQueryOnDate,
             fetchTodayQueries,
             addObjectToUserArray,
             pushDataToFirestore,
             contributors,
-            avatrUrl
+            avatrUrl, 
+            pushDataWithId
         }}>
             {children}
         </DataContext.Provider>

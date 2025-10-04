@@ -1,5 +1,5 @@
 import { type JSX, Suspense, lazy } from "react";
-import { Navigate, Route, Routes, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import Navigation from "./Component/Nevigation";
 
@@ -7,10 +7,9 @@ import Navigation from "./Component/Nevigation";
 import { AuthProvider, useAuth } from "./Context/AuthContext";
 import { DataProvider } from "./Context/UserDataContext";
 
-import DeviceCheck from "./Component/DeviceCheck";
 import PublicNavBar from "./Public/PublicNevBar";
 import ScrollToTop from "./Component/ScrollToTop";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import ProjectDetail from "./Pages/Projects/ProjectDetails";
 import ResumePreview from "./Pages/Resume/ResumePreview";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
@@ -22,11 +21,8 @@ const TeamPage = lazy(() => import("./Public/TeamPage").then(mod => ({ default: 
 const Login = lazy(() => import("./Auth/LoginScreen"));
 const Signup = lazy(() => import("./Auth/SignupScreen"));
 
-const Dashboard = lazy(() => import("./Pages/Dashboard/Dashboard"));
-const Showcase = lazy(() => import("./Pages/Showcase"));
 // const ProjectContribution = lazy(() => import("./Pages/ProjectContribution"));
 const OpenProject = lazy(() => import("./Pages/Projects/OpenProject"));
-const Courses = lazy(() => import("./Pages/Courses"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
 const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
@@ -122,34 +118,6 @@ function LoginRedirect() {
 function SignupRedirect() {
   const { user } = useAuth();
   return user ? <Navigate to="/dashboard" replace /> : <Signup />;
-}
-
-function PrivateLayout() {
-
-
-
-  return (
-    <motion.div
-      className="h-screen flex bg-gray-200 overflow-hidden"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.8 }}
-    >
-      <Route path="dashboard/*" element={<Navigation />}>
-        <Route path="openproject" element={<OpenProject />} />
-        <Route path="openproject/:id" element={<ProjectDetail />} />
-        <Route path="courses" element={<Courses />} />
-        <Route path="query" element={<QueryScreen />} />
-        <Route path="intership" element={<Intership />} />
-        <Route path="company_req" element={<Company_Req />} />
-        <Route path="marathon" element={<Marathon />} />
-        <Route path="profile" element={<ProfileInfo />} />
-
-      </Route>
-
-    </motion.div>
-  );
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {

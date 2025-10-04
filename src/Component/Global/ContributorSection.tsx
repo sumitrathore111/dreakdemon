@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useDataContext } from "../../Context/UserDataContext";
 
 const slideVariants = {
   hiddenLeft: { opacity: 0, x: -50, y: 30 },
@@ -74,7 +75,7 @@ function AvatarFallback({ children }: React.HTMLAttributes<HTMLDivElement>) {
 }
 
 interface Contributor {
-  id: number;
+  id: string;
   name: string;
   avatar: string;
   contributions: number;
@@ -86,14 +87,16 @@ interface Contributor {
 }
 
 function ContributorCard({
-  contributor,
+  contributordata,
   isHighlighted = false,
   index,
 }: {
-  contributor: Contributor;
+  contributordata: Contributor;
   isHighlighted?: boolean;
   index: number;
 }) {
+  if (!contributordata) return <p>Loading...</p>;
+
   return (
     <motion.div
       variants={slideVariants}
@@ -109,9 +112,9 @@ function ContributorCard({
         <CardContent>
           <div className="flex items-start gap-4 mb-4 mt-4">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={contributor.avatar} alt={contributor.name} />
+              <AvatarImage src={contributordata.avatar} alt={contributordata.name} />
               <AvatarFallback>
-                {contributor.name
+                {Array.isArray(contributordata?.name)&&contributordata.name
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
@@ -119,19 +122,19 @@ function ContributorCard({
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="truncate">{contributor.name}</h3>
-                {contributor.isTopContributor && (
+                <h3 className="truncate">{contributordata.name}</h3>
+                {contributordata.isTopContributor && (
                   <Badge className="bg-yellow-400 text-white text-xs px-2 py-1">
                     ⭐ Top
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-500 mb-2">{contributor.role}</p>
+              <p className="text-sm text-gray-500 mb-2">{contributordata.role}</p>
               <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span>{contributor.contributions} contributions</span>
-                <span>Since {contributor.joinDate}</span>
+                <span>{contributordata.contributions} contributions</span>
+                <span>Since {contributordata.joinDate}</span>
               </div>
-              <p className="text-sm text-gray-800 mb-2 mt-2" style={{ fontWeight: 'bold' }} >{contributor.from}</p>
+              <p className="text-sm text-gray-800 mb-2 mt-2" style={{ fontWeight: 'bold' }} >{contributordata.from}</p>
             </div>
           </div>
 
@@ -139,14 +142,12 @@ function ContributorCard({
             <div>
               <p className="text-sm text-gray-500 mb-2">Specialties:</p>
               <div className="flex flex-wrap gap-1">
-                {contributor.specialties.map((s, i) => (
-                  <Badge
-                    key={i}
-                    className="border border-gray-300 text-xs px-2 py-1"
-                  >
-                    {s}
-                  </Badge>
-                ))}
+                {Array.isArray(contributordata?.specialties) &&
+                  contributordata.specialties.map((s, i) => (
+                    <Badge key={i} className="border border-gray-300 text-xs px-2 py-1">
+                      {s}
+                    </Badge>
+                  ))}
               </div>
             </div>
           </div>
@@ -156,90 +157,21 @@ function ContributorCard({
   );
 }
 
-const contributors: Contributor[] = [
-  {
-    id: 1,
-    name: "Mohit Sharma",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758555573/MohitSharma.png",
-    contributions: 45,
-    role: "Lead Developer",
-    joinDate: "June 2025",
-    specialties: ["React", "TypeScript", "Cloud Computing", "Machine Learning"],
-    isTopContributor: true,
-    from: 'BBD University'
-  },
-  {
-    id: 2,
-    name: "Ansh Jaiswal",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758558389/Ansh_ek6vtz.jpg",
-    contributions: 20,
-    role: "Backend Developer",
-    joinDate: "July 2025",
-    specialties: ["Node.js", "Database", "API Design"],
-    isTopContributor: true,
-    from: 'BBD University'
-  },
-  {
-    id: 3,
-    name: "Sumit Rathore",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758621217/Sumit_tbrblr.jpg",
-    contributions: 15,
-    role: "AI/ML Engineer",
-    joinDate: "July 2025",
-    specialties: ["Figma", "Backend", "AI/ML Engineer"],
-    isTopContributor: true,
-    from: 'Future University '
-  },
-  {
-    id: 4,
-    name: "Diwakar Kumar",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758559963/Diwaker_olmh3o.jpg",
-    contributions: 10,
-    role: "Python Developer",
-    joinDate: "Aug 2025",
-    specialties: ["Python", "Problem Solving", "DSA"],
-    isTopContributor: false,
-    from: 'Indian Institute of Engineering Science And Technology'
-  },
-  {
-    id: 5,
-    name: "Mohd Abbas Haider",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758560710/Valorent_iimzws.jpg",
-    contributions: 10,
-    role: "Cyber Security",
-    joinDate: "Aug 2025",
-    specialties: ["C", "Problem Solving", "Computer Networking", "Cyber Security"],
-    isTopContributor: false,
-    from: 'BBD University'
-  },
-  {
-    id: 6,
-    name: "Geet Srivastava",
-    avatar:
-      "https://res.cloudinary.com/doytvgisa/image/upload/v1758643144/Geet_y3etiz.jpg",
-    contributions: 10,
-    role: "Figma Expert",
-    joinDate: "Sep 2025",
-    specialties: ["Figma", "Java", "Backend"],
-    isTopContributor: false,
-    from: 'BBD University'
-  },
-];
+
 
 export default function ContributorSection() {
-  const topContributors = contributors.filter((c) => c.isTopContributor);
-  const recentContributors = contributors.filter((c) => !c.isTopContributor);
-  const totalContributions = contributors.reduce(
+  const { contributors } = useDataContext()
+
+  const topContributors = contributors?.filter((c) => c.isTopContributor);
+  const recentContributors = contributors?.filter((c) => !c.isTopContributor);
+  const totalContributions = contributors?.reduce(
     (sum, c) => sum + c.contributions,
     0
   );
 
-
+  if (!contributors) {
+    return null
+  }
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto p-6 max-w-7xl">
@@ -258,7 +190,7 @@ export default function ContributorSection() {
             we've made {totalContributions} contributions and counting!
           </p>
           <Badge className="px-4 py-2 bg-teal-500 text-white font-bold">
-            {contributors.length} Community Members
+            {contributors?.length} Community Members
           </Badge>
         </motion.div>
 
@@ -281,8 +213,8 @@ export default function ContributorSection() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topContributors.map((c, i) => (
-              <ContributorCard key={c.id} contributor={c} isHighlighted index={i} />
+            {topContributors?.map((c, i) => (
+              <ContributorCard key={c.id} contributordata={c} isHighlighted index={i} />
             ))}
           </div>
         </section>
@@ -304,8 +236,8 @@ export default function ContributorSection() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentContributors.map((c, i) => (
-              <ContributorCard key={c.id} contributor={c} index={i} />
+            {recentContributors?.map((c, i) => (
+              <ContributorCard key={c.id} contributordata={c} index={i} />
             ))}
           </div>
         </section>

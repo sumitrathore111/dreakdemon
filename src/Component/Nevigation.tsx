@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
   Home,
   FileText,
   Folder,
-  Activity,
-  User,
+ 
+ 
   Settings,
   MessageSquare,
   UserCircle,
@@ -87,6 +87,7 @@ export default function DashboardLayout() {
                 <div key={item.name} className="relative group">
                   <Link
                     to={item.path}
+                    onClick={()=>setIsDrawerOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors
                       ${isActive
                         ? "text-white"

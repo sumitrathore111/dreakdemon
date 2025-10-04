@@ -23,7 +23,7 @@ const PublicNavBar = () => {
     ];
 
     const authItems = user
-        ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/dashboard' }]
+        ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/dashboard/db' }]
         : [{ id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' }];
 
     const allItems = [...navItems, ...authItems];

@@ -59,7 +59,7 @@ interface ProfileData {
   links: Link[];
   profileCompletion: number,
   languages: Array<String>,
-  yearOfStudy:number
+  yearOfStudy: number
 
 }
 
@@ -68,34 +68,20 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [profile, setProfile] = useState<ProfileData>({
-    name: "John Student",
-    email: "john.student@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    institute: "Tech University",
-    bio: "Passionate software developer with experience in full-stack development. Always eager to learn new technologies and contribute to innovative projects.",
-    skills: ["JavaScript", "React", "Node.js", "Python"],
-    education: [
-      { degree: "B.Tech CSE", school: "Tech University", year: "2022–2026" },
-    ],
-    experience: [
-      {
-        title: "Frontend Intern",
-        company: "StartupX",
-        year: "2024",
-        desc: "Worked on React components, Tailwind styling, and API integration.",
-      },
-    ],
-    achievements: ["Won Hackathon 2023", "Certified in AWS Cloud"],
-    links: [
-      { platform: "GitHub", url: "https://github.com/johnstudent" },
-      { platform: "LinkedIn", url: "https://linkedin.com/in/johnstudent" },
-    ],
-    profileCompletion: 85,
-    languages:['Hindi' , "English"],
-    yearOfStudy: 3,
-
-
+    name: "Your Name",
+    email: "you@example.com",
+    phone: "9999999999",
+    location: "Location",
+    institute: "University Name",
+    bio: "About yourself",
+    skills: [],
+    education: [],
+    experience: [],
+    achievements: [],
+    links: [],
+    profileCompletion: 0,
+    languages: [],
+    yearOfStudy: 0,
   });
 
   const [newAchievement, setNewAchievement] = useState("");
@@ -111,10 +97,9 @@ export default function Profile() {
     desc: "",
   });
   const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
-  const [gender , setgender ] = useState('Male')
-  const {avatrUrl} = useDataContext()
+  const [gender, setgender] = useState('Male')
+  const { avatrUrl, pushDataWithId, userprofile } = useDataContext()
 
-  // Handlers (no change in functionality)
   const handleAddSkill = () => {
     const skill = newSkill.trim();
     if (skill && !profile.skills.includes(skill)) {
@@ -133,7 +118,10 @@ export default function Profile() {
     }));
   };
 
-  const handleSave = () => setIsEditing(false);
+  const handleSave = () => {
+    pushDataWithId(profile)
+    setIsEditing(false);
+  }
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: keyof ProfileData
@@ -142,6 +130,7 @@ export default function Profile() {
       ...prev,
       [field]: e.target.value,
     }));
+
   };
 
   const handleAddAchievement = () => {
@@ -207,7 +196,10 @@ export default function Profile() {
       links: prev.links.filter((_, i) => i !== index),
     }));
   };
-
+  useEffect(() => {
+    setProfile(userprofile)
+    setgender("male")
+  }, [])
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6">
@@ -269,7 +261,7 @@ export default function Profile() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-green-600" />
-                  <span>{profile.phone}</span>
+                  <span>+ 91 {profile.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-purple-600" />
@@ -612,7 +604,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-2">
+          {isEditing ? <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Add new skill..."
               value={newSkill}
@@ -625,7 +617,7 @@ export default function Profile() {
             <Button onClick={handleAddSkill} disabled={!isEditing}>
               <Plus className="h-4 w-4" />
             </Button>
-          </div>
+          </div> : null}
           <div className="flex flex-wrap gap-2">
             {profile.skills.map((skill, i) => (
               <Badge
