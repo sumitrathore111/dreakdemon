@@ -20,7 +20,7 @@ interface DataContextType {
     addObjectToUserArray: (uid: string, arrayField: string, objectToAdd: any) => void
     pushDataToFirestore: (collectionName: string, dataList: object[]) => void
     contributors: Contributor[] | undefined
-
+    avatrUrl:string
 
 }
 interface Contributor {
@@ -49,7 +49,6 @@ type Query = {
     createdAt: Timestamp;
     userId?: string;
 }
-
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -58,6 +57,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [loading, setLoading] = useState<boolean>(false);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [contributors, setcontributers] = useState<Contributor[]>()
+    const [avatrUrl, setAvatarUrl] = useState('')
+
+    const maleAvatarLilst = [
+        "Eliza",
+        "Easton",
+        "Brian",
+        "Liam",
+        "Jessica",
+        "Destiny",
+        "Luis",
+        "Chase",
+        "Ryan",
+    ];
 
     const getTodayRange = () => {
         const now = new Date();
@@ -121,6 +133,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.error("Error adding data: ", error);
         }
     }
+
+    useEffect(() => {
+        const seed = Math.floor(Math.random() * maleAvatarLilst.length) + 1;
+        const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${maleAvatarLilst[seed]}`;
+        setAvatarUrl(url);
+
+    }, [])
+
     useEffect(() => {
         if (!user) {
             setProfile(null);
@@ -167,32 +187,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     from: doc.data().from
 
 
-                   
-                
-                    
+
+
+
                 }));
-    setcontributers(data); // store in variable
-} catch (error) {
-    console.error("Error fetching data:", error);
-}
+                setcontributers(data); // store in variable
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         };
 
-fetchData();
+        fetchData();
     }, []);
-return (
-    <DataContext.Provider value={{
-        // courses,
-        loading,
-        profile,
-        writeQueryOnDate,
-        fetchTodayQueries,
-        addObjectToUserArray,
-        pushDataToFirestore,
-        contributors
-    }}>
-        {children}
-    </DataContext.Provider>
-);
+    return (
+        <DataContext.Provider value={{
+            // courses,
+            loading,
+            profile,
+            writeQueryOnDate,
+            fetchTodayQueries,
+            addObjectToUserArray,
+            pushDataToFirestore,
+            contributors,
+            avatrUrl
+        }}>
+            {children}
+        </DataContext.Provider>
+    );
 };
 
 export const useDataContext = () => {

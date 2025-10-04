@@ -1,114 +1,48 @@
-import React, {  useEffect, useState } from "react";
+import React from "react";
+import { motion } from "framer-motion";
 
-const Dashboard: React.FC = () => {
-
-  const [level] = useState(4);
-  const [xp, setXp] = useState(320);
-  const xpRequired = 500;
-  
-  const progressPercent = (xp / xpRequired) * 100;
-
-  const tasks = [
-    { id: 1, text: "Complete React Basics", done: true },
-    { id: 2, text: "Build Final Project", done: false },
-    { id: 3, text: "Pass Level 5 Quiz", done: false },
-  ];
-
-  const notifications = [
-    { id: 1, text: "🎉 You unlocked Level 4!", type: "success" },
-    { id: 2, text: "📢 New event: Hackathon starts this Sunday!", type: "info" },
-  ];
-
-  const messages = [
-    { id: 1, from: "Admin", text: "Welcome to the community! 🎉" },
-    { id: 2, from: "John", text: "Need help with Tailwind styling?" },
-  ];
-  useEffect(()=>{
-    setXp(250)
-  },[])
-
+export default function DashboardComingSoon() {
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold mb-6">📊 Your Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Progress Overview */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Progress Overview</h2>
-          <p>Level: <span className="font-bold">{level}</span></p>
-          <p>XP: {xp} / {xpRequired}</p>
-          <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
-            <div
-              className="bg-green-500 h-3 rounded-full"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-10 text-center"
+      >
+        {/* Icon */}
+        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-green-200 to-teal-200 flex items-center justify-center">
+          <span className="text-3xl font-bold text-white/80">📊</span>
         </div>
 
-        {/* Tasks */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Pending Tasks</h2>
-          <ul className="space-y-2">
-            {tasks.map(task => (
-              <li
-                key={task.id}
-                className={`p-3 rounded-lg flex justify-between items-center ${
-                  task.done ? "bg-green-100" : "bg-gray-100"
-                }`}
-              >
-                <span className={task.done ? "line-through text-gray-400" : ""}>
-                  {task.text}
-                </span>
-                {task.done ? "✔" : "⏳"}
-              </li>
-            ))}
+        {/* Heading */}
+        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+        <p className="mt-3 text-gray-500 text-sm max-w-md mx-auto">
+          Our dashboard is being prepared to give you powerful insights and
+          personalized metrics. Hang tight — it’s coming soon!
+        </p>
+
+        {/* Coming Soon Badge */}
+        <div className="mt-6 inline-block px-5 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white text-sm font-medium rounded-full shadow-md">
+          🚀 Coming Soon
+        </div>
+
+        {/* Features Preview */}
+        <div className="mt-8 bg-gray-50 rounded-lg p-5 text-left text-gray-600 text-sm">
+          <h3 className="font-semibold text-gray-700 mb-2">What’s coming:</h3>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Real-time analytics and charts</li>
+            <li>Quick overview of your activity</li>
+            <li>Notifications and reminders</li>
+            <li>Customizable widgets for your needs</li>
           </ul>
         </div>
 
-        {/* Notifications */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Notifications</h2>
-          <ul className="space-y-2">
-            {notifications.map(note => (
-              <li
-                key={note.id}
-                className={`p-3 rounded-lg ${
-                  note.type === "success"
-                    ? "bg-green-100"
-                    : "bg-blue-100"
-                }`}
-              >
-                {note.text}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Messages */}
-        <div className="bg-white p-6 rounded-lg shadow md:col-span-2">
-          <h2 className="text-lg font-semibold mb-2">Messages</h2>
-          <ul className="space-y-2">
-            {messages.map(msg => (
-              <li key={msg.id} className="border-b pb-2">
-                <p className="font-semibold">{msg.from}</p>
-                <p>{msg.text}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Leaderboard */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Leaderboard</h2>
-          <ol className="list-decimal list-inside">
-            <li>Mohit Sharma – 1500 XP</li>
-            <li>Sumit – 1400 XP</li>
-            <li>Ansh – 1350 XP</li>
-          </ol>
-        </div>
-      </div>
+        {/* Footer Note */}
+        <p className="mt-8 text-xs text-gray-400">
+          Last updated: Oct 4, 2025
+        </p>
+      </motion.div>
     </div>
   );
-};
-
-export default Dashboard;
+}

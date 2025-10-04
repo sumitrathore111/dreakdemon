@@ -16,8 +16,18 @@ import {
   Award,
   Globe,
 } from "lucide-react";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea } from "../../Component/Global/ui";
-
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Textarea,
+} from "../../Component/Global/ui";
+import { useDataContext } from "../../Context/UserDataContext";
 
 interface Education {
   degree: string;
@@ -47,11 +57,16 @@ interface ProfileData {
   experience: Experience[];
   achievements: string[];
   links: Link[];
+  profileCompletion: number,
+  languages: Array<String>,
+  yearOfStudy:number
+
 }
-type Gender = "male" | "female";
+
+
 export default function Profile() {
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [newSkill, setNewSkill] = useState<string>("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [newSkill, setNewSkill] = useState("");
   const [profile, setProfile] = useState<ProfileData>({
     name: "John Student",
     email: "john.student@example.com",
@@ -76,8 +91,14 @@ export default function Profile() {
       { platform: "GitHub", url: "https://github.com/johnstudent" },
       { platform: "LinkedIn", url: "https://linkedin.com/in/johnstudent" },
     ],
+    profileCompletion: 85,
+    languages:['Hindi' , "English"],
+    yearOfStudy: 3,
+
+
   });
-  const [newAchievement, setNewAchievement] = useState<string>("");
+
+  const [newAchievement, setNewAchievement] = useState("");
   const [newEducation, setNewEducation] = useState<Education>({
     degree: "",
     school: "",
@@ -89,7 +110,11 @@ export default function Profile() {
     year: "",
     desc: "",
   });
+  const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
+  const [gender , setgender ] = useState('Male')
+  const {avatrUrl} = useDataContext()
 
+  // Handlers (no change in functionality)
   const handleAddSkill = () => {
     const skill = newSkill.trim();
     if (skill && !profile.skills.includes(skill)) {
@@ -108,11 +133,7 @@ export default function Profile() {
     }));
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save changes to backend if needed
-  };
-
+  const handleSave = () => setIsEditing(false);
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: keyof ProfileData
@@ -122,36 +143,7 @@ export default function Profile() {
       [field]: e.target.value,
     }));
   };
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [gender, setGender] = useState<Gender>("male");
 
-  useEffect(() => {
-    generateAvatar("male"); // default
-  }, []);
-
-  const maleAvatarLilst = [
-    "Eliza",
-    'Easton',
-    'Brian',
-    'Liam',
-    'Jessica',
-    'Destiny',
-    'Luis',
-    'Chase',
-    'Ryan'
-  ]
-
-  const generateAvatar = (selectedGender: Gender) => {
-    setGender(selectedGender);
-    const seed = Math.floor(Math.random() * maleAvatarLilst.length) + 1;
-    const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${maleAvatarLilst[seed]}`;
-    setAvatarUrl(url);
-  };
-  const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
-
-
-
-  // 🔹 Achievements
   const handleAddAchievement = () => {
     if (newAchievement.trim()) {
       setProfile((prev) => ({
@@ -168,7 +160,6 @@ export default function Profile() {
     }));
   };
 
-  // 🔹 Education
   const handleAddEducation = () => {
     if (newEducation.degree && newEducation.school && newEducation.year) {
       setProfile((prev) => ({
@@ -185,7 +176,6 @@ export default function Profile() {
     }));
   };
 
-  // 🔹 Experience
   const handleAddExperience = () => {
     if (newExperience.title && newExperience.company) {
       setProfile((prev) => ({
@@ -202,7 +192,6 @@ export default function Profile() {
     }));
   };
 
-  // 🔹 Links
   const handleAddLink = () => {
     if (newLink.platform && newLink.url) {
       setProfile((prev) => ({
@@ -220,33 +209,30 @@ export default function Profile() {
   };
 
 
-
   return (
-    <div className="space-y-6 m-10">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Profile
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">
             Manage your personal information and skills
           </p>
         </div>
         <Button
           onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-          className=" hover:from-blue-700 hover:to-green-700"
-          style={{ backgroundColor: '#00ADB5' }}
+          className="hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
+          style={{ backgroundColor: "#00ADB5" }}
         >
           {isEditing ? (
             <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              <Save className="h-4 w-4 mr-2" /> Save Changes
             </>
           ) : (
             <>
-              <Edit3 className="h-4 w-4 mr-2" />
-              Edit Profile
+              <Edit3 className="h-4 w-4 mr-2" /> Edit Profile
             </>
           )}
         </Button>
@@ -254,9 +240,56 @@ export default function Profile() {
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Summary */}
+        <div>
+          <Card className="bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Profile Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-center">
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ backgroundColor: "#00ADB5" }}
+              >
+                {avatrUrl && (
+                  <img
+                    src={avatrUrl}
+                    alt="Random Avatar"
+                    className="w-full h-full rounded-full"
+                  />
+                )}
+              </div>
+              <h3 className="font-semibold">{profile.name}</h3>
+              <p className="text-sm text-gray-500">{profile.institute}</p>
+
+              <div className="space-y-2 mt-2 text-left">
+                <div className="flex items-center gap-2 text-sm break-all">
+                  <Mail className="h-4 w-4 text-blue-600" />
+                  <span className="truncate">{profile.email}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-green-600" />
+                  <span>{profile.phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-purple-600" />
+                  <span>{profile.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Building className="h-4 w-4 text-orange-600" />
+                  <span>{profile.institute}</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm">
+                  <FileText className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                  <span className="break-words">{profile.bio}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         {/* Basic Information */}
         <div className="lg:col-span-2">
-          <Card className="bg-white/80 backdrop-blur-sm ">
+          <Card className="bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-600" />
@@ -297,22 +330,20 @@ export default function Profile() {
                   />
                 </div>
                 <div>
-
                   <Label htmlFor="Gender">Gender</Label>
                   <select
                     className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
                     value={gender}
-                  // onChange={(e) => setGender(e.target.value)}
                   >
                     <option value="">Select your gender</option>
-                    <option value="male">Male ♂</option>
-                    <option value="female">Female ♀</option>
-                    <option value="other">Other ⚧</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>
-              <div
-              >
+
+              <div>
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
@@ -338,59 +369,22 @@ export default function Profile() {
           </Card>
         </div>
 
-        {/* Profile Summary */}
-        <div>
-          <Card className="bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Profile Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-center">
-              <div className="w-20 h-20  rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: '#00ADB5' }}>
-                {avatarUrl && <img src={avatarUrl} alt="Random Avatar" className="w-full h-full" />}
-              </div>
-              <h3 className="font-semibold">{profile.name}</h3>
-              <p className="text-sm text-gray-500">{profile.institute}</p>
 
-              <div className="space-y-2 mt-2 text-left">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-blue-600" />
-                  <span className="truncate">{profile.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-green-600" />
-                  <span>{profile.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-purple-600" />
-                  <span>{profile.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Building className="h-4 w-4 text-orange-600" />
-                  <span>{profile.institute}</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-pink-600 flex-shrink-0" />
-                  <span>{profile.bio}</span>
-                </div>
-
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
-      
-      
+      {/* Education */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-indigo-600" />
-            Education
+            <GraduationCap className="h-5 w-5 text-indigo-600" /> Education
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {profile.education.map((edu, i) => (
-            <div key={i} className="flex justify-between items-center">
+            <div
+              key={i}
+              className="flex flex-col sm:flex-row justify-between sm:items-center gap-2"
+            >
               <div>
                 <p className="font-semibold">{edu.degree}</p>
                 <p className="text-sm text-gray-500">
@@ -409,7 +403,7 @@ export default function Profile() {
             </div>
           ))}
           {isEditing && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Input
                 placeholder="Degree"
                 value={newEducation.degree}
@@ -443,13 +437,16 @@ export default function Profile() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-yellow-600" />
-            Experience / Projects
+            <Briefcase className="h-5 w-5 text-yellow-600" /> Experience /
+            Projects
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {profile.experience.map((exp, i) => (
-            <div key={i} className="flex justify-between items-start">
+            <div
+              key={i}
+              className="flex flex-col sm:flex-row justify-between sm:items-start gap-2"
+            >
               <div>
                 <p className="font-semibold">{exp.title}</p>
                 <p className="text-sm text-gray-600">
@@ -469,7 +466,7 @@ export default function Profile() {
             </div>
           ))}
           {isEditing && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
               <Input
                 placeholder="Title"
                 value={newExperience.title}
@@ -481,7 +478,10 @@ export default function Profile() {
                 placeholder="Company"
                 value={newExperience.company}
                 onChange={(e) =>
-                  setNewExperience({ ...newExperience, company: e.target.value })
+                  setNewExperience({
+                    ...newExperience,
+                    company: e.target.value,
+                  })
                 }
               />
               <Input
@@ -510,13 +510,16 @@ export default function Profile() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-green-600" />
-            Achievements
+            <Award className="h-5 w-5 text-green-600" /> Achievements
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {profile.achievements.map((ach, i) => (
-            <Badge key={i} variant="secondary" className="flex items-center gap-1">
+            <Badge
+              key={i}
+              variant="secondary"
+              className="flex items-center gap-1"
+            >
               {ach}
               {isEditing && (
                 <Button
@@ -531,7 +534,7 @@ export default function Profile() {
             </Badge>
           ))}
           {isEditing && (
-            <div className="flex gap-2 w-full">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Input
                 placeholder="New achievement"
                 value={newAchievement}
@@ -549,18 +552,20 @@ export default function Profile() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-blue-600" />
-            Links
+            <Globe className="h-5 w-5 text-blue-600" /> Links
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {profile.links.map((link, i) => (
-            <div key={i} className="flex justify-between items-center">
+            <div
+              key={i}
+              className="flex flex-col sm:flex-row justify-between sm:items-center gap-2"
+            >
               <a
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline break-all"
               >
                 {link.platform}: {link.url}
               </a>
@@ -576,7 +581,7 @@ export default function Profile() {
             </div>
           ))}
           {isEditing && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Platform"
                 value={newLink.platform}
@@ -607,7 +612,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Add new skill..."
               value={newSkill}
@@ -623,7 +628,11 @@ export default function Profile() {
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.skills.map((skill, i) => (
-              <Badge key={i} variant="primary" className="flex items-center gap-1">
+              <Badge
+                key={i}
+                variant="primary"
+                className="flex items-center gap-1"
+              >
                 {skill}
                 {isEditing && (
                   <Button

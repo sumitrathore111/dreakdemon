@@ -12,6 +12,8 @@ import PublicNavBar from "./Public/PublicNevBar";
 import ScrollToTop from "./Component/ScrollToTop";
 import { AnimatePresence, motion } from "framer-motion";
 import ProjectDetail from "./Pages/Projects/ProjectDetails";
+import ResumePreview from "./Pages/Resume/ResumePreview";
+import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
 
 // Lazy-loaded pages
 const HomePage = lazy(() => import("./Public/HomePage").then(mod => ({ default: mod.HomePage })));
@@ -26,7 +28,6 @@ const Showcase = lazy(() => import("./Pages/Showcase"));
 const OpenProject = lazy(() => import("./Pages/Projects/OpenProject"));
 const Courses = lazy(() => import("./Pages/Courses"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
-const ProjectAbout = lazy(() => import("./Pages/ProjectAbout"));
 const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
@@ -50,7 +51,7 @@ function PublicLayout() {
             <Route path="/team" element={<TeamPage />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
-            <Route path="/commingsoon" element={<CommingSoon />} />
+            <Route path="/dashboard" element={<CommingSoon />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>
@@ -135,12 +136,17 @@ function PrivateLayout() {
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="transition-all duration-300 ease-in-out">
-        <Navigation />
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <Outlet />
-      </div>
+      <Route path="dashboard/*" element={<Navigation />}>
+        <Route path="openproject" element={<OpenProject />} />
+        <Route path="openproject/:id" element={<ProjectDetail />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="query" element={<QueryScreen />} />
+        <Route path="intership" element={<Intership />} />
+        <Route path="company_req" element={<Company_Req />} />
+        <Route path="marathon" element={<Marathon />} />
+        <Route path="profile" element={<ProfileInfo />} />
+
+      </Route>
 
     </motion.div>
   );
@@ -165,28 +171,35 @@ const App: React.FC = () => {
               <Route path="/*" element={<PublicLayout />} />
 
               {/* Private Routes */}
-              <Route
+              <Route path="dashboard/*" element={
+                <ProtectedRoute>
+                  <Navigation />
+                </ProtectedRoute>
+
+              }>
+
+                <Route path="db" element={<DashboardComingSoon />} />
+                <Route path="openproject/:id" element={<ProjectDetail />} />
+                <Route path="openproject" element={<OpenProject />} />
+                <Route path="query" element={<QueryScreen />} />
+                <Route path="profile" element={<ProfileInfo />} />
+                <Route path="marathon" element={<Marathon />} />
+                <Route path="company_req" element={<Company_Req />} />
+                <Route path="intership" element={<Intership />} />
+                <Route path="resume" element={<ResumePreview />} />
+              </Route>
+              {/* <Route
                 path="dashboard/*"
                 element={
                   <ProtectedRoute>
-                    <DeviceCheck>
+                    
                       <PrivateLayout />
-                    </DeviceCheck>
+                   
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Dashboard />} />
-                <Route path="myproject" element={<Showcase />} />
-                <Route path="openproject" element={<OpenProject />} />
-                <Route path="openproject/:id" element={<ProjectDetail />} />
-                <Route path="courses" element={<Courses />} />
-                <Route path="query" element={<QueryScreen />} />
-                <Route path="projectabout/:id" element={<ProjectAbout />} />
-                <Route path="intership" element={<Intership />} />
-                <Route path="company_req" element={<Company_Req />} />
-                <Route path="marathon" element={<Marathon />} />
-                <Route path="profile" element={<ProfileInfo />} />
-              </Route>
+                
+              </Route> */}
             </Routes>
           </AnimatePresence>
         </Suspense>
