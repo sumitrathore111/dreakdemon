@@ -46,8 +46,12 @@ interface Link {
 }
 
 interface ProfileData {
+  uid: string;
+  email: string | null;
+  createdAt: any;
+  role: "student" | "admin";
+  isprofileComplete: boolean,
   name: string;
-  email: string;
   phone: string;
   location: string;
   institute: string;
@@ -68,6 +72,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [profile, setProfile] = useState<ProfileData>({
+    uid:'',
     name: "Your Name",
     email: "you@example.com",
     phone: "9999999999",
@@ -82,6 +87,9 @@ export default function Profile() {
     profileCompletion: 0,
     languages: [],
     yearOfStudy: 0,
+    createdAt:"",
+    isprofileComplete:false,
+    role :'student'
   });
 
   const [newAchievement, setNewAchievement] = useState("");
@@ -251,29 +259,29 @@ export default function Profile() {
                   />
                 )}
               </div>
-              <h3 className="font-semibold">{profile.name}</h3>
-              <p className="text-sm text-gray-500">{profile.institute}</p>
+              <h3 className="font-semibold">{profile?.name}</h3>
+              <p className="text-sm text-gray-500">{profile?.institute}</p>
 
               <div className="space-y-2 mt-2 text-left">
                 <div className="flex items-center gap-2 text-sm break-all">
                   <Mail className="h-4 w-4 text-blue-600" />
-                  <span className="truncate">{profile.email}</span>
+                  <span className="truncate">{profile?.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-green-600" />
-                  <span>+ 91 {profile.phone}</span>
+                  <span>+ 91 {profile?.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-purple-600" />
-                  <span>{profile.location}</span>
+                  <span>{profile?.location}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Building className="h-4 w-4 text-orange-600" />
-                  <span>{profile.institute}</span>
+                  <span>{profile?.institute}</span>
                 </div>
                 <div className="flex items-start gap-2 text-sm">
                   <FileText className="h-4 w-4 text-pink-600 flex-shrink-0" />
-                  <span className="break-words">{profile.bio}</span>
+                  <span className="break-words">{profile?.bio}</span>
                 </div>
               </div>
             </CardContent>
@@ -294,7 +302,7 @@ export default function Profile() {
                   <Label htmlFor="name">Full Name</Label>
                   <Input
                     id="name"
-                    value={profile.name}
+                    value={profile?.name}
                     onChange={(e) => handleInputChange(e, "name")}
                     disabled={!isEditing}
                     className="mt-1"
@@ -305,7 +313,7 @@ export default function Profile() {
                   <Input
                     id="email"
                     type="email"
-                    value={profile.email}
+                    value={profile?.email ?? ""}
                     onChange={(e) => handleInputChange(e, "email")}
                     disabled={!isEditing}
                     className="mt-1"
@@ -315,31 +323,30 @@ export default function Profile() {
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
-                    value={profile.phone}
+                    value={profile?.phone}
                     onChange={(e) => handleInputChange(e, "phone")}
                     disabled={!isEditing}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="Gender">Gender</Label>
-                  <select
-                    className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
-                    value={gender}
-                  >
-                    <option value="">Select your gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <Label htmlFor="institute">Institute</Label>
+                  <Input
+                    id="institute"
+                    value={profile?.institute}
+                    onChange={(e) => handleInputChange(e, "institute")}
+                    disabled={!isEditing}
+                    className="mt-1"
+                  />
                 </div>
+                
               </div>
 
               <div>
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  value={profile.location}
+                  value={profile?.location}
                   onChange={(e) => handleInputChange(e, "location")}
                   disabled={!isEditing}
                   className="mt-1"
@@ -350,7 +357,7 @@ export default function Profile() {
                 <Label htmlFor="bio">Bio</Label>
                 <Textarea
                   id="bio"
-                  value={profile.bio}
+                  value={profile?.bio}
                   onChange={(e) => handleInputChange(e, "bio")}
                   disabled={!isEditing}
                   className="mt-1"
@@ -372,7 +379,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {profile.education.map((edu, i) => (
+          {profile?.education?.map((edu, i) => (
             <div
               key={i}
               className="flex flex-col sm:flex-row justify-between sm:items-center gap-2"
@@ -434,7 +441,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {profile.experience.map((exp, i) => (
+          {profile?.experience.map((exp, i) => (
             <div
               key={i}
               className="flex flex-col sm:flex-row justify-between sm:items-start gap-2"
@@ -506,7 +513,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {profile.achievements.map((ach, i) => (
+          {profile?.achievements.map((ach, i) => (
             <Badge
               key={i}
               variant="secondary"
@@ -548,7 +555,7 @@ export default function Profile() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {profile.links.map((link, i) => (
+          {profile?.links.map((link, i) => (
             <div
               key={i}
               className="flex flex-col sm:flex-row justify-between sm:items-center gap-2"
@@ -619,7 +626,7 @@ export default function Profile() {
             </Button>
           </div> : null}
           <div className="flex flex-wrap gap-2">
-            {profile.skills.map((skill, i) => (
+            {profile?.skills.map((skill, i) => (
               <Badge
                 key={i}
                 variant="primary"

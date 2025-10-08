@@ -1,5 +1,5 @@
 import  { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation,  useNavigate } from "react-router-dom";
 import {
   Home,
   FileText,
@@ -15,13 +15,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";
+import { logout } from "../service/auth";
 
 export default function DashboardLayout() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
   const location = useLocation();
-
+  const navigation = useNavigate()
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Resume", path: "/dashboard/resume", icon: <FileText size={20} /> },
@@ -141,7 +142,9 @@ export default function DashboardLayout() {
             className={`overflow-hidden transition-all duration-300 ${showSignOut ? "max-h-16 mt-3 opacity-100" : "max-h-0 opacity-0"
               }`}
           >
-            <button className="flex items-center gap-2 py-2 px-3 w-full rounded-md bg-red-500 text-white hover:bg-red-600 transition">
+            <button className="flex items-center gap-2 py-2 px-3 w-full rounded-md bg-red-500 text-white hover:bg-red-600 transition"
+            onClick={()=>{logout(); navigation('/')}}
+            >
               <LogOut size={18} /> Sign Out
             </button>
           </div>

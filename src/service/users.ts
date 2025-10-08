@@ -1,27 +1,66 @@
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../service/Firebase";
 import type { User } from "firebase/auth";
-
+interface Education {
+  degree: string;
+  school: string;
+  year: string;
+}
+interface Experience {
+  title: string;
+  company: string;
+  year: string;
+  desc: string;
+}
+interface Link {
+  platform: string;
+  url: string;
+}
 export type UserProfile = {
   uid: string;
   email: string | null;
-  displayName: string | null;
-  createdAt: any; 
+  createdAt: any;
   role: "student" | "admin";
-  isprofileComplete : boolean
+  isprofileComplete: boolean,
+  name: string;
+  phone: string;
+  location: string;
+  institute: string;
+  bio: string;
+  skills: string[];
+  education: Education[];
+  experience: Experience[];
+  achievements: string[];
+  links: Link[];
+  profileCompletion: number,
+  languages: Array<String>,
+  yearOfStudy: number
 };
 
-export async function createUserProfileIfNeeded(user: User , name:string ) {
+
+export async function createUserProfileIfNeeded(user: User, name: string) {
   const ref = doc(db, "Student_Detail", user.uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     const profile: UserProfile = {
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName ?? name,
+      name: user.displayName ?? name,
       createdAt: serverTimestamp(),
       role: "student",
-      isprofileComplete : false
+      isprofileComplete: false,
+      phone: "9999999999",
+      location: "Location",
+      institute: "University Name",
+      bio: "About yourself",
+      skills: [],
+      education: [],
+      experience: [],
+      achievements: [],
+      links: [],
+      profileCompletion: 0,
+      languages: [],
+      yearOfStudy: 0,
 
     };
     await setDoc(ref, profile);

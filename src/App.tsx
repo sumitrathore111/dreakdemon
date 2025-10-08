@@ -28,7 +28,6 @@ const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const Marathon = lazy(() => import("./Pages/Marathon/Marathon"));
-const CommingSoon = lazy(() => import('./Component/Global/CommingSoon'))
 // const CourseAbout = lazy(() => import("./Pages/CouseAbout"));
 
 function PublicLayout() {
@@ -47,7 +46,6 @@ function PublicLayout() {
             <Route path="/team" element={<TeamPage />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
-            <Route path="/dashboard" element={<CommingSoon />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>

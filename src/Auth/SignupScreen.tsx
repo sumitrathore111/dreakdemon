@@ -32,7 +32,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await signupWithEmail(email, password, name);
-      navigate("/commingsoon");
+      navigate("/dashboard/db");
     } catch (e: any) {
       setErr(e.message);
     } finally {

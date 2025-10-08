@@ -5,14 +5,8 @@ import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
 
-// interface Course {
-//     id: string;
-//     name: string;
-//     description: string;
-// }
-
 interface DataContextType {
-    // courses: Course[];
+  
     loading: boolean;
     userprofile:any
     writeQueryOnDate: (question_data: Query) => void;
@@ -105,7 +99,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     async function addObjectToUserArray(uid: string, arrayField: string, objectToAdd: any) {
-        const userDocRef = doc(db, "users", uid);
+        const userDocRef = doc(db, "Student_Detail", uid);
 
         try {
             await updateDoc(userDocRef, {
@@ -131,7 +125,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const pushDataWithId = async (data: any) => {
         if (user) {
-            await setDoc(doc(db, "users", user?.uid), data);
+            await setDoc(doc(db, "Student_Detail", user?.uid), data);
 
         }
     };
@@ -153,7 +147,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setLoading(true);
             try {
 
-                const docRef = doc(db, "users", user.uid);
+                const docRef = doc(db, "Student_Detail", user.uid);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -198,7 +192,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
     return (
         <DataContext.Provider value={{
-            // courses,
             loading,
             userprofile,
             writeQueryOnDate,

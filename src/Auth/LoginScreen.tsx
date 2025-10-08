@@ -14,7 +14,7 @@ export default function Login() {
     setErr(null);
     try {
       await loginWithEmail(email, password);
-      navigate("/commingsoon");
+      navigate("/dashboard/db");
     } catch (e: any) {
       setErr(e.message);
     } finally {

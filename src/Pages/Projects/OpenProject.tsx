@@ -144,7 +144,7 @@ export default function ProjectList() {
         <main>
           <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {projects.length === 0 && (
-              <div className="col-span-full text-center py-10 text-gray-500">No projects yet — add your first project!</div>
+              <div className="col-span-full text-center py-10 text-gray-500">No projects yet — Send Your first project!</div>
             )}
 
             {projects.map((p) => (
