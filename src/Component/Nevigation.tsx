@@ -4,14 +4,13 @@ import {
   Home,
   FileText,
   Folder,
- 
- 
   Settings,
   MessageSquare,
   UserCircle,
   Menu,
   LogOut,
   ChevronsLeft,
+  Trophy,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";
@@ -27,7 +26,7 @@ export default function DashboardLayout() {
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Resume", path: "/dashboard/resume", icon: <FileText size={20} /> },
     { name: "Open Projects", path: "/dashboard/openproject", icon: <Folder size={20} /> },
-    // { name: "Marathon", path: "/dashboard/marathon", icon: <Activity size={20} /> },
+    { name: "Marathon", path: "/dashboard/marathon", icon: <Trophy size={20} /> },
     // { name: "Intership", path: "/dashboard/intership", icon: <User size={20} /> },
     { name: "Company Requirements", path: "/dashboard/company_req", icon: <Settings size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },

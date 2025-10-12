@@ -14,6 +14,7 @@ import ProjectDetail from "./Pages/Projects/ProjectDetails";
 import ResumePreview from "./Pages/Resume/ResumePreview";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
 
+
 // Lazy-loaded pages
 const HomePage = lazy(() => import("./Public/HomePage").then(mod => ({ default: mod.HomePage })));
 const AboutPage = lazy(() => import("./Public/CompanyAbout").then(mod => ({ default: mod.AboutPage })));
