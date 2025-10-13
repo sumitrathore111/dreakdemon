@@ -130,15 +130,15 @@ function ContributorCard({
                 )}
               </div>
               <p className="text-sm text-gray-500 mb-2">{contributordata.role}</p>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              {/* <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span>{contributordata.contributions} contributions</span>
                 <span>Since {contributordata.joinDate}</span>
-              </div>
-              <p className="text-sm text-gray-800 mb-2 mt-2" style={{ fontWeight: 'bold' }} >{contributordata.from}</p>
+              </div> */}
+              {/* <p className="text-sm text-gray-800 mb-2 mt-2" style={{ fontWeight: 'bold' }} >{contributordata.from}</p> */}
             </div>
           </div>
 
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <div>
               <p className="text-sm text-gray-500 mb-2">Specialties:</p>
               <div className="flex flex-wrap gap-1">
@@ -150,7 +150,7 @@ function ContributorCard({
                   ))}
               </div>
             </div>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </motion.div>

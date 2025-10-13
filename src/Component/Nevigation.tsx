@@ -1,5 +1,5 @@
-import  { useState } from "react";
-import { Outlet, Link, useLocation,  useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   FileText,
@@ -21,34 +21,34 @@ export default function DashboardLayout() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
   const location = useLocation();
-  const navigation = useNavigate()
+  const navigation = useNavigate();
+  
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Resume", path: "/dashboard/resume", icon: <FileText size={20} /> },
     { name: "Open Projects", path: "/dashboard/openproject", icon: <Folder size={20} /> },
     { name: "Marathon", path: "/dashboard/marathon", icon: <Trophy size={20} /> },
-    // { name: "Intership", path: "/dashboard/intership", icon: <User size={20} /> },
     { name: "Company Requirements", path: "/dashboard/company_req", icon: <Settings size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
-  const {avatrUrl} = useDataContext()
-  const { user } = useAuth()
+  const { avatrUrl } = useDataContext();
+  const { user } = useAuth();
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Left Sidebar */}
       <div
-        className={`fixed lg:static top-0 left-0 h-full bg-white flex flex-col transition-all duration-300 z-50
-          ${isMinimized ? "w-20" : "w-56"} 
+        className={`fixed lg:static top-0 left-0 h-full bg-white flex flex-col transition-all duration-300 z-50 shadow-lg lg:shadow-none border-r border-gray-200 overflow-visible
+          ${isMinimized ? "w-20" : "w-64"} 
           ${isDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Sidebar Header */}
-        <div className="flex-shrink-0">
-          <div className="relative flex items-center p-3">
-            <div className="flex items-center gap-2">
-              <Link to="/">
+        <div className="flex-shrink-0 border-b border-gray-200">
+          <div className="relative flex items-center justify-between p-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <Link to="/" className="flex-shrink-0">
                 <img
                   src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
                   alt="App Logo"
@@ -58,54 +58,75 @@ export default function DashboardLayout() {
 
               {!isMinimized && (
                 <Link
-                  to={"/"}
-                  className="ml-2 text-lg font-semibold text-gray-800 transition-all duration-300"
+                  to="/"
+                  className="text-xl font-bold text-gray-800 transition-all duration-300 truncate"
                 >
                   NextStep
                 </Link>
               )}
             </div>
 
-            {/* Minimize Button */}
+            {/* Minimize Button - Desktop Only */}
             <button
-              className="hidden lg:flex absolute right-2 p-2 rounded-md transition-transform"
+              className="hidden lg:flex flex-shrink-0 p-1.5 rounded-md hover: transition-colors"
+              
               onClick={() => setIsMinimized(!isMinimized)}
             >
               <ChevronsLeft
                 size={20}
-                className={`transition-transform duration-300 ${isMinimized ? "rotate-180" : ""
-                  }`}
+                className={`transition-transform duration-300 ${
+                  isMinimized ? "rotate-180" : ""
+                }`}
               />
             </button>
-          </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col py-4 space-y-2 px-2">
+            {/* Close Button - Mobile Only */}
+            <button
+              className="lg:hidden flex-shrink-0 p-1.5 rounded-md hover: transition-colors"
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <ChevronsLeft size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Links - Scrollable */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3">
+          <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
-                <div key={item.name} className="relative group">
+                <div key={item.name} className="relative">
                   <Link
                     to={item.path}
-                    onClick={()=>setIsDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors
-                      ${isActive
-                        ? "text-white"
-                        : "text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
+                      ${
+                        isActive
+                          ? "text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-100"
                       }`}
-
-                      style={{backgroundColor:isActive? "#00ADB5" : ""}}
+                    style={{ backgroundColor: isActive ? "#00ADB5" : "" }}
                   >
-                    {item.icon}
-                    {!isMinimized && <span>{item.name}</span>}
+                    <span className="flex-shrink-0">{item.icon}</span>
+                    {!isMinimized && (
+                      <span className="truncate text-sm font-medium">{item.name}</span>
+                    )}
+                    
+                    {/* Tooltip - only when minimized on desktop */}
+                    {isMinimized && (
+                      <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
+                        style={{
+                          left: '80px', // 80px sidebar + 12px gap
+                          
+                          transform: 'translateY(-50%)'
+                        }}
+                      >
+                        {item.name}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-gray-900"></div>
+                      </div>
+                    )}
                   </Link>
-
-                  {/* Tooltip - only when minimized */}
-                  {isMinimized && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded-md shadow-lg bg-gray-800 text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                      {item.name}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -113,76 +134,134 @@ export default function DashboardLayout() {
         </div>
 
         {/* Fixed Profile Section at Bottom */}
-        <div className="mt-auto border-t p-4">
-          <button
-            onClick={() => setShowSignOut(!showSignOut)}
-            className="flex items-center gap-3 w-full"
-          >
-            {/* Avatar */}
-            <img 
-            src={avatrUrl}
-            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-            style={{backgroundColor:"#00ADB5"}}
+        <div className="flex-shrink-0 border-t border-gray-200 p-4 bg-white overflow-visible">
+          <div className="relative">
+            <button
+              onClick={() => setShowSignOut(!showSignOut)}
+              className={`flex items-center w-full hover:bg-gray-50 p-2 rounded-lg transition-colors group ${
+                isMinimized ? "justify-center" : "gap-3"
+              }`}
             >
-              
-            </img>
-
-            {/* User Info */}
-            {!isMinimized && (
-              <div className="flex-1 min-w-0 text-left">
-                <p className="font-semibold truncate">{user?.displayName}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              {/* Avatar */}
+              <img
+                src={avatrUrl || "https://via.placeholder.com/40"}
+                alt="User Avatar"
+                className="flex-shrink-0 w-10 h-10 rounded-full "
+                style={{ backgroundColor: "#00ADB5" }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div
+                className="hidden flex-shrink-0 w-10 h-10 rounded-full items-center justify-center text-white font-bold text-lg"
+                style={{ backgroundColor: "#00ADB5" }}
+              >
+                {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
               </div>
-            )}
-          </button>
+
+              {/* User Info */}
+              {!isMinimized && (
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="font-semibold truncate text-sm">
+                    {user?.displayName || "User"}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {user?.email || "user@example.com"}
+                  </p>
+                </div>
+              )}
+              
+              {/* Tooltip for minimized state */}
+              {isMinimized && (
+                <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-[9999]"
+                  style={{
+                    left: '92px', // 80px sidebar + 12px gap
+                    bottom: '24px'
+                  }}
+                >
+                  <p className="font-semibold">{user?.displayName || "User"}</p>
+                  <p className="text-xs text-gray-300">{user?.email || "user@example.com"}</p>
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-gray-900"></div>
+                </div>
+              )}
+            </button>
+          </div>
 
           {/* Animated Sign Out */}
           <div
-            className={`overflow-hidden transition-all duration-300 ${showSignOut ? "max-h-16 mt-3 opacity-100" : "max-h-0 opacity-0"
-              }`}
+            className={`overflow-hidden transition-all duration-300 ${
+              showSignOut ? "max-h-20 mt-3 opacity-100" : "max-h-0 opacity-0"
+            }`}
           >
-            <button className="flex items-center gap-2 py-2 px-3 w-full rounded-md bg-red-500 text-white hover:bg-red-600 transition"
-            onClick={()=>{logout(); navigation('/')}}
+            <button
+              className={`flex items-center gap-2 py-2.5 px-3 w-full rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium ${
+                isMinimized ? "justify-center" : ""
+              }`}
+              onClick={() => {
+                logout();
+                navigation("/");
+              }}
             >
-              <LogOut size={18} /> Sign Out
+              <LogOut size={18} />
+              {!isMinimized && <span>Sign Out</span>}
             </button>
           </div>
         </div>
-
       </div>
 
       {/* Dark overlay for mobile drawer */}
       {isDrawerOpen && (
         <div
-          className="fixed inset-0 bg-black/40 lg:hidden z-40"
+          className="fixed inset-0 bg-black/50 lg:hidden z-40 backdrop-blur-sm"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar (mobile only) */}
-        <div className="lg:hidden flex items-center justify-between bg-white shadow px-4 py-2">
+        <div className="lg:hidden flex items-center justify-between bg-white shadow-md px-4 py-3 z-30">
           {/* Mobile Drawer Button */}
           <button
-            className="p-2 rounded-md hover:bg-gray-200"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setIsDrawerOpen(true)}
           >
-            <Menu size={22} />
+            <Menu size={24} />
           </button>
+
+          {/* Logo in center */}
+          <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+            <img
+              src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+              alt="App Logo"
+              className="w-8 h-8"
+            />
+          </Link>
 
           {/* Avatar on right side */}
           <div className="ml-auto">
             <img
-            src={avatrUrl}
-            className="w-10 h-10 rounded-full  flex items-center justify-center text-white font-bold" style={{backgroundColor:'#00ADB5'}} >
-              
-            </img>
+              src={avatrUrl || "https://via.placeholder.com/40"}
+              alt="User Avatar"
+              className="w-10 h-10 rounded-full object-cover"
+              style={{ backgroundColor: "#00ADB5" }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div
+              className="hidden w-10 h-10 rounded-full items-center justify-center text-white font-bold"
+              style={{ backgroundColor: "#00ADB5" }}
+            >
+              {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+            </div>
           </div>
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 p-4 overflow-auto">
+        <div className="flex-1 overflow-auto bg-gray-50">
           <Outlet />
         </div>
       </div>

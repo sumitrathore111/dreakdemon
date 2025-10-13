@@ -753,10 +753,12 @@ export default function ITResumeBuilder() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-500 mb-2">
-            IT & AI Resume Builder
+          <h1 className="text-5xl font-black text-transparent bg-clip-text  mb-2"
+          style={{color:" #00ADB5"}}
+          >
+           Your Resume
           </h1>
-          <p className="text-gray-600">Create your professional tech resume with ease</p>
+          <p className="text-gray-600">Choose Your template for Your Profation </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

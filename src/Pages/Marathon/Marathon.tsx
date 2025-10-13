@@ -165,7 +165,7 @@ Constraints:
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-10">
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
