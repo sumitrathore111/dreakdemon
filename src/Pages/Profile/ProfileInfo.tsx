@@ -105,7 +105,6 @@ export default function Profile() {
     desc: "",
   });
   const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
-  const [gender, setgender] = useState('Male')
   const { avatrUrl, pushDataWithId, userprofile } = useDataContext()
 
   const handleAddSkill = () => {
@@ -206,7 +205,6 @@ export default function Profile() {
   };
   useEffect(() => {
     setProfile(userprofile)
-    setgender("male")
   }, [])
 
   return (

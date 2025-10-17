@@ -16,6 +16,18 @@ interface Link {
   platform: string;
   url: string;
 }
+
+interface Project {
+  project_id: string;
+  role: string;
+  project_status: "Complete" | "Running" | "Not Started"
+
+}
+
+interface Target {
+  Compnay_id: string;
+
+}
 export type UserProfile = {
   uid: string;
   email: string | null;
@@ -32,9 +44,18 @@ export type UserProfile = {
   experience: Experience[];
   achievements: string[];
   links: Link[];
-  profileCompletion: number,
-  languages: Array<String>,
-  yearOfStudy: number
+  profileCompletion: number;
+  languages: Array<String>;
+  yearOfStudy: number;
+  projects: Project[];
+  portfolio: string;
+  resume_objective: string;
+  target_compnay: Target[];
+  marathon_rank: Number;
+  last_active_date:string;
+  streakCount:number;
+
+
 };
 
 
@@ -61,6 +82,13 @@ export async function createUserProfileIfNeeded(user: User, name: string) {
       profileCompletion: 0,
       languages: [],
       yearOfStudy: 0,
+      marathon_rank: 0,
+      target_compnay: [],
+      resume_objective: "",
+      portfolio: "",
+      projects: [],
+      last_active_date:"",
+      streakCount:0
 
     };
     await setDoc(ref, profile);

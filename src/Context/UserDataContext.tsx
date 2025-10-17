@@ -6,9 +6,9 @@ import { db } from "../service/Firebase";
 
 
 interface DataContextType {
-  
+
     loading: boolean;
-    userprofile:any
+    userprofile: any
     writeQueryOnDate: (question_data: Query) => void;
     fetchTodayQueries: () => Promise<Object[]>;
     addObjectToUserArray: (uid: string, arrayField: string, objectToAdd: any) => void
@@ -16,6 +16,8 @@ interface DataContextType {
     contributors: Contributor[] | undefined
     avatrUrl: string
     pushDataWithId: (data: any) => void
+    calculateResumeCompletion: (userProfile: any) => number
+    calculateCategoryCompletion :(userProfile :any) => object
 }
 interface Contributor {
     id: string;
@@ -130,12 +132,82 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    function calculateResumeCompletion(userprofile: any) {
+        let totalFields = 16;
+        let completed = 0;
+
+        if (userprofile.name) completed++;
+        if (userprofile.email && userprofile.email.includes("@")) completed++;
+        if (userprofile.phone && userprofile.phone.length >= 10) completed++;
+        if (userprofile.location && userprofile.location !== "Location") completed++;
+        if (userprofile.institute && userprofile.institute !== "University Name") completed++;
+        if (userprofile.bio && userprofile.bio.length > 50) completed++;
+        if (userprofile.skills && userprofile.skills.length >= 3) completed++;
+        if (userprofile.education && userprofile.education.length > 0) completed++;
+        if (userprofile.experience && userprofile.experience.length > 0) completed++;
+        if (userprofile.achievements && userprofile.achievements.length > 0) completed++;
+        if (userprofile.links && userprofile.links.length > 0) completed++;
+        if (userprofile.languages && userprofile.languages.length > 0) completed++;
+        if (userprofile.resume_objective && userprofile.resume_objective.length > 50) completed++;
+        if (userprofile.portfolio && userprofile.portfolio.length > 0) completed++;
+        if (userprofile.projects && userprofile.projects.length > 0) completed++;
+        if (userprofile.target_compnay && userprofile.target_compnay.length > 0) completed++;
+
+        return Math.round((completed / totalFields) * 100);
+    }
+
+    function calculateCategoryCompletion(userprofile: any) {
+        const categories = {
+            Personal: [
+                !!userprofile.name,
+                !!userprofile.email?.includes("@"),
+                !!userprofile.phone && userprofile.phone.length >= 10,
+                userprofile.location !== "Location",
+                userprofile.bio?.length > 50,
+                userprofile.portfolio?.length > 0,
+                userprofile.resume_objective?.length > 50
+            ],
+            Experience: [
+                userprofile.experience?.length > 0,
+                userprofile.marathon_rank > 0,
+                userprofile.streakCount > 0,
+                !!userprofile.last_active_date
+            ],
+            Projects: [
+                userprofile.projects?.length > 0,
+                userprofile.target_compnay?.length > 0,
+                userprofile.links?.length > 0
+            ],
+            Skills: [
+                userprofile.skills?.length >= 3
+            ],
+            Certifications: [
+                userprofile.achievements?.length > 0
+            ],
+            Education: [
+                userprofile.institute !== "University Name",
+                userprofile.education?.length > 0,
+                userprofile.yearOfStudy > 0
+            ]
+        };
+
+        const completion: Record<string, number> = {};
+        for (const [category, checks] of Object.entries(categories)) {
+            const valid = checks.filter(Boolean).length;
+            completion[category] = Math.round((valid / checks.length) * 100);
+        }
+
+        return completion;
+    }
+
+
     useEffect(() => {
         const seed = Math.floor(Math.random() * maleAvatarLilst.length) + 1;
         const url = `https://api.dicebear.com/9.x/adventurer/svg?seed=${maleAvatarLilst[seed]}`;
         setAvatarUrl(url);
 
     }, [])
+
 
     useEffect(() => {
         if (!user) {
@@ -199,8 +271,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             addObjectToUserArray,
             pushDataToFirestore,
             contributors,
-            avatrUrl, 
-            pushDataWithId
+            avatrUrl,
+            pushDataWithId,
+            calculateResumeCompletion,
+            calculateCategoryCompletion
         }}>
             {children}
         </DataContext.Provider>

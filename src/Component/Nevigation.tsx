@@ -148,10 +148,7 @@ export default function DashboardLayout() {
                 alt="User Avatar"
                 className="flex-shrink-0 w-10 h-10 rounded-full "
                 style={{ backgroundColor: "#00ADB5" }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
+               
               />
               <div
                 className="hidden flex-shrink-0 w-10 h-10 rounded-full items-center justify-center text-white font-bold text-lg"
@@ -246,10 +243,7 @@ export default function DashboardLayout() {
               alt="User Avatar"
               className="w-10 h-10 rounded-full object-cover"
               style={{ backgroundColor: "#00ADB5" }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
+             
             />
             <div
               className="hidden w-10 h-10 rounded-full items-center justify-center text-white font-bold"
