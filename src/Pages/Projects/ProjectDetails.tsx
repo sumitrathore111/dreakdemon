@@ -1,9 +1,7 @@
-// src/components/ProjectDetail.tsx
-import  { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   doc,
-
   onSnapshot,
   collection,
   query,
@@ -11,56 +9,35 @@ import {
   addDoc,
   updateDoc,
   serverTimestamp,
-  // runTransaction,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import type { DocumentData } from "firebase/firestore";
-import { Edit2, MessageCircle, UserPlus,  Plus, Send } from "lucide-react";
+import { ArrowLeft, ExternalLink, Check, X } from "lucide-react";
 import { db } from "../../service/Firebase";
 import { useAuth } from "../../Context/AuthContext";
-import { IssueModal } from "../../Component/ProjectComponent/Modal/IssueModal";
-import CreateNewPost from "../../Component/ProjectComponent/Modal/CreateNewPost";
-// import { useDataContext } from "../../Context/UserDataContext";
-import ApplyModal from "../../Component/ProjectComponent/Modal/ApplyModal";
-
-type Role = "Creator" | "Contributor" | "Viewer" | "Guest" | "HR";
-type ModalType = "issue" | "message" | "update" | "apply" | "addMember" | null;
+import { motion } from "framer-motion";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   const [project, setProject] = useState<DocumentData | null>(null);
-
-  const [members, setMembers] = useState<DocumentData[]>([]);
   const [issues, setIssues] = useState<DocumentData[]>([]);
-  const [messages, setMessages] = useState<DocumentData[]>([]);
-  const [applications, setApplications] = useState<DocumentData[]>([]);
-  const [modalType, setModalType] = useState<ModalType>(null);
-  // Context 
-  const { user } = useAuth()
-  // const { addObjectToUserArray } = useDataContext()
+  const [hasJoined, setHasJoined] = useState(false);
+  const [userContributions, setUserContributions] = useState({ issuesResolved: 0, totalIssues: 0 });
+  const [loading, setLoading] = useState(false);
+  const [showNewIssue, setShowNewIssue] = useState(false);
+  const [newIssue, setNewIssue] = useState({ title: "", description: "" });
 
-  const [role, setRole] = useState<Role>('Creator');
-
-  // UI states
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [newMessageText, setNewMessageText] = useState("");
-  const [loadingAction, setLoadingAction] = useState(false);
-
-  const messagesRefEl = useRef<HTMLDivElement | null>(null);
-
-
-  const handleCloseModal = () => setModalType(null);
-
-  // ---------- Project doc realtime ----------
+  // Fetch project
   useEffect(() => {
     if (!id) return;
     const projectRef = doc(db, "Open_Projects", id);
     const unsub = onSnapshot(projectRef, (snap) => {
       if (snap.exists()) {
         setProject({ id: snap.id, ...snap.data() });
-        setEditTitle((snap.data() as any).title || "");
-        setEditDesc((snap.data() as any).description || "");
       } else {
         setProject(null);
       }
@@ -68,515 +45,437 @@ export default function ProjectDetail() {
     return () => unsub();
   }, [id]);
 
-
-  // ---------- Subcollections realtime: members, issues, messages ----------
+  // Fetch issues
   useEffect(() => {
     if (!id) return;
-
-    const membersRef = collection(db, "Open_Projects", id, "members");
-    const unsubM = onSnapshot(membersRef, (snap) =>
-      setMembers(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-
     const issuesQ = query(
       collection(db, "Open_Projects", id, "issues"),
       orderBy("createdAt", "desc")
     );
-    const unsubI = onSnapshot(issuesQ, (snap) =>
+    const unsub = onSnapshot(issuesQ, (snap) =>
       setIssues(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
     );
-
-    const msgsQ = query(
-      collection(db, "Open_Projects", id, "messages"),
-      orderBy("createdAt", "asc")
-    );
-    const unsubMsg = onSnapshot(msgsQ, (snap) =>
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-
-    const appsRef = collection(db, "Open_Projects", id, "applications");
-    const unsubApps = onSnapshot(appsRef, (snap) =>
-      setApplications(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-
-    return () => {
-      unsubM();
-      unsubI();
-      unsubMsg();
-      unsubApps();
-    };
+    return () => unsub();
   }, [id]);
 
-  // ---------- Determine role ----------
+  // Check if user has joined
   useEffect(() => {
-    if (!project) {
-      setRole("Guest");
-      return;
-    }
-    if (!user) {
-      setRole("Viewer");
-      return;
-    }
-    if (user.uid === project.creatorId) {
-      setRole("Creator");
-      return;
-    }
-    const found = members.find((m) => m.userId === user.uid);
-    if (found) {
-      setRole("Contributor");
-      return;
-    }
-    setRole("Viewer");
-  }, [project, user, members]);
+    if (!id || !user) return;
+    const checkJoined = async () => {
+      const contributorsRef = collection(db, "Open_Projects", id, "contributors");
+      const q = query(contributorsRef, where("userId", "==", user.uid));
+      const snap = await getDocs(q);
+      setHasJoined(!snap.empty);
+    };
+    checkJoined();
+  }, [id, user]);
 
-  // ---------- Scroll messages to bottom on new message ----------
+  // Calculate contributions
   useEffect(() => {
-    if (!messagesRefEl.current) return;
-    messagesRefEl.current.scrollTop = messagesRefEl.current.scrollHeight;
-  }, [messages]);
+    if (!user) return;
+    const resolved = issues.filter(i => i.resolvedBy === user.uid).length;
+    setUserContributions({ issuesResolved: resolved, totalIssues: issues.length });
+  }, [issues, user]);
 
-  // ---------- Handlers ----------
-
-  // Edit project (Creator only)
-  const handleSaveProject = async () => {
-    if (!id || !project) return;
-    setLoadingAction(true);
+  const handleJoinProject = async () => {
+    if (!id || !user) {
+      alert("Please login to join this project");
+      return;
+    }
+    
+    setLoading(true);
     try {
-      const projectRef = doc(db, "Open_Projects", id);
-      await updateDoc(projectRef, {
-        title: editTitle,
-        description: editDesc,
-        updatedAt: serverTimestamp(),
+      await addDoc(collection(db, "Open_Projects", id, "contributors"), {
+        userId: user.uid,
+        userName: user.displayName || user.email || "Anonymous",
+        userEmail: user.email,
+        joinedAt: serverTimestamp(),
+        issuesResolved: 0,
       });
-      setIsEditing(false);
-    } catch (err) {
-      console.error(err);
-      alert("Error saving project");
+      setHasJoined(true);
+      alert("ðŸŽ‰ Successfully joined the project! Start contributing now.");
+    } catch (error) {
+      console.error("Error joining project:", error);
+      alert("Failed to join project. Please try again.");
     } finally {
-      setLoadingAction(false);
+      setLoading(false);
     }
   };
 
-  // Add member (Creator: adds a vacant role)
-  const handleAddMember = async (role: string, discription: string, techStack: Array<String>) => {
-    if (!id || !role) return alert("Enter role name");
-    setLoadingAction(true);
-    try {
-      await addDoc(collection(db, "Open_Projects", id, "members"), {
-        userId: null,
-        name: null,
-        role: role,
-        status: "Vacant",
-        createdAt: serverTimestamp(),
-        discription,
-        techStack
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Error adding member");
-    } finally {
-      setLoadingAction(false);
+  const handleAddIssue = async () => {
+    if (!id || !user || !newIssue.title.trim()) {
+      alert("Please provide issue title");
+      return;
     }
-  };
 
-  // Apply Application
-
-  // const applyApplication = async (
-  //   projectId: string,
-  //   des: string,
-  //   role: string,
-   
-  // ) => {
-  //   if (!user) return alert("Please log in to apply");
-  //   if (!projectId) return alert("Invalid project ID");
-  //   try {
-  //     const updateProfile = {
-  //       project_id: id,
-  //       appliedAt: serverTimestamp(),
-  //       role: role,
-  //       status: 'Pending'
-  //     }
-  //     const newApp = {
-  //       userId: user.uid,
-  //       name: user.displayName || user.email || "Anonymous",
-  //       description: des,
-  //       role: role,
-  //       status: "Pending",
-  //       appliedAt: serverTimestamp(),
-
-  //     };
-  //     addObjectToUserArray(user?.uid, 'applied_project_list', updateProfile)
-  //     await addDoc(collection(db, "Open_Projects", id as string, "applications"), newApp);
-
-  //   } catch (err: any) {
-  //     console.error("Application error:", err);
-  //     alert(err.message || "Failed to apply");
-  //   }
-  // };
-
-  // Apply for a vacant member slot (transaction safe)
-  // const acceptContributer = async (postid: string, userUId: string, UserName: String, userEmail: string) => {
-  //   if (!user) return alert("Please login to apply");
-  //   if (!id) return;
-  //   setLoadingAction(true);
-  //   const memberRef = doc(db, "Open_Projects", id, "members", postid);
-  //   try {
-  //     await runTransaction(db, async (tx) => {
-  //       const mSnap = await tx.get(memberRef);
-  //       if (!mSnap.exists()) throw new Error("Member slot not found");
-  //       const data = mSnap.data() as any;
-  //       if (data.userId) throw new Error("Slot already taken");
-  //       tx.update(memberRef, {
-  //         userId: userUId,
-  //         name: UserName,
-  //         email: userEmail,
-  //         status: "Occupied",
-  //       });
-  //     });
-
-  //   } catch (err: any) {
-  //     console.error(err);
-  //     alert(err.message || "Could not apply");
-  //   } finally {
-  //     setLoadingAction(false);
-  //   }
-  // };
-
-  // Add issue (Creator & Contributor)
-  const handleAddIssue = async (title: String, description: String) => {
-    if (!id || !title) return alert("Provide issue title");
-    if (!user) return alert("Login required");
-    setLoadingAction(true);
+    setLoading(true);
     try {
       await addDoc(collection(db, "Open_Projects", id, "issues"), {
-        title: title,
-        description: description || "",
+        title: newIssue.title.trim(),
+        description: newIssue.description.trim(),
         status: "Open",
-        creatorId: user.uid,
-        assignedTo: null,
+        createdBy: user.uid,
+        creatorName: user.displayName || user.email || "Anonymous",
+        resolvedBy: null,
         createdAt: serverTimestamp(),
       });
-    } catch (err) {
-      console.error(err);
-      alert("Error creating issue");
+      setNewIssue({ title: "", description: "" });
+      setShowNewIssue(false);
+      alert("âœ… Issue added successfully!");
+    } catch (error) {
+      console.error("Error adding issue:", error);
+      alert("Failed to add issue");
     } finally {
-      setLoadingAction(false);
+      setLoading(false);
     }
   };
 
-  // Toggle issue status (Open <-> Resolved)
-  const toggleIssueStatus = async (issueId: string, currentStatus: string) => {
-    if (!id) return;
-    if (!user) return alert("Login required");
-    setLoadingAction(true);
+  const handleToggleIssue = async (issueId: string, currentStatus: string) => {
+    if (!id || !user) return;
+    
+    setLoading(true);
     try {
       const issueRef = doc(db, "Open_Projects", id, "issues", issueId);
       const newStatus = currentStatus === "Open" ? "Resolved" : "Open";
-      await updateDoc(issueRef, { status: newStatus });
-    } catch (err) {
-      console.error(err);
-      alert("Error updating issue");
+      await updateDoc(issueRef, { 
+        status: newStatus,
+        resolvedBy: newStatus === "Resolved" ? user.uid : null,
+        resolvedAt: newStatus === "Resolved" ? serverTimestamp() : null,
+      });
+    } catch (error) {
+      console.error("Error updating issue:", error);
+      alert("Failed to update issue");
     } finally {
-      setLoadingAction(false);
+      setLoading(false);
     }
   };
 
-  // Send message (Contributor & Creator)
-  const handleSendMessage = async () => {
-    if (!id) return;
-    if (!user) return alert("Login required to send messages");
-    if (!newMessageText.trim()) return;
-    setLoadingAction(true);
-    try {
-      await addDoc(collection(db, "Open_Projects", id, "messages"), {
-        senderId: user.uid,
-        senderName: user.displayName || user.email || "Unknown",
-        text: newMessageText.trim(),
-        createdAt: serverTimestamp(),
-      });
-      setNewMessageText("");
-    } catch (err) {
-      console.error(err);
-      alert("Error sending message");
-    } finally {
-      setLoadingAction(false);
-    }
+  const downloadCertificate = () => {
+    if (!project || !user) return;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 800;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#00ADB5');
+    gradient.addColorStop(1, '#0066CC');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(80, 100, canvas.width - 160, canvas.height - 200);
+
+    ctx.strokeStyle = '#00ADB5';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(90, 110, canvas.width - 180, canvas.height - 220);
+
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Certificate of Contribution', canvas.width / 2, 220);
+
+    ctx.font = '28px Arial';
+    ctx.fillText('This is to certify that', canvas.width / 2, 300);
+
+    ctx.font = 'bold 48px Arial';
+    ctx.fillStyle = '#00ADB5';
+    ctx.fillText(user.displayName || user.email || 'Contributor', canvas.width / 2, 370);
+
+    ctx.font = '28px Arial';
+    ctx.fillStyle = '#333333';
+    ctx.fillText('has successfully contributed to the project', canvas.width / 2, 430);
+
+    ctx.font = 'bold 36px Arial';
+    ctx.fillStyle = '#0066CC';
+    ctx.fillText(`"${project.title}"`, canvas.width / 2, 490);
+
+    ctx.font = '24px Arial';
+    ctx.fillStyle = '#666666';
+    ctx.fillText(`Issues Resolved: ${userContributions.issuesResolved}`, canvas.width / 2, 560);
+
+    ctx.font = '20px Arial';
+    ctx.fillText(`Issued on: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, canvas.width / 2, 620);
+
+    ctx.font = 'bold 28px Arial';
+    ctx.fillStyle = '#00ADB5';
+    ctx.fillText('NextStep', canvas.width / 2, 680);
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${user.displayName || 'Contributor'}_${project.title}_Certificate.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+        alert('âœ… Certificate downloaded successfully!');
+      }
+    });
   };
 
   if (!project) {
     return (
-      <div className="p-6">
-        <p className="text-gray-600">Project not found or loading...</p>
+      <div className="p-6 min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading project...</p>
       </div>
     );
   }
 
+  const isCreator = project.creatorId === user?.uid;
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Header */}
-      <div className="bg-white p-6 rounded-xl shadow mb-6 flex justify-between items-start gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">{project.title}</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {project.description}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(project.techStack || []).map((t: string, idx: number) => (
-                  <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                    {t}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/dashboard/openproject')}
+          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-cyan-600 transition"
+        >
+          <ArrowLeft size={20} />
+          Back to Projects
+        </button>
+
+        {/* Project Header */}
+        <div className="bg-white rounded-2xl p-8 shadow-lg mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{project.title}</h1>
+              <p className="text-gray-600 mb-4">{project.description}</p>
+              
+              {/* Tech Stack */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {project.techStack?.map((tech: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 rounded-full text-sm font-medium"
+                  >
+                    {tech}
                   </span>
                 ))}
               </div>
+
+              {/* Creator Info */}
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <span className="font-medium">Created by:</span>
+                <span className="text-cyan-600 font-semibold">
+                  {isCreator ? 'You' : project.creatorName}
+                </span>
+              </div>
+
+              {/* GitHub Link */}
+              {project.githubRepo && (
+                <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-3 rounded-lg">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  <a 
+                    href={project.githubRepo} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 hover:underline font-mono text-sm"
+                  >
+                    {project.githubRepo}
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`git clone ${project.githubRepo}`);
+                      alert('📋 Clone command copied!');
+                    }}
+                    className="bg-white text-gray-900 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100 flex items-center gap-1"
+                  >
+                    <ExternalLink size={14} />
+                    Copy Clone
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Role</div>
-              <div className="mt-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
-                {role}
-              </div>
-              {role === "Creator" && (
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              {!isCreator && !hasJoined && (
                 <button
-                  onClick={() => setIsEditing(true)}
-                  className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  onClick={handleJoinProject}
+                  disabled={loading || !user}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-bold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg disabled:opacity-50"
                 >
-                  <Edit2 size={16} /> Edit Project
+                  {loading ? "Joining..." : "🚀 Join Project"}
                 </button>
+              )}
+
+              {hasJoined && (
+                <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center">
+                  <p className="text-green-700 font-bold mb-2">✅ You're a Contributor!</p>
+                  <div className="flex items-center justify-center gap-4 text-sm">
+                    <div>
+                      <div className="text-2xl font-black text-green-600">{userContributions.issuesResolved}</div>
+                      <div className="text-xs text-gray-600">Issues Fixed</div>
+                    </div>
+                  </div>
+                  {userContributions.issuesResolved > 0 && (
+                    <button
+                      onClick={downloadCertificate}
+                      className="mt-3 w-full px-4 py-2 bg-cyan-500 text-white rounded-lg text-sm font-semibold hover:bg-cyan-600"
+                    >
+                      📜 Download Certificate
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {isCreator && (
+                <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-4 text-center">
+                  <p className="text-yellow-700 font-bold">👑 You're the Creator</p>
+                </div>
               )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Members column */}
-        <div className="bg-white p-5 rounded-xl shadow">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">👥 Members</h2>
-            {role === "Creator" && (
-              <div style={{ flexDirection: 'row' }}>
-                <button
-                  onClick={() => setModalType('addMember')}
-                  className={`flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 shadow hover:shadow-md transition-all text-sm font-medium ${loadingAction ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  disabled={loadingAction}
-                >
-                  <UserPlus size={16} />
-                  Add Member
-                </button>
-              </div>
+        {/* Issues Section */}
+        <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">📋 Tasks & Issues</h2>
+            {(hasJoined || isCreator) && (
+              <button
+                onClick={() => setShowNewIssue(!showNewIssue)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
+              >
+                {showNewIssue ? "Cancel" : "+ Add Issue"}
+              </button>
             )}
           </div>
 
-          {/* Scrollable container */}
-          <div className="mt-4 max-h-64 overflow-y-scroll scrollbar-hide space-y-3">
-            {members.length === 0 ? (
-              <p className="text-sm text-gray-500">No member roles defined yet.</p>
-            ) : (
-              members.map((m) => (
-                <div key={m.id} className="flex justify-between items-center p-3 rounded bg-gray-50">
-                  <div>
-                    <div className="font-medium">{m.role}</div>
-                    <div className="text-sm text-gray-500">
-                      {m.status === "Vacant" ? "Vacant" : `${m.name}`}
+          {/* Add Issue Form */}
+          {showNewIssue && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 bg-gray-50 rounded-xl p-6 border-2 border-gray-200"
+            >
+              <input
+                type="text"
+                placeholder="Issue title..."
+                value={newIssue.title}
+                onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"
+              />
+              <textarea
+                placeholder="Issue description..."
+                value={newIssue.description}
+                onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"
+                rows={3}
+              />
+              <button
+                onClick={handleAddIssue}
+                disabled={loading}
+                className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 disabled:opacity-50"
+              >
+                {loading ? "Adding..." : "Add Issue"}
+              </button>
+            </motion.div>
+          )}
+
+          {/* Issues List */}
+          {issues.length === 0 ? (
+            <p className="text-center text-gray-500 py-10">No issues yet. Add the first one!</p>
+          ) : (
+            <div className="space-y-3">
+              {issues.map((issue, idx) => (
+                <div
+                  key={issue.id}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    issue.status === "Open" 
+                      ? "bg-red-50 border-red-200" 
+                      : "bg-green-50 border-green-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
+                        <h3 className="font-bold text-gray-900">{issue.title}</h3>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            issue.status === "Open"
+                              ? "bg-red-200 text-red-800"
+                              : "bg-green-200 text-green-800"
+                          }`}
+                        >
+                          {issue.status === "Open" ? "🔴 Open" : "✅ Resolved"}
+                        </span>
+                      </div>
+                      {issue.description && (
+                        <p className="text-sm text-gray-600 mb-2">{issue.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Created by: {issue.createdBy === user?.uid ? "You" : issue.creatorName}
+                      </p>
                     </div>
-                  </div>
-                  <div>
-                    {m.status === "Vacant" ? (
 
+                    {(hasJoined || isCreator) && (
                       <button
-                        onClick={() => setModalType('apply')}
-                        disabled={!user || loadingAction || role == 'Creator' || role == 'HR'}
-                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        title={user ? "Apply for this role" : "Login to apply"}
-
+                        onClick={() => handleToggleIssue(issue.id, issue.status)}
+                        disabled={loading}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm disabled:opacity-50 ${
+                          issue.status === "Open"
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-gray-600 hover:bg-gray-700 text-white"
+                        }`}
                       >
-                        {role == 'Creator' || role == 'HR' ? 'Open' : ' Apply'}
+                        {issue.status === "Open" ? (
+                          <>
+                            <Check size={16} className="inline mr-1" />
+                            Mark Resolved
+                          </>
+                        ) : (
+                          <>
+                            <X size={16} className="inline mr-1" />
+                            Reopen
+                          </>
+                        )}
                       </button>
-                    ) : (
-                      <span className="text-sm text-gray-600">Assigned</span>
                     )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-
-        {/* Issues column */}
-        <div className="bg-white p-5 rounded-xl shadow h-[400px]">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">🐞 Issues</h2>
-            {(role === "Creator" || role === "Contributor") && (
-              <div className="mt-4">
-
-                <button
-                  onClick={() => setModalType('issue')}
-                  className={`flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 shadow-sm hover:shadow-md transition-all text-sm font-medium ${loadingAction ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  disabled={loadingAction}
-                >
-                  <Plus size={16} />
-                  Add Issue
-                </button>
-
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 space-y-3">
-            {issues.length === 0 ? (
-              <p className="text-sm text-gray-500">No issues reported.</p>
-            ) : (
-              issues.map((iss) => (
-                <div key={iss.id} className="p-3 rounded border bg-red-50 border-red-100">
-                  <div className="flex justify-between items-start gap-3">
-                    <div>
-                      <div className="font-medium text-red-700">{iss.title}</div>
-                      <div className="text-sm text-gray-600">{iss.description}</div>
-                      <div className="text-xs mt-2 text-gray-500">By: {iss.creatorId || "unknown"}</div>
-                    </div>
-
-                    <div className="space-y-2 text-right">
-                      <div className={`px-2 py-1 rounded text-xs ${iss.status === "Open" ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"}`}>
-                        {iss.status}
-                      </div>
-
-                      {(role === "Creator" || role === "Contributor") && (
-                        <button
-                          onClick={() => toggleIssueStatus(iss.id, iss.status)}
-                          className="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600"
-                          disabled={loadingAction}
-                        >
-                          Toggle
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* add issue form */}
-
-        </div>
-
-        {/* Messages column */}
-        <div className="bg-white p-5 rounded-xl shadow flex flex-col h-[400px]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold flex items-center gap-2"><MessageCircle /> Notice</h2>
-            <div className="text-sm text-gray-500">{messages.length} Notice</div>
-          </div>
-
-          <div
-            ref={messagesRefEl}
-            className="mt-4 overflow-y-auto flex-1 space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-          >
-            {messages.length === 0 ? (
-              <p className="text-sm text-gray-500">No notice yet — start a conversation.</p>
-            ) : (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`p-3 rounded-lg border ${m.senderId === user?.uid ? "self-end bg-blue-50 border-blue-200 text-blue-800" : "bg-gray-50 border-gray-200 text-gray-700"}`}
-                  style={{ maxWidth: "90%" }}
-                >
-                  <div className="text-sm">{m.text}</div>
-                  <div className="text-xs text-gray-400 mt-2">— {m.senderName}</div>
-                </div>
-              ))
-            )}
-          </div>
-          {role == 'Contributor' || role == 'Creator' && (
-
-            <div className="mt-4 flex gap-2">
-              <input
-                className="flex-1 px-3 py-2 border rounded"
-                placeholder={user ? "Write a notice..." : "Login to send messages"}
-                value={newMessageText}
-                onChange={(e) => setNewMessageText(e.target.value)}
-                disabled={!user}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!user || !newMessageText.trim() || loadingAction}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
-                title={user ? "Send" : "Login to send"}
-              >
-                <Send size={14} /> Send
-              </button>
+              ))}
             </div>
           )}
         </div>
 
-        {/*Application Section */}
-        {
-          role == 'HR' || role == 'Creator' && (<div className="mt-6 bg-white p-5 rounded-xl shadow">
-            <h2 className="text-lg font-semibold">📋 Applications</h2>
-            {applications.length === 0 ? (
-              <p className="text-sm text-gray-500 mt-2">
-                No applications submitted yet.
-              </p>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {applications.map((app) => (
-                  <li
-                    key={app.id}
-                    className="p-3 rounded border bg-gray-50 border-gray-200"
-                  >
-                    <div className="font-medium">{app.applicantName}</div>
-                    <div className="text-sm text-gray-500">
-                      {app.coverLetter || "No details provided"}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>)
-        }
-
-      </div>
-
-      {/* Edit project modal */}
-      {isEditing && role === "Creator" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white w-full max-w-2xl p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3">Edit Project</h3>
-            <input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="Project title"
-              className="w-full px-3 py-2 border rounded mb-3"
-            />
-            <textarea
-              value={editDesc}
-              onChange={(e) => setEditDesc(e.target.value)}
-              placeholder="Project description"
-              className="w-full px-3 py-2 border rounded mb-3"
-            />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsEditing(false)} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-              <button onClick={handleSaveProject} className="px-4 py-2 bg-yellow-500 text-white rounded" disabled={loadingAction}>
-                Save
-              </button>
-            </div>
+        {/* How to Contribute Guide */}
+        {!hasJoined && !isCreator && (
+          <div className="mt-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-cyan-700 mb-4">🚀 How to Contribute</h3>
+            <ol className="space-y-3 text-gray-700">
+              <li className="flex gap-3">
+                <span className="font-bold text-cyan-600">1.</span>
+                <span>Click "Join Project" button to become a contributor</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-cyan-600">2.</span>
+                <span>Clone the GitHub repository using the command above</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-cyan-600">3.</span>
+                <span>Pick an open issue and start working on it</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-cyan-600">4.</span>
+                <span>When done, mark the issue as "Resolved" to earn points!</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-cyan-600">5.</span>
+                <span>Download your contribution certificate and add to your resume</span>
+              </li>
+            </ol>
           </div>
-        </div>
-      )}
-
-      {modalType === "addMember" && <CreateNewPost onClose={handleCloseModal} onSubmit={(data) => handleAddMember(data.jobRole, data.description, data.techstack)} />}
-      {modalType === 'issue' && <IssueModal onClose={handleCloseModal} onSubmit={(data) => handleAddIssue(data.issueTitle, data.issueDescription)} />}
-      {modalType === 'apply' && <ApplyModal onClose={handleCloseModal} />}
+        )}
+      </div>
     </div>
   );
 }

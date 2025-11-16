@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Briefcase, Code2, Flame, Clock, Zap, } from 'lucide-react';
 import { useDataContext } from '../../Context/UserDataContext';
 
-export default function DashboardComingSoon() {
+export default function DashboardComingSoon(): JSX.Element {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [overallCompletion, setoverallCompletion] = useState<number>(0);

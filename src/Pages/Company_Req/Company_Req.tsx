@@ -14,7 +14,7 @@ import {
   ExternalLink,
   Target,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { companies } from "../../data";
 import { useDataContext } from "../../Context/UserDataContext";
@@ -35,18 +35,48 @@ export default function JobExplorer() {
   const [showFilters, setShowFilters] = useState(false);
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const [jobTypeFilter, setJobTypeFilter] = useState<string | null>(null);
+  const [companiesList, setCompaniesList] = useState<any[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
 
-  const industries = [...new Set(companies.map((j) => j.industry))];
-  const locations = [...new Set(companies.map((j) => j.location))];
-  const jobTypes = [...new Set(companies.map((j) => j.job_type))];
+  const { user } = useAuth();
+  const { fetchCompanies, addCompanyToTarget, pushDataToFirestore } = useDataContext();
+
+  // Fetch companies from Firebase on mount
+  useEffect(() => {
+    const loadCompanies = async () => {
+      try {
+        const fetchedCompanies = await fetchCompanies();
+        
+        // If no companies in Firebase, push the static data
+        if (fetchedCompanies.length === 0) {
+          await pushDataToFirestore("Companies", companies);
+          setCompaniesList(companies);
+        } else {
+          setCompaniesList(fetchedCompanies);
+        }
+      } catch (error) {
+        console.error("Error loading companies:", error);
+        // Fallback to static data
+        setCompaniesList(companies);
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+
+    loadCompanies();
+  }, []);
+
+  const industries = [...new Set(companiesList.map((j) => j.industry))];
+  const locations = [...new Set(companiesList.map((j) => j.location))];
+  const jobTypes = [...new Set(companiesList.map((j) => j.job_type))];
 
   // ✅ Optimized filtering with useMemo
   const filteredJobs = useMemo(() => {
-    return companies.filter((job) => {
+    return companiesList.filter((job) => {
       const matchesSearch =
         job.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.job_role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.required_skills.some((s) =>
+        job.required_skills.some((s: string) =>
           s.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
@@ -56,22 +86,44 @@ export default function JobExplorer() {
 
       return matchesSearch && matchesIndustry && matchesLocation && matchesType;
     });
-  }, [searchTerm, activeFilter, locationFilter, jobTypeFilter]);
-  const { user } = useAuth()
-  const { addObjectToUserArray } = useDataContext()
-
-  const addcompnaytotarget = (compnay_id: string) => {
-    if (user) {
-
-      addObjectToUserArray(user.uid, 'Target', compnay_id)
+  }, [searchTerm, activeFilter, locationFilter, jobTypeFilter, companiesList]);
+  
+  const addcompanyToTarget = async (companyId: string) => {
+    if (!user) {
+      alert("⚠️ Please login to add companies to your targets!");
+      return;
     }
+    
+    try {
+      await addCompanyToTarget(companyId);
+      alert("✅ Company added to your targets!");
+    } catch (error) {
+      console.error("Error adding company to targets:", error);
+      alert("❌ Failed to add company. Please try again.");
+    }
+  };
 
+  const handleVisit = (job: any) => {
+    if (job.apply_link) {
+      window.open(job.apply_link, "_blank");
+    } else {
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(job.company_name + " careers " + job.job_role)}`, "_blank");
+    }
+  };
+
+  if (loadingCompanies) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading companies...</div>
+      </div>
+    );
   }
-  const handleApply = (link: string) => window.open(link, "_blank");
 
   return (
     <div className="min-h-screen ">
       <header className="text-white relative overflow-hidden" style={{ backgroundColor: '#00ADB5' }}>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+        
         <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-6 h-6 text-yellow-300" />
@@ -111,8 +163,6 @@ export default function JobExplorer() {
           </div>
         </div>
       </header>
-
-
       <section className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 flex gap-3 items-center">
           <div className="relative flex-1">
@@ -128,7 +178,7 @@ export default function JobExplorer() {
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl  text-white hover:shadow-md transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-white hover:shadow-md transition-all"
             style={{ backgroundColor: '#00ADB5' }}
           >
             <Filter className="w-5 h-5" />
@@ -251,74 +301,95 @@ export default function JobExplorer() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 30 }}
                   transition={{ duration: 0.3 }}
-                  className="bg-white rounded-2xl overflow-hidden border hover:shadow-xl transition-all hover:scale-[1.02]"
+                  className="group bg-white rounded-2xl overflow-hidden border hover:shadow-xl transition-all hover:scale-[1.02]"
                 >
-                  <div className={`h-2 `} style={{ backgroundColor: '#00ADB5' }} />
+                  <div className="h-2" style={{ backgroundColor: '#00ADB5' }} />
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          style={{ backgroundColor: '#00ADB5' }}
-                          className={`w-12 h-12 rounded-xl  flex items-center justify-center text-white font-semibold`}
-                        >
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold" style={{ backgroundColor: '#00ADB5' }}>
                           {job.company_name.charAt(0)}
                         </div>
                         <div>
                           <h3 className="font-medium">{job.company_name}</h3>
-                          <p className="text-xs text-gray-500">{job.industry}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <Building2 className="w-3 h-3" />
+                            {job.industry}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-xs px-3 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">
+                      <span className="text-xs px-3 py-1.5 bg-green-50 text-green-700 rounded-lg border border-green-200 font-medium">
                         {job.job_type}
                       </span>
                     </div>
 
                     <h4 className="font-semibold text-gray-800 mb-4">{job.job_role}</h4>
 
-                    <div className="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
-                        <IndianRupee className="text-blue-600 w-4 h-4" /> {job.package_lpa} LPA
+                    <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                      <div className="flex items-center gap-2 bg-blue-50 p-2 rounded-lg">
+                        <IndianRupee className="text-blue-600 w-4 h-4" /> 
+                        <span className="font-semibold text-blue-700">{job.package_lpa} LPA</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="text-purple-600 w-4 h-4" /> {job.experience_required}
+                      <div className="flex items-center gap-2 bg-purple-50 p-2 rounded-lg">
+                        <Briefcase className="text-purple-600 w-4 h-4" /> 
+                        <span className="font-medium text-purple-700">{job.experience_required}</span>
                       </div>
-                      <div className="col-span-2 flex items-center gap-2">
-                        <MapPin className="text-orange-600 w-4 h-4" /> {job.location}
+                      <div className="col-span-2 flex items-center gap-2 bg-orange-50 p-2 rounded-lg">
+                        <MapPin className="text-orange-600 w-4 h-4" /> 
+                        <span className="font-medium text-orange-700">{job.location}</span>
                       </div>
                     </div>
 
-                    <div className="h-px bg-gray-200 my-4" />
+                    <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-4" />
 
-                    <div className="text-sm space-y-2 mb-4">
+                    <div className="text-sm space-y-2.5 mb-4">
                       <p className="flex items-center gap-2 text-gray-600">
-                        <GraduationCap className="w-4 h-4 text-gray-400" /> {job.education}
+                        <GraduationCap className="w-4 h-4 text-cyan-500" /> 
+                        <span className="font-medium">{job.education}</span>
                       </p>
                       <p className="flex items-center gap-2 text-gray-600">
-                        <Calendar className="w-4 h-4 text-gray-400" /> Hiring for {job.hiring_for}
+                        <Calendar className="w-4 h-4 text-cyan-500" /> 
+                        <span>Hiring for <span className="font-medium text-gray-900">{job.hiring_for}</span></span>
                       </p>
                     </div>
 
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-500 mb-2">Required Skills</p>
+                    <div className="mb-5">
+                      <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Required Skills</p>
                       <div className="flex flex-wrap gap-2">
-                        {job.required_skills.map((s: string, i: number) => (
+                        {job.required_skills.slice(0, 4).map((s: string, i: number) => (
                           <span
                             key={i}
-                            className="px-2 py-1 text-xs bg-gray-100 border border-gray-200 rounded-lg"
+                            className="px-3 py-1 text-xs bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg font-medium text-gray-700 hover:border-cyan-300 transition-colors"
                           >
                             {s}
                           </span>
                         ))}
+                        {job.required_skills.length > 4 && (
+                          <span className="px-3 py-1 text-xs bg-cyan-50 border border-cyan-200 rounded-lg font-medium text-cyan-700">
+                            +{job.required_skills.length - 4} more
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <button
-                      // onClick={() => handleApply(job.apply_link)}
-                      className={`w-full py-3 text-white rounded-xl flex justify-center items-center gap-2 hover:opacity-90 transition-all`}
-                      style={{ backgroundColor: '#00ADB5' }}
-                    >
-                      Add In Target <Target className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleVisit(job)}
+                        className="flex-1 py-3 text-white rounded-xl flex justify-center items-center gap-2 hover:opacity-90 transition-all font-semibold"
+                        style={{ backgroundColor: '#00ADB5' }}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Visit & Apply
+                      </button>
+                      <button
+                        onClick={() => addcompanyToTarget(job.id)}
+                        className="px-4 py-3 text-white rounded-xl hover:opacity-90 transition-all"
+                        style={{ backgroundColor: '#00ADB5' }}
+                        title="Add to your targets"
+                      >
+                        <Target className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               );

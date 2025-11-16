@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
@@ -17,7 +17,27 @@ interface DataContextType {
     avatrUrl: string
     pushDataWithId: (data: any) => void
     calculateResumeCompletion: (userProfile: any) => number
-    calculateCategoryCompletion :(userProfile :any) => object
+    calculateCategoryCompletion: (userProfile: any) => object
+    
+    // Marathon functions
+    fetchTodayChallenge: () => Promise<any>;
+    submitMarathonAnswer: (challengeId: string, answer: string, isCorrect: boolean, points: number) => Promise<void>;
+    fetchLeaderboard: () => Promise<any[]>;
+    updateUserStreak: () => Promise<void>;
+    
+    // Company functions
+    fetchCompanies: () => Promise<any[]>;
+    addCompanyToTarget: (companyId: string) => Promise<void>;
+    
+    // Course functions
+    fetchCourses: () => Promise<any[]>;
+    fetchEnrolledCourses: () => Promise<any[]>;
+    enrollInCourse: (courseId: string) => Promise<void>;
+    updateCourseProgress: (courseId: string, progress: number, lessonsCompleted: number) => Promise<void>;
+    
+    // Internship functions
+    fetchInternshipTasks: () => Promise<any[]>;
+    updateTaskStatus: (taskId: string, done: boolean) => Promise<void>;
 }
 interface Contributor {
     id: string;
@@ -130,6 +150,189 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             await setDoc(doc(db, "Student_Detail", user?.uid), data);
 
         }
+    };
+
+    // ==================== MARATHON FUNCTIONS ====================
+    const fetchTodayChallenge = async () => {
+        const { start, end } = getTodayRange();
+        const q = query(
+            collection(db, "Marathon_Challenges"),
+            where("date", ">=", start),
+            where("date", "<=", end),
+            limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+        }
+        return null;
+    };
+
+    const submitMarathonAnswer = async (challengeId: string, answer: string, isCorrect: boolean, points: number) => {
+        if (!user) return;
+        
+        await addDoc(collection(db, "Marathon_Submissions"), {
+            userId: user.uid,
+            challengeId,
+            answer,
+            isCorrect,
+            points,
+            submittedAt: Timestamp.now()
+        });
+
+        if (isCorrect) {
+            const userDocRef = doc(db, "Student_Detail", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const currentScore = userDoc.data()?.marathon_score || 0;
+            const currentChallengesSolved = userDoc.data()?.challenges_solved || 0;
+            
+            await updateDoc(userDocRef, {
+                marathon_score: currentScore + points,
+                challenges_solved: currentChallengesSolved + 1,
+                last_active_date: Timestamp.now()
+            });
+        }
+    };
+
+    const fetchLeaderboard = async () => {
+        const q = query(
+            collection(db, "Student_Detail"),
+            orderBy("marathon_score", "desc"),
+            limit(10)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((doc, index) => ({
+            rank: index + 1,
+            id: doc.id,
+            ...doc.data()
+        }));
+    };
+
+    const updateUserStreak = async () => {
+        if (!user) return;
+        
+        const userDocRef = doc(db, "Student_Detail", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const userData = userDoc.data();
+        
+        const lastActive = userData?.last_active_date?.toDate();
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        let newStreak = 1;
+        if (lastActive) {
+            const lastActiveDate = new Date(lastActive.getFullYear(), lastActive.getMonth(), lastActive.getDate());
+            const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+            
+            if (lastActiveDate.getTime() === yesterdayDate.getTime()) {
+                newStreak = (userData?.streakCount || 0) + 1;
+            }
+        }
+        
+        await updateDoc(userDocRef, {
+            streakCount: newStreak,
+            last_active_date: Timestamp.now()
+        });
+    };
+
+    // ==================== COMPANY FUNCTIONS ====================
+    const fetchCompanies = async () => {
+        const snapshot = await getDocs(collection(db, "Companies"));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    };
+
+    const addCompanyToTarget = async (companyId: string) => {
+        if (!user) return;
+        await addObjectToUserArray(user.uid, "target_compnay", companyId);
+    };
+
+    // ==================== COURSE FUNCTIONS ====================
+    const fetchCourses = async () => {
+        const snapshot = await getDocs(collection(db, "Courses"));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    };
+
+    const fetchEnrolledCourses = async () => {
+        if (!user) return [];
+        
+        const q = query(
+            collection(db, "Enrollments"),
+            where("userId", "==", user.uid)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    };
+
+    const enrollInCourse = async (courseId: string) => {
+        if (!user) return;
+        
+        await addDoc(collection(db, "Enrollments"), {
+            userId: user.uid,
+            courseId,
+            progress: 0,
+            lessonsCompleted: 0,
+            enrolledAt: Timestamp.now(),
+            lastAccessed: Timestamp.now()
+        });
+    };
+
+    const updateCourseProgress = async (courseId: string, progress: number, lessonsCompleted: number) => {
+        if (!user) return;
+        
+        const q = query(
+            collection(db, "Enrollments"),
+            where("userId", "==", user.uid),
+            where("courseId", "==", courseId)
+        );
+        const snapshot = await getDocs(q);
+        
+        if (!snapshot.empty) {
+            const enrollmentDoc = snapshot.docs[0];
+            await updateDoc(doc(db, "Enrollments", enrollmentDoc.id), {
+                progress,
+                lessonsCompleted,
+                lastAccessed: Timestamp.now()
+            });
+        }
+    };
+
+    // ==================== INTERNSHIP FUNCTIONS ====================
+    const fetchInternshipTasks = async () => {
+        if (!user) return [];
+        
+        const userDocRef = doc(db, "Student_Detail", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const tasks = userDoc.data()?.internship_tasks || [];
+        
+        if (tasks.length === 0) {
+            // Initialize default tasks
+            const defaultTasks = [
+                { id: 1, text: "Complete React Basics", done: false },
+                { id: 2, text: "Finish Tailwind Styling", done: false },
+                { id: 3, text: "Build First Project", done: false },
+                { id: 4, text: "Pass Level 4 Quiz", done: false },
+                { id: 5, text: "Submit Final Project", done: false },
+            ];
+            await updateDoc(userDocRef, { internship_tasks: defaultTasks });
+            return defaultTasks;
+        }
+        
+        return tasks;
+    };
+
+    const updateTaskStatus = async (taskId: string, done: boolean) => {
+        if (!user) return;
+        
+        const userDocRef = doc(db, "Student_Detail", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const tasks = userDoc.data()?.internship_tasks || [];
+        
+        const updatedTasks = tasks.map((task: any) => 
+            task.id === taskId ? { ...task, done } : task
+        );
+        
+        await updateDoc(userDocRef, { internship_tasks: updatedTasks });
     };
 
     function calculateResumeCompletion(userprofile: any) {
@@ -274,7 +477,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             avatrUrl,
             pushDataWithId,
             calculateResumeCompletion,
-            calculateCategoryCompletion
+            calculateCategoryCompletion,
+            // Marathon
+            fetchTodayChallenge,
+            submitMarathonAnswer,
+            fetchLeaderboard,
+            updateUserStreak,
+            // Company
+            fetchCompanies,
+            addCompanyToTarget,
+            // Course
+            fetchCourses,
+            fetchEnrolledCourses,
+            enrollInCourse,
+            updateCourseProgress,
+            // Internship
+            fetchInternshipTasks,
+            updateTaskStatus
         }}>
             {children}
         </DataContext.Provider>

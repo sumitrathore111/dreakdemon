@@ -1,148 +1,247 @@
-import React from "react";
-import {  useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../service/Firebase";
 
-interface Project {
-  title: string;
-  description: string;
-  techStack: string[];
-  status: "running" | "completed";
+interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  email: string;
+  issuesResolved: number;
+  projectsContributed: number;
+  messagesSent: number;
+  totalScore: number;
+  githubUsername?: string;
 }
 
-const projects: Project[] = [
-  {
-    title: "AI Chatbot",
-    description: "A real-time chatbot for student query solving.",
-    techStack: ["React", "Node.js", "Socket.IO", "MongoDB"],
-    status: "running",
-  },
-  {
-    title: "Online Learning Platform",
-    description: "Platform for uploading and managing course content.",
-    techStack: ["Next.js", "TypeScript", "TailwindCSS", "PostgreSQL"],
-    status: "running",
-  },
-  {
-    title: "Attendance Tracker",
-    description: "Automated attendance tracking system with face recognition.",
-    techStack: ["Python", "OpenCV", "Flask", "SQLite"],
-    status: "completed",
-  },
-];
+const Leaderboard = () => {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchLeaderboardData = async () => {
+      setLoading(true);
+      try {
+        const contributorsMap = new Map<string, LeaderboardEntry>();
 
-const ProjectContribution: React.FC = () => {
-  const runningProjects = projects.filter((p) => p.status === "running");
-  const completedProjects = projects.filter((p) => p.status === "completed");
-  const Navigation = useNavigate()
+        // Fetch all projects
+        const projectsSnapshot = await getDocs(collection(db, "Open_Projects"));
+        
+        for (const projectDoc of projectsSnapshot.docs) {
+          const projectId = projectDoc.id;
 
+          // Fetch issues for this project
+          const issuesSnapshot = await getDocs(
+            collection(db, "Open_Projects", projectId, "issues")
+          );
+          issuesSnapshot.forEach((issueDoc) => {
+            const issue = issueDoc.data();
+            if (issue.status === "Resolved" && issue.creatorId) {
+              const entry = contributorsMap.get(issue.creatorId) || {
+                userId: issue.creatorId,
+                name: issue.creatorName || "Anonymous",
+                email: issue.creatorEmail || "",
+                issuesResolved: 0,
+                projectsContributed: 0,
+                messagesSent: 0,
+                totalScore: 0,
+              };
+              entry.issuesResolved += 1;
+              contributorsMap.set(issue.creatorId, entry);
+            }
+          });
 
-  const handleNavigation =()=>{
-    Navigation('/projectabout/1')
-  }
+          // Fetch messages for this project
+          const messagesSnapshot = await getDocs(
+            collection(db, "Open_Projects", projectId, "messages")
+          );
+          messagesSnapshot.forEach((msgDoc) => {
+            const msg = msgDoc.data();
+            if (msg.senderId) {
+              const entry = contributorsMap.get(msg.senderId) || {
+                userId: msg.senderId,
+                name: msg.senderName || "Anonymous",
+                email: "",
+                issuesResolved: 0,
+                projectsContributed: 0,
+                messagesSent: 0,
+                totalScore: 0,
+              };
+              entry.messagesSent += 1;
+              contributorsMap.set(msg.senderId, entry);
+            }
+          });
+
+          // Fetch members to count active contributors
+          const membersSnapshot = await getDocs(
+            collection(db, "Open_Projects", projectId, "members")
+          );
+          membersSnapshot.forEach((memberDoc) => {
+            const member = memberDoc.data();
+            if (member.status === "Occupied" && member.userId) {
+              const entry = contributorsMap.get(member.userId) || {
+                userId: member.userId,
+                name: member.name || "Anonymous",
+                email: "",
+                issuesResolved: 0,
+                projectsContributed: 0,
+                messagesSent: 0,
+                totalScore: 0,
+              };
+              entry.projectsContributed += 1;
+              contributorsMap.set(member.userId, entry);
+            }
+          });
+        }
+
+        // Fetch user profiles for GitHub usernames
+        const usersSnapshot = await getDocs(collection(db, "Student_Detail"));
+        usersSnapshot.forEach((userDoc) => {
+          const userData = userDoc.data();
+          const entry = contributorsMap.get(userDoc.id);
+          if (entry && userData.githubUsername) {
+            entry.githubUsername = userData.githubUsername;
+          }
+        });
+
+        // Calculate total score (issues * 10 + messages * 2 + projects * 20)
+        const leaderboardData = Array.from(contributorsMap.values()).map(entry => ({
+          ...entry,
+          totalScore: (entry.issuesResolved * 10) + (entry.messagesSent * 2) + (entry.projectsContributed * 20)
+        }));
+
+        // Sort by total score descending
+        leaderboardData.sort((a, b) => b.totalScore - a.totalScore);
+
+        setLeaderboard(leaderboardData);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboardData();
+  }, []);
+
+  const getRankEmoji = (index: number) => {
+    if (index === 0) return "🥇";
+    if (index === 1) return "🥈";
+    if (index === 2) return "🥉";
+    return `#${index + 1}`;
+  };
+
+  const getRankColor = (index: number) => {
+    if (index === 0) return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white";
+    if (index === 1) return "bg-gradient-to-r from-gray-300 to-gray-500 text-white";
+    if (index === 2) return "bg-gradient-to-r from-orange-400 to-orange-600 text-white";
+    return "bg-white";
+  };
+
   return (
     <div className="flex-1 h-screen overflow-y-auto bg-gray-50 p-6">
-      {/* Running Projects */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-bold text-blue-600 mb-4">
-          Running Projects
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {runningProjects.map((project, index) => (
-            <div
-              key={index}
-              className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition"
-            >
-              <h3 className="text-lg font-semibold text-gray-800">
-                {project.title}
-              </h3>
-
-              <p className="text-gray-600 mt-2">{project.description}</p>
-              <div className="mt-3">
-                <span className="font-semibold text-gray-700">Tech Stack:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {project.techStack.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-               
-                <button
-                  onClick={handleNavigation}
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-
-                  About Project
-                </button>
-
-              </div>
-
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">🏆 Contributor Leaderboard</h1>
+          <p className="text-gray-600">Top contributors making an impact on open-source projects</p>
+          <div className="mt-4 flex justify-center gap-4 text-sm">
+            <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full font-medium">
+              💡 Issue Resolved = 10 points
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Completed Projects */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-bold text-green-600 mb-4">
-          Completed Projects
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {completedProjects.map((project, index) => (
-            <div
-              key={index}
-              className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition"
-            >
-              <h3 className="text-lg font-semibold text-gray-800">
-                {project.title}
-              </h3>
-              <p className="text-gray-600 mt-2">{project.description}</p>
-              <div className="mt-3">
-                <span className="font-semibold text-gray-700">Tech Stack:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {project.techStack.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-                <button
-                  onClick={handleNavigation}
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-
-                  About Project
-                </button>
+            <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-medium">
+              💬 Message = 2 points
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Project Demonstration */}
-      <section>
-        <h2 className="text-2xl font-bold text-purple-600 mb-4">
-          Project Demonstration
-        </h2>
-        <div className="bg-white p-6 rounded-xl shadow">
-          <p className="text-gray-700">
-            Here you can showcase videos, images, or detailed case studies of
-            completed big projects.
-          </p>
-          <div className="mt-4">
-
+            <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-medium">
+              🚀 Project Joined = 20 points
+            </div>
           </div>
         </div>
-      </section>
+
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent"></div>
+            <p className="mt-4 text-gray-600">Loading leaderboard...</p>
+          </div>
+        ) : leaderboard.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-xl shadow">
+            <p className="text-gray-500 text-lg">No contributors yet. Be the first to contribute!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {leaderboard.map((entry, index) => (
+              <div
+                key={entry.userId}
+                className={`${getRankColor(index)} rounded-xl shadow-lg p-6 transition-all hover:scale-102 hover:shadow-xl border ${
+                  index < 3 ? 'border-transparent' : 'border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  {/* Rank */}
+                  <div className="text-3xl font-bold min-w-[60px]">
+                    {getRankEmoji(index)}
+                  </div>
+
+                  {/* User Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className={`text-xl font-bold ${index < 3 ? 'text-white' : 'text-gray-800'}`}>
+                        {entry.name}
+                      </h3>
+                      {entry.githubUsername && (
+                        <a
+                          href={`https://github.com/${entry.githubUsername}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-1 text-sm ${
+                            index < 3 ? 'text-white hover:text-gray-200' : 'text-cyan-600 hover:text-cyan-700'
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                          </svg>
+                          @{entry.githubUsername}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="flex gap-6 text-center">
+                    <div>
+                      <div className={`text-2xl font-bold ${index < 3 ? 'text-white' : 'text-green-600'}`}>
+                        {entry.issuesResolved}
+                      </div>
+                      <div className={`text-xs ${index < 3 ? 'text-white/80' : 'text-gray-500'}`}>Issues</div>
+                    </div>
+                    <div>
+                      <div className={`text-2xl font-bold ${index < 3 ? 'text-white' : 'text-blue-600'}`}>
+                        {entry.projectsContributed}
+                      </div>
+                      <div className={`text-xs ${index < 3 ? 'text-white/80' : 'text-gray-500'}`}>Projects</div>
+                    </div>
+                    <div>
+                      <div className={`text-2xl font-bold ${index < 3 ? 'text-white' : 'text-purple-600'}`}>
+                        {entry.messagesSent}
+                      </div>
+                      <div className={`text-xs ${index < 3 ? 'text-white/80' : 'text-gray-500'}`}>Messages</div>
+                    </div>
+                  </div>
+
+                  {/* Total Score */}
+                  <div className="text-right min-w-[100px]">
+                    <div className={`text-3xl font-bold ${index < 3 ? 'text-white' : 'text-cyan-600'}`}>
+                      {entry.totalScore}
+                    </div>
+                    <div className={`text-xs ${index < 3 ? 'text-white/80' : 'text-gray-500'}`}>Total Points</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default ProjectContribution;
+export default Leaderboard;

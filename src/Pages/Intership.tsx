@@ -1,28 +1,69 @@
 import React, { useEffect, useState } from "react";
+import { useDataContext } from "../Context/UserDataContext";
 
 
 const Intership: React.FC = () => {
   const [tasks, setTasks] = useState([
     { id: 1, text: "Complete React Basics", done: false },
-    { id: 2, text: "Finish Tailwind Styling", done: true },
+    { id: 2, text: "Finish Tailwind Styling", done: false },
     { id: 3, text: "Build First Project", done: false },
     { id: 4, text: "Pass Level 4 Quiz", done: false },
     { id: 5, text: "Submit Final Project", done: false },
   ]);
+  const [loading, setLoading] = useState(true);
 
- 
+  const { fetchInternshipTasks, updateTaskStatus } = useDataContext();
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const fetchedTasks = await fetchInternshipTasks();
+        if (fetchedTasks.length > 0) {
+          setTasks(fetchedTasks);
+        }
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
+
+  const handleToggleTask = async (taskId: number) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newDoneStatus = !task.done;
+    
+    // Optimistic update
+    setTasks(tasks.map(t => 
+      t.id === taskId ? { ...t, done: newDoneStatus } : t
+    ));
+
+    try {
+      await updateTaskStatus(taskId.toString(), newDoneStatus);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      // Revert on error
+      setTasks(tasks.map(t => 
+        t.id === taskId ? { ...t, done: task.done } : t
+      ));
+    }
+  };
 
   const completedCount = tasks.filter(task => task.done).length;
   const allComplete = completedCount === tasks.length;
- useEffect(()=>{
-  setTasks([
-    { id: 1, text: "Complete React Basics", done: false },
-    { id: 2, text: "Finish Tailwind Styling", done: true },
-    { id: 3, text: "Build First Project", done: false },
-    { id: 4, text: "Pass Level 4 Quiz", done: false },
-    { id: 5, text: "Submit Final Project", done: false },
-  ])
- },[])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
+        <div className="text-xl">Loading your tasks...</div>
+      </div>
+    );
+  }
+
   return (
    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
       <h1 className="text-3xl font-bold mb-4">Complete to Unlock 🔒</h1>
@@ -35,7 +76,7 @@ const Intership: React.FC = () => {
             <li
               key={task.id}
               className="flex items-center justify-between border p-3 rounded-lg cursor-pointer hover:bg-gray-50"
-             
+              onClick={() => handleToggleTask(task.id)}
             >
               <span className={task.done ? "line-through text-gray-400" : ""}>
                 {task.text}

@@ -63,7 +63,8 @@ interface ProfileData {
   links: Link[];
   profileCompletion: number,
   languages: Array<String>,
-  yearOfStudy: number
+  yearOfStudy: number,
+  githubUsername?: string;
 
 }
 
@@ -335,6 +336,17 @@ export default function Profile() {
                     onChange={(e) => handleInputChange(e, "institute")}
                     disabled={!isEditing}
                     className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="githubUsername">GitHub Username</Label>
+                  <Input
+                    id="githubUsername"
+                    value={profile?.githubUsername || ""}
+                    onChange={(e) => handleInputChange(e, "githubUsername")}
+                    disabled={!isEditing}
+                    className="mt-1"
+                    placeholder="e.g. johndoe"
                   />
                 </div>
                 

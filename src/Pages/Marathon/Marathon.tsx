@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Trophy,
     Clock,
@@ -11,6 +11,8 @@ import {
     TrendingUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useDataContext } from '../../Context/UserDataContext';
+import { useAuth } from '../../Context/AuthContext';
 
 interface MCQOption {
     id: string;
@@ -71,24 +73,123 @@ interface RecentChallenge {
 export default function Marathon() {
     const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
     const [codeSubmission, setCodeSubmission] = useState<string>('');
+    const [todayChallenge, setTodayChallenge] = useState<MCQChallenge | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
-    const todayChallenge: MCQChallenge = {
-        id: 'daily-47',
-        title: 'Array Manipulation Challenge',
-        type: 'MCQ',
-        difficulty: 'Medium',
-        points: 25,
-        timeLimit: 30,
-        topic: 'Data Structures',
-        description: 'Test your knowledge of array manipulation techniques and algorithms.',
-        question: 'What is the time complexity of finding the maximum element in an unsorted array of n elements?',
-        options: [
-            { id: 'a', text: 'O(1)' },
-            { id: 'b', text: 'O(log n)' },
-            { id: 'c', text: 'O(n)' },
-            { id: 'd', text: 'O(n log n)' }
-        ],
-        correctAnswer: 'c'
+    const { user } = useAuth();
+    const { fetchTodayChallenge, submitMarathonAnswer, fetchLeaderboard, updateUserStreak, userprofile } = useDataContext();
+
+    // Fetch today's challenge and leaderboard
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const challenge = await fetchTodayChallenge();
+                if (challenge) {
+                    setTodayChallenge(challenge);
+                } else {
+                    // Set default challenge if none exists
+                    const defaultChallenge: MCQChallenge = {
+                        id: 'daily-47',
+                        title: 'Array Manipulation Challenge',
+                        type: 'MCQ',
+                        difficulty: 'Medium',
+                        points: 25,
+                        timeLimit: 30,
+                        topic: 'Data Structures',
+                        description: 'Test your knowledge of array manipulation techniques and algorithms.',
+                        question: 'What is the time complexity of finding the maximum element in an unsorted array of n elements?',
+                        options: [
+                            { id: 'a', text: 'O(1)' },
+                            { id: 'b', text: 'O(log n)' },
+                            { id: 'c', text: 'O(n)' },
+                            { id: 'd', text: 'O(n log n)' }
+                        ],
+                        correctAnswer: 'c'
+                    };
+                    setTodayChallenge(defaultChallenge);
+                }
+
+                const leaderboardData = await fetchLeaderboard();
+                const formattedLeaderboard = leaderboardData.map((leaderboardUser: any, index: number) => ({
+                    rank: index + 1,
+                    name: leaderboardUser.name || 'Anonymous',
+                    score: leaderboardUser.marathon_score || 0,
+                    streak: leaderboardUser.streakCount || 0,
+                    badge: leaderboardUser.marathon_score > 2000 ? 'Champion' : leaderboardUser.marathon_score > 1500 ? 'Expert' : 'Intermediate',
+                    isCurrentUser: leaderboardUser.id === user?.uid
+                }));
+                setLeaderboard(formattedLeaderboard);
+            } catch (error) {
+                console.error('Error loading marathon data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const handleSubmitMCQ = async () => {
+        if (!todayChallenge || !mcqAnswers[todayChallenge.id]) {
+            alert('Please select an answer');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const selectedAnswer = mcqAnswers[todayChallenge.id];
+            const isCorrect = selectedAnswer === todayChallenge.correctAnswer;
+            const points = isCorrect ? todayChallenge.points : 0;
+
+            await submitMarathonAnswer(todayChallenge.id, selectedAnswer, isCorrect, points);
+            await updateUserStreak();
+
+            if (isCorrect) {
+                alert(`Correct! You earned ${points} points!`);
+            } else {
+                alert('Incorrect answer. Better luck next time!');
+            }
+
+            // Refresh leaderboard
+            const leaderboardData = await fetchLeaderboard();
+            const formattedLeaderboard = leaderboardData.map((leaderboardUser: any, index: number) => ({
+                rank: index + 1,
+                name: leaderboardUser.name || 'Anonymous',
+                score: leaderboardUser.marathon_score || 0,
+                streak: leaderboardUser.streakCount || 0,
+                badge: leaderboardUser.marathon_score > 2000 ? 'Champion' : leaderboardUser.marathon_score > 1500 ? 'Expert' : 'Intermediate',
+                isCurrentUser: leaderboardUser.id === user?.uid
+            }));
+            setLeaderboard(formattedLeaderboard);
+        } catch (error) {
+            console.error('Error submitting answer:', error);
+            alert('Error submitting answer. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleCodeSubmit = async () => {
+        if (!codeSubmission.trim()) {
+            alert('Please write your solution');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            // For now, just submit as a code challenge (you can add test case validation later)
+            const points = 0; // Would be calculated based on test cases
+            await submitMarathonAnswer(codeChallenge.id, codeSubmission, false, points);
+            alert('Code submitted for evaluation! Results will be available soon.');
+            setCodeSubmission('');
+        } catch (error) {
+            console.error('Error submitting code:', error);
+            alert('Error submitting code. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const codeChallenge: CodeChallenge = {
@@ -118,20 +219,12 @@ Constraints:
 }`
     };
 
-    const leaderboard: LeaderboardUser[] = [
-        { rank: 1, name: 'Alex Chen', score: 2450, streak: 15, badge: 'Champion' },
-        { rank: 2, name: 'Sarah Kim', score: 2380, streak: 12, badge: 'Expert' },
-        { rank: 3, name: 'Mike Rodriguez', score: 2290, streak: 8, badge: 'Advanced' },
-        { rank: 4, name: 'Emily Zhang', score: 2150, streak: 10, badge: 'Advanced' },
-        { rank: 5, name: 'David Park', score: 2080, streak: 6, badge: 'Intermediate' },
-        { rank: 24, name: 'You (John Student)', score: 1650, streak: 4, badge: 'Intermediate', isCurrentUser: true }
-    ];
-
+    const userRank = leaderboard.find(u => u.isCurrentUser)?.rank || 0;
     const stats: Stat[] = [
-        { title: 'Current Rank', value: '#24', icon: Trophy, color: 'text-yellow-600' },
-        { title: 'Total Score', value: '1,650', icon: Target, color: 'text-blue-600' },
-        { title: 'Streak Days', value: '4', icon: TrendingUp, color: 'text-green-600' },
-        { title: 'Challenges Solved', value: '67', icon: CheckCircle, color: 'text-purple-600' }
+        { title: 'Current Rank', value: userRank > 0 ? `#${userRank}` : 'N/A', icon: Trophy, color: 'text-yellow-600' },
+        { title: 'Total Score', value: userprofile?.marathon_score?.toString() || '0', icon: Target, color: 'text-blue-600' },
+        { title: 'Streak Days', value: userprofile?.streakCount?.toString() || '0', icon: TrendingUp, color: 'text-green-600' },
+        { title: 'Challenges Solved', value: userprofile?.challenges_solved?.toString() || '0', icon: CheckCircle, color: 'text-purple-600' }
     ];
 
     const recentChallenges: RecentChallenge[] = [
@@ -152,17 +245,21 @@ Constraints:
         }
     };
 
-    const handleMcqSubmit = (): void => {
-        if (mcqAnswers[todayChallenge.id] === todayChallenge.correctAnswer) {
-            alert('Correct! You earned 25 points!');
-        } else {
-            alert('Incorrect. The correct answer is O(n). Try again tomorrow!');
-        }
-    };
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl">Loading marathon challenge...</div>
+            </div>
+        );
+    }
 
-    const handleCodeSubmit = (): void => {
-        alert('Code submitted for evaluation! Results will be available in a few minutes.');
-    };
+    if (!todayChallenge) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl">No challenge available today</div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 p-10">
@@ -253,11 +350,11 @@ Constraints:
                             </div>
 
                             <button
-                                onClick={handleMcqSubmit}
-                                disabled={!mcqAnswers[todayChallenge.id]}
+                                onClick={handleSubmitMCQ}
+                                disabled={!mcqAnswers[todayChallenge.id] || submitting}
                                 className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
-                                Submit Answer
+                                {submitting ? 'Submitting...' : 'Submit Answer'}
                             </button>
                         </div>
                     </div>

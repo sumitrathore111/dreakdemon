@@ -17,10 +17,9 @@
     "types": [
       "react",
       "react-dom"
-    ]
-  },
- 
-  "paths": {
-    "@/*": ["src/*"]
+    ],
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }
