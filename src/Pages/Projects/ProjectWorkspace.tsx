@@ -135,6 +135,14 @@ export default function ProjectWorkspace() {
       // Load join requests (only for creator)
       if (role === 'creator') {
         const requests = await fetchJoinRequests(projectId!);
+        console.log('='.repeat(60));
+        console.log('🔍 PROJECT WORKSPACE - JOIN REQUESTS DEBUG');
+        console.log('='.repeat(60));
+        console.log('Project ID:', projectId);
+        console.log('User Role:', role);
+        console.log('Total Requests Found:', requests.length);
+        console.log('Requests Data:', JSON.stringify(requests, null, 2));
+        console.log('='.repeat(60));
         setJoinRequests(requests);
       }
       
@@ -728,10 +736,20 @@ export default function ProjectWorkspace() {
         {activeTab === 'members' && (
           <div className="space-y-6">
             {/* Pending Requests */}
-            {userRole === 'creator' && joinRequests.length > 0 && (
+            {userRole === 'creator' && (
               <div>
-                <h2 className="text-2xl font-black text-gray-900 mb-4">Pending Join Requests</h2>
-                <div className="space-y-4">
+                <h2 className="text-2xl font-black text-gray-900 mb-4">
+                  Pending Join Requests {joinRequests.length > 0 && `(${joinRequests.length})`}
+                </h2>
+                
+                {joinRequests.length === 0 ? (
+                  <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
+                    <UserPlus className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-gray-600 font-semibold">No Pending Requests</p>
+                    <p className="text-sm text-gray-500 mt-2">When someone requests to join your project, they will appear here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                   {joinRequests.map(request => (
                     <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -789,6 +807,7 @@ export default function ProjectWorkspace() {
                     </div>
                   ))}
                 </div>
+                )}
               </div>
             )}
 

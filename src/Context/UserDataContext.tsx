@@ -453,7 +453,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             
             // Create join request with application details
-            await addDoc(collection(db, "Join_Requests"), {
+            const requestData = {
                 projectId,
                 projectTitle,
                 creatorId,
@@ -467,7 +467,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 experience: application.experience,
                 motivation: application.motivation,
                 availability: application.availability
-            });
+            };
+            
+            console.log('='.repeat(60));
+            console.log('📤 SENDING JOIN REQUEST');
+            console.log('='.repeat(60));
+            console.log('Project ID:', projectId);
+            console.log('Project Title:', projectTitle);
+            console.log('Creator ID:', creatorId);
+            console.log('Applicant:', user.email);
+            console.log('Request Data:', JSON.stringify(requestData, null, 2));
+            console.log('='.repeat(60));
+            
+            await addDoc(collection(db, "Join_Requests"), requestData);
+            console.log('✅ Join request saved to Firebase successfully!');
         } catch (error) {
             console.error("Error sending join request:", error);
             throw error;
