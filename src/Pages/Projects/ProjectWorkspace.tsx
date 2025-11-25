@@ -41,7 +41,13 @@ interface JoinRequest {
 export default function ProjectWorkspace() {
   const { projectId } = useParams();
   const { user } = useAuth();
-  const { fetchAllIdeas, checkUserRole, getProjectMembers, fetchJoinRequests, approveJoinRequest, rejectJoinRequest } = useDataContext();
+  const { 
+    fetchAllIdeas, checkUserRole, getProjectMembers, fetchJoinRequests, 
+    approveJoinRequest, rejectJoinRequest,
+    addTask: addTaskToDb, fetchTasks: fetchTasksFromDb, updateTask: updateTaskInDb, deleteTask: deleteTaskFromDb,
+    sendMessage: sendMessageToDb, fetchMessages: fetchMessagesFromDb,
+    uploadFile: uploadFileToDb, fetchFiles: fetchFilesFromDb, deleteFile: deleteFileFromDb
+  } = useDataContext();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<'tasks' | 'chat' | 'files' | 'members' | 'activity'>('tasks');
@@ -65,6 +71,9 @@ export default function ProjectWorkspace() {
   // Chat
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  
+  // Files
+  const [files, setFiles] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user || !projectId) {
@@ -129,8 +138,10 @@ export default function ProjectWorkspace() {
         setJoinRequests(requests);
       }
       
-      // Load tasks (TODO: from Firebase)
-      loadSampleTasks();
+      // Load tasks, messages, files from Firebase
+      loadTasks();
+      loadMessages();
+      loadFiles();
       
     } catch (error) {
       console.error('Error loading project:', error);
@@ -141,27 +152,31 @@ export default function ProjectWorkspace() {
     }
   };
 
-  const loadSampleTasks = () => {
-    setTasks([
-      {
-        id: '1',
-        title: 'Setup Project Structure',
-        description: 'Initialize project with necessary folders and dependencies',
-        status: 'completed',
-        priority: 'high',
-        assignedTo: 'Creator',
-        dueDate: '2024-11-20'
-      },
-      {
-        id: '2',
-        title: 'Design UI Mockups',
-        description: 'Create wireframes and mockups for main pages',
-        status: 'inprogress',
-        priority: 'medium',
-        assignedTo: 'Designer',
-        dueDate: '2024-12-05'
-      }
-    ]);
+  const loadTasks = async () => {
+    try {
+      const tasksList = await fetchTasksFromDb(projectId!);
+      setTasks(tasksList.filter((t: any) => !t.deleted));
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+    }
+  };
+
+  const loadMessages = async () => {
+    try {
+      const messagesList = await fetchMessagesFromDb(projectId!);
+      setMessages(messagesList);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+  
+  const loadFiles = async () => {
+    try {
+      const filesList = await fetchFilesFromDb(projectId!);
+      setFiles(filesList);
+    } catch (error) {
+      console.error('Error loading files:', error);
+    }
   };
 
   const handleApproveRequest = async (requestId: string, userId: string, userName: string) => {
@@ -201,53 +216,69 @@ export default function ProjectWorkspace() {
     }
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!newTask.title.trim()) {
       alert('Please enter a task title');
       return;
     }
 
-    const task: Task = {
-      id: Date.now().toString(),
-      title: newTask.title,
-      description: newTask.description,
-      status: 'todo',
-      priority: newTask.priority,
-      assignedTo: newTask.assignedTo,
-      dueDate: newTask.dueDate
-    };
-
-    setTasks([...tasks, task]);
-    setNewTask({ title: '', description: '', priority: 'medium', assignedTo: '', dueDate: '' });
-    setShowTaskForm(false);
+    try {
+      await addTaskToDb(projectId!, {
+        title: newTask.title,
+        description: newTask.description,
+        status: 'todo',
+        priority: newTask.priority,
+        assignedTo: newTask.assignedTo,
+        dueDate: newTask.dueDate
+      });
+      
+      await loadTasks();
+      setNewTask({ title: '', description: '', priority: 'medium', assignedTo: '', dueDate: '' });
+      setShowTaskForm(false);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('Failed to add task');
+    }
   };
 
-  const updateTaskStatus = (taskId: string, newStatus: 'todo' | 'inprogress' | 'completed') => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+  const updateTaskStatus = async (taskId: string, newStatus: 'todo' | 'inprogress' | 'completed') => {
+    try {
+      await updateTaskInDb(projectId!, taskId, { status: newStatus });
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, status: newStatus } : task
+      ));
+    } catch (error) {
+      console.error('Error updating task:', error);
+      alert('Failed to update task');
+    }
   };
 
-  const deleteTask = (taskId: string) => {
+  const deleteTask = async (taskId: string) => {
     if (userRole !== 'creator') {
       alert('Only the project creator can delete tasks');
       return;
     }
-    setTasks(tasks.filter(task => task.id !== taskId));
+    
+    try {
+      await deleteTaskFromDb(projectId!, taskId);
+      setTasks(tasks.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Failed to delete task');
+    }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const message = {
-      id: Date.now().toString(),
-      sender: user?.email?.split('@')[0] || 'User',
-      message: newMessage,
-      timestamp: new Date().toISOString()
-    };
-
-    setMessages([...messages, message]);
-    setNewMessage('');
+    try {
+      await sendMessageToDb(projectId!, { text: newMessage });
+      await loadMessages();
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message');
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -576,7 +607,7 @@ export default function ProjectWorkspace() {
                   {messages.map(msg => (
                     <div key={msg.id} className="bg-white rounded-lg p-3 shadow">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm text-gray-900">{msg.sender}</span>
+                        <span className="font-semibold text-sm text-gray-900">{msg.userName}</span>
                         <span className="text-xs text-gray-500">
                           {new Date(msg.timestamp).toLocaleTimeString()}
                         </span>
@@ -609,11 +640,87 @@ export default function ProjectWorkspace() {
 
         {/* Files Tab */}
         {activeTab === 'files' && (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Upload className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">File Sharing</h3>
-            <p className="text-gray-600">Upload and manage project files</p>
-            <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-black text-gray-900">Project Files</h2>
+              <label className="px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors cursor-pointer flex items-center gap-2">
+                <Upload className="w-5 h-5" />
+                Upload File
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      // For now, we'll store file metadata only (not actual file upload to storage)
+                      // In production, you'd upload to Firebase Storage or similar
+                      const fileData = {
+                        name: file.name,
+                        size: file.size,
+                        url: '#' // Placeholder - would be Firebase Storage URL
+                      };
+                      try {
+                        await uploadFileToDb(projectId!, fileData);
+                        const filesList = await fetchFilesFromDb(projectId!);
+                        setFiles(filesList);
+                        alert('File metadata saved! (Note: Actual file upload requires Firebase Storage setup)');
+                      } catch (error) {
+                        console.error('Error uploading file:', error);
+                        alert('Failed to upload file');
+                      }
+                    }
+                  }}
+                />
+              </label>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {files.length === 0 ? (
+                <div className="col-span-2 text-center py-12 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No files uploaded yet</p>
+                </div>
+              ) : (
+                files.map(file => (
+                  <div key={file.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-[#00ADB5] transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="w-5 h-5 text-gray-500" />
+                          <h3 className="font-semibold text-gray-900">{file.fileName}</h3>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Uploaded by {file.uploaderName}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(file.uploadedAt).toLocaleDateString()} • {(file.fileSize / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                      {userRole === 'creator' && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await deleteFileFromDb(projectId!, file.id);
+                              setFiles(files.filter(f => f.id !== file.id));
+                            } catch (error) {
+                              console.error('Error deleting file:', error);
+                              alert('Failed to delete file');
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Note: Full file upload/download requires Firebase Storage setup. Currently storing metadata only.
+            </p>
           </div>
         )}
 

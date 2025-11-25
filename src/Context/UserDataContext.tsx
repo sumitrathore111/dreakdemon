@@ -57,6 +57,17 @@ interface DataContextType {
     fetchAllJoinRequests: () => Promise<any[]>;
     fetchAllProjectMembers: () => Promise<any[]>;
     getPlatformStats: () => Promise<any>;
+    
+    // Project Workspace functions
+    addTask: (projectId: string, task: any) => Promise<void>;
+    fetchTasks: (projectId: string) => Promise<any[]>;
+    updateTask: (projectId: string, taskId: string, updates: any) => Promise<void>;
+    deleteTask: (projectId: string, taskId: string) => Promise<void>;
+    sendMessage: (projectId: string, message: any) => Promise<void>;
+    fetchMessages: (projectId: string) => Promise<any[]>;
+    uploadFile: (projectId: string, file: any) => Promise<void>;
+    fetchFiles: (projectId: string) => Promise<any[]>;
+    deleteFile: (projectId: string, fileId: string) => Promise<void>;
 }
 interface Contributor {
     id: string;
@@ -659,6 +670,156 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // ==================== END ADMIN FUNCTIONS ====================
 
+    // ==================== PROJECT WORKSPACE FUNCTIONS ====================
+    
+    const addTask = async (projectId: string, task: any) => {
+        try {
+            await addDoc(collection(db, "Project_Tasks"), {
+                projectId,
+                ...task,
+                createdAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error adding task:", error);
+            throw error;
+        }
+    };
+
+    const fetchTasks = async (projectId: string) => {
+        try {
+            const q = query(
+                collection(db, "Project_Tasks"),
+                where("projectId", "==", projectId),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error("Error fetching tasks:", error);
+            return [];
+        }
+    };
+
+    const updateTask = async (projectId: string, taskId: string, updates: any) => {
+        try {
+            const taskRef = doc(db, "Project_Tasks", taskId);
+            await updateDoc(taskRef, {
+                ...updates,
+                updatedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error updating task:", error);
+            throw error;
+        }
+    };
+
+    const deleteTask = async (projectId: string, taskId: string) => {
+        try {
+            const taskRef = doc(db, "Project_Tasks", taskId);
+            await updateDoc(taskRef, {
+                deleted: true,
+                deletedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error deleting task:", error);
+            throw error;
+        }
+    };
+
+    const sendMessage = async (projectId: string, message: any) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            await addDoc(collection(db, "Project_Messages"), {
+                projectId,
+                userId: user.uid,
+                userName: userprofile?.name || user.email?.split('@')[0] || 'User',
+                message: message.text,
+                timestamp: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error sending message:", error);
+            throw error;
+        }
+    };
+
+    const fetchMessages = async (projectId: string) => {
+        try {
+            const q = query(
+                collection(db, "Project_Messages"),
+                where("projectId", "==", projectId),
+                orderBy("timestamp", "asc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                timestamp: doc.data().timestamp?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+            return [];
+        }
+    };
+
+    const uploadFile = async (projectId: string, file: any) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            await addDoc(collection(db, "Project_Files"), {
+                projectId,
+                uploadedBy: user.uid,
+                uploaderName: userprofile?.name || user.email?.split('@')[0] || 'User',
+                fileName: file.name,
+                fileSize: file.size,
+                fileUrl: file.url,
+                uploadedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            throw error;
+        }
+    };
+
+    const fetchFiles = async (projectId: string) => {
+        try {
+            const q = query(
+                collection(db, "Project_Files"),
+                where("projectId", "==", projectId),
+                orderBy("uploadedAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    uploadedAt: doc.data().uploadedAt?.toDate().toISOString()
+                }))
+                .filter((file: any) => !file.deleted);
+        } catch (error) {
+            console.error("Error fetching files:", error);
+            return [];
+        }
+    };
+
+    const deleteFile = async (projectId: string, fileId: string) => {
+        try {
+            const fileRef = doc(db, "Project_Files", fileId);
+            await updateDoc(fileRef, {
+                deleted: true,
+                deletedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error deleting file:", error);
+            throw error;
+        }
+    };
+
+    // ==================== END PROJECT WORKSPACE FUNCTIONS ====================
+
     function calculateResumeCompletion(userprofile: any) {
         let totalFields = 16;
         let completed = 0;
@@ -833,7 +994,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             fetchAllUsers,
             fetchAllJoinRequests,
             fetchAllProjectMembers,
-            getPlatformStats
+            getPlatformStats,
+            // Project Workspace
+            addTask,
+            fetchTasks,
+            updateTask,
+            deleteTask,
+            sendMessage,
+            fetchMessages,
+            uploadFile,
+            fetchFiles,
+            deleteFile
         }}>
             {children}
         </DataContext.Provider>
