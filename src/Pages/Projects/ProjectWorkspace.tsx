@@ -735,6 +735,34 @@ export default function ProjectWorkspace() {
         {/* Members Tab */}
         {activeTab === 'members' && (
           <div className="space-y-6">
+            {/* Debug Panel - ALWAYS VISIBLE */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <h3 className="font-bold text-blue-900 mb-2">🔍 Debug Information</h3>
+              <div className="text-sm space-y-1">
+                <p><strong>Your Role:</strong> {userRole || 'Loading...'}</p>
+                <p><strong>Project ID:</strong> {projectId}</p>
+                <p><strong>Creator ID:</strong> {project?.userId}</p>
+                <p><strong>Your User ID:</strong> {user?.uid}</p>
+                <p><strong>Join Requests Count:</strong> {joinRequests.length}</p>
+                <button
+                  onClick={async () => {
+                    console.log('🔄 Manual refresh triggered');
+                    const requests = await fetchJoinRequests(projectId!);
+                    console.log('Fetched requests:', requests);
+                    setJoinRequests(requests);
+                    alert(`Found ${requests.length} requests in database`);
+                  }}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  🔄 Reload Requests from Database
+                </button>
+                <p className="mt-2"><strong>Join Requests:</strong></p>
+                <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                  {JSON.stringify(joinRequests, null, 2)}
+                </pre>
+              </div>
+            </div>
+            
             {/* Pending Requests */}
             {userRole === 'creator' && (
               <div>

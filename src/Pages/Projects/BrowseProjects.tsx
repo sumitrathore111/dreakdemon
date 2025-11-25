@@ -184,6 +184,12 @@ export default function BrowseProjects() {
       }
       
       // Send join request with application details
+      console.log('📝 SUBMITTING APPLICATION');
+      console.log('Project ID:', selectedProject.id);
+      console.log('Project Title:', selectedProject.title);
+      console.log('Creator ID:', project.userId);
+      console.log('Application Data:', application);
+      
       await sendJoinRequest(
         selectedProject.id, 
         selectedProject.title, 
@@ -191,11 +197,13 @@ export default function BrowseProjects() {
         application
       );
       
-      alert('Application submitted successfully! The project creator will review your request.');
+      console.log('✅ Application submitted successfully!');
+      alert(`✅ Application submitted successfully!\n\nProject: ${selectedProject.title}\nCreator will review in the Members tab of their project.`);
       setShowApplicationModal(false);
       setApplication({ skills: '', experience: '', motivation: '', availability: '' });
       setSelectedProject(null);
     } catch (error: any) {
+      console.error('❌ Application submission failed:', error);
       alert(error.message || 'Failed to submit application');
     }
   };
