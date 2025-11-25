@@ -703,7 +703,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const updateTask = async (projectId: string, taskId: string, updates: any) => {
+    const updateTask = async (_projectId: string, taskId: string, updates: any) => {
         try {
             const taskRef = doc(db, "Project_Tasks", taskId);
             await updateDoc(taskRef, {
@@ -716,7 +716,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const deleteTask = async (projectId: string, taskId: string) => {
+    const deleteTask = async (_projectId: string, taskId: string) => {
         try {
             const taskRef = doc(db, "Project_Tasks", taskId);
             await updateDoc(taskRef, {
@@ -805,7 +805,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const deleteFile = async (projectId: string, fileId: string) => {
+    const deleteFile = async (_projectId: string, fileId: string) => {
         try {
             const fileRef = doc(db, "Project_Files", fileId);
             await updateDoc(fileRef, {
