@@ -32,6 +32,10 @@ interface JoinRequest {
   userName: string;
   userEmail: string;
   requestedAt: string;
+  skills?: string;
+  experience?: string;
+  motivation?: string;
+  availability?: string;
 }
 
 export default function ProjectWorkspace() {
@@ -620,15 +624,15 @@ export default function ProjectWorkspace() {
             {userRole === 'creator' && joinRequests.length > 0 && (
               <div>
                 <h2 className="text-2xl font-black text-gray-900 mb-4">Pending Join Requests</h2>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {joinRequests.map(request => (
-                    <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-                      <div className="flex items-center justify-between">
+                    <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900">{request.userName}</h3>
+                          <h3 className="font-bold text-gray-900 text-lg">{request.userName}</h3>
                           <p className="text-sm text-gray-600">{request.userEmail}</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Requested {new Date(request.requestedAt).toLocaleDateString()}
+                            Applied {new Date(request.requestedAt).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -647,6 +651,33 @@ export default function ProjectWorkspace() {
                             Reject
                           </button>
                         </div>
+                      </div>
+                      
+                      {/* Application Details */}
+                      <div className="bg-white rounded-lg p-4 space-y-3">
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Skills</p>
+                          <p className="text-sm text-gray-900">{request.skills || 'Not provided'}</p>
+                        </div>
+                        
+                        {request.experience && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Experience</p>
+                            <p className="text-sm text-gray-900">{request.experience}</p>
+                          </div>
+                        )}
+                        
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Why they want to join</p>
+                          <p className="text-sm text-gray-900">{request.motivation || 'Not provided'}</p>
+                        </div>
+                        
+                        {request.availability && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Availability</p>
+                            <p className="text-sm text-gray-900">{request.availability}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

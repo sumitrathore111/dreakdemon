@@ -36,7 +36,7 @@ interface Course {
 const Courses: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { enrollInCourse, fetchEnrolledCourses } = useDataContext();
+  const { enrollInCourse } = useDataContext();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'AI' | 'Web Development'>('all');
   const [loading, setLoading] = useState(false);
 
@@ -74,7 +74,7 @@ const Courses: React.FC = () => {
           name: 'NextStep Academy',
           description: course.title,
           image: 'https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg',
-          handler: async function (response: any) {
+          handler: async function (_response: any) {
             // Payment successful
             try {
               await enrollInCourse(course.id);
@@ -260,10 +260,10 @@ const Courses: React.FC = () => {
     }
   ];
 
-  const allCourses = [...premiumCourses, ...freeCourses];
-  const filteredCourses = selectedCategory === 'all' 
-    ? allCourses 
-    : allCourses.filter(c => c.category === selectedCategory);
+  // const allCourses = [...premiumCourses, ...freeCourses];
+  // const filteredCourses = selectedCategory === 'all' 
+  //   ? allCourses 
+  //   : allCourses.filter(c => c.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-white">

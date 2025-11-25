@@ -36,7 +36,13 @@ interface PlatformStats {
 
 export default function AdminPanel() {
   const { user } = useAuth();
-  const { fetchAllIdeas, updateIdeaStatus } = useDataContext();
+  const { 
+    fetchAllIdeas, 
+    updateIdeaStatus, 
+    fetchAllUsers, 
+    fetchAllProjectMembers,
+    getPlatformStats 
+  } = useDataContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'ideas' | 'projects' | 'users'>('overview');
   const [ideas, setIdeas] = useState<SubmittedIdea[]>([]);
@@ -54,6 +60,9 @@ export default function AdminPanel() {
     activeProjects: 0,
     totalContributors: 0
   });
+  const [users, setUsers] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Check if user is admin
   useEffect(() => {
@@ -62,11 +71,24 @@ export default function AdminPanel() {
       return;
     }
     
-    // TODO: Check if user has admin role in Firebase
-    // For now, allow all logged-in users (change this in production)
-    loadIdeas();
-    loadStats();
+    loadAllData();
   }, [user, navigate]);
+
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadIdeas(),
+        loadStats(),
+        loadUsers(),
+        loadProjects()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadIdeas = async () => {
     try {
@@ -78,26 +100,45 @@ export default function AdminPanel() {
     }
   };
 
-  const loadStats = () => {
-    // Calculate from actual ideas data
-    const pending = ideas.filter(i => i.status === 'pending').length;
-    const approved = ideas.filter(i => i.status === 'approved').length;
-    const rejected = ideas.filter(i => i.status === 'rejected').length;
-    
-    setStats({
-      totalUsers: 1248,
-      totalIdeas: ideas.length,
-      pendingIdeas: pending,
-      approvedIdeas: approved,
-      rejectedIdeas: rejected,
-      activeProjects: approved,
-      totalContributors: 156
-    });
+  const loadStats = async () => {
+    try {
+      const platformStats = await getPlatformStats();
+      setStats(platformStats);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
   };
 
-  useEffect(() => {
-    loadStats();
-  }, [ideas]);
+  const loadUsers = async () => {
+    try {
+      const allUsers = await fetchAllUsers();
+      setUsers(allUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const loadProjects = async () => {
+    try {
+      const allIdeas = await fetchAllIdeas();
+      const approvedProjects = allIdeas.filter((idea: any) => idea.status === 'approved');
+      const members = await fetchAllProjectMembers();
+      
+      // Group members by project
+      const projectsWithMembers = approvedProjects.map((project: any) => {
+        const projectMembers = members.filter((m: any) => m.projectId === project.id);
+        return {
+          ...project,
+          memberCount: projectMembers.length + 1, // +1 for creator
+          members: projectMembers
+        };
+      });
+      
+      setProjects(projectsWithMembers);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+    }
+  };
 
   useEffect(() => {
     let filtered = ideas;
@@ -272,61 +313,93 @@ export default function AdminPanel() {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Users className="w-12 h-12 text-blue-500" />
-                <span className="text-3xl font-black text-gray-900">{stats.totalUsers}</span>
+          <div>
+            {loading ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-gray-600">Loading dashboard...</p>
               </div>
-              <h3 className="text-sm font-semibold text-gray-600">Total Users</h3>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Lightbulb className="w-12 h-12 text-yellow-500" />
-                <span className="text-3xl font-black text-gray-900">{stats.totalIdeas}</span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-600">Total Ideas</h3>
-              <div className="mt-2 text-xs text-gray-500">
-                {stats.pendingIdeas} pending • {stats.approvedIdeas} approved
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <FolderOpen className="w-12 h-12 text-[#00ADB5]" />
-                <span className="text-3xl font-black text-gray-900">{stats.activeProjects}</span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-600">Active Projects</h3>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Users className="w-12 h-12 text-green-500" />
-                <span className="text-3xl font-black text-gray-900">{stats.totalContributors}</span>
-              </div>
-              <h3 className="text-sm font-semibold text-gray-600">Contributors</h3>
-            </div>
-
-            {/* Pending Ideas Alert */}
-            {stats.pendingIdeas > 0 && (
-              <div className="lg:col-span-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
-                <div className="flex items-center gap-4">
-                  <Clock className="w-8 h-8 text-yellow-600" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-yellow-900 mb-1">
-                      {stats.pendingIdeas} Ideas Awaiting Review
-                    </h3>
-                    <p className="text-sm text-yellow-700">
-                      Review pending project ideas to help users get started
-                    </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <Users className="w-12 h-12 text-blue-500" />
+                    <span className="text-3xl font-black text-gray-900">{stats.totalUsers}</span>
                   </div>
-                  <button
-                    onClick={() => setActiveTab('ideas')}
-                    className="px-6 py-3 bg-yellow-600 text-white font-bold rounded-xl hover:bg-yellow-700 transition-colors"
-                  >
-                    Review Now
-                  </button>
+                  <h3 className="text-sm font-semibold text-gray-600">Total Users</h3>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <Lightbulb className="w-12 h-12 text-yellow-500" />
+                    <span className="text-3xl font-black text-gray-900">{stats.totalIdeas}</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-600">Total Ideas</h3>
+                  <div className="mt-2 text-xs text-gray-500">
+                    {stats.pendingIdeas} pending • {stats.approvedIdeas} approved
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <FolderOpen className="w-12 h-12 text-[#00ADB5]" />
+                    <span className="text-3xl font-black text-gray-900">{stats.activeProjects}</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-600">Active Projects</h3>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <Users className="w-12 h-12 text-green-500" />
+                    <span className="text-3xl font-black text-gray-900">{stats.totalContributors}</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-600">Contributors</h3>
+                </div>
+
+                {/* Pending Ideas Alert */}
+                {stats.pendingIdeas > 0 && (
+                  <div className="lg:col-span-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
+                    <div className="flex items-center gap-4">
+                      <Clock className="w-8 h-8 text-yellow-600" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-yellow-900 mb-1">
+                          {stats.pendingIdeas} Ideas Awaiting Review
+                        </h3>
+                        <p className="text-sm text-yellow-700">
+                          Review pending project ideas to help users get started
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('ideas')}
+                        className="px-6 py-3 bg-yellow-600 text-white font-bold rounded-xl hover:bg-yellow-700 transition-colors"
+                      >
+                        Review Now
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Activity */}
+                <div className="lg:col-span-4 bg-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+                  <div className="space-y-3">
+                    {ideas.slice(0, 5).map((idea) => (
+                      <div key={idea.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Lightbulb className="w-5 h-5 text-yellow-500" />
+                          <div>
+                            <p className="font-semibold text-gray-900">{idea.title}</p>
+                            <p className="text-xs text-gray-500">
+                              by {idea.userName} • {new Date(idea.submittedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(idea.status)}`}>
+                          {idea.status.toUpperCase()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -438,21 +511,162 @@ export default function AdminPanel() {
 
         {/* Projects Tab */}
         {activeTab === 'projects' && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <FolderOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Project Management</h3>
-            <p className="text-gray-600">Monitor all active projects and their progress</p>
-            <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+          <div>
+            {loading ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-gray-600">Loading projects...</p>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <FolderOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Projects</h3>
+                <p className="text-gray-600">Approved project ideas will appear here</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {projects.map((project) => (
+                  <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-black text-gray-900 mb-2">{project.title}</h3>
+                        <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                          <div className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            <span>{project.userName}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{project.memberCount} members</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(project.submittedAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg">
+                            {project.category}
+                          </span>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Project Members */}
+                    {project.members.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 mb-2">Contributors:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {project.members.slice(0, 5).map((member: any) => (
+                            <span key={member.id} className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded">
+                              {member.userName}
+                            </span>
+                          ))}
+                          {project.members.length > 5 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                              +{project.members.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">User Management</h3>
-            <p className="text-gray-600">Manage users, roles, and permissions</p>
-            <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+          <div>
+            {loading ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-gray-600">Loading users...</p>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No Users Found</h3>
+                <p className="text-gray-600">Registered users will appear here</p>
+              </div>
+            ) : (
+              <div>
+                <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-900">Total Users: {users.length}</h3>
+                    <div className="flex gap-2">
+                      <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg">
+                        Active: {users.filter(u => u.last_active_date).length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {users.map((userData) => (
+                    <div key={userData.id} className="bg-white rounded-xl shadow-lg p-5 hover:shadow-xl transition-all">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            {userData.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-gray-900 truncate">{userData.name || 'No Name'}</h3>
+                          <p className="text-sm text-gray-600 truncate">{userData.email || 'No Email'}</p>
+                          
+                          <div className="mt-2 space-y-1">
+                            {userData.institute && (
+                              <p className="text-xs text-gray-500 truncate">🎓 {userData.institute}</p>
+                            )}
+                            {userData.yearOfStudy && (
+                              <p className="text-xs text-gray-500">📚 Year {userData.yearOfStudy}</p>
+                            )}
+                            {userData.marathon_score !== undefined && userData.marathon_score > 0 && (
+                              <p className="text-xs text-gray-500">🏆 {userData.marathon_score} points</p>
+                            )}
+                            {userData.streakCount && userData.streakCount > 0 && (
+                              <p className="text-xs text-gray-500">🔥 {userData.streakCount} day streak</p>
+                            )}
+                          </div>
+
+                          {userData.skills && userData.skills.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {userData.skills.slice(0, 3).map((skill: string, idx: number) => (
+                                <span key={idx} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
+                                  {skill}
+                                </span>
+                              ))}
+                              {userData.skills.length > 3 && (
+                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                                  +{userData.skills.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {userData.last_active_date && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Last active: {new Date(userData.last_active_date.toDate()).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

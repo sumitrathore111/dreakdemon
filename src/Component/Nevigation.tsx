@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -22,6 +22,7 @@ export default function DashboardLayout() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const location = useLocation();
   const navigation = useNavigate();
   
@@ -37,8 +38,35 @@ export default function DashboardLayout() {
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
-  const { avatrUrl } = useDataContext();
+  const { avatrUrl, fetchAllIdeas, fetchJoinRequests } = useDataContext();
   const { user } = useAuth();
+  
+  // Load pending requests count
+  useEffect(() => {
+    const loadPendingRequests = async () => {
+      if (!user) return;
+      
+      try {
+        const ideas = await fetchAllIdeas();
+        const myProjects = ideas.filter((idea: any) => idea.userId === user.uid && idea.status === 'approved');
+        
+        let totalPending = 0;
+        for (const project of myProjects) {
+          const requests = await fetchJoinRequests(project.id);
+          totalPending += requests.length;
+        }
+        
+        setPendingRequestsCount(totalPending);
+      } catch (error) {
+        console.error('Error loading pending requests:', error);
+      }
+    };
+    
+    loadPendingRequests();
+    // Refresh every 30 seconds
+    const interval = setInterval(loadPendingRequests, 30000);
+    return () => clearInterval(interval);
+  }, [user, fetchAllIdeas, fetchJoinRequests]);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -115,6 +143,13 @@ export default function DashboardLayout() {
                     <span className="flex-shrink-0">{item.icon}</span>
                     {!isMinimized && (
                       <span className="truncate text-sm font-medium">{item.name}</span>
+                    )}
+                    
+                    {/* Notification Badge for Projects */}
+                    {item.path === '/dashboard/projects' && pendingRequestsCount > 0 && (
+                      <span className="ml-auto flex-shrink-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                      </span>
                     )}
                     
                     {/* Tooltip - only when minimized on desktop */}

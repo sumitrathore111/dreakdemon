@@ -31,7 +31,7 @@ export default function ProjectList() {
   const [activeTab, setActiveTab] = useState<'projects' | 'leaderboard'>('projects');
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const deleteCorruptedProject = async () => {
     if (!user) {
@@ -68,7 +68,7 @@ export default function ProjectList() {
     const confirmAdd = window.confirm("⚠️ This will add 6 demo projects. Continue?");
     if (!confirmAdd) return;
     
-    setLoading(true);
+    // setLoading(true);
     try {
       const demoProjects = [
         {
@@ -147,7 +147,7 @@ export default function ProjectList() {
       console.error("Error adding demo projects:", error);
       alert("Failed to add demo projects. Check console for details.");
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
   

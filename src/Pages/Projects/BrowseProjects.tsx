@@ -31,6 +31,16 @@ export default function BrowseProjects() {
   const [myIdeas, setMyIdeas] = useState<any[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Application Modal State
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [application, setApplication] = useState({
+    skills: '',
+    experience: '',
+    motivation: '',
+    availability: ''
+  });
 
   const categories = ['All', 'Web Development', 'Mobile App', 'AI/ML', 'Data Science', 'Game Development', 'IoT', 'Blockchain'];
 
@@ -129,10 +139,64 @@ export default function BrowseProjects() {
         return;
       }
       
-      await sendJoinRequest(_projectId, project.title, project.userId);
-      alert('Join request sent successfully! The project creator will review your request.');
+      // Convert to Project type and open modal
+      const projectData: Project = {
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        creator: project.userName,
+        members: 1,
+        status: 'Active',
+        progress: 0,
+        tags: [project.category],
+        createdAt: project.submittedAt || new Date().toISOString()
+      };
+      
+      setSelectedProject(projectData);
+      setShowApplicationModal(true);
     } catch (error: any) {
-      alert(error.message || 'Failed to send join request');
+      alert(error.message || 'Failed to open application form');
+    }
+  };
+  
+  const submitApplication = async () => {
+    if (!selectedProject || !user) return;
+    
+    // Validate application
+    if (!application.skills.trim()) {
+      alert('Please enter your skills');
+      return;
+    }
+    
+    if (!application.motivation.trim()) {
+      alert('Please explain why you want to join this project');
+      return;
+    }
+    
+    try {
+      const allIdeas = await fetchAllIdeas();
+      const project = allIdeas.find((idea: any) => idea.id === selectedProject.id);
+      
+      if (!project) {
+        alert('Project not found');
+        return;
+      }
+      
+      // Send join request with application details
+      await sendJoinRequest(
+        selectedProject.id, 
+        selectedProject.title, 
+        project.userId,
+        application
+      );
+      
+      alert('Application submitted successfully! The project creator will review your request.');
+      setShowApplicationModal(false);
+      setApplication({ skills: '', experience: '', motivation: '', availability: '' });
+      setSelectedProject(null);
+    } catch (error: any) {
+      alert(error.message || 'Failed to submit application');
     }
   };
 
@@ -449,6 +513,99 @@ export default function BrowseProjects() {
           </div>
         )}
       </div>
+      
+      {/* Application Modal */}
+      {showApplicationModal && selectedProject && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+              <h2 className="text-2xl font-black text-gray-900">Apply to Join Project</h2>
+              <p className="text-gray-600 mt-1">{selectedProject.title}</p>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Skills */}
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Your Skills <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={application.skills}
+                  onChange={(e) => setApplication({ ...application, skills: e.target.value })}
+                  placeholder="e.g., React, Node.js, Python, UI/UX Design..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
+                  rows={3}
+                />
+              </div>
+              
+              {/* Experience */}
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Relevant Experience
+                </label>
+                <textarea
+                  value={application.experience}
+                  onChange={(e) => setApplication({ ...application, experience: e.target.value })}
+                  placeholder="Share your previous projects or work experience..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
+                  rows={3}
+                />
+              </div>
+              
+              {/* Motivation */}
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Why do you want to join? <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={application.motivation}
+                  onChange={(e) => setApplication({ ...application, motivation: e.target.value })}
+                  placeholder="Explain what interests you about this project and how you can contribute..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
+                  rows={4}
+                />
+              </div>
+              
+              {/* Availability */}
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Weekly Availability
+                </label>
+                <select
+                  value={application.availability}
+                  onChange={(e) => setApplication({ ...application, availability: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                >
+                  <option value="">Select your availability</option>
+                  <option value="5-10 hours">5-10 hours per week</option>
+                  <option value="10-20 hours">10-20 hours per week</option>
+                  <option value="20+ hours">20+ hours per week</option>
+                  <option value="Full-time">Full-time commitment</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl flex gap-3">
+              <button
+                onClick={() => {
+                  setShowApplicationModal(false);
+                  setApplication({ skills: '', experience: '', motivation: '', availability: '' });
+                  setSelectedProject(null);
+                }}
+                className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitApplication}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              >
+                Submit Application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

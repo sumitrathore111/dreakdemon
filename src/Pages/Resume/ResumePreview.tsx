@@ -419,29 +419,29 @@ export default function ITResumeBuilder() {
     return score;
   };
 
-  const handleShareResume = async () => {
-    if (!resumeRef.current) return;
-    try {
-      const canvas = await html2canvas(resumeRef.current, { scale: 2, useCORS: true, logging: false });
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], `${currentResumeData.name}_Resume.png`, { type: 'image/png' });
-          if (navigator.share) {
-            navigator.share({
-              title: `${currentResumeData.name}'s Resume`,
-              files: [file]
-            }).catch(() => alert('Sharing cancelled'));
-          } else {
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-      alert('Failed to share. Try downloading instead.');
-    }
-  };
+  // const handleShareResume = async () => {
+  //   if (!resumeRef.current) return;
+  //   try {
+  //     const canvas = await html2canvas(resumeRef.current, { scale: 2, useCORS: true, logging: false });
+  //     canvas.toBlob((blob) => {
+  //       if (blob) {
+  //         const file = new File([blob], `${currentResumeData.name}_Resume.png`, { type: 'image/png' });
+  //         if (navigator.share) {
+  //           navigator.share({
+  //             title: `${currentResumeData.name}'s Resume`,
+  //             files: [file]
+  //           }).catch(() => alert('Sharing cancelled'));
+  //         } else {
+  //           const url = URL.createObjectURL(blob);
+  //           window.open(url, '_blank');
+  //         }
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error sharing:', error);
+  //     alert('Failed to share. Try downloading instead.');
+  //   }
+  // };
 
   const handleDownloadPDF = async () => {
     if (!resumeRef.current) return;

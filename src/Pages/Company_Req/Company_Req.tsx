@@ -20,14 +20,14 @@ import { companies } from "../../data";
 import { useDataContext } from "../../Context/UserDataContext";
 import { useAuth } from "../../Context/AuthContext";
 
-const industryColors: Record<string, string> = {
-  Technology: "from-blue-500 to-cyan-500",
-  "E-commerce & Cloud": "from-orange-500 to-pink-500",
-  "IT Services": "from-purple-500 to-indigo-500",
-  "E-commerce": "from-red-500 to-orange-500",
-  "Software & Design": "from-pink-500 to-rose-500",
-  "Cloud & CRM": "from-teal-500 to-green-500",
-};
+// const industryColors: Record<string, string> = {
+//   Technology: "from-blue-500 to-cyan-500",
+//   "E-commerce & Cloud": "from-orange-500 to-pink-500",
+//   "IT Services": "from-purple-500 to-indigo-500",
+//   "E-commerce": "from-red-500 to-orange-500",
+//   "Software & Design": "from-pink-500 to-rose-500",
+//   "Cloud & CRM": "from-teal-500 to-green-500",
+// };
 
 export default function JobExplorer() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -293,7 +293,7 @@ export default function JobExplorer() {
         <AnimatePresence>
           {filteredJobs.length ? (
             filteredJobs.map((job) => {
-              const gradient = industryColors[job.industry] || "from-gray-400 to-gray-500";
+              // const gradient = industryColors[job.industry] || "from-gray-400 to-gray-500";
               return (
                 <motion.div
                   key={job.id}

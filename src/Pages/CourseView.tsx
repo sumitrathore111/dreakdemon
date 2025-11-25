@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Play, 
+  // Play, 
   CheckCircle, 
   Lock, 
   Clock, 
-  BookOpen, 
-  Award,
+  // BookOpen, 
+  // Award,
   Download,
   Share2,
   ChevronLeft,

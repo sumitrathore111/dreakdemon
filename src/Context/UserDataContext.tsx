@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
@@ -45,12 +45,18 @@ interface DataContextType {
     updateIdeaStatus: (ideaId: string, status: string, feedback: string, reviewedBy: string) => Promise<void>;
     
     // Project Collaboration functions
-    sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string) => Promise<void>;
+    sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string, application: any) => Promise<void>;
     fetchJoinRequests: (projectId: string) => Promise<any[]>;
     approveJoinRequest: (requestId: string, projectId: string, userId: string, userName: string) => Promise<void>;
     rejectJoinRequest: (requestId: string) => Promise<void>;
     getProjectMembers: (projectId: string) => Promise<any[]>;
     checkUserRole: (projectId: string, userId: string) => Promise<string | null>;
+    
+    // Admin functions
+    fetchAllUsers: () => Promise<any[]>;
+    fetchAllJoinRequests: () => Promise<any[]>;
+    fetchAllProjectMembers: () => Promise<any[]>;
+    getPlatformStats: () => Promise<any>;
 }
 interface Contributor {
     id: string;
@@ -406,7 +412,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // ==================== PROJECT COLLABORATION ====================
     
-    const sendJoinRequest = async (projectId: string, projectTitle: string, creatorId: string) => {
+    const sendJoinRequest = async (projectId: string, projectTitle: string, creatorId: string, application: any) => {
         if (!user) throw new Error("User not authenticated");
         
         try {
@@ -435,7 +441,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 throw new Error("You are already a member of this project");
             }
             
-            // Create join request
+            // Create join request with application details
             await addDoc(collection(db, "Join_Requests"), {
                 projectId,
                 projectTitle,
@@ -444,7 +450,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 userName: userprofile?.name || user.email?.split('@')[0] || 'Unknown',
                 userEmail: user.email,
                 status: 'pending',
-                requestedAt: Timestamp.now()
+                requestedAt: Timestamp.now(),
+                // Application details
+                skills: application.skills,
+                experience: application.experience,
+                motivation: application.motivation,
+                availability: application.availability
             });
         } catch (error) {
             console.error("Error sending join request:", error);
@@ -529,12 +540,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const checkUserRole = async (projectId: string, userId: string) => {
         try {
             // Check if creator (from approved idea)
-            const ideasRef = collection(db, "Project_Ideas");
-            const ideaQuery = query(ideasRef, where("id", "==", projectId));
-            const ideaSnapshot = await getDocs(ideaQuery);
+            const ideaRef = doc(db, "Project_Ideas", projectId);
+            const ideaDoc = await getDoc(ideaRef);
             
-            if (!ideaSnapshot.empty) {
-                const idea = ideaSnapshot.docs[0].data();
+            if (ideaDoc.exists()) {
+                const idea = ideaDoc.data();
                 if (idea.userId === userId) {
                     return 'creator';
                 }
@@ -560,6 +570,94 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // ==================== END PROJECT COLLABORATION ====================
+
+    // ==================== ADMIN FUNCTIONS ====================
+    
+    const fetchAllUsers = async () => {
+        try {
+            const snapshot = await getDocs(collection(db, "Student_Detail"));
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            return [];
+        }
+    };
+
+    const fetchAllJoinRequests = async () => {
+        try {
+            const q = query(collection(db, "Join_Requests"), orderBy("requestedAt", "desc"));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                requestedAt: doc.data().requestedAt?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching all join requests:", error);
+            return [];
+        }
+    };
+
+    const fetchAllProjectMembers = async () => {
+        try {
+            const snapshot = await getDocs(collection(db, "Project_Members"));
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                joinedAt: doc.data().joinedAt?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching all project members:", error);
+            return [];
+        }
+    };
+
+    const getPlatformStats = async () => {
+        try {
+            const [users, ideas, members, requests] = await Promise.all([
+                fetchAllUsers(),
+                fetchAllIdeas(),
+                fetchAllProjectMembers(),
+                fetchAllJoinRequests()
+            ]);
+
+            const pendingIdeas = ideas.filter((i: any) => i.status === 'pending').length;
+            const approvedIdeas = ideas.filter((i: any) => i.status === 'approved').length;
+            const rejectedIdeas = ideas.filter((i: any) => i.status === 'rejected').length;
+            const pendingRequests = requests.filter((r: any) => r.status === 'pending').length;
+
+            // Get unique contributors
+            const uniqueContributors = new Set(members.map((m: any) => m.userId));
+
+            return {
+                totalUsers: users.length,
+                totalIdeas: ideas.length,
+                pendingIdeas,
+                approvedIdeas,
+                rejectedIdeas,
+                activeProjects: approvedIdeas,
+                totalContributors: uniqueContributors.size,
+                pendingJoinRequests: pendingRequests
+            };
+        } catch (error) {
+            console.error("Error getting platform stats:", error);
+            return {
+                totalUsers: 0,
+                totalIdeas: 0,
+                pendingIdeas: 0,
+                approvedIdeas: 0,
+                rejectedIdeas: 0,
+                activeProjects: 0,
+                totalContributors: 0,
+                pendingJoinRequests: 0
+            };
+        }
+    };
+
+    // ==================== END ADMIN FUNCTIONS ====================
 
     function calculateResumeCompletion(userprofile: any) {
         let totalFields = 16;
@@ -730,7 +828,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             approveJoinRequest,
             rejectJoinRequest,
             getProjectMembers,
-            checkUserRole
+            checkUserRole,
+            // Admin
+            fetchAllUsers,
+            fetchAllJoinRequests,
+            fetchAllProjectMembers,
+            getPlatformStats
         }}>
             {children}
         </DataContext.Provider>
