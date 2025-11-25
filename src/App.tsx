@@ -22,14 +22,17 @@ const TeamPage = lazy(() => import("./Public/TeamPage").then(mod => ({ default: 
 const Login = lazy(() => import("./Auth/LoginScreen"));
 const Signup = lazy(() => import("./Auth/SignupScreen"));
 
-const OpenProject = lazy(() => import("./Pages/Projects/OpenProject"));
+// const ProjectContribution = lazy(() => import("./Pages/ProjectContribution"));
+const BrowseProjects = lazy(() => import("./Pages/Projects/BrowseProjects"));
+const IdeaSubmission = lazy(() => import("./Pages/Projects/IdeaSubmission"));
+const ProjectWorkspace = lazy(() => import("./Pages/Projects/ProjectWorkspace"));
+const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
 const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const Marathon = lazy(() => import("./Pages/Marathon/Marathon"));
-const Courses = lazy(() => import("./Pages/Courses"));
-const CourseView = lazy(() => import("./Pages/CourseView"));
+// const CourseAbout = lazy(() => import("./Pages/CouseAbout"));
 
 function PublicLayout() {
 
@@ -146,13 +149,14 @@ const App: React.FC = () => {
               }>
 
                 <Route path="db" element={<DashboardComingSoon />} />
+                <Route path="admin" element={<AdminPanel />} />
                 <Route path="openproject/:id" element={<ProjectDetail />} />
-                <Route path="openproject" element={<OpenProject />} />
+                <Route path="projects" element={<BrowseProjects />} />
+                <Route path="projects/submit-idea" element={<IdeaSubmission />} />
+                <Route path="projects/:projectId" element={<ProjectWorkspace />} />
                 <Route path="query" element={<QueryScreen />} />
                 <Route path="profile" element={<ProfileInfo />} />
                 <Route path="marathon" element={<Marathon />} />
-                <Route path="courses" element={<Courses />} />
-                <Route path="courses/:courseId" element={<CourseView />} />
                 <Route path="company_req" element={<Company_Req />} />
                 <Route path="intership" element={<Intership />} />
                 <Route path="resume" element={<ResumePreview />} />

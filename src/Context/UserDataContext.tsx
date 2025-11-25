@@ -38,6 +38,19 @@ interface DataContextType {
     // Internship functions
     fetchInternshipTasks: () => Promise<any[]>;
     updateTaskStatus: (taskId: string, done: boolean) => Promise<void>;
+    
+    // Project Idea functions
+    submitIdea: (ideaData: any) => Promise<void>;
+    fetchAllIdeas: () => Promise<any[]>;
+    updateIdeaStatus: (ideaId: string, status: string, feedback: string, reviewedBy: string) => Promise<void>;
+    
+    // Project Collaboration functions
+    sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string) => Promise<void>;
+    fetchJoinRequests: (projectId: string) => Promise<any[]>;
+    approveJoinRequest: (requestId: string, projectId: string, userId: string, userName: string) => Promise<void>;
+    rejectJoinRequest: (requestId: string) => Promise<void>;
+    getProjectMembers: (projectId: string) => Promise<any[]>;
+    checkUserRole: (projectId: string, userId: string) => Promise<string | null>;
 }
 interface Contributor {
     id: string;
@@ -335,6 +348,219 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await updateDoc(userDocRef, { internship_tasks: updatedTasks });
     };
 
+    // ==================== PROJECT IDEAS ====================
+    
+    const submitIdea = async (ideaData: any) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            await addDoc(collection(db, "Project_Ideas"), {
+                ...ideaData,
+                userId: user.uid,
+                userName: userprofile?.name || user.email?.split('@')[0] || 'Unknown',
+                userEmail: user.email,
+                status: 'pending',
+                submittedAt: Timestamp.now(),
+                createdAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error submitting idea:", error);
+            throw error;
+        }
+    };
+
+    const fetchAllIdeas = async () => {
+        try {
+            const ideasRef = collection(db, "Project_Ideas");
+            const q = query(ideasRef, orderBy("submittedAt", "desc"));
+            const snapshot = await getDocs(q);
+            
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                submittedAt: doc.data().submittedAt?.toDate().toISOString(),
+                reviewedAt: doc.data().reviewedAt?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching ideas:", error);
+            return [];
+        }
+    };
+
+    const updateIdeaStatus = async (ideaId: string, status: string, feedback: string, reviewedBy: string) => {
+        try {
+            const ideaRef = doc(db, "Project_Ideas", ideaId);
+            await updateDoc(ideaRef, {
+                status,
+                feedback,
+                reviewedBy,
+                reviewedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error updating idea status:", error);
+            throw error;
+        }
+    };
+
+    // ==================== END PROJECT IDEAS ====================
+
+    // ==================== PROJECT COLLABORATION ====================
+    
+    const sendJoinRequest = async (projectId: string, projectTitle: string, creatorId: string) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            // Check if request already exists
+            const requestsRef = collection(db, "Join_Requests");
+            const q = query(requestsRef, 
+                where("projectId", "==", projectId),
+                where("userId", "==", user.uid),
+                where("status", "==", "pending")
+            );
+            const existing = await getDocs(q);
+            
+            if (!existing.empty) {
+                throw new Error("You already have a pending request for this project");
+            }
+            
+            // Check if already a member
+            const membersRef = collection(db, "Project_Members");
+            const memberQuery = query(membersRef,
+                where("projectId", "==", projectId),
+                where("userId", "==", user.uid)
+            );
+            const memberCheck = await getDocs(memberQuery);
+            
+            if (!memberCheck.empty) {
+                throw new Error("You are already a member of this project");
+            }
+            
+            // Create join request
+            await addDoc(collection(db, "Join_Requests"), {
+                projectId,
+                projectTitle,
+                creatorId,
+                userId: user.uid,
+                userName: userprofile?.name || user.email?.split('@')[0] || 'Unknown',
+                userEmail: user.email,
+                status: 'pending',
+                requestedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error sending join request:", error);
+            throw error;
+        }
+    };
+
+    const fetchJoinRequests = async (projectId: string) => {
+        try {
+            const requestsRef = collection(db, "Join_Requests");
+            const q = query(requestsRef,
+                where("projectId", "==", projectId),
+                where("status", "==", "pending"),
+                orderBy("requestedAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                requestedAt: doc.data().requestedAt?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching join requests:", error);
+            return [];
+        }
+    };
+
+    const approveJoinRequest = async (requestId: string, projectId: string, userId: string, userName: string) => {
+        try {
+            // Add to project members
+            await addDoc(collection(db, "Project_Members"), {
+                projectId,
+                userId,
+                userName,
+                role: 'contributor',
+                joinedAt: Timestamp.now()
+            });
+            
+            // Update request status
+            const requestRef = doc(db, "Join_Requests", requestId);
+            await updateDoc(requestRef, {
+                status: 'approved',
+                approvedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error approving join request:", error);
+            throw error;
+        }
+    };
+
+    const rejectJoinRequest = async (requestId: string) => {
+        try {
+            const requestRef = doc(db, "Join_Requests", requestId);
+            await updateDoc(requestRef, {
+                status: 'rejected',
+                rejectedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error rejecting join request:", error);
+            throw error;
+        }
+    };
+
+    const getProjectMembers = async (projectId: string) => {
+        try {
+            const membersRef = collection(db, "Project_Members");
+            const q = query(membersRef, where("projectId", "==", projectId));
+            const snapshot = await getDocs(q);
+            
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                joinedAt: doc.data().joinedAt?.toDate().toISOString()
+            }));
+        } catch (error) {
+            console.error("Error fetching project members:", error);
+            return [];
+        }
+    };
+
+    const checkUserRole = async (projectId: string, userId: string) => {
+        try {
+            // Check if creator (from approved idea)
+            const ideasRef = collection(db, "Project_Ideas");
+            const ideaQuery = query(ideasRef, where("id", "==", projectId));
+            const ideaSnapshot = await getDocs(ideaQuery);
+            
+            if (!ideaSnapshot.empty) {
+                const idea = ideaSnapshot.docs[0].data();
+                if (idea.userId === userId) {
+                    return 'creator';
+                }
+            }
+            
+            // Check if member
+            const membersRef = collection(db, "Project_Members");
+            const memberQuery = query(membersRef,
+                where("projectId", "==", projectId),
+                where("userId", "==", userId)
+            );
+            const memberSnapshot = await getDocs(memberQuery);
+            
+            if (!memberSnapshot.empty) {
+                return memberSnapshot.docs[0].data().role || 'contributor';
+            }
+            
+            return null;
+        } catch (error) {
+            console.error("Error checking user role:", error);
+            return null;
+        }
+    };
+
+    // ==================== END PROJECT COLLABORATION ====================
+
     function calculateResumeCompletion(userprofile: any) {
         let totalFields = 16;
         let completed = 0;
@@ -493,7 +719,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateCourseProgress,
             // Internship
             fetchInternshipTasks,
-            updateTaskStatus
+            updateTaskStatus,
+            // Project Ideas
+            submitIdea,
+            fetchAllIdeas,
+            updateIdeaStatus,
+            // Project Collaboration
+            sendJoinRequest,
+            fetchJoinRequests,
+            approveJoinRequest,
+            rejectJoinRequest,
+            getProjectMembers,
+            checkUserRole
         }}>
             {children}
         </DataContext.Provider>

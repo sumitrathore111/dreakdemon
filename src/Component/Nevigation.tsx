@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   Trophy,
   BookOpen,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";
@@ -27,11 +28,12 @@ export default function DashboardLayout() {
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Resume", path: "/dashboard/resume", icon: <FileText size={20} /> },
-    { name: "Open Projects", path: "/dashboard/openproject", icon: <Folder size={20} /> },
+    { name: "Projects", path: "/dashboard/projects", icon: <Folder size={20} /> },
     { name: "Marathon", path: "/dashboard/marathon", icon: <Trophy size={20} /> },
     { name: "Courses", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
     { name: "Company Requirements", path: "/dashboard/company_req", icon: <Settings size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
+    { name: "Admin Panel", path: "/dashboard/admin", icon: <Shield size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
