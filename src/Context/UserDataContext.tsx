@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
@@ -47,6 +47,8 @@ interface DataContextType {
     // Project Collaboration functions
     sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string, application: any) => Promise<void>;
     fetchJoinRequests: (projectId: string) => Promise<any[]>;
+    fetchAllJoinRequestsDebug: () => Promise<any[]>;
+    fixJoinRequestProjectId: (requestId: string, correctProjectId: string) => Promise<void>;
     approveJoinRequest: (requestId: string, projectId: string, userId: string, userName: string) => Promise<void>;
     rejectJoinRequest: (requestId: string) => Promise<void>;
     getProjectMembers: (projectId: string) => Promise<any[]>;
@@ -453,7 +455,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             
             // Create join request with application details
-            const requestData = {
+            await addDoc(collection(db, "Join_Requests"), {
                 projectId,
                 projectTitle,
                 creatorId,
@@ -462,25 +464,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 userEmail: user.email,
                 status: 'pending',
                 requestedAt: Timestamp.now(),
-                // Application details
                 skills: application.skills,
                 experience: application.experience,
                 motivation: application.motivation,
                 availability: application.availability
-            };
-            
-            console.log('='.repeat(60));
-            console.log('📤 SENDING JOIN REQUEST');
-            console.log('='.repeat(60));
-            console.log('Project ID:', projectId);
-            console.log('Project Title:', projectTitle);
-            console.log('Creator ID:', creatorId);
-            console.log('Applicant:', user.email);
-            console.log('Request Data:', JSON.stringify(requestData, null, 2));
-            console.log('='.repeat(60));
-            
-            await addDoc(collection(db, "Join_Requests"), requestData);
-            console.log('✅ Join request saved to Firebase successfully!');
+            });
         } catch (error) {
             console.error("Error sending join request:", error);
             throw error;
@@ -488,6 +476,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const fetchJoinRequests = async (projectId: string) => {
+        if (!user) return [];
+        
         try {
             const requestsRef = collection(db, "Join_Requests");
             const q = query(requestsRef,
@@ -497,13 +487,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             );
             const snapshot = await getDocs(q);
             
+            // Filter out requests made BY the current user
+            // Only show requests FROM other users who want to join this project
+            return snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    requestedAt: doc.data().requestedAt?.toDate().toISOString()
+                }))
+                .filter((request: any) => request.userId !== user.uid);
+        } catch (error) {
+            console.error("Error fetching join requests:", error);
+            return [];
+        }
+    };
+    
+    const fetchAllJoinRequestsDebug = async () => {
+        try {
+            const requestsRef = collection(db, "Join_Requests");
+            const snapshot = await getDocs(requestsRef);
+            
             return snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 requestedAt: doc.data().requestedAt?.toDate().toISOString()
             }));
         } catch (error) {
-            console.error("Error fetching join requests:", error);
+            console.error("Error fetching all join requests:", error);
             return [];
         }
     };
@@ -540,6 +550,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
         } catch (error) {
             console.error("Error rejecting join request:", error);
+            throw error;
+        }
+    };
+    
+    const fixJoinRequestProjectId = async (requestId: string, correctProjectId: string) => {
+        try {
+            const requestRef = doc(db, "Join_Requests", requestId);
+            await updateDoc(requestRef, {
+                projectId: correctProjectId
+            });
+        } catch (error) {
+            console.error("Error fixing join request:", error);
             throw error;
         }
     };
@@ -767,6 +789,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 orderBy("timestamp", "asc")
             );
             const snapshot = await getDocs(q);
+            
             return snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
@@ -999,6 +1022,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // Project Collaboration
             sendJoinRequest,
             fetchJoinRequests,
+            fetchAllJoinRequestsDebug,
+            fixJoinRequestProjectId,
             approveJoinRequest,
             rejectJoinRequest,
             getProjectMembers,

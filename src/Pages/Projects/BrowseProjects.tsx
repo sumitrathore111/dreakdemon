@@ -178,26 +178,30 @@ export default function BrowseProjects() {
       const allIdeas = await fetchAllIdeas();
       const project = allIdeas.find((idea: any) => idea.id === selectedProject.id);
       
+      console.log('🔍 APPLYING TO PROJECT:');
+      console.log('Selected Project ID:', selectedProject.id);
+      console.log('Found project:', project);
+      console.log('Project Firestore ID:', project?.id);
+      console.log('Project Creator ID:', project?.userId);
+      
       if (!project) {
         alert('Project not found');
         return;
       }
       
       // Send join request with application details
-      console.log('📝 SUBMITTING APPLICATION');
-      console.log('Project ID:', selectedProject.id);
-      console.log('Project Title:', selectedProject.title);
-      console.log('Creator ID:', project.userId);
-      console.log('Application Data:', application);
+      console.log('📤 Sending join request with:');
+      console.log('  projectId:', project.id);
+      console.log('  projectTitle:', selectedProject.title);
+      console.log('  creatorId:', project.userId);
       
       await sendJoinRequest(
-        selectedProject.id, 
+        project.id,
         selectedProject.title, 
         project.userId,
         application
       );
       
-      console.log('✅ Application submitted successfully!');
       alert(`✅ Application submitted successfully!\n\nProject: ${selectedProject.title}\nCreator will review in the Members tab of their project.`);
       setShowApplicationModal(false);
       setApplication({ skills: '', experience: '', motivation: '', availability: '' });

@@ -32,7 +32,8 @@ const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const Marathon = lazy(() => import("./Pages/Marathon/Marathon"));
-// const CourseAbout = lazy(() => import("./Pages/CouseAbout"));
+const Courses = lazy(() => import("./Pages/Courses"));
+const CourseView = lazy(() => import("./Pages/CourseView"));
 
 function PublicLayout() {
 
@@ -150,6 +151,8 @@ const App: React.FC = () => {
 
                 <Route path="db" element={<DashboardComingSoon />} />
                 <Route path="admin" element={<AdminPanel />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="courses/:courseId" element={<CourseView />} />
                 <Route path="openproject/:id" element={<ProjectDetail />} />
                 <Route path="projects" element={<BrowseProjects />} />
                 <Route path="projects/submit-idea" element={<IdeaSubmission />} />

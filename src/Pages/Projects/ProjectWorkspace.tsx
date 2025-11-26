@@ -42,7 +42,7 @@ export default function ProjectWorkspace() {
   const { projectId } = useParams();
   const { user } = useAuth();
   const { 
-    fetchAllIdeas, checkUserRole, getProjectMembers, fetchJoinRequests, 
+    fetchAllIdeas, checkUserRole, getProjectMembers, fetchJoinRequests, fetchAllJoinRequestsDebug, fixJoinRequestProjectId,
     approveJoinRequest, rejectJoinRequest,
     addTask: addTaskToDb, fetchTasks: fetchTasksFromDb, updateTask: updateTaskInDb, deleteTask: deleteTaskFromDb,
     sendMessage: sendMessageToDb, fetchMessages: fetchMessagesFromDb,
@@ -83,6 +83,12 @@ export default function ProjectWorkspace() {
     loadProjectData();
   }, [projectId, user]);
 
+  useEffect(() => {
+    if (activeTab === 'chat' && projectId) {
+      loadMessages();
+    }
+  }, [activeTab, projectId]);
+
   const loadProjectData = async () => {
     setLoading(true);
     try {
@@ -117,8 +123,14 @@ export default function ProjectWorkspace() {
       
       // Load members
       const membersList = await getProjectMembers(projectId!);
+      console.log('🔍 LOADED MEMBERS FROM FIREBASE:', membersList);
       
-      // Add creator as first member
+      // Remove duplicates based on userId
+      const uniqueMembers = membersList.filter((member: any, index: number, self: any[]) => 
+        index === self.findIndex((m: any) => m.userId === member.userId)
+      );
+      
+      // Add creator as first member, then filter out any duplicates
       const allMembers: Member[] = [
         {
           id: 'creator',
@@ -127,23 +139,40 @@ export default function ProjectWorkspace() {
           role: 'creator',
           joinedAt: projectData.submittedAt
         },
-        ...membersList
+        // Filter out the creator if they appear in membersList to avoid duplicates
+        ...uniqueMembers.filter((member: any) => member.userId !== projectData.userId)
       ];
       
+      console.log('👥 ALL MEMBERS (including creator):', allMembers);
       setMembers(allMembers);
       
       // Load join requests (only for creator)
       if (role === 'creator') {
+        console.log('📋 Loading join requests for project:', projectId);
+        console.log('📋 Current user ID:', user!.uid);
+        console.log('📋 Project creator ID:', projectData.userId);
+        
         const requests = await fetchJoinRequests(projectId!);
-        console.log('='.repeat(60));
-        console.log('🔍 PROJECT WORKSPACE - JOIN REQUESTS DEBUG');
-        console.log('='.repeat(60));
-        console.log('Project ID:', projectId);
-        console.log('User Role:', role);
-        console.log('Total Requests Found:', requests.length);
-        console.log('Requests Data:', JSON.stringify(requests, null, 2));
-        console.log('='.repeat(60));
+        console.log('📋 Fetched join requests:', requests);
         setJoinRequests(requests);
+        
+        // Auto-fix mismatched project IDs
+        if (requests.length === 0) {
+          const allRequests = await fetchAllJoinRequestsDebug();
+          const needFix = allRequests.filter((r: any) => 
+            r.status === 'pending' && 
+            r.creatorId === user!.uid &&
+            r.projectId !== projectId
+          );
+          
+          if (needFix.length > 0) {
+            for (const req of needFix) {
+              await fixJoinRequestProjectId(req.id, projectId);
+            }
+            const fixed = await fetchJoinRequests(projectId!);
+            setJoinRequests(fixed);
+          }
+        }
       }
       
       // Load tasks, messages, files from Firebase
@@ -735,35 +764,7 @@ export default function ProjectWorkspace() {
         {/* Members Tab */}
         {activeTab === 'members' && (
           <div className="space-y-6">
-            {/* Debug Panel - ALWAYS VISIBLE */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-              <h3 className="font-bold text-blue-900 mb-2">🔍 Debug Information</h3>
-              <div className="text-sm space-y-1">
-                <p><strong>Your Role:</strong> {userRole || 'Loading...'}</p>
-                <p><strong>Project ID:</strong> {projectId}</p>
-                <p><strong>Creator ID:</strong> {project?.userId}</p>
-                <p><strong>Your User ID:</strong> {user?.uid}</p>
-                <p><strong>Join Requests Count:</strong> {joinRequests.length}</p>
-                <button
-                  onClick={async () => {
-                    console.log('🔄 Manual refresh triggered');
-                    const requests = await fetchJoinRequests(projectId!);
-                    console.log('Fetched requests:', requests);
-                    setJoinRequests(requests);
-                    alert(`Found ${requests.length} requests in database`);
-                  }}
-                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                >
-                  🔄 Reload Requests from Database
-                </button>
-                <p className="mt-2"><strong>Join Requests:</strong></p>
-                <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
-                  {JSON.stringify(joinRequests, null, 2)}
-                </pre>
-              </div>
-            </div>
-            
-            {/* Pending Requests */}
+            {/* Pending Join Requests */}
             {userRole === 'creator' && (
               <div>
                 <h2 className="text-2xl font-black text-gray-900 mb-4">
@@ -777,8 +778,7 @@ export default function ProjectWorkspace() {
                     <p className="text-sm text-gray-500 mt-2">When someone requests to join your project, they will appear here</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                  {joinRequests.map(request => (
+                  <div className="space-y-4">{joinRequests.map(request => (
                     <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
