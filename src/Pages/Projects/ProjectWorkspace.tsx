@@ -515,7 +515,7 @@ export default function ProjectWorkspace() {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
                     rows={3}
                   />
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <select
                       value={newTask.priority}
                       onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}

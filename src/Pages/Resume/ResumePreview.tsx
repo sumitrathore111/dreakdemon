@@ -721,7 +721,7 @@ export default function ITResumeBuilder() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h2 className="text-base font-bold mb-2 pb-1" style={{ color, borderBottom: `2px solid ${color}20` }}>
             EDUCATION
@@ -791,8 +791,8 @@ export default function ITResumeBuilder() {
           <p className="text-xs text-gray-700">{currentResumeData.summary}</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4">
             <div>
               <h2 className="text-base font-bold mb-2 pb-1" style={{ color, borderBottom: `2px solid ${color}30` }}>
                 EXPERIENCE

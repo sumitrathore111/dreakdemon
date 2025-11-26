@@ -285,7 +285,7 @@ const Courses: React.FC = () => {
           </p>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 max-w-3xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl">
             {[
               { icon: Youtube, label: 'Free Courses', value: '8' },
               { icon: Code, label: 'Real Projects', value: '100+' },
