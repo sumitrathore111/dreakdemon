@@ -114,8 +114,8 @@ export default function ProjectWorkspace() {
       const role = await checkUserRole(projectId!, user!.uid);
       
       if (!role) {
-        alert('You do not have access to this project');
-        navigate('/dashboard/projects');
+        console.log('❌ NO ACCESS - Redirecting to diagnostics page');
+        navigate(`/dashboard/projects/access-diagnostic?projectId=${projectId}`);
         return;
       }
       
@@ -165,11 +165,11 @@ export default function ProjectWorkspace() {
             r.projectId !== projectId
           );
           
-          if (needFix.length > 0) {
+          if (needFix.length > 0 && projectId) {
             for (const req of needFix) {
               await fixJoinRequestProjectId(req.id, projectId);
             }
-            const fixed = await fetchJoinRequests(projectId!);
+            const fixed = await fetchJoinRequests(projectId);
             setJoinRequests(fixed);
           }
         }

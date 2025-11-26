@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { addDoc, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import { db } from "../service/Firebase";
 
@@ -53,6 +53,8 @@ interface DataContextType {
     rejectJoinRequest: (requestId: string) => Promise<void>;
     getProjectMembers: (projectId: string) => Promise<any[]>;
     checkUserRole: (projectId: string, userId: string) => Promise<string | null>;
+    checkAccessDiagnostics: (projectId: string, userId: string) => Promise<any>;
+    forceAddMember: (projectId: string, userId: string, userName: string) => Promise<void>;
     
     // Admin functions
     fetchAllUsers: () => Promise<any[]>;
@@ -70,6 +72,65 @@ interface DataContextType {
     uploadFile: (projectId: string, file: any) => Promise<void>;
     fetchFiles: (projectId: string) => Promise<any[]>;
     deleteFile: (projectId: string, fileId: string) => Promise<void>;
+    
+    // CodeArena functions
+    // Challenges
+    fetchAllChallenges: () => Promise<any[]>;
+    fetchChallengeById: (challengeId: string) => Promise<any>;
+    fetchDailyChallenge: () => Promise<any>;
+    fetchChallengesByDifficulty: (difficulty: string) => Promise<any[]>;
+    fetchChallengesByCategory: (category: string) => Promise<any[]>;
+    
+    // Submissions
+    submitSolution: (submissionData: {
+        challengeId: string;
+        code: string;
+        language: string;
+        status?: string;
+        passedTestCases?: number;
+        totalTestCases?: number;
+        executionTime?: number;
+        timeSpent?: number;
+    }) => Promise<any>;
+    fetchUserSubmissions: (userId: string) => Promise<any[]>;
+    fetchChallengeSubmissions: (challengeId: string) => Promise<any[]>;
+    
+    // Wallet & Transactions
+    initializeWallet: (userId: string, userName: string) => Promise<void>;
+    getUserWallet: (userId: string) => Promise<any>;
+    subscribeToWallet: (userId: string, callback: (wallet: any) => void) => () => void;
+    addCoins: (userId: string, amount: number, description: string, referenceId?: string) => Promise<void>;
+    deductCoins: (userId: string, amount: number, description: string, referenceId?: string) => Promise<void>;
+    fetchUserTransactions: (userId: string) => Promise<any[]>;
+    purchaseHint: (userId: string, challengeId: string, hintIndex: number, cost: number) => Promise<void>;
+    
+    // Battles
+    createBattle: (challengeId: string, entryFee: number, duration: number) => Promise<string>;
+    joinBattle: (battleId: string, userId: string, userName: string) => Promise<void>;
+    fetchActiveBattles: () => Promise<any[]>;
+    fetchUserBattles: (userId: string) => Promise<any[]>;
+    submitBattleSolution: (battleId: string, userId: string, code: string, language: string) => Promise<void>;
+    completeBattle: (battleId: string) => Promise<void>;
+    
+    // Tournaments
+    createTournament: (tournamentData: any) => Promise<string>;
+    registerForTournament: (tournamentId: string, userId: string, userName: string) => Promise<void>;
+    fetchActiveTournaments: () => Promise<any[]>;
+    fetchUserTournaments: (userId: string) => Promise<any[]>;
+    updateTournamentScore: (tournamentId: string, userId: string, score: number) => Promise<void>;
+    
+    // Leaderboards
+    fetchGlobalLeaderboard: () => Promise<any[]>;
+    fetchWeeklyLeaderboard: () => Promise<any[]>;
+    fetchMonthlyLeaderboard: () => Promise<any[]>;
+    updateLeaderboard: (userId: string, userName: string, score: number) => Promise<void>;
+    
+    // User Progress
+    getUserProgress: (userId: string) => Promise<any>;
+    markChallengeAsSolved: (userId: string, challengeId: string, submissionId: string) => Promise<void>;
+    updateUserStats: (userId: string, stats: any) => Promise<void>;
+    addBadge: (userId: string, badge: any) => Promise<void>;
+    updateStreak: (userId: string) => Promise<void>;
 }
 interface Contributor {
     id: string;
@@ -520,14 +581,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const approveJoinRequest = async (requestId: string, projectId: string, userId: string, userName: string) => {
         try {
-            // Add to project members
-            await addDoc(collection(db, "Project_Members"), {
-                projectId,
-                userId,
-                userName,
-                role: 'contributor',
-                joinedAt: Timestamp.now()
-            });
+            console.log('🟢 APPROVING REQUEST:', {requestId, projectId, userId, userName});
+            
+            // Check if already a member (avoid duplicates)
+            const membersRef = collection(db, "Project_Members");
+            const existingMemberQuery = query(membersRef,
+                where("projectId", "==", projectId),
+                where("userId", "==", userId)
+            );
+            const existingMember = await getDocs(existingMemberQuery);
+            
+            if (existingMember.empty) {
+                // Add to project members only if not already a member
+                await addDoc(collection(db, "Project_Members"), {
+                    projectId,
+                    userId,
+                    userName,
+                    role: 'contributor',
+                    joinedAt: Timestamp.now()
+                });
+                console.log('✅ Added user to Project_Members collection');
+            } else {
+                console.log('ℹ️ User already a member, skipping duplicate entry');
+            }
             
             // Update request status
             const requestRef = doc(db, "Join_Requests", requestId);
@@ -535,8 +611,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 status: 'approved',
                 approvedAt: Timestamp.now()
             });
+            console.log('✅ Updated join request status to approved');
         } catch (error) {
-            console.error("Error approving join request:", error);
+            console.error("❌ Error approving join request:", error);
             throw error;
         }
     };
@@ -585,15 +662,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const checkUserRole = async (projectId: string, userId: string) => {
         try {
+            console.log('🔍 CHECKING USER ROLE:', {projectId, userId});
+            
             // Check if creator (from approved idea)
             const ideaRef = doc(db, "Project_Ideas", projectId);
             const ideaDoc = await getDoc(ideaRef);
             
             if (ideaDoc.exists()) {
                 const idea = ideaDoc.data();
+                console.log('📄 Project idea found:', {creatorId: idea.userId, currentUserId: userId});
+                
                 if (idea.userId === userId) {
+                    console.log('👑 User is the CREATOR');
                     return 'creator';
                 }
+            } else {
+                console.log('⚠️ Project idea document not found for projectId:', projectId);
             }
             
             // Check if member
@@ -604,14 +688,101 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             );
             const memberSnapshot = await getDocs(memberQuery);
             
+            console.log('👥 Member check - Found documents:', memberSnapshot.docs.length);
+            
             if (!memberSnapshot.empty) {
-                return memberSnapshot.docs[0].data().role || 'contributor';
+                const memberData = memberSnapshot.docs[0].data();
+                console.log('✅ User IS a member:', memberData);
+                return memberData.role || 'contributor';
             }
             
+            console.log('❌ User has NO ACCESS to this project');
             return null;
         } catch (error) {
-            console.error("Error checking user role:", error);
+            console.error("❌ Error checking user role:", error);
             return null;
+        }
+    };
+
+    const checkAccessDiagnostics = async (projectId: string, userId: string) => {
+        try {
+            // Get all join requests for this user and project
+            const requestsRef = collection(db, "Join_Requests");
+            const requestQuery = query(requestsRef,
+                where("userId", "==", userId)
+            );
+            const requestSnapshot = await getDocs(requestQuery);
+            const userRequests = requestSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Get all project members for this project
+            const membersRef = collection(db, "Project_Members");
+            const memberQuery = query(membersRef,
+                where("projectId", "==", projectId)
+            );
+            const memberSnapshot = await getDocs(memberQuery);
+            const projectMembers = memberSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Check if user is in members
+            const isMember = projectMembers.some((m: any) => m.userId === userId);
+
+            // Get project details
+            const ideaRef = doc(db, "Project_Ideas", projectId);
+            const ideaDoc = await getDoc(ideaRef);
+            const projectData = ideaDoc.exists() ? ideaDoc.data() : null;
+
+            return {
+                userId,
+                projectId,
+                projectExists: !!projectData,
+                projectCreatorId: projectData?.userId,
+                isCreator: projectData?.userId === userId,
+                isMember,
+                userRequests,
+                projectMembers,
+                totalMembers: projectMembers.length
+            };
+        } catch (error) {
+            console.error("Error checking diagnostics:", error);
+            return null;
+        }
+    };
+
+    const forceAddMember = async (projectId: string, userId: string, userName: string) => {
+        try {
+            console.log('🔧 FORCE ADDING MEMBER:', {projectId, userId, userName});
+            
+            // Check if already exists
+            const membersRef = collection(db, "Project_Members");
+            const existingQuery = query(membersRef,
+                where("projectId", "==", projectId),
+                where("userId", "==", userId)
+            );
+            const existing = await getDocs(existingQuery);
+            
+            if (!existing.empty) {
+                console.log('ℹ️ User already exists in Project_Members');
+                return;
+            }
+            
+            // Add as member
+            await addDoc(collection(db, "Project_Members"), {
+                projectId,
+                userId,
+                userName,
+                role: 'contributor',
+                joinedAt: Timestamp.now()
+            });
+            
+            console.log('✅ Successfully force-added member to project');
+        } catch (error) {
+            console.error("❌ Error force adding member:", error);
+            throw error;
         }
     };
 
@@ -856,6 +1027,878 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // ==================== END PROJECT WORKSPACE FUNCTIONS ====================
 
+    // ==================== CODEARENA FUNCTIONS ====================
+    
+    // CHALLENGES
+    const fetchAllChallenges = async () => {
+        try {
+            const q = query(collection(db, "CodeArena_Challenges"), orderBy("createdAt", "desc"));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error("Error fetching challenges:", error);
+            return [];
+        }
+    };
+
+    const fetchChallengeById = async (challengeId: string) => {
+        try {
+            const docRef = doc(db, "CodeArena_Challenges", challengeId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                return { id: docSnap.id, ...docSnap.data() };
+            }
+            return null;
+        } catch (error) {
+            console.error("Error fetching challenge:", error);
+            return null;
+        }
+    };
+
+    const fetchDailyChallenge = async () => {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const q = query(
+                collection(db, "CodeArena_Challenges"),
+                where("isDaily", "==", true),
+                where("dailyDate", ">=", Timestamp.fromDate(today)),
+                limit(1)
+            );
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+            }
+            return null;
+        } catch (error) {
+            console.error("Error fetching daily challenge:", error);
+            return null;
+        }
+    };
+
+    const fetchChallengesByDifficulty = async (difficulty: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Challenges"),
+                where("difficulty", "==", difficulty),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching challenges by difficulty:", error);
+            return [];
+        }
+    };
+
+    const fetchChallengesByCategory = async (category: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Challenges"),
+                where("category", "==", category),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching challenges by category:", error);
+            return [];
+        }
+    };
+
+    // SUBMISSIONS
+    const submitSolution = async (submissionData: {
+        challengeId: string;
+        code: string;
+        language: string;
+        status?: string;
+        passedTestCases?: number;
+        totalTestCases?: number;
+        executionTime?: number;
+        timeSpent?: number;
+    }) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            const {
+                challengeId,
+                code,
+                language,
+                status = 'pending',
+                passedTestCases = 0,
+                totalTestCases = 0,
+                executionTime = 0,
+                timeSpent = 0
+            } = submissionData;
+
+            // Fetch challenge to get points and coins
+            const challenge = await fetchChallengeById(challengeId);
+            const allPassed = status === 'Accepted';
+            const pointsEarned = allPassed ? challenge.points : 0;
+            const coinsEarned = allPassed ? challenge.coinReward : 0;
+
+            // Create submission
+            const submissionRef = await addDoc(collection(db, "CodeArena_Submissions"), {
+                challengeId,
+                userId: user.uid,
+                userName: userprofile?.name || user.email?.split('@')[0] || 'User',
+                code,
+                language,
+                status,
+                testsPassed: passedTestCases,
+                totalTests: totalTestCases,
+                executionTime,
+                timeSpent,
+                pointsEarned,
+                coinsEarned,
+                submittedAt: Timestamp.now()
+            });
+
+            // If accepted, update user progress and wallet
+            if (allPassed) {
+                // Add coins to wallet
+                await addCoins(user.uid, coinsEarned, `Challenge: ${challenge.title}`);
+
+                // Update user progress
+                const progressRef = doc(db, "CodeArena_UserProgress", user.uid);
+                const progressSnap = await getDoc(progressRef);
+                
+                if (progressSnap.exists()) {
+                    const currentSolved = progressSnap.data().problemsSolved || [];
+                    if (!currentSolved.includes(challengeId)) {
+                        await updateDoc(progressRef, {
+                            problemsSolved: [...currentSolved, challengeId],
+                            totalPoints: (progressSnap.data().totalPoints || 0) + pointsEarned,
+                            lastActive: Timestamp.now()
+                        });
+                    }
+                }
+            }
+
+            return { 
+                id: submissionRef.id, 
+                status,
+                pointsEarned,
+                coinsEarned
+            };
+        } catch (error) {
+            console.error("Error submitting solution:", error);
+            throw error;
+        }
+    };
+
+    const fetchUserSubmissions = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Submissions"),
+                where("userId", "==", userId),
+                orderBy("submittedAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching user submissions:", error);
+            return [];
+        }
+    };
+
+    const fetchChallengeSubmissions = async (challengeId: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Submissions"),
+                where("challengeId", "==", challengeId),
+                orderBy("submittedAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching challenge submissions:", error);
+            return [];
+        }
+    };
+
+    // WALLET & TRANSACTIONS
+    const initializeWallet = async (userId: string, userName: string) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            const walletDoc = await getDoc(walletRef);
+            
+            if (!walletDoc.exists()) {
+                await setDoc(walletRef, {
+                    userId,
+                    userName,
+                    coins: 1000, // Starting bonus
+                    totalEarned: 1000,
+                    totalSpent: 0,
+                    cashBalance: 0,
+                    totalWithdrawn: 0,
+                    level: 1,
+                    experience: 0,
+                    badges: [],
+                    streak: {
+                        current: 0,
+                        longest: 0,
+                        lastActiveDate: Timestamp.now()
+                    },
+                    achievements: {
+                        problemsSolved: 0,
+                        battlesWon: 0,
+                        tournamentsWon: 0,
+                        perfectSubmissions: 0
+                    },
+                    isPremium: false,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                });
+            }
+        } catch (error) {
+            console.error("Error initializing wallet:", error);
+            throw error;
+        }
+    };
+
+    const getUserWallet = async (userId: string) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            const walletDoc = await getDoc(walletRef);
+            
+            if (walletDoc.exists()) {
+                return { id: walletDoc.id, ...walletDoc.data() };
+            }
+            return null;
+        } catch (error) {
+            console.error("Error fetching wallet:", error);
+            return null;
+        }
+    };
+
+    // Real-time wallet subscription
+    const subscribeToWallet = (userId: string, callback: (wallet: any) => void) => {
+        const walletRef = doc(db, "CodeArena_Wallets", userId);
+        
+        const unsubscribe = onSnapshot(walletRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                callback({ id: docSnapshot.id, ...docSnapshot.data() });
+            } else {
+                callback(null);
+            }
+        }, (error) => {
+            console.error("Error in wallet subscription:", error);
+            callback(null);
+        });
+
+        return unsubscribe;
+    };
+
+    const addCoins = async (userId: string, amount: number, description: string, referenceId?: string) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            const walletDoc = await getDoc(walletRef);
+            
+            if (!walletDoc.exists()) {
+                throw new Error("Wallet not found");
+            }
+            
+            const currentBalance = walletDoc.data()?.coins || 0;
+            const newBalance = currentBalance + amount;
+            
+            // Update wallet
+            await updateDoc(walletRef, {
+                coins: newBalance,
+                totalEarned: (walletDoc.data()?.totalEarned || 0) + amount,
+                updatedAt: Timestamp.now()
+            });
+            
+            // Record transaction
+            await addDoc(collection(db, "CodeArena_Transactions"), {
+                userId,
+                userName: walletDoc.data()?.userName || 'User',
+                type: 'earn',
+                category: 'challenge',
+                amount,
+                currency: 'coins',
+                balanceBefore: currentBalance,
+                balanceAfter: newBalance,
+                description,
+                referenceId,
+                status: 'completed',
+                createdAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error adding coins:", error);
+            throw error;
+        }
+    };
+
+    const deductCoins = async (userId: string, amount: number, description: string, referenceId?: string) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            const walletDoc = await getDoc(walletRef);
+            
+            if (!walletDoc.exists()) {
+                throw new Error("Wallet not found");
+            }
+            
+            const currentBalance = walletDoc.data()?.coins || 0;
+            
+            if (currentBalance < amount) {
+                throw new Error("Insufficient coins");
+            }
+            
+            const newBalance = currentBalance - amount;
+            
+            // Update wallet
+            await updateDoc(walletRef, {
+                coins: newBalance,
+                totalSpent: (walletDoc.data()?.totalSpent || 0) + amount,
+                updatedAt: Timestamp.now()
+            });
+            
+            // Record transaction
+            await addDoc(collection(db, "CodeArena_Transactions"), {
+                userId,
+                userName: walletDoc.data()?.userName || 'User',
+                type: 'spend',
+                category: 'hint',
+                amount,
+                currency: 'coins',
+                balanceBefore: currentBalance,
+                balanceAfter: newBalance,
+                description,
+                referenceId,
+                status: 'completed',
+                createdAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error deducting coins:", error);
+            throw error;
+        }
+    };
+
+    const fetchUserTransactions = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Transactions"),
+                where("userId", "==", userId),
+                orderBy("createdAt", "desc"),
+                limit(50)
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching transactions:", error);
+            return [];
+        }
+    };
+
+    const purchaseHint = async (userId: string, challengeId: string, hintIndex: number, cost: number) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            await deductCoins(userId, cost, `Purchased hint for challenge`, challengeId);
+            
+            // Update user progress
+            const progressRef = doc(db, "CodeArena_UserProgress", userId);
+            await updateDoc(progressRef, {
+                hintsUsed: arrayUnion({
+                    challengeId,
+                    hintIndex,
+                    usedAt: Timestamp.now()
+                })
+            });
+        } catch (error) {
+            console.error("Error purchasing hint:", error);
+            throw error;
+        }
+    };
+
+    // BATTLES
+    const createBattle = async (challengeId: string, entryFee: number, duration: number) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            const challenge = await fetchChallengeById(challengeId);
+            if (!challenge) throw new Error("Challenge not found");
+            
+            const battleRef = await addDoc(collection(db, "CodeArena_Battles"), {
+                battleType: '1v1',
+                challengeId,
+                difficulty: challenge.difficulty,
+                entryFee,
+                prizePool: entryFee * 2 * 0.9, // 10% platform fee
+                participants: [{
+                    userId: user.uid,
+                    userName: userprofile?.name || user.email?.split('@')[0] || 'User',
+                    score: 0,
+                    timeTaken: 0,
+                    status: 'waiting'
+                }],
+                maxParticipants: 2,
+                currentParticipants: 1,
+                status: 'waiting',
+                startTime: Timestamp.now(),
+                duration,
+                createdBy: user.uid,
+                createdAt: Timestamp.now()
+            });
+            
+            // Deduct entry fee
+            await deductCoins(user.uid, entryFee, `Battle entry fee`, battleRef.id);
+            
+            return battleRef.id;
+        } catch (error) {
+            console.error("Error creating battle:", error);
+            throw error;
+        }
+    };
+
+    const joinBattle = async (battleId: string, userId: string, userName: string) => {
+        try {
+            const battleRef = doc(db, "CodeArena_Battles", battleId);
+            const battleDoc = await getDoc(battleRef);
+            
+            if (!battleDoc.exists()) throw new Error("Battle not found");
+            
+            const battleData = battleDoc.data();
+            
+            if (battleData.currentParticipants >= battleData.maxParticipants) {
+                throw new Error("Battle is full");
+            }
+            
+            // Deduct entry fee
+            await deductCoins(userId, battleData.entryFee, `Battle entry fee`, battleId);
+            
+            // Add participant
+            await updateDoc(battleRef, {
+                participants: arrayUnion({
+                    userId,
+                    userName,
+                    score: 0,
+                    timeTaken: 0,
+                    status: 'waiting'
+                }),
+                currentParticipants: battleData.currentParticipants + 1,
+                status: battleData.currentParticipants + 1 >= battleData.maxParticipants ? 'in_progress' : 'waiting'
+            });
+        } catch (error) {
+            console.error("Error joining battle:", error);
+            throw error;
+        }
+    };
+
+    const fetchActiveBattles = async () => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Battles"),
+                where("status", "in", ['waiting', 'in_progress']),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching active battles:", error);
+            return [];
+        }
+    };
+
+    const fetchUserBattles = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Battles"),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            const battles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Filter battles where user is a participant
+            return battles.filter((battle: any) => 
+                battle.participants?.some((p: any) => p.userId === userId)
+            );
+        } catch (error) {
+            console.error("Error fetching user battles:", error);
+            return [];
+        }
+    };
+
+    const submitBattleSolution = async (battleId: string, userId: string, code: string, language: string) => {
+        try {
+            const battleRef = doc(db, "CodeArena_Battles", battleId);
+            const battleDoc = await getDoc(battleRef);
+            
+            if (!battleDoc.exists()) throw new Error("Battle not found");
+            
+            const battleData = battleDoc.data();
+            
+            // Submit solution to challenges
+            const submission = await submitSolution(battleData.challengeId, code, language);
+            
+            // Update participant status
+            const participants = battleData.participants.map((p: any) => {
+                if (p.userId === userId) {
+                    return { ...p, submissionId: submission.id, status: 'submitted' };
+                }
+                return p;
+            });
+            
+            await updateDoc(battleRef, { participants });
+        } catch (error) {
+            console.error("Error submitting battle solution:", error);
+            throw error;
+        }
+    };
+
+    const completeBattle = async (battleId: string) => {
+        try {
+            const battleRef = doc(db, "CodeArena_Battles", battleId);
+            const battleDoc = await getDoc(battleRef);
+            
+            if (!battleDoc.exists()) throw new Error("Battle not found");
+            
+            const battleData = battleDoc.data();
+            
+            // Determine winner (would be based on actual test results)
+            // For now, placeholder logic
+            const winner = battleData.participants[0]; // Simplified
+            
+            // Award prize to winner
+            await addCoins(winner.userId, battleData.prizePool, `Battle victory prize`, battleId);
+            
+            // Update battle status
+            await updateDoc(battleRef, {
+                status: 'completed',
+                winnerId: winner.userId,
+                winnerName: winner.userName,
+                endTime: Timestamp.now()
+            });
+            
+            // Update winner's stats
+            const walletRef = doc(db, "CodeArena_Wallets", winner.userId);
+            const walletDoc = await getDoc(walletRef);
+            if (walletDoc.exists()) {
+                await updateDoc(walletRef, {
+                    'achievements.battlesWon': (walletDoc.data()?.achievements?.battlesWon || 0) + 1
+                });
+            }
+        } catch (error) {
+            console.error("Error completing battle:", error);
+            throw error;
+        }
+    };
+
+    // TOURNAMENTS
+    const createTournament = async (tournamentData: any) => {
+        if (!user) throw new Error("User not authenticated");
+        
+        try {
+            const tournamentRef = await addDoc(collection(db, "CodeArena_Tournaments"), {
+                ...tournamentData,
+                currentParticipants: 0,
+                participants: [],
+                status: 'upcoming',
+                createdBy: user.uid,
+                createdAt: Timestamp.now()
+            });
+            
+            return tournamentRef.id;
+        } catch (error) {
+            console.error("Error creating tournament:", error);
+            throw error;
+        }
+    };
+
+    const registerForTournament = async (tournamentId: string, userId: string, userName: string) => {
+        try {
+            const tournamentRef = doc(db, "CodeArena_Tournaments", tournamentId);
+            const tournamentDoc = await getDoc(tournamentRef);
+            
+            if (!tournamentDoc.exists()) throw new Error("Tournament not found");
+            
+            const tournamentData = tournamentDoc.data();
+            
+            if (tournamentData.currentParticipants >= tournamentData.maxParticipants) {
+                throw new Error("Tournament is full");
+            }
+            
+            // Deduct entry fee
+            if (tournamentData.entryFee > 0) {
+                await deductCoins(userId, tournamentData.entryFee, `Tournament registration`, tournamentId);
+            }
+            
+            // Add participant
+            await updateDoc(tournamentRef, {
+                participants: arrayUnion({
+                    userId,
+                    userName,
+                    totalScore: 0,
+                    solvedChallenges: 0
+                }),
+                currentParticipants: tournamentData.currentParticipants + 1
+            });
+        } catch (error) {
+            console.error("Error registering for tournament:", error);
+            throw error;
+        }
+    };
+
+    const fetchActiveTournaments = async () => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Tournaments"),
+                where("status", "in", ['upcoming', 'registration', 'in_progress']),
+                orderBy("startTime", "asc")
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching active tournaments:", error);
+            return [];
+        }
+    };
+
+    const fetchUserTournaments = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Tournaments"),
+                orderBy("createdAt", "desc")
+            );
+            const snapshot = await getDocs(q);
+            const tournaments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Filter tournaments where user is a participant
+            return tournaments.filter((tournament: any) =>
+                tournament.participants?.some((p: any) => p.userId === userId)
+            );
+        } catch (error) {
+            console.error("Error fetching user tournaments:", error);
+            return [];
+        }
+    };
+
+    const updateTournamentScore = async (tournamentId: string, userId: string, score: number) => {
+        try {
+            const tournamentRef = doc(db, "CodeArena_Tournaments", tournamentId);
+            const tournamentDoc = await getDoc(tournamentRef);
+            
+            if (!tournamentDoc.exists()) throw new Error("Tournament not found");
+            
+            const tournamentData = tournamentDoc.data();
+            const participants = tournamentData.participants.map((p: any) => {
+                if (p.userId === userId) {
+                    return { ...p, totalScore: p.totalScore + score, solvedChallenges: p.solvedChallenges + 1 };
+                }
+                return p;
+            });
+            
+            await updateDoc(tournamentRef, { participants });
+        } catch (error) {
+            console.error("Error updating tournament score:", error);
+            throw error;
+        }
+    };
+
+    // LEADERBOARDS
+    const fetchGlobalLeaderboard = async () => {
+        try {
+            const q = query(
+                collection(db, "CodeArena_Leaderboards"),
+                where("type", "==", "global"),
+                limit(1)
+            );
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                return snapshot.docs[0].data().rankings || [];
+            }
+            return [];
+        } catch (error) {
+            console.error("Error fetching global leaderboard:", error);
+            return [];
+        }
+    };
+
+    const fetchWeeklyLeaderboard = async () => {
+        try {
+            const now = new Date();
+            const year = now.getFullYear();
+            const week = getWeekNumber(now);
+            const period = `${year}-W${week}`;
+            
+            const q = query(
+                collection(db, "CodeArena_Leaderboards"),
+                where("type", "==", "weekly"),
+                where("period", "==", period),
+                limit(1)
+            );
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                return snapshot.docs[0].data().rankings || [];
+            }
+            return [];
+        } catch (error) {
+            console.error("Error fetching weekly leaderboard:", error);
+            return [];
+        }
+    };
+
+    const fetchMonthlyLeaderboard = async () => {
+        try {
+            const now = new Date();
+            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            const q = query(
+                collection(db, "CodeArena_Leaderboards"),
+                where("type", "==", "monthly"),
+                where("period", "==", period),
+                limit(1)
+            );
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                return snapshot.docs[0].data().rankings || [];
+            }
+            return [];
+        } catch (error) {
+            console.error("Error fetching monthly leaderboard:", error);
+            return [];
+        }
+    };
+
+    const updateLeaderboard = async (userId: string, userName: string, score: number) => {
+        // This would typically be handled by a backend function
+        // For now, placeholder
+        console.log("Update leaderboard:", userId, userName, score);
+    };
+
+    // Helper function for week number
+    const getWeekNumber = (date: Date) => {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    };
+
+    // USER PROGRESS
+    const getUserProgress = async (userId: string) => {
+        try {
+            const progressRef = doc(db, "CodeArena_UserProgress", userId);
+            const progressDoc = await getDoc(progressRef);
+            
+            if (progressDoc.exists()) {
+                return { id: progressDoc.id, ...progressDoc.data() };
+            }
+            
+            // Initialize if doesn't exist
+            await setDoc(progressRef, {
+                userId,
+                solvedChallenges: [],
+                categoryProgress: {},
+                hintsUsed: [],
+                favoriteProblems: [],
+                stats: {
+                    totalAttempts: 0,
+                    successfulAttempts: 0,
+                    averageTime: 0,
+                    fastestSolve: 0,
+                    languagesUsed: [],
+                    mostSolvedCategory: ''
+                },
+                updatedAt: Timestamp.now()
+            });
+            
+            return await getDoc(progressRef).then(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching user progress:", error);
+            return null;
+        }
+    };
+
+    const markChallengeAsSolved = async (userId: string, challengeId: string, submissionId: string) => {
+        try {
+            const progressRef = doc(db, "CodeArena_UserProgress", userId);
+            await updateDoc(progressRef, {
+                solvedChallenges: arrayUnion({
+                    challengeId,
+                    solvedAt: Timestamp.now(),
+                    attempts: 1,
+                    bestSubmissionId: submissionId
+                }),
+                updatedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error marking challenge as solved:", error);
+            throw error;
+        }
+    };
+
+    const updateUserStats = async (userId: string, stats: any) => {
+        try {
+            const progressRef = doc(db, "CodeArena_UserProgress", userId);
+            await updateDoc(progressRef, {
+                stats,
+                updatedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error updating user stats:", error);
+            throw error;
+        }
+    };
+
+    const addBadge = async (userId: string, badge: any) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            await updateDoc(walletRef, {
+                badges: arrayUnion({
+                    ...badge,
+                    earnedAt: Timestamp.now()
+                }),
+                updatedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error adding badge:", error);
+            throw error;
+        }
+    };
+
+    const updateStreak = async (userId: string) => {
+        try {
+            const walletRef = doc(db, "CodeArena_Wallets", userId);
+            const walletDoc = await getDoc(walletRef);
+            
+            if (!walletDoc.exists()) return;
+            
+            const lastActive = walletDoc.data()?.streak?.lastActiveDate?.toDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let newStreak = 1;
+            if (lastActive) {
+                const lastActiveDate = new Date(lastActive);
+                lastActiveDate.setHours(0, 0, 0, 0);
+                
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastActiveDate.getTime() === yesterday.getTime()) {
+                    newStreak = (walletDoc.data()?.streak?.current || 0) + 1;
+                }
+            }
+            
+            await updateDoc(walletRef, {
+                'streak.current': newStreak,
+                'streak.longest': Math.max(newStreak, walletDoc.data()?.streak?.longest || 0),
+                'streak.lastActiveDate': Timestamp.now(),
+                updatedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("Error updating streak:", error);
+            throw error;
+        }
+    };
+
+    // ==================== END CODEARENA FUNCTIONS ====================
+
     function calculateResumeCompletion(userprofile: any) {
         let totalFields = 16;
         let completed = 0;
@@ -1028,6 +2071,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             rejectJoinRequest,
             getProjectMembers,
             checkUserRole,
+            checkAccessDiagnostics,
+            forceAddMember,
             // Admin
             fetchAllUsers,
             fetchAllJoinRequests,
@@ -1042,7 +2087,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             fetchMessages,
             uploadFile,
             fetchFiles,
-            deleteFile
+            deleteFile,
+            // CodeArena
+            fetchAllChallenges,
+            fetchChallengeById,
+            fetchDailyChallenge,
+            fetchChallengesByDifficulty,
+            fetchChallengesByCategory,
+            submitSolution,
+            fetchUserSubmissions,
+            fetchChallengeSubmissions,
+            initializeWallet,
+            getUserWallet,
+            subscribeToWallet,
+            addCoins,
+            deductCoins,
+            fetchUserTransactions,
+            purchaseHint,
+            createBattle,
+            joinBattle,
+            fetchActiveBattles,
+            fetchUserBattles,
+            submitBattleSolution,
+            completeBattle,
+            createTournament,
+            registerForTournament,
+            fetchActiveTournaments,
+            fetchUserTournaments,
+            updateTournamentScore,
+            fetchGlobalLeaderboard,
+            fetchWeeklyLeaderboard,
+            fetchMonthlyLeaderboard,
+            updateLeaderboard,
+            getUserProgress,
+            markChallengeAsSolved,
+            updateUserStats,
+            addBadge,
+            updateStreak
         }}>
             {children}
         </DataContext.Provider>

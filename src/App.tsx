@@ -2,6 +2,7 @@ import { type JSX, Suspense, lazy } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import Navigation from "./Component/Nevigation";
+import ToastProvider from "./Component/ToastProvider";
 
 
 import { AuthProvider, useAuth } from "./Context/AuthContext";
@@ -26,14 +27,16 @@ const Signup = lazy(() => import("./Auth/SignupScreen"));
 const BrowseProjects = lazy(() => import("./Pages/Projects/BrowseProjects"));
 const IdeaSubmission = lazy(() => import("./Pages/Projects/IdeaSubmission"));
 const ProjectWorkspace = lazy(() => import("./Pages/Projects/ProjectWorkspace"));
+const ProjectAccessDiagnostic = lazy(() => import("./Pages/Projects/ProjectAccessDiagnostic"));
 const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
 const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
-const Marathon = lazy(() => import("./Pages/Marathon/Marathon"));
+const StudentPortfolio = lazy(() => import("./Pages/Profile/StudentPortfolio"));
 const Courses = lazy(() => import("./Pages/Courses"));
 const CourseView = lazy(() => import("./Pages/CourseView"));
+const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
 
 function PublicLayout() {
 
@@ -78,7 +81,7 @@ function PublicLayout() {
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>Open Project Contribution</li>
                   <li>Resume Builder</li>
-                  <li>Marathon</li>
+                  <li>CodeArena</li>
                   <li>Company Requirements</li>
                 </ul>
               </div>
@@ -133,6 +136,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <DataProvider>
+        <ToastProvider />
         <ScrollToTop />
         <Suspense fallback={<div>Loading app...</div>}>
           <AnimatePresence mode="wait" >
@@ -142,40 +146,31 @@ const App: React.FC = () => {
               <Route path="/*" element={<PublicLayout />} />
 
               {/* Private Routes */}
-              <Route path="dashboard/*" element={
-                <ProtectedRoute>
-                  <Navigation />
-                </ProtectedRoute>
-
-              }>
-
+              <Route 
+                path="dashboard/*" 
+                element={
+                  <ProtectedRoute>
+                    <Navigation />
+                  </ProtectedRoute>
+                }
+              >
                 <Route path="db" element={<DashboardComingSoon />} />
                 <Route path="admin" element={<AdminPanel />} />
-                <Route path="courses" element={<Courses />} />
-                <Route path="courses/:courseId" element={<CourseView />} />
                 <Route path="openproject/:id" element={<ProjectDetail />} />
                 <Route path="projects" element={<BrowseProjects />} />
                 <Route path="projects/submit-idea" element={<IdeaSubmission />} />
-                <Route path="projects/:projectId" element={<ProjectWorkspace />} />
+                <Route path="projects/access-diagnostic" element={<ProjectAccessDiagnostic />} />
+                <Route path="projects/workspace/:projectId" element={<ProjectWorkspace />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="courses/:courseId" element={<CourseView />} />
                 <Route path="query" element={<QueryScreen />} />
                 <Route path="profile" element={<ProfileInfo />} />
-                <Route path="marathon" element={<Marathon />} />
+                <Route path="portfolio/:userId" element={<StudentPortfolio />} />
+                <Route path="codearena/*" element={<CodeArena />} />
                 <Route path="company_req" element={<Company_Req />} />
                 <Route path="intership" element={<Intership />} />
                 <Route path="resume" element={<ResumePreview />} />
               </Route>
-              {/* <Route
-                path="dashboard/*"
-                element={
-                  <ProtectedRoute>
-                    
-                      <PrivateLayout />
-                   
-                  </ProtectedRoute>
-                }
-              >
-                
-              </Route> */}
             </Routes>
           </AnimatePresence>
         </Suspense>

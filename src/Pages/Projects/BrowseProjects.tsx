@@ -4,7 +4,7 @@ import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { 
   Code2, Users, Calendar, Search, 
-  Lightbulb, CheckCircle, Clock
+  Lightbulb, CheckCircle, Clock, TrendingUp, Star, Filter
 } from 'lucide-react';
 
 interface Project {
@@ -13,6 +13,7 @@ interface Project {
   description: string;
   category: string;
   creator: string;
+  creatorId: string;
   members: number;
   status: string;
   progress: number;
@@ -22,7 +23,7 @@ interface Project {
 
 export default function BrowseProjects() {
   const { user } = useAuth();
-  const { fetchAllIdeas, sendJoinRequest } = useDataContext();
+  const { fetchAllIdeas, sendJoinRequest, fetchAllJoinRequests, getProjectMembers } = useDataContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'browse' | 'myideas' | 'myprojects'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +32,10 @@ export default function BrowseProjects() {
   const [myIdeas, setMyIdeas] = useState<any[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Track user's join requests and memberships
+  const [userJoinRequests, setUserJoinRequests] = useState<Record<string, any>>({});
+  const [userMemberships, setUserMemberships] = useState<Set<string>>(new Set());
   
   // Application Modal State
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -48,6 +53,7 @@ export default function BrowseProjects() {
     loadApprovedProjects();
     loadMyIdeas();
     loadMyProjects();
+    loadUserAccessStatus();
   }, [user]);
 
   const loadApprovedProjects = async () => {
@@ -63,6 +69,7 @@ export default function BrowseProjects() {
           description: idea.description,
           category: idea.category,
           creator: idea.userName,
+          creatorId: idea.userId,
           members: 1,
           status: 'Active',
           progress: 0,
@@ -105,6 +112,7 @@ export default function BrowseProjects() {
           description: idea.description,
           category: idea.category,
           creator: idea.userName,
+          creatorId: idea.userId,
           members: 1,
           status: 'Active',
           progress: 0,
@@ -115,6 +123,42 @@ export default function BrowseProjects() {
       setMyProjects(userApprovedIdeas);
     } catch (error) {
       console.error('Error loading user projects:', error);
+    }
+  };
+
+  const loadUserAccessStatus = async () => {
+    if (!user) return;
+    
+    try {
+      // Get all join requests by current user
+      const allRequests = await fetchAllJoinRequests();
+      const userRequests = allRequests.filter((req: any) => req.userId === user.uid);
+      
+      // Create a map of projectId -> request data
+      const requestsMap: Record<string, any> = {};
+      userRequests.forEach((req: any) => {
+        requestsMap[req.projectId] = req;
+      });
+      setUserJoinRequests(requestsMap);
+      
+      // Get all projects where user is a member
+      const allIdeas = await fetchAllIdeas();
+      const approvedProjects = allIdeas.filter((idea: any) => idea.status === 'approved');
+      
+      const membershipSet = new Set<string>();
+      
+      // Check each project for membership
+      for (const project of approvedProjects) {
+        const members = await getProjectMembers(project.id);
+        const isMember = members.some((m: any) => m.userId === user.uid);
+        if (isMember) {
+          membershipSet.add(project.id);
+        }
+      }
+      
+      setUserMemberships(membershipSet);
+    } catch (error) {
+      console.error('Error loading user access status:', error);
     }
   };
 
@@ -146,6 +190,7 @@ export default function BrowseProjects() {
         description: project.description,
         category: project.category,
         creator: project.userName,
+        creatorId: project.userId,
         members: 1,
         status: 'Active',
         progress: 0,
@@ -158,6 +203,35 @@ export default function BrowseProjects() {
     } catch (error: any) {
       alert(error.message || 'Failed to open application form');
     }
+  };
+  
+  const joinProject = async (projectId: string) => {
+    if (!user) return;
+    
+    try {
+      navigate(`/dashboard/projects/workspace/${projectId}`);
+    } catch (error) {
+      console.error('Error joining project:', error);
+    }
+  };
+  
+  const getProjectButtonState = (projectId: string, creatorId: string) => {
+    if (!user) return { text: 'Login to Join', disabled: true, action: 'login' };
+    if (creatorId === user.uid) return { text: 'Manage →', disabled: false, action: 'manage' };
+    if (userMemberships.has(projectId)) return { text: 'Open Workspace →', disabled: false, action: 'open' };
+    
+    const request = userJoinRequests[projectId];
+    if (request) {
+      if (request.status === 'approved') {
+        return { text: 'Join Project →', disabled: false, action: 'join' };
+      } else if (request.status === 'pending') {
+        return { text: 'Pending...', disabled: true, action: 'pending' };
+      } else if (request.status === 'rejected') {
+        return { text: 'Request Again', disabled: false, action: 'request' };
+      }
+    }
+    
+    return { text: 'Request to Join', disabled: false, action: 'request' };
   };
   
   const submitApplication = async () => {
@@ -206,6 +280,9 @@ export default function BrowseProjects() {
       setShowApplicationModal(false);
       setApplication({ skills: '', experience: '', motivation: '', availability: '' });
       setSelectedProject(null);
+      
+      // Reload access status to show pending state
+      await loadUserAccessStatus();
     } catch (error: any) {
       console.error('❌ Application submission failed:', error);
       alert(error.message || 'Failed to submit application');
@@ -220,7 +297,7 @@ export default function BrowseProjects() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -295,28 +372,54 @@ export default function BrowseProjects() {
         {/* Browse Projects Tab */}
         {activeTab === 'browse' && (
           <div>
-            {/* Search and Filter */}
-            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
-              <div className="flex gap-4">
+            {/* Search and Filter - Enhanced */}
+            <div className="mb-6 bg-gradient-to-r from-white to-cyan-50 rounded-xl shadow-lg p-6 border-2 border-cyan-100">
+              <div className="flex gap-4 mb-4">
                 <div className="flex-1 relative">
-                  <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-600" />
                   <input
                     type="text"
-                    placeholder="Search projects..."
+                    placeholder="🔍 Search by title, tech stack, or keywords..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                    className="w-full pl-12 pr-4 py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none text-lg font-medium placeholder-gray-400"
                   />
                 </div>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-6 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none font-semibold"
+                  className="px-6 py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none font-bold text-gray-700 bg-white cursor-pointer hover:bg-cyan-50 transition-all"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat.toLowerCase()}>{cat}</option>
                   ))}
                 </select>
+              </div>
+              
+              {/* Stats Bar */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1 text-gray-600">
+                    <Filter className="w-4 h-4" />
+                    <strong className="text-cyan-600">{filteredProjects.length}</strong> projects available
+                  </span>
+                  {searchQuery && (
+                    <span className="px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs font-bold">
+                      Filtered by: "{searchQuery}"
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-3 py-1 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" /> Trending
+                  </button>
+                  <button className="px-3 py-1 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1">
+                    <Star className="w-3 h-3" /> Popular
+                  </button>
+                  <button className="px-3 py-1 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> Recent
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -381,12 +484,31 @@ export default function BrowseProjects() {
                         <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => requestToJoin(project.id)}
-                      className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
-                    >
-                      Request to Join
-                    </button>
+                    {(() => {
+                      const buttonState = getProjectButtonState(project.id, project.creatorId);
+                      
+                      return (
+                        <button
+                          onClick={() => {
+                            if (buttonState.action === 'request') requestToJoin(project.id);
+                            else if (buttonState.action === 'join' || buttonState.action === 'open') joinProject(project.id);
+                            else if (buttonState.action === 'manage') navigate(`/dashboard/projects/workspace/${project.id}`);
+                          }}
+                          disabled={buttonState.disabled}
+                          className={`px-4 py-2 font-semibold rounded-lg transition-colors ${
+                            buttonState.disabled
+                              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                              : buttonState.action === 'pending'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : buttonState.action === 'join' || buttonState.action === 'open'
+                              ? 'bg-green-500 text-white hover:bg-green-600'
+                              : 'bg-[#00ADB5] text-white hover:bg-cyan-600'
+                          }`}
+                        >
+                          {buttonState.text}
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
@@ -479,7 +601,7 @@ export default function BrowseProjects() {
                 {myProjects.map((project) => (
                   <div
                     key={project.id}
-                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                    onClick={() => navigate(`/dashboard/projects/workspace/${project.id}`)}
                     className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6 cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-4">
