@@ -12,7 +12,6 @@ import {
   ChevronsLeft,
   Trophy,
   BookOpen,
-  Shield,
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";

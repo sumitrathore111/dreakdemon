@@ -19,7 +19,7 @@ import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
 // Lazy-loaded pages
 const HomePage = lazy(() => import("./Public/HomePage").then(mod => ({ default: mod.HomePage })));
 const AboutPage = lazy(() => import("./Public/CompanyAbout").then(mod => ({ default: mod.AboutPage })));
-const TeamPage = lazy(() => import("./Public/TeamPage").then(mod => ({ default: mod.TeamPage })));
+const ContactUs = lazy(() => import("./Public/ContactUs").then(mod => ({ default: mod.ContactUs })));
 const Login = lazy(() => import("./Auth/LoginScreen"));
 const Signup = lazy(() => import("./Auth/SignupScreen"));
 
@@ -51,7 +51,7 @@ function PublicLayout() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/team" element={<TeamPage />} />
+            <Route path="/contact" element={<ContactUs />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
             <Route path="*" element={<Navigate to="/" />} />
@@ -158,6 +158,8 @@ const App: React.FC = () => {
                 <Route path="admin" element={<AdminPanel />} />
                 <Route path="openproject/:id" element={<ProjectDetail />} />
                 <Route path="projects" element={<BrowseProjects />} />
+                <Route path="projects/admin" element={<AdminPanel />} />
+                <Route path="projects/AdminPanel" element={<AdminPanel />} />
                 <Route path="projects/submit-idea" element={<IdeaSubmission />} />
                 <Route path="projects/access-diagnostic" element={<ProjectAccessDiagnostic />} />
                 <Route path="projects/workspace/:projectId" element={<ProjectWorkspace />} />

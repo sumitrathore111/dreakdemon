@@ -43,6 +43,7 @@ interface DataContextType {
     submitIdea: (ideaData: any) => Promise<void>;
     fetchAllIdeas: () => Promise<any[]>;
     updateIdeaStatus: (ideaId: string, status: string, feedback: string, reviewedBy: string) => Promise<void>;
+    deleteProject: (projectId: string) => Promise<void>;
     
     // Project Collaboration functions
     sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string, application: any) => Promise<void>;
@@ -478,6 +479,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
         } catch (error) {
             console.error("Error updating idea status:", error);
+            throw error;
+        }
+    };
+
+    const deleteProject = async (projectId: string) => {
+        try {
+            // Actually delete the project from database
+            const ideaRef = doc(db, "Project_Ideas", projectId);
+            await deleteDoc(ideaRef);
+            console.log("Project deleted successfully from database");
+        } catch (error) {
+            console.error("Error deleting project:", error);
             throw error;
         }
     };
@@ -1137,8 +1150,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // Fetch challenge to get points and coins
             const challenge = await fetchChallengeById(challengeId);
             const allPassed = status === 'Accepted';
-            const pointsEarned = allPassed ? challenge.points : 0;
-            const coinsEarned = allPassed ? challenge.coinReward : 0;
+            const pointsEarned = allPassed && challenge ? (challenge as any).points || 0 : 0;
+            const coinsEarned = allPassed && challenge ? (challenge as any).coinReward || 0 : 0;
 
             // Create submission
             const submissionRef = await addDoc(collection(db, "CodeArena_Submissions"), {
@@ -1160,7 +1173,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // If accepted, update user progress and wallet
             if (allPassed) {
                 // Add coins to wallet
-                await addCoins(user.uid, coinsEarned, `Challenge: ${challenge.title}`);
+                await addCoins(user.uid, coinsEarned, `Challenge: ${challenge ? (challenge as any).title : 'Unknown'}`);
 
                 // Update user progress
                 const progressRef = doc(db, "CodeArena_UserProgress", user.uid);
@@ -1426,7 +1439,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const battleRef = await addDoc(collection(db, "CodeArena_Battles"), {
                 battleType: '1v1',
                 challengeId,
-                difficulty: challenge.difficulty,
+                difficulty: (challenge as any).difficulty || 'medium',
                 entryFee,
                 prizePool: entryFee * 2 * 0.9, // 10% platform fee
                 participants: [{
@@ -1523,7 +1536,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const submitBattleSolution = async (battleId: string, userId: string, code: string, language: string) => {
+    const submitBattleSolution = async (battleId: string, userId: string, _code: string, _language: string) => {
         try {
             const battleRef = doc(db, "CodeArena_Battles", battleId);
             const battleDoc = await getDoc(battleRef);
@@ -1533,7 +1546,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const battleData = battleDoc.data();
             
             // Submit solution to challenges
-            const submission = await submitSolution(battleData.challengeId, code, language);
+            const submission = await submitSolution(battleData.challengeId);
             
             // Update participant status
             const participants = battleData.participants.map((p: any) => {
@@ -2062,6 +2075,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             submitIdea,
             fetchAllIdeas,
             updateIdeaStatus,
+            deleteProject,
             // Project Collaboration
             sendJoinRequest,
             fetchJoinRequests,

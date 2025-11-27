@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   CheckCircle, XCircle, Clock, Users, FolderOpen, 
   Lightbulb, TrendingUp, Mail, Shield, Eye, Search,
-  Calendar, User, MessageSquare
+  Calendar, User, MessageSquare, Trash2
 } from 'lucide-react';
 
 interface SubmittedIdea {
@@ -38,7 +38,8 @@ export default function AdminPanel() {
   const { user } = useAuth();
   const { 
     fetchAllIdeas, 
-    updateIdeaStatus, 
+    updateIdeaStatus,
+    deleteProject,
     fetchAllUsers, 
     fetchAllProjectMembers,
     getPlatformStats 
@@ -63,6 +64,11 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+
+  console.log('AdminPanel rendered', { user, loading });
 
   // Check if user is admin
   useEffect(() => {
@@ -72,19 +78,21 @@ export default function AdminPanel() {
     }
     
     loadAllData();
-  }, [user, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const loadAllData = async () => {
     setLoading(true);
     try {
       await Promise.all([
-        loadIdeas(),
-        loadStats(),
-        loadUsers(),
-        loadProjects()
+        loadIdeas().catch(e => console.error('Load ideas error:', e)),
+        loadStats().catch(e => console.error('Load stats error:', e)),
+        loadUsers().catch(e => console.error('Load users error:', e)),
+        loadProjects().catch(e => console.error('Load projects error:', e))
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
+      alert('Error loading admin panel data. Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -218,6 +226,33 @@ export default function AdminPanel() {
       console.error('Error rejecting idea:', error);
       alert('Failed to reject idea. Please try again.');
     }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      setDeletingProjectId(projectToDelete.id);
+      await deleteProject(projectToDelete.id);
+      
+      // Update local state - remove the deleted project
+      setProjects(projects.filter(p => p.id !== projectToDelete.id));
+      setIdeas(ideas.filter(i => i.id !== projectToDelete.id));
+      
+      alert(`Project "${projectToDelete.title}" has been deleted successfully`);
+      setShowDeleteConfirm(false);
+      setProjectToDelete(null);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Failed to delete project. Please try again.');
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
+
+  const openDeleteConfirm = (project: any) => {
+    setProjectToDelete(project);
+    setShowDeleteConfirm(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -492,15 +527,34 @@ export default function AdminPanel() {
                         )}
                       </div>
                       
-                      {idea.status === 'pending' && (
+                      <div className="ml-4 flex flex-col gap-2">
+                        {idea.status === 'pending' && (
+                          <button
+                            onClick={() => setSelectedIdea(idea)}
+                            className="px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors flex items-center gap-2"
+                          >
+                            <Eye className="w-5 h-5" />
+                            Review
+                          </button>
+                        )}
                         <button
-                          onClick={() => setSelectedIdea(idea)}
-                          className="ml-4 px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors flex items-center gap-2"
+                          onClick={() => openDeleteConfirm(idea)}
+                          disabled={deletingProjectId === idea.id}
+                          className="px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
-                          <Eye className="w-5 h-5" />
-                          Review
+                          {deletingProjectId === idea.id ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </>
+                          )}
                         </button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -577,6 +631,27 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     )}
+
+                    {/* Delete Button */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => openDeleteConfirm(project)}
+                        disabled={deletingProjectId === project.id}
+                        className="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingProjectId === project.id ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-4 h-4" />
+                            Delete Project
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -743,6 +818,56 @@ export default function AdminPanel() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Project?</h3>
+                <p className="text-gray-600">
+                  Are you sure you want to delete <span className="font-semibold">"{projectToDelete?.title}"</span>?
+                </p>
+                <p className="text-sm text-red-600 mt-2">
+                  This action cannot be undone. The project will be marked as deleted.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setProjectToDelete(null);
+                  }}
+                  disabled={deletingProjectId !== null}
+                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={deletingProjectId !== null}
+                  className="flex-1 px-4 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {deletingProjectId ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

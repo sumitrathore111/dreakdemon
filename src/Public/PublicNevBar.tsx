@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, Users, BarChart3, Info, Menu, X, LogIn } from "lucide-react";
+import { Home, Phone, BarChart3, Info, Menu, X, LogIn } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext"; 
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +19,7 @@ const PublicNavBar = () => {
     const navItems = [
         { id: "home", label: "Home", icon: <Home className="w-5 h-5" />, path: '/' },
         { id: "about", label: "About", icon: <Info className="w-5 h-5" />, path: '/about' },
-        { id: "team", label: "Team", icon: <Users className="w-5 h-5" />, path: '/team' },
+        { id: "contact", label: "Contact Us", icon: <Phone className="w-5 h-5" />, path: '/contact' },
     ];
 
     const authItems = user

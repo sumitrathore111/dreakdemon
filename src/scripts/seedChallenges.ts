@@ -715,13 +715,13 @@ export async function seedChallenges() {
   }
 }
 
-// Run if executed directly
-if (require.main === module) {
-  seedChallenges().then((result) => {
-    console.log('Seed complete:', result);
-    process.exit(0);
-  }).catch((error) => {
-    console.error('Seed failed:', error);
-    process.exit(1);
-  });
-}
+// Run if executed directly - commented out for browser compatibility
+// if (require.main === module) {
+//   seedChallenges().then((result) => {
+//     console.log('Seed complete:', result);
+//     process.exit(0);
+//   }).catch((error) => {
+//     console.error('Seed failed:', error);
+//     process.exit(1);
+//   });
+// }
