@@ -297,20 +297,22 @@ export default function BrowseProjects() {
   });
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-black text-gray-900 mb-2">Project Collaboration Hub</h1>
-              <p className="text-gray-600">Join exciting projects or submit your own idea</p>
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-1 sm:mb-2 leading-tight">
+                Project Collaboration Hub
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">Join exciting projects or submit your own idea</p>
             </div>
             <button
               onClick={() => navigate('/dashboard/projects/submit-idea')}
-              className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white text-sm sm:text-base font-bold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <Lightbulb className="w-5 h-5" />
+              <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5" />
               Submit Your Idea
             </button>
           </div>
@@ -319,30 +321,32 @@ export default function BrowseProjects() {
           <div className="flex gap-2 bg-white rounded-xl p-2 shadow-lg">
             <button
               onClick={() => setActiveTab('browse')}
-              className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
+              className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'browse'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Search className="w-5 h-5" />
-                Browse Projects
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Browse Projects</span>
+                <span className="sm:hidden">Browse</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('myideas')}
-              className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
+              className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'myideas'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Lightbulb className="w-5 h-5" />
-                My Ideas
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">My Ideas</span>
+                <span className="sm:hidden">Ideas</span>
                 {myIdeas.length > 0 && (
-                  <span className="bg-white text-[#00ADB5] px-2 py-1 rounded-full text-xs font-bold">
+                  <span className="bg-white text-[#00ADB5] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
                     {myIdeas.length}
                   </span>
                 )}
@@ -350,17 +354,18 @@ export default function BrowseProjects() {
             </button>
             <button
               onClick={() => setActiveTab('myprojects')}
-              className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
+              className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'myprojects'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Code2 className="w-5 h-5" />
-                My Projects
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <Code2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">My Projects</span>
+                <span className="sm:hidden">Projects</span>
                 {myProjects.length > 0 && (
-                  <span className="bg-white text-[#00ADB5] px-2 py-1 rounded-full text-xs font-bold">
+                  <span className="bg-white text-[#00ADB5] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
                     {myProjects.length}
                   </span>
                 )}
@@ -373,22 +378,22 @@ export default function BrowseProjects() {
         {activeTab === 'browse' && (
           <div>
             {/* Search and Filter - Enhanced */}
-            <div className="mb-6 bg-gradient-to-r from-white to-cyan-50 rounded-xl shadow-lg p-6 border-2 border-cyan-100">
-              <div className="flex gap-4 mb-4">
+            <div className="mb-4 sm:mb-6 bg-gradient-to-r from-white to-cyan-50 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 border-2 border-cyan-100">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <div className="flex-1 relative">
-                  <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-600" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-cyan-600" />
                   <input
                     type="text"
-                    placeholder="🔍 Search by title, tech stack, or keywords..."
+                    placeholder="🔍 Search projects..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none text-lg font-medium placeholder-gray-400"
+                    className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 md:py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none text-sm sm:text-base md:text-lg font-medium placeholder-gray-400"
                   />
                 </div>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-6 py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none font-bold text-gray-700 bg-white cursor-pointer hover:bg-cyan-50 transition-all"
+                  className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 border-2 border-cyan-200 rounded-xl focus:border-cyan-500 focus:outline-none text-sm sm:text-base font-bold text-gray-700 bg-white cursor-pointer hover:bg-cyan-50 transition-all"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat.toLowerCase()}>{cat}</option>
@@ -397,7 +402,7 @@ export default function BrowseProjects() {
               </div>
               
               {/* Stats Bar */}
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1 text-gray-600">
                     <Filter className="w-4 h-4" />
@@ -436,26 +441,26 @@ export default function BrowseProjects() {
                 <p className="text-gray-600">Try adjusting your search or submit a new idea!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {filteredProjects.map((project) => (
-                <div key={project.id} className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-black text-gray-900 mb-2">{project.title}</h3>
-                      <p className="text-gray-600 text-sm mb-3">{project.description}</p>
+                <div key={project.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all p-4 sm:p-6">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-1 sm:mb-2 truncate">{project.title}</h3>
+                      <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{project.description}</p>
                     </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                    <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap ml-2">
                       {project.status}
                     </span>
                   </div>
 
                   {/* Progress */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-600">Progress</span>
-                      <span className="text-sm font-black text-[#00ADB5]">{project.progress}%</span>
+                  <div className="mb-3 sm:mb-4">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <span className="text-[10px] sm:text-xs font-semibold text-gray-600">Progress</span>
+                      <span className="text-xs sm:text-sm font-black text-[#00ADB5]">{project.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{ width: `${project.progress}%`, backgroundColor: '#00ADB5' }}
@@ -464,24 +469,25 @@ export default function BrowseProjects() {
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                     {project.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg">
+                      <span key={tag} className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-50 text-blue-700 text-[10px] sm:text-xs font-semibold rounded-lg">
                         {tag}
                       </span>
                     ))}
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 sm:pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{project.members} members</span>
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>{project.members}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">{new Date(project.createdAt).toLocaleDateString()}</span>
+                        <span className="sm:hidden">{new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
                     {(() => {
@@ -495,7 +501,7 @@ export default function BrowseProjects() {
                             else if (buttonState.action === 'manage') navigate(`/dashboard/projects/workspace/${project.id}`);
                           }}
                           disabled={buttonState.disabled}
-                          className={`px-4 py-2 font-semibold rounded-lg transition-colors ${
+                          className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors ${
                             buttonState.disabled
                               ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                               : buttonState.action === 'pending'
