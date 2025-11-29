@@ -1,514 +1,371 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Swords, Trophy, Code2, Target, 
+  Users, Star, ChevronRight,
+  Crown, TrendingUp, Coins, Loader2
+} from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import {
-  Code, Trophy, Zap, Coins, Swords, Users, Target,
-  TrendingUp, Award, Clock, Play, ChevronRight,
-  Flame, Star, Crown
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import ChallengeSolver from './ChallengeSolver';
-import ChallengeBrowser from './ChallengeBrowser';
-import Wallet from './Wallet';
-import Battles from './Battles';
-import CreateBattle from './CreateBattle';
-import Tournaments from './Tournaments';
-import Leaderboard from './Leaderboard';
 
-function CodeArenaDashboard() {
-  const { user } = useAuth();
-  const {
-    fetchDailyChallenge,
-    fetchAllChallenges,
-    fetchActiveBattles,
-    fetchActiveTournaments,
-    getUserWallet,
-    subscribeToWallet,
-    initializeWallet,
-    fetchGlobalLeaderboard,
-    getUserProgress
-  } = useDataContext();
-  
+// Import sub-components
+import BattleLobby from './BattleLobby';
+import BattleRoom from './BattleRoom';
+import BattleResults from './BattleResults';
+import PracticeChallenges from './PracticeChallenges';
+import ChallengeEditor from './ChallengeEditor';
+import LocalChallengeEditor from './LocalChallengeEditor';
+import SeedChallenges from './SeedChallenges';
+import Leaderboard from './Leaderboard';
+import WalletPanel from './WalletPanel';
+
+const CodeArena = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const { getUserWallet, initializeWallet, subscribeToWallet, userprofile } = useDataContext();
   
-  const [dailyChallenge, setDailyChallenge] = useState<any>(null);
-  const [recentChallenges, setRecentChallenges] = useState<any[]>([]);
-  const [activeBattles, setActiveBattles] = useState<any[]>([]);
-  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('home');
   const [wallet, setWallet] = useState<any>(null);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [userProgress, setUserProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showWallet, setShowWallet] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadDashboardData();
-      
-      // Subscribe to real-time wallet updates
-      const unsubscribe = subscribeToWallet(user.uid, (walletData) => {
-        if (walletData) {
-          setWallet(walletData);
+    const initWallet = async () => {
+      if (user) {
+        try {
+          const existingWallet = await getUserWallet(user.uid);
+          if (!existingWallet) {
+            await initializeWallet(user.uid, userprofile?.name || user.email?.split('@')[0] || 'User');
+          }
+          
+          const unsubscribe = subscribeToWallet(user.uid, (walletData) => {
+            setWallet(walletData);
+            setLoading(false);
+          });
+          
+          return () => unsubscribe();
+        } catch (error) {
+          console.error('Error initializing wallet:', error);
+          setLoading(false);
         }
-      });
-
-      return () => unsubscribe();
-    }
+      }
+    };
+    
+    initWallet();
   }, [user]);
 
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      // Initialize wallet if needed
-      const walletData = await getUserWallet(user!.uid);
-      if (!walletData) {
-        await initializeWallet(user!.uid, user!.displayName || user!.email?.split('@')[0] || 'User');
-        const newWallet = await getUserWallet(user!.uid);
-        setWallet(newWallet);
-      } else {
-        setWallet(walletData);
-      }
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/battle')) setActiveTab('battle');
+    else if (path.includes('/practice')) setActiveTab('practice');
+    else if (path.includes('/leaderboard')) setActiveTab('leaderboard');
+    else setActiveTab('home');
+  }, [location]);
 
-      // Load data in parallel
-      const [daily, challenges, battles, tourns, leaderData, progress] = await Promise.all([
-        fetchDailyChallenge().catch(() => null),
-        fetchAllChallenges().catch(() => []),
-        fetchActiveBattles().catch(() => []),
-        fetchActiveTournaments().catch(() => []),
-        fetchGlobalLeaderboard().catch(() => []),
-        getUserProgress(user!.uid).catch(() => null)
-      ]);
+  const stats = [
+    { label: 'Problems Solved', value: wallet?.achievements?.problemsSolved || 0, icon: Code2, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'Battles Won', value: wallet?.achievements?.battlesWon || 0, icon: Swords, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Current Streak', value: wallet?.streak?.current || 0, icon: Star, color: 'text-orange-600 bg-orange-50' },
+    { label: 'Global Rank', value: wallet?.globalRank || '-', icon: Trophy, color: 'text-amber-600 bg-amber-50' },
+  ];
 
-      setDailyChallenge(daily);
-      setRecentChallenges(challenges.slice(0, 6));
-      setActiveBattles(battles.slice(0, 4));
-      setTournaments(tourns.slice(0, 3));
-      setLeaderboard(leaderData.slice(0, 5));
-      setUserProgress(progress);
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-700 border-green-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'hard': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
+  const quickActions = [
+    {
+      title: 'Quick Battle',
+      description: 'Compete in a 1v1 coding duel',
+      icon: Swords,
+      color: 'bg-red-500',
+      path: 'battle'
+    },
+    {
+      title: 'Practice Mode',
+      description: 'Solve problems from Codeforces',
+      icon: Target,
+      color: 'bg-blue-500',
+      path: 'practice'
+    },
+    {
+      title: 'Leaderboard',
+      description: 'View global rankings',
+      icon: Trophy,
+      color: 'bg-amber-500',
+      path: 'leaderboard'
+    },
+  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-800 text-lg font-semibold">Loading CodeArena...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-800 text-lg font-semibold">Please log in to access CodeArena</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-blue-50 to-purple-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-5xl font-black text-gray-800 mb-2 flex items-center gap-3">
-                <Trophy className="w-12 h-12 text-yellow-500" />
-                CodeArena
-              </h1>
-              <p className="text-cyan-600 text-lg">Compete, Learn, Earn Rewards</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <Code2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">CodeArena</h1>
+                <p className="text-xs text-gray-500">Battle. Code. Win.</p>
+              </div>
             </div>
-            
-            {/* Wallet Display */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl p-6 shadow-xl cursor-pointer"
-              onClick={() => navigate('/dashboard/codearena/wallet')}
-            >
-              <div className="flex items-center gap-4">
-                <Coins className="w-8 h-8 text-white" />
-                <div>
-                  <p className="text-xs text-yellow-100">Your Balance</p>
-                  <p className="text-3xl font-black text-white">{wallet?.coins || 0}</p>
-                  <p className="text-xs text-yellow-100">coins</p>
-                </div>
-                <div className="ml-4">
-                  <div className="text-xs text-yellow-100">Level {wallet?.level || 1}</div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Flame className="w-4 h-4 text-orange-300" />
-                    <span className="text-sm font-bold text-white">{wallet?.streak?.current || 0}</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-xl p-6 border-2 border-cyan-200 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Target className="w-8 h-8 text-cyan-500" />
-                <TrendingUp className="w-5 h-5 text-green-500" />
-              </div>
-              <p className="text-3xl font-black text-gray-800">{userProgress?.solvedChallenges?.length || 0}</p>
-              <p className="text-sm text-gray-600">Problems Solved</p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-xl p-6 border-2 border-red-200 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Swords className="w-8 h-8 text-red-500" />
-                <Award className="w-5 h-5 text-yellow-500" />
-              </div>
-              <p className="text-3xl font-black text-gray-800">{wallet?.achievements?.battlesWon || 0}</p>
-              <p className="text-sm text-gray-600">Battles Won</p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-xl p-6 border-2 border-yellow-200 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Crown className="w-8 h-8 text-yellow-500" />
-                <Trophy className="w-5 h-5 text-purple-500" />
-              </div>
-              <p className="text-3xl font-black text-gray-800">{wallet?.achievements?.tournamentsWon || 0}</p>
-              <p className="text-sm text-gray-600">Tournaments Won</p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-xl p-6 border-2 border-purple-200 shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <Star className="w-8 h-8 text-purple-500" />
-                <Flame className="w-5 h-5 text-orange-500" />
-              </div>
-              <p className="text-3xl font-black text-gray-800">{wallet?.badges?.length || 0}</p>
-              <p className="text-sm text-gray-600">Badges Earned</p>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 pb-12">
-        {/* Daily Challenge */}
-        {dailyChallenge && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl p-8 mb-8 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 opacity-10">
-              <Zap className="w-64 h-64" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-5 h-5 text-yellow-300" />
-                    <span className="text-yellow-300 font-bold text-sm">DAILY CHALLENGE</span>
-                  </div>
-                  <h2 className="text-3xl font-black text-white mb-2">{dailyChallenge.title}</h2>
-                  <p className="text-blue-100 mb-4">{dailyChallenge.description}</p>
-                  <div className="flex items-center gap-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold border-2 ${getDifficultyColor(dailyChallenge.difficulty)}`}>
-                      {dailyChallenge.difficulty?.toUpperCase()}
-                    </span>
-                    <div className="flex items-center gap-2 text-white">
-                      <Coins className="w-5 h-5 text-yellow-300" />
-                      <span className="font-bold">+{dailyChallenge.coinReward} coins</span>
-                    </div>
-                  </div>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/dashboard/codearena/challenge/${dailyChallenge.id}`)}
-                  className="px-8 py-4 bg-white text-purple-600 rounded-xl font-black text-lg shadow-xl hover:shadow-2xl flex items-center gap-2"
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {[
+                { id: 'home', label: 'Home', icon: Code2, path: '' },
+                { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
+                { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
+                { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
                 >
-                  <Play className="w-6 h-6" />
-                  Solve Now
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Challenges */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-                <Code className="w-6 h-6 text-cyan-500" />
-                Practice Challenges
-              </h2>
-              <button
-                onClick={() => navigate('/dashboard/codearena/challenges')}
-                className="text-cyan-600 hover:text-cyan-700 font-semibold flex items-center gap-1"
-              >
-                View All <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {recentChallenges.map((challenge) => (
-                <motion.div
-                  key={challenge.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg cursor-pointer hover:border-cyan-300 transition-all"
-                  onClick={() => navigate(`/dashboard/codearena/challenge/${challenge.id}`)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getDifficultyColor(challenge.difficulty)}`}>
-                      {challenge.difficulty}
-                    </span>
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Coins className="w-4 h-4" />
-                      <span className="text-sm font-bold">{challenge.coinReward}</span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{challenge.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{challenge.description}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded text-xs">
-                      {challenge.category}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {challenge.totalSubmissions || 0} submissions
-                    </span>
-                  </div>
-                </motion.div>
+                  <tab.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
               ))}
-            </div>
+            </nav>
 
-            {/* Active Battles */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-                  <Swords className="w-6 h-6 text-red-500" />
-                  Live Battles
-                </h2>
-                <button
-                  onClick={() => navigate('/dashboard/codearena/battles')}
-                  className="text-cyan-600 hover:text-cyan-700 font-semibold flex items-center gap-1"
-                >
-                  View All <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activeBattles.length === 0 ? (
-                  <div className="col-span-2 bg-white rounded-xl p-12 text-center border-2 border-gray-200 shadow-lg">
-                    <Swords className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">No active battles right now</p>
-                    <button
-                      onClick={() => navigate('/dashboard/codearena/battles/create')}
-                      className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600"
-                    >
-                      Create Battle
-                    </button>
-                  </div>
-                ) : (
-                  activeBattles.map((battle) => (
-                    <motion.div
-                      key={battle.id}
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-br from-red-500/20 to-orange-500/20 backdrop-blur-lg rounded-xl p-6 border border-red-500/30 cursor-pointer"
-                      onClick={() => navigate(`/dashboard/codearena/battle/${battle.id}`)}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
-                          {battle.status}
-                        </span>
-                        <div className="flex items-center gap-1 text-yellow-300">
-                          <Trophy className="w-4 h-4" />
-                          <span className="text-sm font-bold">{battle.prizePool}</span>
-                        </div>
-                      </div>
-                      <h3 className="text-white font-bold mb-2">1v1 Battle</h3>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-300" />
-                          <span className="text-sm text-gray-300">
-                            {battle.currentParticipants}/{battle.maxParticipants}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-300 text-sm">
-                          <Clock className="w-4 h-4" />
-                          {battle.duration}m
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Leaderboard */}
-            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-black text-gray-800 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  Leaderboard
-                </h3>
-                <button
-                  onClick={() => navigate('/dashboard/codearena/leaderboard')}
-                  className="text-cyan-600 hover:text-cyan-700 text-sm font-semibold"
-                >
-                  View All
-                </button>
-              </div>
-              <div className="space-y-3">
-                {leaderboard.map((player, index) => (
-                  <div key={player.userId} className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                      index === 0 ? 'bg-yellow-500 text-white' :
-                      index === 1 ? 'bg-gray-400 text-white' :
-                      index === 2 ? 'bg-orange-600 text-white' :
-                      'bg-gray-200 text-gray-700'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-gray-800 font-semibold text-sm">{player.userName}</p>
-                      <p className="text-gray-500 text-xs">{player.problemsSolved} solved</p>
-                    </div>
-                    <div className="text-cyan-600 font-bold">
-                      {player.totalScore}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tournaments */}
-            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-black text-gray-800 flex items-center gap-2">
-                  <Crown className="w-5 h-5 text-purple-500" />
-                  Tournaments
-                </h3>
-                <button
-                  onClick={() => navigate('/dashboard/codearena/tournaments')}
-                  className="text-cyan-600 hover:text-cyan-700 text-sm font-semibold"
-                >
-                  View All
-                </button>
-              </div>
-              <div className="space-y-3">
-                {tournaments.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No upcoming tournaments</p>
-                ) : (
-                  tournaments.map((tournament) => (
-                    <motion.div
-                      key={tournament.id}
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4 border-2 border-purple-200 cursor-pointer"
-                      onClick={() => navigate(`/dashboard/codearena/tournament/${tournament.id}`)}
-                    >
-                      <h4 className="text-gray-800 font-bold mb-2">{tournament.title}</h4>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">{tournament.currentParticipants} joined</span>
-                        <div className="flex items-center gap-1 text-yellow-600">
-                          <Trophy className="w-3 h-3" />
-                          <span className="font-bold">{tournament.prizePool.first}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${
-                          tournament.status === 'registration' ? 'bg-green-500 text-white' :
-                          tournament.status === 'upcoming' ? 'bg-blue-500 text-white' :
-                          'bg-yellow-500 text-white'
-                        }`}>
-                          {tournament.status}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </div>
+            {/* Wallet */}
+            <button
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all"
+            >
+              <Coins className="w-4 h-4 text-amber-600" />
+              <span className="text-amber-700 font-semibold">{wallet?.coins?.toLocaleString() || 0}</span>
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/dashboard/codearena/challenges')}
-            className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl p-6 text-left"
-          >
-            <Code className="w-12 h-12 text-white mb-3" />
-            <h3 className="text-xl font-black text-white mb-2">Browse Challenges</h3>
-            <p className="text-blue-100 text-sm">Solve problems and earn coins</p>
-          </motion.button>
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        <Routes>
+          <Route path="/" element={
+            <HomeContent 
+              stats={stats} 
+              quickActions={quickActions} 
+              navigate={navigate}
+            />
+          } />
+          <Route path="/battle" element={<BattleLobby wallet={wallet} />} />
+          <Route path="/battle/:battleId" element={<BattleRoom />} />
+          <Route path="/battle/results/:battleId" element={<BattleResults />} />
+          <Route path="/practice" element={<PracticeChallenges />} />
+          <Route path="/practice/:challengeId" element={<ChallengeEditor />} />
+          <Route path="/challenge/:challengeId" element={<LocalChallengeEditor />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/seed" element={<SeedChallenges />} />
+        </Routes>
+      </main>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/dashboard/codearena/battles')}
-            className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-6 text-left"
-          >
-            <Swords className="w-12 h-12 text-white mb-3" />
-            <h3 className="text-xl font-black text-white mb-2">Join Battle</h3>
-            <p className="text-orange-100 text-sm">Compete in real-time duels</p>
-          </motion.button>
+      {/* Wallet Panel */}
+      <AnimatePresence>
+        {showWallet && (
+          <WalletPanel 
+            wallet={wallet} 
+            onClose={() => setShowWallet(false)} 
+          />
+        )}
+      </AnimatePresence>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/dashboard/codearena/tournaments')}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 text-left"
-          >
-            <Trophy className="w-12 h-12 text-white mb-3" />
-            <h3 className="text-xl font-black text-white mb-2">Enter Tournament</h3>
-            <p className="text-purple-100 text-sm">Win big prizes and glory</p>
-          </motion.button>
+      {/* Mobile Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+        <div className="flex justify-around">
+          {[
+            { id: 'home', label: 'Home', icon: Code2, path: '' },
+            { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
+            { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
+            { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
+              className={`flex flex-col items-center gap-1 p-2 ${
+                activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="text-xs">{tab.label}</span>
+            </button>
+          ))}
         </div>
-      </div>
+      </nav>
     </div>
   );
-}
+};
 
-export default function CodeArena() {
+// Home Content
+const HomeContent = ({ stats, quickActions, navigate }: any) => {
   return (
-    <Routes>
-      <Route index element={<CodeArenaDashboard />} />
-      <Route path="challenge/:challengeId" element={<ChallengeSolver />} />
-      <Route path="challenges" element={<ChallengeBrowser />} />
-      <Route path="wallet" element={<Wallet />} />
-      <Route path="battles" element={<Battles />} />
-      <Route path="battles/create" element={<CreateBattle />} />
-      <Route path="tournaments" element={<Tournaments />} />
-      <Route path="leaderboard" element={<Leaderboard />} />
-    </Routes>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6 pb-20 md:pb-6"
+    >
+      {/* Hero */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back! 👋</h2>
+        <p className="text-gray-600 mb-6">
+          Ready to test your coding skills? Battle other developers or practice with Codeforces problems.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate('/dashboard/codearena/battle')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Swords className="w-4 h-4" />
+            Find Match
+          </button>
+          <button
+            onClick={() => navigate('/dashboard/codearena/practice')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            <Target className="w-4 h-4" />
+            Practice
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat: any, index: number) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-white rounded-xl border border-gray-200 p-4"
+          >
+            <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3`}>
+              <stat.icon className="w-4 h-4" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+            <p className="text-sm text-gray-500">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {quickActions.map((action: any, index: number) => (
+          <motion.button
+            key={action.title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+            onClick={() => navigate(`/dashboard/codearena/${action.path}`)}
+            className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:border-gray-300 hover:shadow-sm transition-all group"
+          >
+            <div className={`inline-flex p-3 rounded-lg ${action.color} mb-4`}>
+              <action.icon className="w-5 h-5 text-white" />
+            </div>
+            
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{action.title}</h3>
+            <p className="text-sm text-gray-500 mb-4">{action.description}</p>
+            
+            <div className="flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:gap-2 transition-all">
+              <span>Get Started</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Activity Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Live Battles */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-green-600" />
+              Live Battles
+            </h3>
+            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              Live
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            {[1, 2, 3].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    <div className="w-7 h-7 rounded-full bg-blue-500 border-2 border-white" />
+                    <div className="w-7 h-7 rounded-full bg-purple-500 border-2 border-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Battle #{1000 + i}</p>
+                    <p className="text-xs text-gray-500">Medium</p>
+                  </div>
+                </div>
+                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">In Progress</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Players */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Crown className="w-4 h-4 text-amber-500" />
+              Top Players
+            </h3>
+            <button 
+              onClick={() => navigate('/dashboard/codearena/leaderboard')}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View All
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {[
+              { rank: 1, name: 'CodeMaster', rating: 2450, color: 'text-amber-500 bg-amber-50' },
+              { rank: 2, name: 'AlgoNinja', rating: 2380, color: 'text-gray-400 bg-gray-100' },
+              { rank: 3, name: 'ByteWarrior', rating: 2320, color: 'text-orange-500 bg-orange-50' },
+            ].map((player) => (
+              <div key={player.rank} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${player.color}`}>
+                    {player.rank}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{player.name}</p>
+                    <p className="text-xs text-gray-500">Rank #{player.rank}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-blue-600">
+                  <TrendingUp className="w-3 h-3" />
+                  <span className="text-sm font-medium">{player.rating}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
-}
+};
+
+export default CodeArena;

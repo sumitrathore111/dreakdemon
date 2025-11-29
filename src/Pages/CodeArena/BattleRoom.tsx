@@ -1,0 +1,601 @@
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Editor from '@monaco-editor/react';
+import { 
+  Clock, Send, Trophy, Code2,
+  CheckCircle, XCircle, Loader2,
+  ChevronDown
+} from 'lucide-react';
+import { useAuth } from '../../Context/AuthContext';
+import { useDataContext } from '../../Context/UserDataContext';
+import { doc, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore';
+import { db } from '../../service/Firebase';
+import { 
+  submitBattleCode, 
+  determineBattleWinner,
+  getSupportedLanguages,
+  type BattleSubmissionResult 
+} from '../../service/judge0';
+import { fetchProblemStatement, fetchProblemTestCases } from '../../service/codeforces';
+
+interface Participant {
+  odId: string;
+  odName: string;
+  odProfilePic: string;
+  rating: number;
+  hasSubmitted: boolean;
+  submissionResult?: BattleSubmissionResult;
+}
+
+interface Battle {
+  id: string;
+  status: 'waiting' | 'countdown' | 'active' | 'completed';
+  participants: Participant[];
+  problem: {
+    contestId: number;
+    index: string;
+    name: string;
+    rating: number;
+  };
+  difficulty: string;
+  entryFee: number;
+  prize: number;
+  timeLimit: number; // in seconds
+  startTime?: Timestamp;
+  endTime?: Timestamp;
+  winnerId?: string;
+  winReason?: string;
+}
+
+const BattleRoom = () => {
+  const { battleId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addCoins } = useDataContext();
+  
+  const [battle, setBattle] = useState<Battle | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [countdown, setCountdown] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(0);
+  
+  // Problem state
+  const [problemStatement, setProblemStatement] = useState<string>('');
+  const [testCases, setTestCases] = useState<{ input: string; output: string }[]>([]);
+  
+  // Editor state
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState('python');
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
+  
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const languages = getSupportedLanguages();
+
+  const defaultCode: { [key: string]: string } = {
+    python: `# Battle Mode - Write your solution fast!
+def solve():
+    n = int(input())
+    # Your code here
+    print(result)
+
+solve()`,
+    cpp: `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int n;
+    cin >> n;
+    // Your code here
+    cout << result << endl;
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        // Your code here
+        System.out.println(result);
+    }
+}`,
+    javascript: `const readline = require('readline');
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+let lines = [];
+rl.on('line', (line) => lines.push(line));
+rl.on('close', () => {
+    const n = parseInt(lines[0]);
+    // Your code here
+    console.log(result);
+});`,
+  };
+
+  // Subscribe to battle updates
+  useEffect(() => {
+    if (!battleId) return;
+
+    const unsubscribe = onSnapshot(
+      doc(db, 'CodeArena_Battles', battleId),
+      async (snapshot) => {
+        if (!snapshot.exists()) {
+          navigate('/dashboard/codearena');
+          return;
+        }
+
+        const battleData = { id: snapshot.id, ...snapshot.data() } as Battle;
+        setBattle(battleData);
+
+        // Load problem details
+        if (battleData.problem && !problemStatement) {
+          const [statement, cases] = await Promise.all([
+            fetchProblemStatement(battleData.problem.contestId, battleData.problem.index),
+            fetchProblemTestCases(battleData.problem.contestId, battleData.problem.index)
+          ]);
+          setProblemStatement(statement);
+          setTestCases(cases);
+        }
+
+        // Check if battle is completed
+        if (battleData.status === 'completed' && battleData.winnerId) {
+          navigate(`/dashboard/codearena/battle/results/${battleId}`);
+        }
+
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [battleId]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (battle?.status === 'countdown' && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [battle?.status, countdown]);
+
+  // Battle timer
+  useEffect(() => {
+    if (battle?.status === 'active' && battle.startTime) {
+      const startTime = battle.startTime.toDate().getTime();
+      const duration = battle.timeLimit * 1000;
+      
+      timerRef.current = setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const remaining = Math.max(0, duration - elapsed);
+        setTimeLeft(Math.ceil(remaining / 1000));
+        
+        if (remaining <= 0) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          handleTimeUp();
+        }
+      }, 1000);
+      
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+    }
+  }, [battle?.status, battle?.startTime]);
+
+  // Set default code
+  useEffect(() => {
+    setCode(defaultCode[language] || defaultCode.python);
+  }, [language]);
+
+  const handleTimeUp = async () => {
+    // If user hasn't submitted, auto-submit
+    if (!hasSubmitted && battle) {
+      await handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !battle || isSubmitting || hasSubmitted) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Submit code to Judge0
+      const result = await submitBattleCode(
+        user.uid,
+        code,
+        language,
+        testCases
+      );
+
+      setMyResult(result);
+      setHasSubmitted(true);
+
+      // Update battle in Firestore
+      const battleRef = doc(db, 'CodeArena_Battles', battleId!);
+      
+      const updatedParticipants = battle.participants.map(p => {
+        if (p.odId === user.uid) {
+          return {
+            ...p,
+            hasSubmitted: true,
+            submissionResult: result
+          };
+        }
+        return p;
+      });
+
+      await updateDoc(battleRef, {
+        participants: updatedParticipants
+      });
+
+      // Check if both players have submitted
+      const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
+      
+      if (allSubmitted) {
+        // Determine winner
+        const results = updatedParticipants.map(p => p.submissionResult!);
+        const winner = determineBattleWinner(results[0], results[1]);
+        
+        await updateDoc(battleRef, {
+          status: 'completed',
+          winnerId: winner.winnerId,
+          winReason: winner.reason,
+          endTime: Timestamp.now()
+        });
+
+        // Award coins to winner
+        if (winner.winnerId && !winner.isDraw) {
+          await addCoins(winner.winnerId, battle.prize, `Battle victory!`);
+        } else if (winner.isDraw) {
+          // Refund both players
+          for (const p of battle.participants) {
+            await addCoins(p.odId, battle.entryFee, 'Battle draw - refund');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting code:', error);
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getOpponent = () => {
+    return battle?.participants.find(p => p.odId !== user?.uid);
+  };
+
+  const getMe = () => {
+    return battle?.participants.find(p => p.odId === user?.uid);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 text-cyan-400 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Loading battle...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Countdown overlay
+  if (battle?.status === 'countdown' || countdown > 0) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <motion.div
+          key={countdown}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 1.5, opacity: 0 }}
+          className="text-center"
+        >
+          <p className="text-gray-400 text-xl mb-4">Battle starts in</p>
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 0.5 }}
+            className="text-9xl font-bold text-cyan-400"
+          >
+            {countdown}
+          </motion.div>
+          <p className="text-gray-400 mt-4">Get ready!</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const opponent = getOpponent();
+  const me = getMe();
+
+  return (
+    <div className="h-screen bg-gray-900 flex flex-col overflow-hidden -mx-4 -mt-6">
+      {/* Battle Header */}
+      <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Left - Me */}
+          <div className="flex items-center gap-3">
+            <img
+              src={me?.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid}`}
+              alt="You"
+              className="w-10 h-10 rounded-full border-2 border-cyan-400"
+            />
+            <div>
+              <p className="text-white font-medium">{me?.odName || 'You'}</p>
+              <p className="text-xs text-gray-400">Rating: {me?.rating || 1000}</p>
+            </div>
+            {me?.hasSubmitted && (
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            )}
+          </div>
+
+          {/* Center - Timer & Problem */}
+          <div className="text-center">
+            <div className={`text-3xl font-bold ${timeLeft <= 60 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+              {formatTime(timeLeft)}
+            </div>
+            <p className="text-sm text-gray-400 mt-1">
+              {battle?.problem?.name || 'Loading problem...'}
+            </p>
+          </div>
+
+          {/* Right - Opponent */}
+          <div className="flex items-center gap-3">
+            {opponent?.hasSubmitted && (
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            )}
+            <div className="text-right">
+              <p className="text-white font-medium">{opponent?.odName || 'Opponent'}</p>
+              <p className="text-xs text-gray-400">Rating: {opponent?.rating || 1000}</p>
+            </div>
+            <img
+              src={opponent?.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${opponent?.odId}`}
+              alt="Opponent"
+              className="w-10 h-10 rounded-full border-2 border-red-400"
+            />
+          </div>
+        </div>
+
+        {/* Prize Pool */}
+        <div className="flex justify-center mt-2">
+          <div className="flex items-center gap-2 px-4 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-full">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            <span className="text-yellow-400 font-bold">{battle?.prize || 0} coins</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content - Split View */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Side - Problem */}
+        <div className="w-1/3 border-r border-gray-700 flex flex-col overflow-hidden">
+          <div className="p-3 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between">
+            <h3 className="text-white font-medium flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-cyan-400" />
+              Problem
+            </h3>
+            <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
+              {battle?.difficulty}
+            </span>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            <div 
+              className="prose prose-invert prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: problemStatement }}
+            />
+            
+            {/* Sample Test Cases */}
+            {testCases.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <h4 className="text-white font-medium">Sample Cases</h4>
+                {testCases.slice(0, 2).map((tc, idx) => (
+                  <div key={idx} className="bg-gray-800 rounded-lg p-3 text-sm">
+                    <div className="mb-2">
+                      <span className="text-gray-400 text-xs">Input:</span>
+                      <pre className="text-cyan-400 font-mono mt-1">{tc.input}</pre>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 text-xs">Output:</span>
+                      <pre className="text-green-400 font-mono mt-1">{tc.output}</pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side - Editors */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* My Editor */}
+          <div className="flex-1 flex flex-col border-b border-gray-700 overflow-hidden">
+            <div className="p-2 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-white font-medium text-sm">Your Code</span>
+                {hasSubmitted && (
+                  <span className="flex items-center gap-1 text-xs text-green-400">
+                    <CheckCircle className="w-3 h-3" />
+                    Submitted
+                  </span>
+                )}
+              </div>
+              
+              {/* Language Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                  disabled={hasSubmitted}
+                  className="flex items-center gap-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50"
+                >
+                  <span className="text-white capitalize">{language}</span>
+                  <ChevronDown className="w-3 h-3 text-gray-400" />
+                </button>
+                
+                <AnimatePresence>
+                  {showLanguageMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="absolute right-0 top-full mt-1 w-36 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
+                    >
+                      {languages.filter(l => ['python', 'cpp', 'java', 'javascript'].includes(l.id)).map((lang) => (
+                        <button
+                          key={lang.id}
+                          onClick={() => {
+                            setLanguage(lang.id);
+                            setShowLanguageMenu(false);
+                          }}
+                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700 ${
+                            language === lang.id ? 'text-cyan-400' : 'text-white'
+                          }`}
+                        >
+                          {lang.name}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <Editor
+                height="100%"
+                language={language === 'cpp' ? 'cpp' : language}
+                value={code}
+                onChange={(value) => !hasSubmitted && setCode(value || '')}
+                theme="vs-dark"
+                options={{
+                  fontSize: 13,
+                  fontFamily: 'JetBrains Mono, Fira Code, Consolas, monospace',
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  lineNumbers: 'on',
+                  automaticLayout: true,
+                  tabSize: 4,
+                  readOnly: hasSubmitted,
+                  padding: { top: 8 }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Results / Opponent Status */}
+          <div className="h-32 bg-gray-800/50 p-4 overflow-y-auto">
+            {myResult ? (
+              <div className={`p-3 rounded-lg ${
+                myResult.passed 
+                  ? 'bg-green-900/20 border border-green-500/30' 
+                  : 'bg-red-900/20 border border-red-500/30'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {myResult.passed ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-400" />
+                  )}
+                  <span className={`font-medium ${myResult.passed ? 'text-green-400' : 'text-red-400'}`}>
+                    {myResult.passed ? 'All Tests Passed!' : 'Some Tests Failed'}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 mt-1">
+                  {myResult.passedCount} / {myResult.totalCount} test cases • 
+                  Time: {myResult.totalTime.toFixed(0)}ms
+                </p>
+                
+                {opponent?.hasSubmitted ? (
+                  <p className="text-sm text-cyan-400 mt-2">
+                    Waiting for results...
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-400 mt-2">
+                    Waiting for opponent to submit...
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="text-center text-gray-400">
+                <p className="text-sm">Submit your code to see results</p>
+                {opponent?.hasSubmitted && (
+                  <p className="text-xs text-yellow-400 mt-2">
+                    ⚠️ Opponent has already submitted!
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div className="bg-gray-800 border-t border-gray-700 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Clock className="w-4 h-4" />
+            <span>Time Limit: {battle?.timeLimit ? Math.floor(battle.timeLimit / 60) : 15} min</span>
+          </div>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleSubmit}
+          disabled={isSubmitting || hasSubmitted}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${
+            hasSubmitted
+              ? 'bg-green-600 text-white cursor-not-allowed'
+              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+          } disabled:opacity-70`}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Submitting...
+            </>
+          ) : hasSubmitted ? (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              Submitted
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4" />
+              Submit Solution
+            </>
+          )}
+        </motion.button>
+      </div>
+
+      {/* Problem Statement Styles */}
+      <style>{`
+        .prose pre {
+          background: #1f2937;
+          padding: 0.5rem;
+          border-radius: 0.25rem;
+          font-size: 0.75rem;
+        }
+        .prose p {
+          margin: 0.5rem 0;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default BattleRoom;

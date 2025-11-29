@@ -12,7 +12,6 @@ import PublicNavBar from "./Public/PublicNevBar";
 import ScrollToTop from "./Component/ScrollToTop";
 import { AnimatePresence } from "framer-motion";
 import ProjectDetail from "./Pages/Projects/ProjectDetails";
-import ResumePreview from "./Pages/Resume/ResumePreview";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
 
 
@@ -30,10 +29,8 @@ const ProjectWorkspace = lazy(() => import("./Pages/Projects/ProjectWorkspace"))
 const ProjectAccessDiagnostic = lazy(() => import("./Pages/Projects/ProjectAccessDiagnostic"));
 const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
-const Intership = lazy(() => import("./Pages/Intership"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
-const StudentPortfolio = lazy(() => import("./Pages/Profile/StudentPortfolio"));
 const Courses = lazy(() => import("./Pages/Courses"));
 const CourseView = lazy(() => import("./Pages/CourseView"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
@@ -167,11 +164,8 @@ const App: React.FC = () => {
                 <Route path="courses/:courseId" element={<CourseView />} />
                 <Route path="query" element={<QueryScreen />} />
                 <Route path="profile" element={<ProfileInfo />} />
-                <Route path="portfolio/:userId" element={<StudentPortfolio />} />
                 <Route path="codearena/*" element={<CodeArena />} />
                 <Route path="company_req" element={<Company_Req />} />
-                <Route path="intership" element={<Intership />} />
-                <Route path="resume" element={<ResumePreview />} />
               </Route>
             </Routes>
           </AnimatePresence>

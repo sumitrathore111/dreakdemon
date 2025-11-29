@@ -1325,8 +1325,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 updatedAt: Timestamp.now()
             });
             
-            // Record transaction
-            await addDoc(collection(db, "CodeArena_Transactions"), {
+            // Record transaction - only include referenceId if it's defined
+            const transactionData: any = {
                 userId,
                 userName: walletDoc.data()?.userName || 'User',
                 type: 'earn',
@@ -1336,10 +1336,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 balanceBefore: currentBalance,
                 balanceAfter: newBalance,
                 description,
-                referenceId,
                 status: 'completed',
                 createdAt: Timestamp.now()
-            });
+            };
+            
+            if (referenceId) {
+                transactionData.referenceId = referenceId;
+            }
+            
+            await addDoc(collection(db, "CodeArena_Transactions"), transactionData);
         } catch (error) {
             console.error("Error adding coins:", error);
             throw error;
@@ -1370,8 +1375,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 updatedAt: Timestamp.now()
             });
             
-            // Record transaction
-            await addDoc(collection(db, "CodeArena_Transactions"), {
+            // Record transaction - only include referenceId if it's defined
+            const transactionData: any = {
                 userId,
                 userName: walletDoc.data()?.userName || 'User',
                 type: 'spend',
@@ -1381,10 +1386,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 balanceBefore: currentBalance,
                 balanceAfter: newBalance,
                 description,
-                referenceId,
                 status: 'completed',
                 createdAt: Timestamp.now()
-            });
+            };
+            
+            if (referenceId) {
+                transactionData.referenceId = referenceId;
+            }
+            
+            await addDoc(collection(db, "CodeArena_Transactions"), transactionData);
         } catch (error) {
             console.error("Error deducting coins:", error);
             throw error;
