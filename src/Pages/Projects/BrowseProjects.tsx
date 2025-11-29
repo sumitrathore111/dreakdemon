@@ -1,11 +1,18 @@
-import { useState, useEffect } from 'react';
+import {
+  Calendar,
+  CheckCircle, Clock,
+  Code2,
+  Filter,
+  Lightbulb,
+  Search,
+  Star,
+  TrendingUp,
+  Users
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  Code2, Users, Calendar, Search, 
-  Lightbulb, CheckCircle, Clock, TrendingUp, Star, Filter
-} from 'lucide-react';
 
 interface Project {
   id: string;
@@ -46,6 +53,10 @@ export default function BrowseProjects() {
     motivation: '',
     availability: ''
   });
+  
+  // Project Details Modal State
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<Project | null>(null);
 
   const categories = ['All', 'Web Development', 'Mobile App', 'AI/ML', 'Data Science', 'Game Development', 'IoT', 'Blockchain'];
 
@@ -61,21 +72,45 @@ export default function BrowseProjects() {
     try {
       const allIdeas = await fetchAllIdeas();
       // Convert approved ideas to projects
-      const approvedProjects = allIdeas
-        .filter((idea: any) => idea.status === 'approved')
-        .map((idea: any) => ({
-          id: idea.id,
-          title: idea.title,
-          description: idea.description,
-          category: idea.category,
-          creator: idea.userName,
-          creatorId: idea.userId,
-          members: 1,
-          status: 'Active',
-          progress: 0,
-          tags: [idea.category],
-          createdAt: idea.submittedAt || new Date().toISOString()
-        }));
+      const approvedIdeas = allIdeas.filter((idea: any) => idea.status === 'approved');
+      
+      // Get member count for each project
+      const approvedProjects = await Promise.all(
+        approvedIdeas.map(async (idea: any) => {
+          try {
+            const members = await getProjectMembers(idea.id);
+            return {
+              id: idea.id,
+              title: idea.title,
+              description: idea.description,
+              category: idea.category,
+              creator: idea.userName,
+              creatorId: idea.userId,
+              members: members.length,
+              status: 'Active',
+              progress: 0,
+              tags: [idea.category],
+              createdAt: idea.submittedAt || new Date().toISOString()
+            };
+          } catch (error) {
+            console.error(`Error fetching members for project ${idea.id}:`, error);
+            // Fallback to 1 if there's an error fetching members
+            return {
+              id: idea.id,
+              title: idea.title,
+              description: idea.description,
+              category: idea.category,
+              creator: idea.userName,
+              creatorId: idea.userId,
+              members: 1,
+              status: 'Active',
+              progress: 0,
+              tags: [idea.category],
+              createdAt: idea.submittedAt || new Date().toISOString()
+            };
+          }
+        })
+      );
       
       setProjects(approvedProjects);
     } catch (error) {
@@ -104,23 +139,47 @@ export default function BrowseProjects() {
     try {
       const allIdeas = await fetchAllIdeas();
       // Show projects where user is the creator (their approved ideas)
-      const userApprovedIdeas = allIdeas
-        .filter((idea: any) => idea.userId === user.uid && idea.status === 'approved')
-        .map((idea: any) => ({
-          id: idea.id,
-          title: idea.title,
-          description: idea.description,
-          category: idea.category,
-          creator: idea.userName,
-          creatorId: idea.userId,
-          members: 1,
-          status: 'Active',
-          progress: 0,
-          tags: [idea.category],
-          createdAt: idea.submittedAt || new Date().toISOString()
-        }));
+      const userApprovedIdeas = allIdeas.filter((idea: any) => idea.userId === user.uid && idea.status === 'approved');
       
-      setMyProjects(userApprovedIdeas);
+      // Get member count for each project
+      const userProjects = await Promise.all(
+        userApprovedIdeas.map(async (idea: any) => {
+          try {
+            const members = await getProjectMembers(idea.id);
+            return {
+              id: idea.id,
+              title: idea.title,
+              description: idea.description,
+              category: idea.category,
+              creator: idea.userName,
+              creatorId: idea.userId,
+              members: members.length,
+              status: 'Active',
+              progress: 0,
+              tags: [idea.category],
+              createdAt: idea.submittedAt || new Date().toISOString()
+            };
+          } catch (error) {
+            console.error(`Error fetching members for project ${idea.id}:`, error);
+            // Fallback to 1 if there's an error fetching members
+            return {
+              id: idea.id,
+              title: idea.title,
+              description: idea.description,
+              category: idea.category,
+              creator: idea.userName,
+              creatorId: idea.userId,
+              members: 1,
+              status: 'Active',
+              progress: 0,
+              tags: [idea.category],
+              createdAt: idea.submittedAt || new Date().toISOString()
+            };
+          }
+        })
+      );
+      
+      setMyProjects(userProjects);
     } catch (error) {
       console.error('Error loading user projects:', error);
     }
@@ -234,6 +293,11 @@ export default function BrowseProjects() {
     return { text: 'Request to Join', disabled: false, action: 'request' };
   };
   
+  const showProjectDetails = (project: Project) => {
+    setSelectedProjectForDetails(project);
+    setShowDetailsModal(true);
+  };
+  
   const submitApplication = async () => {
     if (!selectedProject || !user) return;
     
@@ -292,7 +356,7 @@ export default function BrowseProjects() {
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || project.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || project.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -490,31 +554,39 @@ export default function BrowseProjects() {
                         <span className="sm:hidden">{new Date(project.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>
                     </div>
-                    {(() => {
-                      const buttonState = getProjectButtonState(project.id, project.creatorId);
-                      
-                      return (
-                        <button
-                          onClick={() => {
-                            if (buttonState.action === 'request') requestToJoin(project.id);
-                            else if (buttonState.action === 'join' || buttonState.action === 'open') joinProject(project.id);
-                            else if (buttonState.action === 'manage') navigate(`/dashboard/projects/workspace/${project.id}`);
-                          }}
-                          disabled={buttonState.disabled}
-                          className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors ${
-                            buttonState.disabled
-                              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                              : buttonState.action === 'pending'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : buttonState.action === 'join' || buttonState.action === 'open'
-                              ? 'bg-green-500 text-white hover:bg-green-600'
-                              : 'bg-[#00ADB5] text-white hover:bg-cyan-600'
-                          }`}
-                        >
-                          {buttonState.text}
-                        </button>
-                      );
-                    })()}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => showProjectDetails(project)}
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg border-2 border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5] hover:text-white transition-colors"
+                      >
+                        Show Details
+                      </button>
+                      {(() => {
+                        const buttonState = getProjectButtonState(project.id, project.creatorId);
+                        
+                        return (
+                          <button
+                            onClick={() => {
+                              if (buttonState.action === 'request') requestToJoin(project.id);
+                              else if (buttonState.action === 'join' || buttonState.action === 'open') joinProject(project.id);
+                              else if (buttonState.action === 'manage') navigate(`/dashboard/projects/workspace/${project.id}`);
+                            }}
+                            disabled={buttonState.disabled}
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors ${
+                              buttonState.disabled
+                                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                : buttonState.action === 'pending'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : buttonState.action === 'join' || buttonState.action === 'open'
+                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                : 'bg-[#00ADB5] text-white hover:bg-cyan-600'
+                            }`}
+                          >
+                            {buttonState.text}
+                          </button>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -741,6 +813,146 @@ export default function BrowseProjects() {
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
               >
                 Submit Application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Project Details Modal */}
+      {showDetailsModal && selectedProjectForDetails && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900">{selectedProjectForDetails.title}</h2>
+                  <p className="text-gray-600 mt-1">Project Details</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedProjectForDetails(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <span className="text-2xl text-gray-500">×</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Project Status */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="font-bold text-gray-900">Status: {selectedProjectForDetails.status}</span>
+                </div>
+                <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                  Active Project
+                </span>
+              </div>
+              
+              {/* Project Description */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Project Description</h3>
+                <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl">
+                  {selectedProjectForDetails.description}
+                </p>
+              </div>
+              
+              {/* Project Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#00ADB5]" />
+                    Team Information
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Creator:</span>
+                      <span className="font-semibold">{selectedProjectForDetails.creator}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Team Size:</span>
+                      <span className="font-semibold">{selectedProjectForDetails.members} members</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
+                  <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[#00ADB5]" />
+                    Timeline
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Created:</span>
+                      <span className="font-semibold">
+                        {new Date(selectedProjectForDetails.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Progress:</span>
+                      <span className="font-semibold">{selectedProjectForDetails.progress}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Project Progress</h3>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-600">Overall Progress</span>
+                    <span className="text-lg font-black text-[#00ADB5]">{selectedProjectForDetails.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ 
+                        width: `${selectedProjectForDetails.progress}%`, 
+                        backgroundColor: '#00ADB5' 
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Category & Tags */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Category & Tags</h3>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-600">Category:</span>
+                    <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-bold rounded-lg">
+                      {selectedProjectForDetails.category}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600 block mb-2">Tags:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProjectForDetails.tags.map((tag, index) => (
+                        <span key={index} className="px-3 py-1 bg-cyan-100 text-cyan-700 text-sm font-semibold rounded-lg">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl">
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  setSelectedProjectForDetails(null);
+                }}
+                className="w-full px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+              >
+                Close Details
               </button>
             </div>
           </div>

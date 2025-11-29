@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useAuth } from '../../Context/AuthContext';
-import { useDataContext } from '../../Context/UserDataContext';
-import { Lightbulb, Send, FileText, Clock, Tag } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Lightbulb, Send, FileText, Clock, Tag, Bold, Italic, List, ListOrdered, Link2 } from 'lucide-react';
 
 export default function IdeaSubmission() {
-  const { user } = useAuth();
-  const { submitIdea } = useDataContext();
+  // Simulated auth and data context
+  const user = { name: 'Demo User' }; // Replace with useAuth()
+  const submitIdea = async (data) => { console.log('Submitting:', data); }; // Replace with useDataContext()
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,6 +14,7 @@ export default function IdeaSubmission() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const editorRef = useRef(null);
 
   const categories = [
     'Web Development',
@@ -26,7 +27,33 @@ export default function IdeaSubmission() {
     'Other'
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Initialize editor content
+    if (editorRef.current && formData.description) {
+      editorRef.current.innerHTML = formData.description;
+    }
+  }, []);
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setFormData({ ...formData, description: editorRef.current.innerHTML });
+    }
+  };
+
+  const execCommand = (command, value = null) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    handleEditorInput();
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter URL:');
+    if (url) {
+      execCommand('createLink', url);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
       alert('Please login to submit an idea');
@@ -40,6 +67,9 @@ export default function IdeaSubmission() {
       
       setSubmitted(true);
       setFormData({ title: '', description: '', category: '', expectedTimeline: '' });
+      if (editorRef.current) {
+        editorRef.current.innerHTML = '';
+      }
     } catch (error) {
       console.error('Error submitting idea:', error);
       alert('Failed to submit idea. Please try again.');
@@ -54,7 +84,7 @@ export default function IdeaSubmission() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
               <Lightbulb className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -82,7 +112,7 @@ export default function IdeaSubmission() {
 
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             {/* Title */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
@@ -95,24 +125,119 @@ export default function IdeaSubmission() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="E.g., E-Learning Platform for Students"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
               />
             </div>
 
-            {/* Description */}
+            {/* Description with Rich Text Editor */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <FileText className="w-4 h-4" />
                 Description *
               </label>
-              <textarea
-                required
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe your project idea, its goals, target audience, and key features..."
-                rows={6}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none transition-colors resize-none"
+              
+              {/* Rich Text Toolbar */}
+              <div className="flex items-center gap-1 p-2 bg-gray-50 border-2 border-gray-200 rounded-t-xl border-b-0">
+                <button
+                  type="button"
+                  onClick={() => execCommand('bold')}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => execCommand('italic')}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => execCommand('underline')}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Underline"
+                >
+                  <span className="text-sm font-bold underline">U</span>
+                </button>
+                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <button
+                  type="button"
+                  onClick={() => execCommand('insertUnorderedList')}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Bullet List"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => execCommand('insertOrderedList')}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Numbered List"
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </button>
+                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <button
+                  type="button"
+                  onClick={insertLink}
+                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  title="Insert Link"
+                >
+                  <Link2 className="w-4 h-4" />
+                </button>
+                <select
+                  onChange={(e) => execCommand('formatBlock', e.target.value)}
+                  className="ml-2 px-2 py-1 border border-gray-300 rounded text-sm"
+                  defaultValue="p"
+                >
+                  <option value="p">Paragraph</option>
+                  <option value="h1">Heading 1</option>
+                  <option value="h2">Heading 2</option>
+                  <option value="h3">Heading 3</option>
+                </select>
+              </div>
+
+              {/* Rich Text Editor Area */}
+              <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleEditorInput}
+                className="w-full min-h-[200px] px-4 py-3 border-2 border-gray-200 rounded-b-xl focus:border-cyan-500 focus:outline-none transition-colors overflow-auto"
+                data-placeholder="Describe your project idea, its goals, target audience, and key features..."
               />
+              <style>{`
+                [contenteditable]:empty:before {
+                  content: attr(data-placeholder);
+                  color: #9ca3af;
+                  pointer-events: none;
+                }
+                [contenteditable] h1 {
+                  font-size: 2em;
+                  font-weight: bold;
+                  margin: 0.67em 0;
+                }
+                [contenteditable] h2 {
+                  font-size: 1.5em;
+                  font-weight: bold;
+                  margin: 0.75em 0;
+                }
+                [contenteditable] h3 {
+                  font-size: 1.17em;
+                  font-weight: bold;
+                  margin: 0.83em 0;
+                }
+                [contenteditable] ul, [contenteditable] ol {
+                  margin: 1em 0;
+                  padding-left: 2em;
+                }
+                [contenteditable] a {
+                  color: #06b6d4;
+                  text-decoration: underline;
+                }
+              `}</style>
               <p className="text-xs text-gray-500 mt-1">Minimum 100 characters</p>
             </div>
 
@@ -126,7 +251,7 @@ export default function IdeaSubmission() {
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -147,20 +272,21 @@ export default function IdeaSubmission() {
                 value={formData.expectedTimeline}
                 onChange={(e) => setFormData({ ...formData, expectedTimeline: e.target.value })}
                 placeholder="E.g., 3 months, 6 weeks, etc."
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
               />
             </div>
 
             {/* Submit Button */}
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={submitting}
-              className="w-full py-4 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Send className="w-5 h-5" />
               {submitting ? 'Submitting...' : 'Submit Idea for Review'}
             </button>
-          </form>
+          </div>
         </div>
 
         {/* Info Box */}
