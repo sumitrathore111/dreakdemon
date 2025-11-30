@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  X, Coins, TrendingUp, TrendingDown, Clock,
-  Trophy, Target, Swords, Gift, ArrowUpRight,
-  ArrowDownRight, Wallet as WalletIcon, History,
-  Star, Zap
+import {
+    ArrowDownRight,
+    ArrowUpRight,
+    Coins,
+    Gift,
+    History,
+    Star,
+    Swords,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Trophy,
+    Wallet as WalletIcon,
+    X,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 

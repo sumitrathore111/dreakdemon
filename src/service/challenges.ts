@@ -1,17 +1,16 @@
 // Challenges Service
 // Manages local challenges with proper test cases for Judge0 validation
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy,
-  limit,
-  Timestamp
+import {
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    query,
+    Timestamp,
+    where
 } from 'firebase/firestore';
 import { db } from './Firebase';
 

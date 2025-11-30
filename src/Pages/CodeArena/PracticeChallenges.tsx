@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Star, Zap, Target,
-  Code2, Search, ChevronRight,
-  Coins, Loader2, RefreshCw, Plus, BookOpen
+import {
+    BookOpen,
+    ChevronRight,
+    Code2,
+    Coins, Loader2, RefreshCw,
+    Search,
+    Star,
+    Target,
+    Zap
 } from 'lucide-react';
-import { 
-  fetchAllChallenges, 
-  getAvailableCategories,
-  getAvailableTags,
-  initializeChallenges,
-  type Challenge 
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+    fetchAllChallenges,
+    getAvailableCategories,
+    initializeChallenges,
+    type Challenge
 } from '../../service/challenges';
 
 const PracticeChallenges = () => {
@@ -24,7 +28,6 @@ const PracticeChallenges = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
   const PROBLEMS_PER_PAGE = 20;
@@ -44,16 +47,14 @@ const PracticeChallenges = () => {
         // Initialize default challenges if none exist
         await initializeChallenges();
         
-        const [challengesData, categories, tags] = await Promise.all([
+        const [challengesData, categories] = await Promise.all([
           fetchAllChallenges(),
-          getAvailableCategories(),
-          getAvailableTags()
+          getAvailableCategories()
         ]);
         
         setChallenges(challengesData);
         setFilteredChallenges(challengesData.slice(0, PROBLEMS_PER_PAGE));
         setAvailableCategories(categories);
-        setAvailableTags(tags);
         setLoading(false);
       } catch (error) {
         console.error('Error loading challenges:', error);

@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { Lightbulb, Send, FileText, Clock, Tag, Bold, Italic, List, ListOrdered, Link2 } from 'lucide-react';
+import { Bold, Clock, FileText, Italic, Lightbulb, Link2, List, ListOrdered, Send, Tag } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function IdeaSubmission() {
   // Simulated auth and data context
   const user = { name: 'Demo User' }; // Replace with useAuth()
-  const submitIdea = async (data) => { console.log('Submitting:', data); }; // Replace with useDataContext()
+  const submitIdea = async (data: any) => { console.log('Submitting:', data); }; // Replace with useDataContext()
   
   const [formData, setFormData] = useState({
     title: '',
@@ -14,7 +14,7 @@ export default function IdeaSubmission() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const editorRef = useRef(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const categories = [
     'Web Development',
@@ -53,7 +53,7 @@ export default function IdeaSubmission() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       alert('Please login to submit an idea');

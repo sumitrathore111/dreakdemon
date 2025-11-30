@@ -1367,20 +1367,41 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 throw new Error("Wallet not found");
             }
             
-            const currentBalance = walletDoc.data()?.coins || 0;
+            const walletData = walletDoc.data();
+            const currentBalance = walletData?.coins || 0;
             const newBalance = currentBalance + amount;
             
-            // Update wallet
+            // Calculate XP gain (e.g., 10 XP per coin earned)
+            const xpGain = amount * 10;
+            const currentXP = walletData?.experience || 0;
+            const currentLevel = walletData?.level || 1;
+            
+            let newXP = currentXP + xpGain;
+            let newLevel = currentLevel;
+            
+            // Calculate XP needed for next level: level * 100
+            let xpForNextLevel = newLevel * 100;
+            
+            // Check for level up(s)
+            while (newXP >= xpForNextLevel) {
+                newXP -= xpForNextLevel;
+                newLevel++;
+                xpForNextLevel = newLevel * 100;
+            }
+            
+            // Update wallet with coins, XP, and level
             await updateDoc(walletRef, {
                 coins: newBalance,
-                totalEarned: (walletDoc.data()?.totalEarned || 0) + amount,
+                totalEarned: (walletData?.totalEarned || 0) + amount,
+                experience: newXP,
+                level: newLevel,
                 updatedAt: Timestamp.now()
             });
             
             // Record transaction - only include referenceId if it's defined
             const transactionData: any = {
                 userId,
-                userName: walletDoc.data()?.userName || 'User',
+                userName: walletData?.userName || 'User',
                 type: 'earn',
                 category: 'challenge',
                 amount,
@@ -1977,14 +1998,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log("Update leaderboard:", userId, userName, score);
     };
 
-    // Helper function for week number
-    const getWeekNumber = (date: Date) => {
-        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    };
+
 
     // USER PROGRESS
     const getUserProgress = async (userId: string) => {

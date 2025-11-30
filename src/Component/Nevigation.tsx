@@ -1,18 +1,17 @@
-import { useState, useEffect } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Home,
-  FileText,
-  Folder,
-  Settings,
-  MessageSquare,
-  UserCircle,
-  Menu,
-  LogOut,
-  ChevronsLeft,
-  Trophy,
-  BookOpen,
+    BookOpen,
+    ChevronsLeft,
+    Folder,
+    Home,
+    LogOut,
+    Menu,
+    MessageSquare,
+    Settings,
+    Trophy,
+    UserCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";
 import { logout } from "../service/auth";
