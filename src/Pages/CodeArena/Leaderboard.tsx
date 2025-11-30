@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Trophy, Crown, Medal, TrendingUp, Star,
-  Award, Clock, Calendar, Loader2
+import {
+    Award,
+    Calendar,
+    Clock,
+    Crown,
+    Loader2,
+    Medal,
+    Star,
+    TrendingUp,
+    Trophy
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 
@@ -16,20 +23,6 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [myRank, setMyRank] = useState<any>(null);
   const [wallet, setWallet] = useState<any>(null);
-
-  // Mock data for demonstration
-  const mockRankings = [
-    { rank: 1, odId: '1', odName: 'CodeMaster', rating: 2450, problemsSolved: 156, battlesWon: 45, level: 25, avatar: 'C' },
-    { rank: 2, odId: '2', odName: 'AlgoNinja', rating: 2380, problemsSolved: 142, battlesWon: 38, level: 23, avatar: 'A' },
-    { rank: 3, odId: '3', odName: 'ByteWarrior', rating: 2320, problemsSolved: 138, battlesWon: 35, level: 22, avatar: 'B' },
-    { rank: 4, odId: '4', odName: 'DataDragon', rating: 2250, problemsSolved: 125, battlesWon: 32, level: 21, avatar: 'D' },
-    { rank: 5, odId: '5', odName: 'LogicLord', rating: 2180, problemsSolved: 118, battlesWon: 28, level: 20, avatar: 'L' },
-    { rank: 6, odId: '6', odName: 'SyntaxSage', rating: 2100, problemsSolved: 105, battlesWon: 25, level: 18, avatar: 'S' },
-    { rank: 7, odId: '7', odName: 'BinaryBoss', rating: 2050, problemsSolved: 98, battlesWon: 22, level: 17, avatar: 'B' },
-    { rank: 8, odId: '8', odName: 'RecursionKing', rating: 1980, problemsSolved: 92, battlesWon: 20, level: 16, avatar: 'R' },
-    { rank: 9, odId: '9', odName: 'StackOverflow', rating: 1920, problemsSolved: 85, battlesWon: 18, level: 15, avatar: 'S' },
-    { rank: 10, odId: '10', odName: 'HeapHero', rating: 1850, problemsSolved: 78, battlesWon: 15, level: 14, avatar: 'H' },
-  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,11 +43,6 @@ const Leaderboard = () => {
             break;
         }
 
-        // Use mock data if no real data
-        if (data.length === 0) {
-          data = mockRankings;
-        }
-
         setRankings(data);
 
         // Get user's wallet for their stats
@@ -70,7 +58,7 @@ const Leaderboard = () => {
         }
       } catch (error) {
         console.error('Error loading leaderboard:', error);
-        setRankings(mockRankings);
+        setRankings([]);
       } finally {
         setLoading(false);
       }
@@ -244,15 +232,15 @@ const Leaderboard = () => {
 
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <p className="text-blue-600 font-bold text-xl">{wallet?.rating || 1000}</p>
+                <p className="text-blue-600 font-bold text-xl">{myRank?.rating || wallet?.coins || 1000}</p>
                 <p className="text-xs text-gray-500">Rating</p>
               </div>
               <div className="text-center">
-                <p className="text-emerald-600 font-bold text-xl">{wallet?.achievements?.problemsSolved || 0}</p>
+                <p className="text-emerald-600 font-bold text-xl">{myRank?.problemsSolved || 0}</p>
                 <p className="text-xs text-gray-500">Solved</p>
               </div>
               <div className="text-center">
-                <p className="text-purple-600 font-bold text-xl">{wallet?.achievements?.battlesWon || 0}</p>
+                <p className="text-purple-600 font-bold text-xl">{myRank?.battlesWon || 0}</p>
                 <p className="text-xs text-gray-500">Wins</p>
               </div>
             </div>
@@ -274,6 +262,12 @@ const Leaderboard = () => {
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          </div>
+        ) : rankings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+            <Trophy className="w-12 h-12 mb-3 opacity-30" />
+            <p className="text-lg font-medium">No rankings yet</p>
+            <p className="text-sm">Start solving challenges to appear on the leaderboard!</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">

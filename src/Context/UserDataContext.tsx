@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import { addDoc, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore";
-import { useAuth } from "./AuthContext";
+import type { ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../service/Firebase";
+import { useAuth } from "./AuthContext";
 
 
 interface DataContextType {
@@ -1172,20 +1172,72 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             // If accepted, update user progress and wallet
             if (allPassed) {
-                // Add coins to wallet
-                await addCoins(user.uid, coinsEarned, `Challenge: ${challenge ? (challenge as any).title : 'Unknown'}`);
-
-                // Update user progress
+                // Check if challenge was already solved before awarding coins
                 const progressRef = doc(db, "CodeArena_UserProgress", user.uid);
                 const progressSnap = await getDoc(progressRef);
                 
+                let alreadySolved = false;
                 if (progressSnap.exists()) {
-                    const currentSolved = progressSnap.data().problemsSolved || [];
-                    if (!currentSolved.includes(challengeId)) {
+                    const currentSolved = progressSnap.data().solvedChallenges || [];
+                    alreadySolved = currentSolved.some((sc: any) => sc.challengeId === challengeId);
+                    
+                    if (!alreadySolved) {
+                        // First time solving - award coins
+                        await addCoins(user.uid, coinsEarned, `Challenge: ${challenge ? (challenge as any).title : 'Unknown'}`, challengeId);
+                        
+                        // Mark challenge as solved
                         await updateDoc(progressRef, {
-                            problemsSolved: [...currentSolved, challengeId],
+                            solvedChallenges: arrayUnion({
+                                challengeId,
+                                solvedAt: Timestamp.now(),
+                                submissionId: submissionRef.id
+                            }),
                             totalPoints: (progressSnap.data().totalPoints || 0) + pointsEarned,
                             lastActive: Timestamp.now()
+                        });
+                        
+                        // Update wallet achievements
+                        const walletRef = doc(db, "CodeArena_Wallets", user.uid);
+                        const walletDoc = await getDoc(walletRef);
+                        if (walletDoc.exists()) {
+                            await updateDoc(walletRef, {
+                                'achievements.problemsSolved': (walletDoc.data()?.achievements?.problemsSolved || 0) + 1
+                            });
+                        }
+                    }
+                } else {
+                    // First submission ever - initialize and award coins
+                    await addCoins(user.uid, coinsEarned, `Challenge: ${challenge ? (challenge as any).title : 'Unknown'}`, challengeId);
+                    
+                    await setDoc(progressRef, {
+                        userId: user.uid,
+                        solvedChallenges: [{
+                            challengeId,
+                            solvedAt: Timestamp.now(),
+                            submissionId: submissionRef.id
+                        }],
+                        totalPoints: pointsEarned,
+                        categoryProgress: {},
+                        hintsUsed: [],
+                        favoriteProblems: [],
+                        stats: {
+                            totalAttempts: 0,
+                            successfulAttempts: 0,
+                            averageTime: 0,
+                            fastestSolve: 0,
+                            languagesUsed: [],
+                            mostSolvedCategory: ''
+                        },
+                        lastActive: Timestamp.now(),
+                        updatedAt: Timestamp.now()
+                    });
+                    
+                    // Update wallet achievements
+                    const walletRef = doc(db, "CodeArena_Wallets", user.uid);
+                    const walletDoc = await getDoc(walletRef);
+                    if (walletDoc.exists()) {
+                        await updateDoc(walletRef, {
+                            'achievements.problemsSolved': 1
                         });
                     }
                 }
@@ -1725,16 +1777,44 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // LEADERBOARDS
     const fetchGlobalLeaderboard = async () => {
         try {
-            const q = query(
-                collection(db, "CodeArena_Leaderboards"),
-                where("type", "==", "global"),
-                limit(1)
-            );
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                return snapshot.docs[0].data().rankings || [];
-            }
-            return [];
+            // Fetch all wallets
+            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
+            const wallets = walletsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Fetch all user progress
+            const progressSnapshot = await getDocs(collection(db, "CodeArena_UserProgress"));
+            const progressMap = new Map();
+            progressSnapshot.docs.forEach(doc => {
+                progressMap.set(doc.id, doc.data());
+            });
+            
+            // Calculate rankings
+            const rankings = wallets.map((wallet: any) => {
+                const progress = progressMap.get(wallet.userId) || {};
+                const solvedChallenges = progress.solvedChallenges || [];
+                
+                return {
+                    odId: wallet.userId,
+                    odName: wallet.userName || 'Unknown',
+                    rating: wallet.coins || 0,
+                    problemsSolved: solvedChallenges.length,
+                    battlesWon: wallet.achievements?.battlesWon || 0,
+                    level: wallet.level || 1,
+                    avatar: wallet.userName?.[0] || '?',
+                    coins: wallet.coins || 0
+                };
+            })
+            .sort((a, b) => {
+                // Sort by coins (rating) first, then by problems solved
+                if (b.rating !== a.rating) return b.rating - a.rating;
+                return b.problemsSolved - a.problemsSolved;
+            })
+            .map((user, index) => ({
+                ...user,
+                rank: index + 1
+            }));
+            
+            return rankings;
         } catch (error) {
             console.error("Error fetching global leaderboard:", error);
             return [];
@@ -1743,22 +1823,74 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const fetchWeeklyLeaderboard = async () => {
         try {
+            // Get start of current week
             const now = new Date();
-            const year = now.getFullYear();
-            const week = getWeekNumber(now);
-            const period = `${year}-W${week}`;
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
             
+            // Fetch submissions from this week
             const q = query(
-                collection(db, "CodeArena_Leaderboards"),
-                where("type", "==", "weekly"),
-                where("period", "==", period),
-                limit(1)
+                collection(db, "CodeArena_Submissions"),
+                where("submittedAt", ">=", Timestamp.fromDate(startOfWeek)),
+                where("status", "==", "Accepted")
             );
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                return snapshot.docs[0].data().rankings || [];
-            }
-            return [];
+            const submissionsSnapshot = await getDocs(q);
+            
+            // Aggregate by user
+            const userStats = new Map();
+            submissionsSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const userId = data.userId;
+                
+                if (!userStats.has(userId)) {
+                    userStats.set(userId, {
+                        userId,
+                        userName: data.userName,
+                        problemsSolved: new Set(),
+                        coinsEarned: 0,
+                        pointsEarned: 0
+                    });
+                }
+                
+                const stats = userStats.get(userId);
+                stats.problemsSolved.add(data.challengeId);
+                stats.coinsEarned += data.coinsEarned || 0;
+                stats.pointsEarned += data.pointsEarned || 0;
+            });
+            
+            // Fetch wallet data for additional info
+            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
+            const walletsMap = new Map();
+            walletsSnapshot.docs.forEach(doc => {
+                walletsMap.set(doc.id, doc.data());
+            });
+            
+            // Convert to rankings array
+            const rankings = Array.from(userStats.values())
+                .map((stats: any) => {
+                    const wallet = walletsMap.get(stats.userId) || {};
+                    return {
+                        odId: stats.userId,
+                        odName: stats.userName || 'Unknown',
+                        rating: stats.coinsEarned,
+                        problemsSolved: stats.problemsSolved.size,
+                        battlesWon: wallet.achievements?.battlesWon || 0,
+                        level: wallet.level || 1,
+                        avatar: stats.userName?.[0] || '?',
+                        coins: wallet.coins || 0
+                    };
+                })
+                .sort((a, b) => {
+                    if (b.rating !== a.rating) return b.rating - a.rating;
+                    return b.problemsSolved - a.problemsSolved;
+                })
+                .map((user, index) => ({
+                    ...user,
+                    rank: index + 1
+                }));
+            
+            return rankings;
         } catch (error) {
             console.error("Error fetching weekly leaderboard:", error);
             return [];
@@ -1767,20 +1899,72 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const fetchMonthlyLeaderboard = async () => {
         try {
+            // Get start of current month
             const now = new Date();
-            const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             
+            // Fetch submissions from this month
             const q = query(
-                collection(db, "CodeArena_Leaderboards"),
-                where("type", "==", "monthly"),
-                where("period", "==", period),
-                limit(1)
+                collection(db, "CodeArena_Submissions"),
+                where("submittedAt", ">=", Timestamp.fromDate(startOfMonth)),
+                where("status", "==", "Accepted")
             );
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                return snapshot.docs[0].data().rankings || [];
-            }
-            return [];
+            const submissionsSnapshot = await getDocs(q);
+            
+            // Aggregate by user
+            const userStats = new Map();
+            submissionsSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const userId = data.userId;
+                
+                if (!userStats.has(userId)) {
+                    userStats.set(userId, {
+                        userId,
+                        userName: data.userName,
+                        problemsSolved: new Set(),
+                        coinsEarned: 0,
+                        pointsEarned: 0
+                    });
+                }
+                
+                const stats = userStats.get(userId);
+                stats.problemsSolved.add(data.challengeId);
+                stats.coinsEarned += data.coinsEarned || 0;
+                stats.pointsEarned += data.pointsEarned || 0;
+            });
+            
+            // Fetch wallet data for additional info
+            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
+            const walletsMap = new Map();
+            walletsSnapshot.docs.forEach(doc => {
+                walletsMap.set(doc.id, doc.data());
+            });
+            
+            // Convert to rankings array
+            const rankings = Array.from(userStats.values())
+                .map((stats: any) => {
+                    const wallet = walletsMap.get(stats.userId) || {};
+                    return {
+                        odId: stats.userId,
+                        odName: stats.userName || 'Unknown',
+                        rating: stats.coinsEarned,
+                        problemsSolved: stats.problemsSolved.size,
+                        battlesWon: wallet.achievements?.battlesWon || 0,
+                        level: wallet.level || 1,
+                        avatar: stats.userName?.[0] || '?',
+                        coins: wallet.coins || 0
+                    };
+                })
+                .sort((a, b) => {
+                    if (b.rating !== a.rating) return b.rating - a.rating;
+                    return b.problemsSolved - a.problemsSolved;
+                })
+                .map((user, index) => ({
+                    ...user,
+                    rank: index + 1
+                }));
+            
+            return rankings;
         } catch (error) {
             console.error("Error fetching monthly leaderboard:", error);
             return [];

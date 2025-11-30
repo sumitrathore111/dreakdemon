@@ -1,23 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Swords, Trophy, Code2, Target, 
-  Users, Star, ChevronRight,
-  Crown, TrendingUp, Coins, Loader2
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    ChevronRight,
+    Code2,
+    Coins,
+    Crown,
+    Loader2,
+    Star,
+    Swords,
+    Target,
+    TrendingUp,
+    Trophy,
+    Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 
 // Import sub-components
 import BattleLobby from './BattleLobby';
-import BattleRoom from './BattleRoom';
 import BattleResults from './BattleResults';
-import PracticeChallenges from './PracticeChallenges';
+import BattleRoom from './BattleRoom';
 import ChallengeEditor from './ChallengeEditor';
-import LocalChallengeEditor from './LocalChallengeEditor';
-import SeedChallenges from './SeedChallenges';
 import Leaderboard from './Leaderboard';
+import LocalChallengeEditor from './LocalChallengeEditor';
+import PracticeChallenges from './PracticeChallenges';
+import SeedChallenges from './SeedChallenges';
 import WalletPanel from './WalletPanel';
 
 const CodeArena = () => {
@@ -214,6 +222,47 @@ const CodeArena = () => {
 
 // Home Content
 const HomeContent = ({ stats, quickActions, navigate }: any) => {
+  const { fetchActiveBattles, fetchGlobalLeaderboard } = useDataContext();
+  const [liveBattles, setLiveBattles] = useState<any[]>([]);
+  const [topPlayers, setTopPlayers] = useState<any[]>([]);
+  const [loadingBattles, setLoadingBattles] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+
+  useEffect(() => {
+    const loadLiveBattles = async () => {
+      try {
+        const battles = await fetchActiveBattles();
+        setLiveBattles(battles.slice(0, 3)); // Show only top 3
+      } catch (error) {
+        console.error('Error loading battles:', error);
+      } finally {
+        setLoadingBattles(false);
+      }
+    };
+
+    const loadTopPlayers = async () => {
+      try {
+        const rankings = await fetchGlobalLeaderboard();
+        setTopPlayers(rankings.slice(0, 3)); // Show only top 3
+      } catch (error) {
+        console.error('Error loading top players:', error);
+      } finally {
+        setLoadingPlayers(false);
+      }
+    };
+
+    loadLiveBattles();
+    loadTopPlayers();
+
+    // Refresh data every 30 seconds
+    const interval = setInterval(() => {
+      loadLiveBattles();
+      loadTopPlayers();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -305,23 +354,56 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             </span>
           </div>
           
-          <div className="space-y-3">
-            {[1, 2, 3].map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-500 border-2 border-white" />
-                    <div className="w-7 h-7 rounded-full bg-purple-500 border-2 border-white" />
+          {loadingBattles ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+            </div>
+          ) : liveBattles.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No active battles</p>
+              <button
+                onClick={() => navigate('/dashboard/codearena/battle')}
+                className="mt-2 text-xs text-blue-600 hover:underline"
+              >
+                Start a battle
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {liveBattles.map((battle, i) => (
+                <div key={battle.id || i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                      {battle.participants?.slice(0, 2).map((participant: any, idx: number) => (
+                        <div 
+                          key={idx}
+                          className={`w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white ${
+                            idx === 0 ? 'bg-blue-500' : 'bg-purple-500'
+                          }`}
+                        >
+                          {participant.userName?.[0] || '?'}
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {battle.participants?.[0]?.userName || 'Player'} vs {battle.participants?.[1]?.userName || 'Waiting...'}
+                      </p>
+                      <p className="text-xs text-gray-500 capitalize">{battle.difficulty || 'Medium'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Battle #{1000 + i}</p>
-                    <p className="text-xs text-gray-500">Medium</p>
-                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    battle.status === 'waiting' 
+                      ? 'text-blue-600 bg-blue-50' 
+                      : 'text-orange-600 bg-orange-50'
+                  }`}>
+                    {battle.status === 'waiting' ? 'Waiting' : 'In Progress'}
+                  </span>
                 </div>
-                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded-full">In Progress</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Top Players */}
@@ -339,29 +421,49 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             </button>
           </div>
           
-          <div className="space-y-3">
-            {[
-              { rank: 1, name: 'CodeMaster', rating: 2450, color: 'text-amber-500 bg-amber-50' },
-              { rank: 2, name: 'AlgoNinja', rating: 2380, color: 'text-gray-400 bg-gray-100' },
-              { rank: 3, name: 'ByteWarrior', rating: 2320, color: 'text-orange-500 bg-orange-50' },
-            ].map((player) => (
-              <div key={player.rank} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${player.color}`}>
-                    {player.rank}
+          {loadingPlayers ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+            </div>
+          ) : topPlayers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No rankings yet</p>
+              <button
+                onClick={() => navigate('/dashboard/codearena/practice')}
+                className="mt-2 text-xs text-blue-600 hover:underline"
+              >
+                Start solving challenges
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topPlayers.map((player) => {
+                const rankColors = [
+                  'text-amber-500 bg-amber-50',
+                  'text-gray-400 bg-gray-100',
+                  'text-orange-500 bg-orange-50'
+                ];
+                return (
+                  <div key={player.odId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rankColors[player.rank - 1] || 'text-gray-600 bg-gray-50'}`}>
+                        {player.rank}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{player.odName}</p>
+                        <p className="text-xs text-gray-500">{player.problemsSolved} solved</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-blue-600">
+                      <TrendingUp className="w-3 h-3" />
+                      <span className="text-sm font-medium">{player.rating}</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{player.name}</p>
-                    <p className="text-xs text-gray-500">Rank #{player.rank}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-blue-600">
-                  <TrendingUp className="w-3 h-3" />
-                  <span className="text-sm font-medium">{player.rating}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

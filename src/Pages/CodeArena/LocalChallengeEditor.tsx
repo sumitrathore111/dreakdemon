@@ -1,26 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { 
-  Play, Send, CheckCircle, XCircle, Coins, Lightbulb,
-  ArrowLeft, Code2, Loader2, Trophy, Clock, Zap,
-  ChevronDown, RefreshCw, Eye, EyeOff
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    ArrowLeft,
+    CheckCircle,
+    ChevronDown,
+    Clock,
+    Code2,
+    Coins,
+    Eye, EyeOff,
+    Lightbulb,
+    Loader2,
+    Play,
+    RefreshCw,
+    Send,
+    Trophy,
+    XCircle,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  fetchChallengeById, 
-  getValidationTestCases,
-  type Challenge
+import {
+    fetchChallengeById,
+    getValidationTestCases,
+    type Challenge
 } from '../../service/challenges';
-import { runTestCases, quickRun, getSupportedLanguages } from '../../service/judge0';
+import { getSupportedLanguages, quickRun, runTestCases } from '../../service/judge0';
 
 const LocalChallengeEditor = () => {
   const { challengeId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addCoins } = useDataContext();
+  const { addCoins, getUserProgress, markChallengeAsSolved } = useDataContext();
 
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -219,10 +231,27 @@ rl.on('close', () => {
       const result = await runTestCases(code, language, testCases);
       setResults(result);
 
-      // If all tests passed, award coins
-      if (result.success && user && challenge) {
-        await addCoins(user.uid, challenge.coinReward, `Solved: ${challenge.title}`);
-        setSolved(true);
+      // If all tests passed, check if already solved before awarding coins
+      if (result.success && user && challenge && challengeId) {
+        // Get user progress to check if challenge was already solved
+        const userProgress = await getUserProgress(user.uid);
+        
+        // Check if this challenge was already solved
+        const alreadySolved = userProgress?.solvedChallenges?.some(
+          (sc: any) => sc.challengeId === challengeId
+        );
+
+        if (!alreadySolved) {
+          // Award coins only if solving for the first time
+          await addCoins(user.uid, challenge.coinReward, `Solved: ${challenge.title}`, challengeId);
+          // Mark challenge as solved in user progress
+          await markChallengeAsSolved(user.uid, challengeId, `local-${Date.now()}`);
+          setSolved(true);
+        } else {
+          // Already solved - no coins awarded
+          setSolved(true);
+          console.log('Challenge already solved previously - no coins awarded');
+        }
       }
     } catch (error: any) {
       console.error('Submission error:', error);
