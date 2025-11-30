@@ -40,8 +40,8 @@ export default function IdeaSubmission() {
     }
   };
 
-  const execCommand = (command, value = null) => {
-    document.execCommand(command, false, value);
+  const execCommand = (command: string, value: string | null = null) => {
+    document.execCommand(command, false, value || undefined);
     editorRef.current?.focus();
     handleEditorInput();
   };
