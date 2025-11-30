@@ -160,11 +160,32 @@ rl.on('close', () => {
 
   // Countdown timer
   useEffect(() => {
-    if (battle?.status === 'countdown' && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
+    if (battle?.status === 'countdown') {
+      if (countdown > 0) {
+        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+        return () => clearTimeout(timer);
+      } else if (countdown === 0) {
+        // Show "GO!" for 1 second, then start the battle
+        const timer = setTimeout(async () => {
+          if (battleId) {
+            const battleRef = doc(db, 'CodeArena_Battles', battleId);
+            await updateDoc(battleRef, {
+              status: 'active',
+              startTime: new Date()
+            });
+          }
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [battle?.status, countdown]);
+  }, [battle?.status, countdown, battleId]);
+
+  // Reset countdown when battle status changes to countdown
+  useEffect(() => {
+    if (battle?.status === 'countdown') {
+      setCountdown(3); // Start from 3
+    }
+  }, [battle?.status]);
 
   // Battle timer
   useEffect(() => {
@@ -295,25 +316,82 @@ rl.on('close', () => {
   }
 
   // Countdown overlay
-  if (battle?.status === 'countdown' || countdown > 0) {
+  if (battle?.status === 'countdown' && countdown >= 0) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center relative overflow-hidden">
+        {/* Background animation */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
         <motion.div
           key={countdown}
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 1.5, opacity: 0 }}
-          className="text-center"
+          initial={{ scale: 0.3, opacity: 0, rotateY: -180 }}
+          animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+          exit={{ scale: 2, opacity: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 300, 
+            damping: 20 
+          }}
+          className="text-center z-10"
         >
-          <p className="text-gray-400 text-xl mb-4">Battle starts in</p>
+          {/* Players info */}
+          <div className="flex items-center justify-center gap-8 mb-8">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-2">
+                <span className="text-white font-bold text-lg">
+                  {battle.participants[0]?.odName.charAt(0)}
+                </span>
+              </div>
+              <p className="text-gray-400 text-sm">{battle.participants[0]?.odName}</p>
+            </div>
+            
+            <div className="text-cyan-400 text-4xl font-bold">VS</div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
+                <span className="text-white font-bold text-lg">
+                  {battle.participants[1]?.odName.charAt(0)}
+                </span>
+              </div>
+              <p className="text-gray-400 text-sm">{battle.participants[1]?.odName}</p>
+            </div>
+          </div>
+
+          <p className="text-gray-400 text-xl mb-6">Battle starts in</p>
+          
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 0.5 }}
-            className="text-9xl font-bold text-cyan-400"
+            animate={{ 
+              scale: countdown === 0 ? [1, 1.3, 1] : [1, 1.2, 1],
+              color: countdown <= 1 ? "#ef4444" : "#06b6d4"
+            }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-9xl font-black mb-6"
+            style={{
+              textShadow: "0 0 50px currentColor",
+              filter: "drop-shadow(0 0 20px currentColor)"
+            }}
           >
-            {countdown}
+            {countdown === 0 ? 'GO!' : countdown}
           </motion.div>
-          <p className="text-gray-400 mt-4">Get ready!</p>
+          
+          <motion.p
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1, repeat: Infinity }}
+            className="text-gray-400 text-lg"
+          >
+            {countdown === 0 ? '🚀 Battle begins now!' : '⚡ Get ready to code!'}
+          </motion.p>
         </motion.div>
       </div>
     );
