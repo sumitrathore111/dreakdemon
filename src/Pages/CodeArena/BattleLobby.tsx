@@ -29,8 +29,8 @@ interface WaitingBattle {
   id: string;
   creatorId: string;
   creatorName: string;
-  creatorProfilePic: string;
-  creatorRating: number;
+  creatorProfilePic?: string;
+  creatorRating?: number;
   difficulty: 'easy' | 'medium' | 'hard';
   entryFee: number;
   prize: number;
@@ -81,9 +81,25 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const battles: WaitingBattle[] = [];
       snapshot.forEach((doc) => {
-        const data = doc.data() as Omit<WaitingBattle, 'id'>;
+        const data = doc.data();
         if (data.creatorId !== user?.uid) {
-          battles.push({ id: doc.id, ...data });
+          // Extract creator info from participants array if available
+          const creatorParticipant = data.participants?.[0];
+          
+          battles.push({ 
+            id: doc.id, 
+            creatorId: data.createdBy || data.creatorId || creatorParticipant?.odId || '',
+            creatorName: creatorParticipant?.odName || data.creatorName || 'Unknown User',
+            creatorProfilePic: creatorParticipant?.odProfilePic || data.creatorProfilePic || '',
+            creatorRating: creatorParticipant?.rating || data.creatorRating || 1000,
+            difficulty: data.difficulty,
+            entryFee: data.entryFee,
+            prize: data.prize,
+            timeLimit: data.timeLimit,
+            status: data.status,
+            challenge: data.challenge,
+            createdAt: data.createdAt
+          });
         }
       });
       setWaitingBattles(battles);
@@ -174,7 +190,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         entryFee: selectedEntry.fee,
         userId: user!.uid,
         userName: userprofile?.name || user!.email?.split('@')[0] || 'User',
-        userAvatar: userprofile?.profilePic,
+        userAvatar: userprofile?.profilePic || '',
         rating: wallet?.rating || 1000
       };
       
@@ -211,10 +227,10 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         status: 'countdown',
         participants: [
           {
-            odId: battle.creatorId,
-            odName: battle.creatorName,
-            odProfilePic: battle.creatorProfilePic,
-            rating: battle.creatorRating,
+            odId: battle.creatorId || '',
+            odName: battle.creatorName || 'Unknown User',
+            odProfilePic: battle.creatorProfilePic || '',
+            rating: battle.creatorRating || 1000,
             hasSubmitted: false
           },
           {
