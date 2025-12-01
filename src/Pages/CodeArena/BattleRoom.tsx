@@ -14,6 +14,20 @@ import { db } from '../../service/Firebase';
 import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import { getSupportedLanguages } from '../../service/judge0';
+
+interface BattleSubmissionResult {
+  success: boolean;
+  passed?: boolean;
+  output?: string;
+  status: string;
+  time?: string;
+  memory?: string;
+  error?: string;
+  executionTime?: number;
+  passedCount?: number;
+  totalCount?: number;
+  totalTime?: number;
+}
 import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
 
 interface Participant {
@@ -54,7 +68,7 @@ const BattleRoom = () => {
   const { battleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addCoins } = useDataContext();
+  const { } = useDataContext();
   
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,9 +255,9 @@ rl.on('close', () => {
 
       // Convert to expected format
       const submissionResult = {
-        success: result.status?.description === 'Accepted',
+        success: result.status === 'Accepted',
         executionTime: parseFloat(result.time || '0'),
-        status: result.status?.description || 'Unknown'
+        status: result.status || 'Unknown'
       };
 
       setMyResult(submissionResult);
@@ -604,7 +618,7 @@ rl.on('close', () => {
                 </div>
                 <p className="text-sm text-gray-400 mt-1">
                   {myResult.passedCount} / {myResult.totalCount} test cases • 
-                  Time: {myResult.totalTime.toFixed(0)}ms
+                  Time: {(myResult.totalTime || 0).toFixed(0)}ms
                 </p>
                 
                 {opponent?.hasSubmitted ? (

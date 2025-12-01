@@ -18,7 +18,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../../service/Firebase';
-import { joinOrCreateBattle, getBattleStats } from '../../service/battleService';
+import { joinOrCreateBattle } from '../../service/battleService';
 import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 
 interface BattleLobbyProps {

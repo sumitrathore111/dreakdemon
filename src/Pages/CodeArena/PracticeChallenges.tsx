@@ -3,7 +3,7 @@ import {
     BookOpen,
     ChevronRight,
     Code2,
-    Coins, Loader2, RefreshCw,
+    Coins, RefreshCw,
     Search,
     Star,
     Target,
@@ -103,16 +103,6 @@ const PracticeChallenges = () => {
 
   const handleSolve = (challenge: Challenge) => {
     navigate(`/dashboard/codearena/challenge/${challenge.id}`);
-  };
-
-  const getDifficultyStyle = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-50 text-green-700 border-green-200';
-      case 'medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'hard': return 'bg-red-50 text-red-700 border-red-200';
-      case 'expert': return 'bg-purple-50 text-purple-700 border-purple-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
   };
 
   const stats = [

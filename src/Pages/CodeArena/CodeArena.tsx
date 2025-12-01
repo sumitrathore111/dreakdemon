@@ -13,7 +13,8 @@ import {
     Users,
     AlertTriangle
 } from 'lucide-react';
-import { Component, ErrorInfo, ReactNode, useEffect, useState } from 'react';
+import { Component, useEffect, useState } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';

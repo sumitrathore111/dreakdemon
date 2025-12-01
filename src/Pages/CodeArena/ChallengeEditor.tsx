@@ -5,7 +5,7 @@ import Editor from '@monaco-editor/react';
 import { 
   Play, Send, CheckCircle, XCircle, Coins, Lightbulb,
   ArrowLeft, Code2, Loader2, Trophy, Clock, Zap,
-  ChevronDown, ExternalLink, RefreshCw, Shield
+  ChevronDown, RefreshCw, Shield
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -22,7 +22,7 @@ const ChallengeEditor = () => {
   const { challengeId } = useParams(); // Format: "contestId-index" e.g., "1800-A"
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addCoins } = useDataContext();
+  const { } = useDataContext();
 
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -196,15 +196,15 @@ rl.on('close', () => {
     }
 
     if (testCases.length === 0) {
-      // Try to refresh test cases
-      const [contestId, index] = challengeId.split('-');
-      const cases = await fetchProblemTestCases(parseInt(contestId), index);
-      if (cases.length > 0) {
-        setTestCases(cases);
-      } else {
+      // Try to refresh test cases (functionality disabled for deployment)
+      // const [contestId, index] = challengeId.split('-');
+      // const cases = await fetchProblemTestCases(parseInt(contestId), index);
+      // if (cases.length > 0) {
+      //   setTestCases(cases);
+      // } else {
         alert('No test cases available for this problem. Please try again or use the Run button with custom input.');
         return;
-      }
+      // }
     }
 
     setIsSubmitting(true);
