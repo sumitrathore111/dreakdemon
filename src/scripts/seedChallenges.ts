@@ -295,7 +295,7 @@ Explanation: Reads 01 from right to left. Therefore it is not a palindrome.`,
     difficulty: 'Easy',
     category: 'Math',
     points: 90,
-    coinReward: 45,
+    coinReward: 4,
     timeLimit: 20,
     constraints: [
       "-2^31 <= x <= 2^31 - 1"

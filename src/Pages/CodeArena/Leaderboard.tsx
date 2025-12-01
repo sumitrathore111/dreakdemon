@@ -81,46 +81,58 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="space-y-6 pb-20 md:pb-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl border border-gray-200 p-6"
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
             <div className="p-3 bg-amber-100 rounded-xl">
               <Trophy className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Leaderboard</h2>
+              <h2 className="text-xl font-bold text-gray-900">🏆 Leaderboard</h2>
               <p className="text-gray-500 text-sm">Compete with the best coders</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+          <div className="flex gap-2 bg-gray-100 p-2 rounded-lg">
             {[
               { id: 'global', label: 'All Time', icon: Trophy },
               { id: 'weekly', label: 'Weekly', icon: Calendar },
               { id: 'monthly', label: 'Monthly', icon: Clock },
             ].map((tab) => (
-              <button
+              <motion.button
                 key={tab.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Top 3 Podium */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white rounded-xl border border-gray-200 p-6"
+      >
         <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Top Performers</h3>
         
         <div className="flex items-end justify-center gap-4 md:gap-8">
@@ -133,20 +145,20 @@ const Leaderboard = () => {
               className="flex flex-col items-center"
             >
               <div className="relative mb-3">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xl md:text-2xl font-bold text-gray-700 ring-4 ring-gray-200">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-500 flex items-center justify-center text-xl md:text-2xl font-bold text-white shadow-md border-2 border-gray-400">
                   {rankings[1]?.avatar || rankings[1]?.odName?.[0] || '?'}
                 </div>
-                <div className="absolute -top-1 -right-1 w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -top-1 -right-1 w-7 h-7 bg-gray-600 rounded-full flex items-center justify-center shadow-md">
                   <span className="text-white text-sm font-bold">2</span>
                 </div>
               </div>
               <p className="text-gray-900 font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[1]?.odName}
               </p>
-              <p className="text-gray-500 text-xs">Level {rankings[1]?.level}</p>
-              <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+              <p className="text-gray-600 text-xs">Level {rankings[1]?.level}</p>
+              <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-lg">{rankings[1]?.rating}</span>
-                <span className="text-gray-500 text-xs">{rankings[1]?.problemsSolved} solved</span>
+                <span className="text-gray-600 text-xs">{rankings[1]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -159,18 +171,18 @@ const Leaderboard = () => {
               className="flex flex-col items-center -mt-4"
             >
               <div className="relative mb-3">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-300 to-amber-400 flex items-center justify-center text-2xl md:text-3xl font-bold text-white ring-4 ring-yellow-200 shadow-lg">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-amber-500 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-xl border-3 border-amber-400">
                   {rankings[0]?.avatar || rankings[0]?.odName?.[0] || '?'}
                 </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center shadow-lg">
                   <Crown className="w-5 h-5 text-white" />
                 </div>
               </div>
               <p className="text-gray-900 font-bold text-base md:text-lg text-center truncate max-w-[100px] md:max-w-[120px]">
                 {rankings[0]?.odName}
               </p>
-              <p className="text-gray-500 text-xs">Level {rankings[0]?.level}</p>
-              <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-gradient-to-b from-yellow-100 to-amber-200 flex flex-col items-center justify-center">
+              <p className="text-gray-600 text-xs">Level {rankings[0]?.level}</p>
+              <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-amber-50 border border-amber-200 shadow-md flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-xl">{rankings[0]?.rating}</span>
                 <span className="text-gray-600 text-xs">{rankings[0]?.problemsSolved} solved</span>
               </div>
@@ -186,25 +198,25 @@ const Leaderboard = () => {
               className="flex flex-col items-center"
             >
               <div className="relative mb-3">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center text-xl md:text-2xl font-bold text-white ring-4 ring-amber-200">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-orange-500 flex items-center justify-center text-xl md:text-2xl font-bold text-white shadow-md border-2 border-orange-400">
                   {rankings[2]?.avatar || rankings[2]?.odName?.[0] || '?'}
                 </div>
-                <div className="absolute -top-1 -right-1 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -top-1 -right-1 w-7 h-7 bg-orange-600 rounded-full flex items-center justify-center shadow-md">
                   <span className="text-white text-sm font-bold">3</span>
                 </div>
               </div>
               <p className="text-gray-900 font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[2]?.odName}
               </p>
-              <p className="text-gray-500 text-xs">Level {rankings[2]?.level}</p>
-              <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-gradient-to-b from-amber-100 to-orange-200 flex flex-col items-center justify-center">
+              <p className="text-gray-600 text-xs">Level {rankings[2]?.level}</p>
+              <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-orange-50 border border-orange-200 flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-lg">{rankings[2]?.rating}</span>
-                <span className="text-gray-500 text-xs">{rankings[2]?.problemsSolved} solved</span>
+                <span className="text-gray-600 text-xs">{rankings[2]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Your Rank Card */}
       {wallet && (
@@ -249,9 +261,14 @@ const Leaderboard = () => {
       )}
 
       {/* Rankings List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+      >
         {/* Table Header */}
-        <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-500">
+        <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-700">
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-5">Player</div>
           <div className="col-span-2 text-center">Rating</div>
@@ -278,7 +295,7 @@ const Leaderboard = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
                 className={`grid grid-cols-12 gap-2 px-4 py-4 items-center hover:bg-gray-50 transition-colors ${
-                  player.odId === user?.uid ? 'bg-blue-50' : ''
+                  player.odId === user?.uid ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                 }`}
               >
                 {/* Rank */}
@@ -299,10 +316,10 @@ const Leaderboard = () => {
                 {/* Player */}
                 <div className="col-span-5 flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0 ${
-                    player.rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
-                    player.rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400' :
-                    player.rank === 3 ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
-                    'bg-gradient-to-br from-gray-400 to-gray-500'
+                    player.rank === 1 ? 'bg-amber-500' :
+                    player.rank === 2 ? 'bg-gray-500' :
+                    player.rank === 3 ? 'bg-orange-500' :
+                    'bg-gray-400'
                   }`}>
                     {player.avatar || player.odName?.[0] || '?'}
                   </div>
@@ -313,8 +330,8 @@ const Leaderboard = () => {
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">You</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                      <Star className="w-3 h-3 text-yellow-500" />
+                    <p className="text-xs text-gray-600 flex items-center gap-1">
+                      <Star className="w-3 h-3 text-amber-500" />
                       Level {player.level}
                     </p>
                   </div>
@@ -323,14 +340,14 @@ const Leaderboard = () => {
                 {/* Rating */}
                 <div className="col-span-2 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-blue-500" />
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                     <span className="text-blue-600 font-bold">{player.rating}</span>
                   </div>
                 </div>
 
                 {/* Solved */}
                 <div className="col-span-2 text-center hidden sm:block">
-                  <span className="text-emerald-600 font-medium">{player.problemsSolved}</span>
+                  <span className="text-green-600 font-medium">{player.problemsSolved}</span>
                 </div>
 
                 {/* Wins */}
@@ -341,32 +358,44 @@ const Leaderboard = () => {
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Rewards Info */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Award className="w-5 h-5 text-amber-500" />
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-white rounded-xl border border-gray-200 p-6"
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <Award className="w-5 h-5 text-amber-600" />
           Weekly Rewards
         </h3>
         
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { rank: '1st Place', coins: 5000, icon: Crown, bgColor: 'bg-yellow-50', iconBg: 'bg-gradient-to-br from-yellow-400 to-amber-500', borderColor: 'border-yellow-200' },
-            { rank: '2nd Place', coins: 3000, icon: Medal, bgColor: 'bg-gray-50', iconBg: 'bg-gradient-to-br from-gray-300 to-gray-400', borderColor: 'border-gray-200' },
-            { rank: '3rd Place', coins: 1500, icon: Medal, bgColor: 'bg-amber-50', iconBg: 'bg-gradient-to-br from-amber-400 to-orange-500', borderColor: 'border-amber-200' },
+            { rank: '1st Place', coins: 100, icon: Crown, bgColor: 'bg-amber-50', iconBg: 'bg-amber-500', borderColor: 'border-amber-200' },
+            { rank: '2nd Place', coins: 50, icon: Medal, bgColor: 'bg-gray-50', iconBg: 'bg-gray-500', borderColor: 'border-gray-200' },
+            { rank: '3rd Place', coins: 200, icon: Medal, bgColor: 'bg-orange-50', iconBg: 'bg-orange-500', borderColor: 'border-orange-200' },
           ].map((reward, i) => (
-            <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${reward.bgColor} ${reward.borderColor}`}>
-              <div className={`p-3 rounded-xl ${reward.iconBg} shadow-sm`}>
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.1 }}
+              className={`flex items-center gap-4 p-4 rounded-lg border ${reward.bgColor} ${reward.borderColor} hover:shadow-md transition-all`}
+            >
+              <div className={`p-3 rounded-lg ${reward.iconBg} shadow-sm`}>
                 <reward.icon className="w-6 h-6 text-white" />
               </div>
               <div>
                 <p className="text-gray-900 font-medium">{reward.rank}</p>
                 <p className="text-amber-600 font-bold text-lg">{reward.coins.toLocaleString()} coins</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
+      </motion.div>
       </div>
     </div>
   );

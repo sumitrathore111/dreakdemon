@@ -1,0 +1,132 @@
+// Firestore Security Rules for CodeArena Platform
+// Deploy with: firebase deploy --only firestore:rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function hasValidCoinAmount(newCoins, currentCoins) {
+      // Prevent coin manipulation - only allow reasonable increments
+      let difference = newCoins - currentCoins;
+      return difference <= 1000 && difference >= -1000;
+    }
+    
+    function isValidBattleParticipant(battleId) {
+      return isAuthenticated() && 
+             request.auth.uid in resource.data.participants;
+    }
+
+    // Users collection - users can only read/write their own data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      
+      allow create: if isAuthenticated() && isOwner(userId) &&
+                   // Validate initial user data
+                   request.resource.data.keys().hasAll(['email', 'name']) &&
+                   request.resource.data.coins is int &&
+                   request.resource.data.coins >= 0 &&
+                   request.resource.data.coins <= 100; // Starting coins limit
+      
+      allow update: if isAuthenticated() && isOwner(userId) &&
+                   // Prevent direct coin manipulation
+                   (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['coins'])) ||
+                   // Or allow admin coin updates with validation
+                   (isAdmin() && hasValidCoinAmount(request.resource.data.coins, resource.data.coins));
+    }
+
+    // Battles collection
+    match /battles/{battleId} {
+      // Read: participants and admins only
+      allow read: if isAuthenticated() && 
+                 (request.auth.uid in resource.data.participants || isAdmin());
+      
+      // Create: authenticated users only with valid entry fee
+      allow create: if isAuthenticated() &&
+                   request.resource.data.entryFee in [5, 10, 20, 50] &&
+                   request.resource.data.difficulty in ['easy', 'medium', 'hard'] &&
+                   request.resource.data.status == 'waiting' &&
+                   request.resource.data.participants.size() <= 2;
+      
+      // Update: only participants can update their submissions, no direct result manipulation
+      allow update: if isAuthenticated() &&
+                   request.auth.uid in resource.data.participants &&
+                   // Prevent status manipulation
+                   request.resource.data.status == resource.data.status &&
+                   // Prevent winner manipulation  
+                   (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['winnerId', 'result'])) &&
+                   // Allow submission updates
+                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['submissions', 'lastUpdate']);
+    }
+
+    // Challenges collection - read only for users
+    match /challenges/{challengeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // User submissions - users can create their own submissions
+    match /submissions/{submissionId} {
+      allow read: if isAuthenticated() && 
+                 (isOwner(resource.data.userId) || isAdmin());
+      
+      allow create: if isAuthenticated() &&
+                   isOwner(request.resource.data.userId) &&
+                   request.resource.data.keys().hasAll(['userId', 'challengeId', 'code', 'language', 'timestamp']) &&
+                   request.resource.data.language in ['python', 'javascript', 'cpp', 'java', 'c', 'go', 'rust'];
+    }
+
+    // Leaderboard - read only, server manages updates
+    match /leaderboard/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Audit logs - admin only
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Battle results - read only, server manages
+    match /battleResults/{resultId} {
+      allow read: if isAuthenticated() && 
+                 (request.auth.uid in resource.data.participants || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // User statistics - read only, server manages
+    match /userStats/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Rate limiting collection - server manages
+    match /rateLimits/{identifier} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin collection
+    match /admins/{adminId} {
+      allow read: if isAuthenticated() && isOwner(adminId);
+      allow write: if false; // Only server can manage admins
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

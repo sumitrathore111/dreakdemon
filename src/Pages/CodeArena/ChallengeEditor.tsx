@@ -5,17 +5,18 @@ import Editor from '@monaco-editor/react';
 import { 
   Play, Send, CheckCircle, XCircle, Coins, Lightbulb,
   ArrowLeft, Code2, Loader2, Trophy, Clock, Zap,
-  ChevronDown, ExternalLink, RefreshCw
+  ChevronDown, ExternalLink, RefreshCw, Shield
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { 
-  fetchProblemStatement, 
-  fetchProblemTestCases,
-  getCachedProblems,
-  type ProblemWithStats 
-} from '../../service/codeforces';
-import { runTestCases, quickRun, getSupportedLanguages } from '../../service/judge0';
+  fetchChallengeById,
+  getChallengeTestCases,
+  type Challenge 
+} from '../../service/challenges';
+import { getSupportedLanguages } from '../../service/judge0';
+import { secureCodeExecutionService } from '../../service/secureCodeExecution';
+import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 
 const ChallengeEditor = () => {
   const { challengeId } = useParams(); // Format: "contestId-index" e.g., "1800-A"
@@ -23,12 +24,10 @@ const ChallengeEditor = () => {
   const { user } = useAuth();
   const { addCoins } = useDataContext();
 
-  // Problem state
-  const [problem, setProblem] = useState<ProblemWithStats | null>(null);
-  const [problemStatement, setProblemStatement] = useState<string>('');
+  // Challenge state
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [testCases, setTestCases] = useState<{ input: string; output: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statementLoading, setStatementLoading] = useState(true);
 
   // Editor state
   const [code, setCode] = useState<string>('');
@@ -122,45 +121,33 @@ rl.on('close', () => {
 });`,
   };
 
-  // Fetch problem details
+  // Fetch challenge details
   useEffect(() => {
-    const loadProblem = async () => {
+    const loadChallenge = async () => {
       if (!challengeId) return;
 
       setLoading(true);
-      setStatementLoading(true);
 
       try {
-        const [contestId, index] = challengeId.split('-');
+        // Get challenge from database
+        const challengeData = await fetchChallengeById(challengeId);
         
-        // Get problem from cache
-        const problems = await getCachedProblems();
-        const foundProblem = problems.find(
-          p => p.contestId === parseInt(contestId) && p.index === index
-        );
-
-        if (foundProblem) {
-          setProblem(foundProblem);
+        if (challengeData) {
+          setChallenge(challengeData);
         }
 
-        // Fetch problem statement
-        const statement = await fetchProblemStatement(parseInt(contestId), index);
-        setProblemStatement(statement);
-
-        // Fetch test cases
-        const cases = await fetchProblemTestCases(parseInt(contestId), index);
+        // Fetch test cases (visible ones only for practice)
+        const cases = await getChallengeTestCases(challengeId, false);
         setTestCases(cases);
 
         setLoading(false);
-        setStatementLoading(false);
       } catch (error) {
-        console.error('Error loading problem:', error);
+        console.error('Error loading challenge:', error);
         setLoading(false);
-        setStatementLoading(false);
       }
     };
 
-    loadProblem();
+    loadChallenge();
   }, [challengeId]);
 
   // Set default code when language changes
@@ -168,7 +155,7 @@ rl.on('close', () => {
     setCode(defaultCode[language] || defaultCode.python);
   }, [language]);
 
-  // Quick run code
+  // Quick run code with security validation
   const handleRun = async () => {
     setIsRunning(true);
     setQuickRunResult(null);
@@ -176,14 +163,24 @@ rl.on('close', () => {
 
     try {
       const input = showCustomInput ? customInput : (testCases[0]?.input || '');
-      const result = await quickRun(code, language, input);
+      const result = await secureCodeExecutionService.executeCode(code, language, input);
       setQuickRunResult(result);
     } catch (error) {
+      let errorMessage = 'Failed to run code. Please try again.';
+      
+      if (error instanceof SecurityError) {
+        errorMessage = `Security Error: ${error.message}`;
+      } else if (error instanceof ValidationError) {
+        errorMessage = `Validation Error: ${error.message}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       setQuickRunResult({
         output: '',
-        error: 'Failed to run code. Make sure you have set up Judge0 API key.',
-        time: null,
-        memory: null,
+        stderr: errorMessage,
+        time: '0',
+        memory: '0',
         status: 'Error'
       });
     }
@@ -191,21 +188,21 @@ rl.on('close', () => {
     setIsRunning(false);
   };
 
-  // Submit code against all test cases
+  // Submit code against all test cases with security validation
   const handleSubmit = async () => {
+    if (!challengeId) {
+      alert('Invalid challenge ID');
+      return;
+    }
+
     if (testCases.length === 0) {
       // Try to refresh test cases
-      if (challengeId) {
-        const [contestId, index] = challengeId.split('-');
-        const cases = await fetchProblemTestCases(parseInt(contestId), index);
-        if (cases.length > 0) {
-          setTestCases(cases);
-        } else {
-          alert('No test cases available for this problem. Please try again or use the Run button with custom input.');
-          return;
-        }
+      const [contestId, index] = challengeId.split('-');
+      const cases = await fetchProblemTestCases(parseInt(contestId), index);
+      if (cases.length > 0) {
+        setTestCases(cases);
       } else {
-        alert('No test cases available for this problem');
+        alert('No test cases available for this problem. Please try again or use the Run button with custom input.');
         return;
       }
     }
@@ -215,32 +212,41 @@ rl.on('close', () => {
     setQuickRunResult(null);
 
     try {
-      const casesToUse = testCases.length > 0 ? testCases : [];
+      const success = await secureCodeExecutionService.submitChallenge(challengeId, code, language);
       
-      if (casesToUse.length === 0) {
+      if (success && challenge && user) {
+        // Coins are awarded server-side, just update UI
+        setSolved(true);
         setResults({
-          success: false,
-          results: [],
-          passedCount: 0,
-          totalCount: 0,
+          success: true,
+          passedCount: testCases.length,
+          totalCount: testCases.length,
           totalTime: 0,
           totalMemory: 0,
-          compilationError: 'No test cases available. Click "Refresh" in the Sample Test Cases section to load them.'
+          results: testCases.map((_, idx) => ({ testCase: idx + 1, passed: true }))
         });
-        setIsSubmitting(false);
-        return;
-      }
-      
-      const result = await runTestCases(code, language, casesToUse);
-      setResults(result);
-
-      // If all tests passed, award coins
-      if (result.success && problem && user) {
-        await addCoins(user.uid, problem.coins, `Solved: ${problem.name}`);
-        setSolved(true);
+      } else {
+        setResults({
+          success: false,
+          passedCount: 0,
+          totalCount: testCases.length,
+          totalTime: 0,
+          totalMemory: 0,
+          results: testCases.map((_, idx) => ({ testCase: idx + 1, passed: false }))
+        });
       }
     } catch (error: any) {
       console.error('Submission error:', error);
+      
+      let errorMessage = 'Submission failed. Please try again.';
+      if (error instanceof SecurityError) {
+        errorMessage = `Security Error: ${error.message}`;
+      } else if (error instanceof ValidationError) {
+        errorMessage = `Validation Error: ${error.message}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       setResults({
         success: false,
         results: [],
@@ -248,7 +254,7 @@ rl.on('close', () => {
         totalCount: testCases.length,
         totalTime: 0,
         totalMemory: 0,
-        compilationError: error?.message || 'Submission failed. Check Judge0 API configuration.'
+        compilationError: errorMessage
       });
     }
 
@@ -280,7 +286,8 @@ rl.on('close', () => {
   return (
     <div className="h-screen bg-gray-900 flex flex-col overflow-hidden -mx-4 -mt-6">
       {/* Header */}
-      <header className="bg-gray-800/90 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+      <header className="bg-gradient-to-r from-gray-800 via-gray-900 to-black border-b border-gray-700 px-4 py-3 flex items-center justify-between relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-20 bg-gradient-to-bl from-cyan-500/20 to-transparent rounded-full -translate-y-10 translate-x-20"></div>
         <div className="flex items-center gap-4">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -293,19 +300,19 @@ rl.on('close', () => {
 
           <div>
             <h1 className="text-lg font-bold text-white flex items-center gap-2">
-              {problem?.name || 'Loading...'}
+              {challenge?.title || 'Loading...'}
               {solved && <CheckCircle className="w-5 h-5 text-green-400" />}
             </h1>
             <div className="flex items-center gap-3 text-sm">
-              {problem && (
+              {challenge && (
                 <>
-                  <span className={`px-2 py-0.5 rounded-full border ${getDifficultyColor(problem.difficulty)}`}>
-                    {problem.difficulty.charAt(0).toUpperCase() + problem.difficulty.slice(1)}
+                  <span className={`px-2 py-0.5 rounded-full border ${getDifficultyColor(challenge.difficulty)}`}>
+                    {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
                   </span>
-                  <span className="text-gray-400">Rating: {problem.rating || 'N/A'}</span>
+                  <span className="text-gray-400">Category: {challenge.category || 'N/A'}</span>
                   <span className="flex items-center gap-1 text-yellow-400">
                     <Coins className="w-4 h-4" />
-                    {problem.coins}
+                    {challenge.coinReward}
                   </span>
                 </>
               )}
@@ -318,11 +325,12 @@ rl.on('close', () => {
           <div className="relative">
             <button
               onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-lg transition-all shadow-lg border border-gray-600 relative overflow-hidden"
             >
-              <Code2 className="w-4 h-4 text-cyan-400" />
-              <span className="text-white capitalize">{language}</span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10"></div>
+              <Code2 className="w-4 h-4 text-cyan-400 relative" />
+              <span className="text-white capitalize font-semibold relative">{language}</span>
+              <ChevronDown className="w-4 h-4 text-gray-400 relative" />
             </button>
 
             <AnimatePresence>
@@ -352,18 +360,19 @@ rl.on('close', () => {
             </AnimatePresence>
           </div>
 
-          {/* View on Codeforces */}
-          {problem && (
-            <a
-              href={problem.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span className="text-sm">Codeforces</span>
-            </a>
+          {/* View Database Challenge */}
+          {challenge && (
+            <div className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white transition-colors cursor-pointer">
+              <Code2 className="w-4 h-4" />
+              <span className="text-sm">Database Challenge</span>
+            </div>
           )}
+
+          {/* Security Indicator */}
+          <div className="flex items-center gap-2 px-3 py-2 text-green-400 bg-green-500/10 rounded-lg border border-green-500/20">
+            <Shield className="w-4 h-4" />
+            <span className="text-sm font-medium">Secure Mode</span>
+          </div>
         </div>
       </header>
 
@@ -399,19 +408,46 @@ rl.on('close', () => {
           <div className="flex-1 overflow-y-auto p-4">
             {activeTab === 'description' ? (
               <div className="space-y-4">
-                {statementLoading ? (
+                {loading ? (
                   <div className="flex items-center justify-center py-10">
                     <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
                   </div>
                 ) : (
                   <>
-                    {/* Problem Statement from Codeforces */}
+                    {/* Challenge Statement */}
                     <div 
                       className="prose prose-invert max-w-none problem-statement"
-                      dangerouslySetInnerHTML={{ __html: problemStatement }}
+                      dangerouslySetInnerHTML={{ __html: challenge?.problemStatement || '' }}
                     />
 
-                    {/* Sample Test Cases */}
+                    {/* Examples */}
+                    {challenge?.examples && challenge.examples.length > 0 && (
+                      <div className="mt-6 space-y-4">
+                        <h3 className="text-lg font-semibold text-white">Examples</h3>
+                        {challenge.examples.map((example, idx) => (
+                          <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
+                            <div className="grid grid-cols-2 divide-x divide-gray-700">
+                              <div className="p-3">
+                                <p className="text-xs text-gray-400 mb-2">Input</p>
+                                <pre className="text-sm text-white font-mono whitespace-pre-wrap">{example.input}</pre>
+                              </div>
+                              <div className="p-3">
+                                <p className="text-xs text-gray-400 mb-2">Output</p>
+                                <pre className="text-sm text-white font-mono whitespace-pre-wrap">{example.output}</pre>
+                              </div>
+                            </div>
+                            {example.explanation && (
+                              <div className="px-3 pb-3">
+                                <p className="text-xs text-gray-400 mb-1">Explanation</p>
+                                <p className="text-sm text-gray-300">{example.explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Test Cases */}
                     <div className="mt-6 space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-white">
@@ -420,11 +456,10 @@ rl.on('close', () => {
                         <button
                           onClick={async () => {
                             if (challengeId) {
-                              const [contestId, index] = challengeId.split('-');
-                              setStatementLoading(true);
-                              const cases = await fetchProblemTestCases(parseInt(contestId), index);
+                              setLoading(true);
+                              const cases = await getChallengeTestCases(challengeId, false);
                               setTestCases(cases);
-                              setStatementLoading(false);
+                              setLoading(false);
                             }
                           }}
                           className="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300"
@@ -436,18 +471,28 @@ rl.on('close', () => {
                       
                       {testCases.length > 0 ? (
                         testCases.map((tc, idx) => (
-                          <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
+                          <motion.div 
+                            key={idx} 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700 overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+                          >
                             <div className="grid grid-cols-2 divide-x divide-gray-700">
-                              <div className="p-3">
-                                <p className="text-xs text-gray-400 mb-2">Input</p>
-                                <pre className="text-sm text-white font-mono whitespace-pre-wrap">{tc.input}</pre>
+                              <div className="p-4 bg-gradient-to-br from-blue-900/20 to-transparent">
+                                <p className="text-xs text-blue-400 mb-2 font-semibold flex items-center gap-1">
+                                  📝 Input
+                                </p>
+                                <pre className="text-sm text-white font-mono whitespace-pre-wrap bg-gray-900/50 p-2 rounded">{tc.input}</pre>
                               </div>
-                              <div className="p-3">
-                                <p className="text-xs text-gray-400 mb-2">Output</p>
-                                <pre className="text-sm text-white font-mono whitespace-pre-wrap">{tc.output}</pre>
+                              <div className="p-4 bg-gradient-to-br from-green-900/20 to-transparent">
+                                <p className="text-xs text-green-400 mb-2 font-semibold flex items-center gap-1">
+                                  ✅ Output
+                                </p>
+                                <pre className="text-sm text-white font-mono whitespace-pre-wrap bg-gray-900/50 p-2 rounded">{tc.output}</pre>
                               </div>
                             </div>
-                          </div>
+                          </motion.div>
                         ))
                       ) : (
                         <div className="bg-gray-800/50 rounded-lg border border-gray-700 p-6 text-center">
@@ -458,7 +503,7 @@ rl.on('close', () => {
                     </div>
 
                     {/* Tags */}
-                    {problem?.tags && problem.tags.length > 0 && (
+                    {challenge?.tags && challenge.tags.length > 0 && (
                       <div className="mt-6">
                         <button
                           onClick={() => setShowHint(!showHint)}
@@ -476,7 +521,7 @@ rl.on('close', () => {
                               exit={{ opacity: 0, height: 0 }}
                               className="mt-3 flex flex-wrap gap-2"
                             >
-                              {problem.tags.map((tag, idx) => (
+                              {challenge.tags.map((tag, idx) => (
                                 <span
                                   key={idx}
                                   className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded"
@@ -586,11 +631,11 @@ rl.on('close', () => {
                       </div>
                     )}
                     
-                    {quickRunResult.error && (
+                    {quickRunResult.stderr && (
                       <div className="bg-red-900/20 border border-red-500/30 rounded p-3">
                         <p className="text-xs text-red-400 mb-1">Error:</p>
                         <pre className="text-sm text-red-300 font-mono whitespace-pre-wrap">
-                          {quickRunResult.error}
+                          {quickRunResult.stderr}
                         </pre>
                       </div>
                     )}
@@ -620,10 +665,10 @@ rl.on('close', () => {
                         </p>
                       </div>
                       
-                      {results.success && problem && (
+                      {results.success && challenge && (
                         <div className="ml-auto flex items-center gap-2 text-yellow-400">
                           <Coins className="w-5 h-5" />
-                          <span className="font-bold">+{problem.coins}</span>
+                          <span className="font-bold">+{challenge.coinReward}</span>
                         </div>
                       )}
                     </div>
@@ -687,33 +732,47 @@ rl.on('close', () => {
 
             <div className="flex items-center gap-3">
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)" }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleRun}
                 disabled={isRunning || isSubmitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg relative overflow-hidden"
               >
-                {isRunning ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4" />
+                {isRunning && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20"></div>
                 )}
-                Run
+                {isRunning ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full relative"
+                  />
+                ) : (
+                  <Play className="w-4 h-4 relative" />
+                )}
+                <span className="relative">Run</span>
               </motion.button>
 
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(34, 197, 94, 0.3)" }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSubmit}
                 disabled={isRunning || isSubmitting}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg relative overflow-hidden"
               >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20"></div>
                 )}
-                Submit
+                {isSubmitting ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    className="w-4 h-4 border-2 border-white border-t-transparent rounded-full relative"
+                  />
+                ) : (
+                  <Send className="w-4 h-4 relative" />
+                )}
+                <span className="relative">⚡ Submit</span>
               </motion.button>
             </div>
           </div>

@@ -123,46 +123,68 @@ const PracticeChallenges = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Practice Challenges</h2>
-          <p className="text-gray-500 text-sm">Solve coding challenges and earn coins</p>
-        </div>
-        
-        <button
-          onClick={handleRefresh}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-lg border border-gray-200 p-3">
-            <div className="flex items-center gap-2">
-              <div className={`p-1.5 rounded-lg ${stat.color}`}>
-                <stat.icon className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.label}</p>
-              </div>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl border border-gray-200 p-6"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-100 rounded-xl">
+              <Target className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">⚡ Practice Challenges</h2>
+              <p className="text-gray-500 text-sm">Solve coding challenges and earn coins</p>
             </div>
           </div>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <motion.div 
+            key={stat.label}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ y: -2, scale: 1.02 }}
+            className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group"
+          >
+            <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3 group-hover:scale-110 transition-transform`}>
+              <stat.icon className="w-4 h-4" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+            <p className="text-sm text-gray-500">{stat.label}</p>
+          </motion.div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+      >
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search challenges..."
@@ -171,148 +193,183 @@ const PracticeChallenges = () => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
         </div>
 
         {/* Difficulty */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {difficulties.map((diff) => (
-            <button
+            <motion.button
               key={diff.id}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setSelectedDifficulty(diff.id);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                 selectedDifficulty === diff.id
-                  ? diff.color + ' border-current'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  ? diff.color
+                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
               }`}
             >
               {diff.label}
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Categories */}
         {availableCategories.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => { setSelectedCategory('all'); setPage(1); }}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                 selectedCategory === 'all'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               All Categories
-            </button>
+            </motion.button>
             {availableCategories.map((category) => (
-              <button
+              <motion.button
                 key={category}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => { setSelectedCategory(category); setPage(1); }}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                   selectedCategory === category
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {category}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Challenges List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
-            <p className="text-gray-500">Loading challenges...</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center bg-white rounded-xl border border-gray-200 p-8"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+            />
+            <p className="text-gray-600">Loading challenges...</p>
+          </motion.div>
         </div>
       ) : filteredChallenges.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-lg border border-gray-200">
-          <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No challenges found</p>
-          <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or add new challenges</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-20 bg-white rounded-xl border border-gray-200"
+        >
+          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-700 text-lg">No challenges found</p>
+          <p className="text-gray-500 text-sm mt-2">Try adjusting your filters or add new challenges</p>
+        </motion.div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filteredChallenges.map((challenge, index) => (
             <motion.div
               key={challenge.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
-              className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm transition-all"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: index * 0.05, duration: 0.4 }}
+              whileHover={{ y: -2, scale: 1.02 }}
+              className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-blue-300 transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-gray-900">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">
                       {challenge.title}
                     </h3>
                     {challenge.isDaily && (
-                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-medium">
-                        Daily
-                      </span>
+                      <motion.span 
+                        whileHover={{ scale: 1.1 }}
+                        className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200"
+                      >
+                        ✨ Daily
+                      </motion.span>
                     )}
                     {challenge.isPremium && (
-                      <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs font-medium">
-                        Premium
-                      </span>
+                      <motion.span 
+                        whileHover={{ scale: 1.1 }}
+                        className="px-2 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-200"
+                      >
+                        👑 Premium
+                      </motion.span>
                     )}
                   </div>
                   
-                  <p className="text-sm text-gray-500 mb-2">{challenge.description}</p>
+                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors">{challenge.description}</p>
                   
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className={`px-2 py-0.5 rounded border text-xs font-medium ${getDifficultyStyle(challenge.difficulty)}`}>
+                  <div className="flex flex-wrap items-center gap-3 text-sm mb-3">
+                    <motion.span 
+                      whileHover={{ scale: 1.05 }}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        challenge.difficulty === 'easy' ? 'bg-green-50 text-green-700 border border-green-200' :
+                        challenge.difficulty === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
+                        challenge.difficulty === 'hard' ? 'bg-red-50 text-red-700 border border-red-200' :
+                        'bg-purple-50 text-purple-700 border border-purple-200'
+                      }`}
+                    >
                       {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
-                    </span>
+                    </motion.span>
                     
-                    <span className="text-gray-400 text-xs">
+                    <span className="text-gray-600 text-xs bg-gray-100 px-2 py-1 rounded">
                       {challenge.category}
                     </span>
                     
-                    <span className="flex items-center gap-1 text-amber-600 text-xs">
+                    <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
                       <Coins className="w-3 h-3" />
                       {challenge.coinReward}
                     </span>
 
                     {challenge.acceptanceRate > 0 && (
-                      <span className="text-gray-400 text-xs">
+                      <span className="text-gray-500 text-xs">
                         {challenge.acceptanceRate.toFixed(0)}% acceptance
                       </span>
                     )}
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-2">
                     {challenge.tags.slice(0, 4).map((tag, i) => (
-                      <span key={i} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                      <span key={i} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded border border-gray-200">
                         {tag}
                       </span>
                     ))}
                     {challenge.tags.length > 4 && (
-                      <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded">
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded border border-gray-200">
                         +{challenge.tags.length - 4}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 ml-4">
-                  <button
+                <div className="flex items-center gap-2 ml-6">
+                  <motion.button
+                    whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)" }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleSolve(challenge)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all"
                   >
-                    Solve
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                    <span className="relative">Solve</span>
+                    <ChevronRight className="w-4 h-4 relative" />
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
@@ -322,28 +379,37 @@ const PracticeChallenges = () => {
 
       {/* Pagination */}
       {!loading && filteredChallenges.length > 0 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-center gap-3"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
           >
             Previous
-          </button>
+          </motion.button>
           
-          <span className="px-4 py-2 text-gray-500 text-sm">
+          <span className="px-4 py-3 text-gray-700 text-sm bg-white rounded-lg border border-gray-200">
             Page {page}
           </span>
           
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setPage(p => p + 1)}
             disabled={filteredChallenges.length < PROBLEMS_PER_PAGE}
-            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
           >
             Next
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       )}
+      </div>
     </div>
   );
 };

@@ -5,19 +5,16 @@ import Editor from '@monaco-editor/react';
 import { 
   Clock, Send, Trophy, Code2,
   CheckCircle, XCircle, Loader2,
-  ChevronDown
+  ChevronDown, Shield
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { doc, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../service/Firebase';
-import { 
-  submitBattleCode, 
-  determineBattleWinner,
-  getSupportedLanguages,
-  type BattleSubmissionResult 
-} from '../../service/judge0';
-import { fetchProblemStatement, fetchProblemTestCases } from '../../service/codeforces';
+import { secureCodeExecutionService } from '../../service/secureCodeExecution';
+import { SecurityError, ValidationError } from '../../middleware/inputValidator';
+import { getSupportedLanguages } from '../../service/judge0';
+import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
 
 interface Participant {
   odId: string;
@@ -25,18 +22,23 @@ interface Participant {
   odProfilePic: string;
   rating: number;
   hasSubmitted: boolean;
-  submissionResult?: BattleSubmissionResult;
+  submissionResult?: {
+    success: boolean;
+    executionTime: number;
+    status: string;
+  };
 }
 
 interface Battle {
   id: string;
   status: 'waiting' | 'countdown' | 'active' | 'completed';
   participants: Participant[];
-  problem: {
-    contestId: number;
-    index: string;
-    name: string;
-    rating: number;
+  challenge: {
+    id: string;
+    title: string;
+    difficulty: string;
+    category: string;
+    coinReward: number;
   };
   difficulty: string;
   entryFee: number;
@@ -59,8 +61,8 @@ const BattleRoom = () => {
   const [countdown, setCountdown] = useState(5);
   const [timeLeft, setTimeLeft] = useState(0);
   
-  // Problem state
-  const [problemStatement, setProblemStatement] = useState<string>('');
+  // Challenge state
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [testCases, setTestCases] = useState<{ input: string; output: string }[]>([]);
   
   // Editor state
@@ -136,14 +138,15 @@ rl.on('close', () => {
         const battleData = { id: snapshot.id, ...snapshot.data() } as Battle;
         setBattle(battleData);
 
-        // Load problem details
-        if (battleData.problem && !problemStatement) {
-          const [statement, cases] = await Promise.all([
-            fetchProblemStatement(battleData.problem.contestId, battleData.problem.index),
-            fetchProblemTestCases(battleData.problem.contestId, battleData.problem.index)
-          ]);
-          setProblemStatement(statement);
-          setTestCases(cases);
+        // Load challenge details
+        if (battleData.challenge && !challenge) {
+          const challengeData = await fetchChallengeById(battleData.challenge.id);
+          if (challengeData) {
+            setChallenge(challengeData);
+            // Get test cases for validation (includes hidden ones for battles)
+            const cases = await getChallengeTestCases(battleData.challenge.id, true);
+            setTestCases(cases);
+          }
         }
 
         // Check if battle is completed
@@ -156,7 +159,7 @@ rl.on('close', () => {
     );
 
     return () => unsubscribe();
-  }, [battleId]);
+  }, [battleId, challenge]);
 
   // Countdown timer
   useEffect(() => {
@@ -224,67 +227,69 @@ rl.on('close', () => {
   };
 
   const handleSubmit = async () => {
-    if (!user || !battle || isSubmitting || hasSubmitted) return;
+    if (!user || !battle || isSubmitting || hasSubmitted || !battleId) return;
 
     setIsSubmitting(true);
 
     try {
-      // Submit code to Judge0
-      const result = await submitBattleCode(
-        user.uid,
+      // Submit code using secure service
+      const result = await secureCodeExecutionService.submitBattleSolution(
+        battleId,
         code,
-        language,
-        testCases
+        language
       );
 
-      setMyResult(result);
+      // Convert to expected format
+      const submissionResult = {
+        success: result.status?.description === 'Accepted',
+        executionTime: parseFloat(result.time || '0'),
+        status: result.status?.description || 'Unknown'
+      };
+
+      setMyResult(submissionResult);
       setHasSubmitted(true);
 
-      // Update battle in Firestore
-      const battleRef = doc(db, 'CodeArena_Battles', battleId!);
+      // Update battle in Firestore with client submission (server validates)
+      const battleRef = doc(db, 'CodeArena_Battles', battleId);
       
       const updatedParticipants = battle.participants.map(p => {
         if (p.odId === user.uid) {
           return {
             ...p,
             hasSubmitted: true,
-            submissionResult: result
+            submissionResult
           };
         }
         return p;
       });
 
       await updateDoc(battleRef, {
-        participants: updatedParticipants
+        participants: updatedParticipants,
+        lastUpdate: Timestamp.now()
       });
 
-      // Check if both players have submitted
-      const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
-      
-      if (allSubmitted) {
-        // Determine winner
-        const results = updatedParticipants.map(p => p.submissionResult!);
-        const winner = determineBattleWinner(results[0], results[1]);
-        
-        await updateDoc(battleRef, {
-          status: 'completed',
-          winnerId: winner.winnerId,
-          winReason: winner.reason,
-          endTime: Timestamp.now()
-        });
+      // Server-side handles battle completion and coin distribution
 
-        // Award coins to winner
-        if (winner.winnerId && !winner.isDraw) {
-          await addCoins(winner.winnerId, battle.prize, `Battle victory!`);
-        } else if (winner.isDraw) {
-          // Refund both players
-          for (const p of battle.participants) {
-            await addCoins(p.odId, battle.entryFee, 'Battle draw - refund');
-          }
-        }
+    } catch (error: any) {
+      console.error('Battle submission error:', error);
+      
+      let errorMessage = 'Submission failed. Please try again.';
+      if (error instanceof SecurityError) {
+        errorMessage = `Security Error: ${error.message}`;
+      } else if (error instanceof ValidationError) {
+        errorMessage = `Validation Error: ${error.message}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
-    } catch (error) {
-      console.error('Error submitting code:', error);
+
+      alert(errorMessage);
+      
+      // Set error result
+      setMyResult({
+        success: false,
+        executionTime: 0,
+        status: 'Error'
+      });
     }
 
     setIsSubmitting(false);
@@ -427,7 +432,7 @@ rl.on('close', () => {
               {formatTime(timeLeft)}
             </div>
             <p className="text-sm text-gray-400 mt-1">
-              {battle?.problem?.name || 'Loading problem...'}
+              {battle?.challenge?.title || 'Loading challenge...'}
             </p>
           </div>
 
@@ -449,10 +454,15 @@ rl.on('close', () => {
         </div>
 
         {/* Prize Pool */}
-        <div className="flex justify-center mt-2">
+        <div className="flex justify-center mt-2 gap-4">
           <div className="flex items-center gap-2 px-4 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-full">
             <Trophy className="w-4 h-4 text-yellow-400" />
             <span className="text-yellow-400 font-bold">{battle?.prize || 0} coins</span>
+          </div>
+          
+          <div className="flex items-center gap-2 px-3 py-1 text-green-400 bg-green-500/10 rounded-full border border-green-500/20">
+            <Shield className="w-4 h-4" />
+            <span className="text-sm font-medium">Secure Battle</span>
           </div>
         </div>
       </header>
@@ -464,7 +474,7 @@ rl.on('close', () => {
           <div className="p-3 bg-gray-800/50 border-b border-gray-700 flex items-center justify-between">
             <h3 className="text-white font-medium flex items-center gap-2">
               <Code2 className="w-4 h-4 text-cyan-400" />
-              Problem
+              {challenge?.title || 'Loading Challenge...'}
             </h3>
             <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">
               {battle?.difficulty}
@@ -474,7 +484,7 @@ rl.on('close', () => {
           <div className="flex-1 overflow-y-auto p-4">
             <div 
               className="prose prose-invert prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: problemStatement }}
+              dangerouslySetInnerHTML={{ __html: challenge?.problemStatement || '<p class="text-gray-400">Loading challenge...</p>' }}
             />
             
             {/* Sample Test Cases */}

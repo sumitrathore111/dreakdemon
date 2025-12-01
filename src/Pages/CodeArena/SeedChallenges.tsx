@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Upload, CheckCircle, Loader2, Database, 
@@ -101,9 +101,9 @@ const SeedChallenges = () => {
   };
 
   // Check on mount
-  useState(() => {
+  useEffect(() => {
     checkExistingChallenges();
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

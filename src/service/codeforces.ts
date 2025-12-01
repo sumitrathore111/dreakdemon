@@ -30,13 +30,13 @@ export interface ProblemWithStats extends CodeforcesProblem {
 // Map Codeforces rating to difficulty and coins
 const getDifficultyFromRating = (rating?: number): { difficulty: 'easy' | 'medium' | 'hard' | 'expert'; coins: number } => {
   if (!rating || rating <= 1200) {
-    return { difficulty: 'easy', coins: 10 };
+    return { difficulty: 'easy', coins: 2 };
   } else if (rating <= 1600) {
-    return { difficulty: 'medium', coins: 25 };
+    return { difficulty: 'medium', coins: 5 };
   } else if (rating <= 2000) {
-    return { difficulty: 'hard', coins: 50 };
+    return { difficulty: 'hard', coins: 10 };
   } else {
-    return { difficulty: 'expert', coins: 100 };
+    return { difficulty: 'expert', coins: 20 };
   }
 };
 
