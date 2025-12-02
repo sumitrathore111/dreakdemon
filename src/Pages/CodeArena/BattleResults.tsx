@@ -1,4 +1,4 @@
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -6,9 +6,11 @@ import {
   Coins,
   Crown,
   Home,
+  Loader2,
   Medal,
   RotateCcw,
   Star,
+  Swords,
   Target,
   TrendingDown,
   TrendingUp,
@@ -18,6 +20,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { createRematchBattle } from '../../service/battleService';
 import { db } from '../../service/Firebase';
 
 interface SubmissionResult {
@@ -45,6 +48,8 @@ interface Battle {
   forfeitedBy?: string;
   prizePool?: number;
   prize?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  entryFee?: number;
 }
 
 // Simple confetti effect
@@ -99,6 +104,8 @@ const BattleResults = () => {
   const [opponentData, setOpponentData] = useState<Participant | null>(null);
   const [ratingChange, setRatingChange] = useState(0);
   const [winByForfeit, setWinByForfeit] = useState(false);
+  const [isRequestingRematch, setIsRequestingRematch] = useState(false);
+  const [rematchSent, setRematchSent] = useState(false);
 
   useEffect(() => {
     const fetchBattleResults = async () => {
@@ -155,11 +162,74 @@ const BattleResults = () => {
     fetchBattleResults();
   }, [battleId, user, navigate]);
 
+
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
   };
+
+  // Handle rematch - send request to opponent
+  const handleRematch = async () => {
+    if (!user || !opponentData || !battle || isRequestingRematch || rematchSent) return;
+
+    setIsRequestingRematch(true);
+    try {
+      const entryFee = battle.entryFee || 50;
+      const difficulty = battle.difficulty || 'easy';
+
+      // Create rematch request battle
+      const rematchBattleId = await createRematchBattle(
+        {
+          difficulty,
+          entryFee,
+          userId: user.uid,
+          userName: userprofile?.name || 'Player',
+          userAvatar: userprofile?.avatarUrl,
+          rating: myData?.rating || 1000
+        },
+        opponentData.odId
+      );
+
+      if (rematchBattleId) {
+        setRematchSent(true);
+        
+        // Listen for opponent to accept or reject
+        const unsubscribe = onSnapshot(
+          doc(db, 'CodeArena_Battles', rematchBattleId),
+          (snapshot) => {
+            const data = snapshot.data();
+            if (data?.status === 'countdown' && data?.participants?.length === 2) {
+              // Opponent accepted! Navigate to battle
+              unsubscribe();
+              navigate(`/dashboard/codearena/battle/${rematchBattleId}`);
+            } else if (data?.status === 'rejected') {
+              // Opponent declined the rematch
+              unsubscribe();
+              setRematchSent(false);
+              alert(`${opponentData?.odName || 'Opponent'} declined the rematch request.`);
+            }
+          }
+        );
+
+        // Clean up listener after 5 minutes (timeout)
+        setTimeout(() => {
+          unsubscribe();
+          // If still waiting after 5 minutes, reset the button
+          setRematchSent(false);
+        }, 300000);
+      }
+    } catch (error) {
+      console.error('Error creating rematch:', error);
+      alert('Failed to send rematch request. Please try again.');
+      setRematchSent(false);
+    } finally {
+      setIsRequestingRematch(false);
+    }
+  };
+
+
 
   if (loading) {
     return (
@@ -468,8 +538,33 @@ const BattleResults = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-6"
+          className="flex flex-col sm:flex-row gap-4"
         >
+          {/* Rematch Button - Challenge same opponent */}
+          <motion.button
+            whileHover={!rematchSent ? { scale: 1.05, y: -2, boxShadow: "0 20px 40px rgba(239, 68, 68, 0.4)" } : {}}
+            whileTap={!rematchSent ? { scale: 0.98 } : {}}
+            onClick={handleRematch}
+            disabled={isRequestingRematch || rematchSent}
+            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 text-white font-bold text-lg rounded-xl shadow-lg transition-all relative overflow-hidden group disabled:cursor-not-allowed ${
+              rematchSent 
+                ? 'bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 shadow-yellow-500/30' 
+                : 'bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 shadow-red-500/30 hover:shadow-red-500/50'
+            }`}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-orange-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            {isRequestingRematch ? (
+              <Loader2 className="w-6 h-6 relative animate-spin" />
+            ) : rematchSent ? (
+              <Loader2 className="w-6 h-6 relative animate-spin" />
+            ) : (
+              <Swords className="w-6 h-6 relative" />
+            )}
+            <span className="relative">
+              {isRequestingRematch ? 'Sending...' : rematchSent ? `⏳ Waiting for ${opponentData?.odName?.split(' ')[0] || 'Opponent'}...` : `🔥 Rematch ${opponentData?.odName?.split(' ')[0] || 'Opponent'}`}
+            </span>
+          </motion.button>
+
           <motion.button
             whileHover={{ scale: 1.05, y: -2, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)" }}
             whileTap={{ scale: 0.98 }}
@@ -478,7 +573,7 @@ const BattleResults = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
             <RotateCcw className="w-6 h-6 relative" />
-            <span className="relative">⚔️ Battle Again</span>
+            <span className="relative">⚔️ New Battle</span>
           </motion.button>
 
           <motion.button
@@ -493,6 +588,8 @@ const BattleResults = () => {
           </motion.button>
         </motion.div>
       </div>
+
+
     </div>
   );
 };

@@ -8,11 +8,12 @@ import ToastProvider from "./Component/ToastProvider";
 import { AuthProvider, useAuth } from "./Context/AuthContext";
 import { DataProvider } from "./Context/UserDataContext";
 
-import PublicNavBar from "./Public/PublicNevBar";
-import ScrollToTop from "./Component/ScrollToTop";
 import { AnimatePresence } from "framer-motion";
-import ProjectDetail from "./Pages/Projects/ProjectDetails";
+import RematchNotification from "./Component/Global/RematchNotification";
+import ScrollToTop from "./Component/ScrollToTop";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
+import ProjectDetail from "./Pages/Projects/ProjectDetails";
+import PublicNavBar from "./Public/PublicNevBar";
 
 
 // Lazy-loaded pages
@@ -126,7 +127,12 @@ function SignupRedirect() {
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
   if (loading) return <div>Loading...</div>;
-  return user ? children : <Navigate to="/login" replace />;
+  return user ? (
+    <>
+      <RematchNotification />
+      {children}
+    </>
+  ) : <Navigate to="/login" replace />;
 }
 
 const App: React.FC = () => {

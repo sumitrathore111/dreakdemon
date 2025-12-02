@@ -26,7 +26,7 @@ import {
     getValidationTestCases,
     type Challenge
 } from '../../service/challenges';
-import { getSupportedLanguages, quickRun, runTestCases } from '../../service/judge0';
+import { getPistonSupportedLanguages, quickRunPiston, runTestCasesPiston } from '../../service/codeExecution';
 
 const LocalChallengeEditor = () => {
   const { challengeId } = useParams();
@@ -57,7 +57,7 @@ const LocalChallengeEditor = () => {
   const [solved, setSolved] = useState(false);
   const [showExpectedOutput, setShowExpectedOutput] = useState<{ [key: number]: boolean }>({});
 
-  const languages = getSupportedLanguages();
+  const languages = getPistonSupportedLanguages();
 
   // Fetch challenge details
   useEffect(() => {
@@ -187,12 +187,12 @@ rl.on('close', () => {
       const visibleTestCases = challenge.testCases.filter(tc => !tc.isHidden);
       const input = showCustomInput ? customInput : (visibleTestCases[0]?.input || '');
       
-      const result = await quickRun(code, language, input);
+      const result = await quickRunPiston(code, language, input);
       setQuickRunResult(result);
     } catch (error: any) {
       setQuickRunResult({
         output: '',
-        error: error?.message || 'Failed to run code. Make sure you have set up Judge0 API key.',
+        error: error?.message || 'Failed to run code. Please try again.',
         time: null,
         memory: null,
         status: 'Error'
@@ -228,7 +228,7 @@ rl.on('close', () => {
         return;
       }
       
-      const result = await runTestCases(code, language, testCases);
+      const result = await runTestCasesPiston(code, language, testCases);
       setResults(result);
 
       // If all tests passed, check if already solved before awarding coins

@@ -1,13 +1,13 @@
 // Random Battle Creator Service
 // Creates battles with random challenges from database
 
-import { 
-  collection, 
-  addDoc, 
-  Timestamp, 
-  getDocs, 
-  query, 
-  where 
+import {
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  Timestamp,
+  where
 } from 'firebase/firestore';
 import { db } from './Firebase';
 import { getRandomBattleChallenge } from './challenges';
@@ -79,8 +79,7 @@ export const createRandomBattle = async (battleRequest: BattleRequest): Promise<
 // Find existing battle to join
 export const findAvailableBattle = async (
   difficulty: 'easy' | 'medium' | 'hard',
-  entryFee: number,
-  userId: string
+  entryFee: number
 ): Promise<string | null> => {
   try {
     const battlesRef = collection(db, 'CodeArena_Battles');
@@ -95,8 +94,7 @@ export const findAvailableBattle = async (
     
     for (const doc of querySnapshot.docs) {
       const battle = doc.data();
-      // Don't allow user to join their own battle
-      if (battle.participants.length < battle.maxParticipants && battle.createdBy !== userId) {
+      if (battle.participants.length < battle.maxParticipants) {
         return doc.id;
       }
     }
@@ -111,10 +109,10 @@ export const findAvailableBattle = async (
 // Join existing battle or create new one
 export const joinOrCreateBattle = async (battleRequest: BattleRequest): Promise<string> => {
   try {
-    const { difficulty, entryFee, userId } = battleRequest;
+    const { difficulty, entryFee } = battleRequest;
     
-    // First try to find an existing battle to join (excluding user's own battles)
-    const existingBattleId = await findAvailableBattle(difficulty, entryFee, userId);
+    // First try to find an existing battle to join
+    const existingBattleId = await findAvailableBattle(difficulty, entryFee);
     
     if (existingBattleId) {
       return existingBattleId;
@@ -131,6 +129,96 @@ export const joinOrCreateBattle = async (battleRequest: BattleRequest): Promise<
   } catch (error) {
     console.error('Error joining or creating battle:', error);
     throw error;
+  }
+};
+
+// Create a rematch battle targeting specific opponent
+export const createRematchBattle = async (
+  battleRequest: BattleRequest,
+  opponentId: string
+): Promise<string | null> => {
+  try {
+    const { difficulty, entryFee, userId, userName, userAvatar, rating } = battleRequest;
+    
+    // Get random challenge from database
+    const randomChallenge = await getRandomBattleChallenge(difficulty);
+    
+    if (!randomChallenge) {
+      throw new Error(`No ${difficulty} challenges found in database`);
+    }
+    
+    // Calculate prize (winner takes all minus platform fee)
+    const prize = entryFee * 2 * 0.9; // 10% platform fee
+    
+    // Battle time limit based on difficulty
+    const timeLimit = difficulty === 'easy' ? 900 : difficulty === 'medium' ? 1200 : 1800;
+    
+    const battleData = {
+      status: 'waiting',
+      difficulty,
+      entryFee,
+      prize: Math.floor(prize),
+      timeLimit,
+      maxParticipants: 2,
+      participants: [{
+        odId: userId,
+        odName: userName,
+        odProfilePic: userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+        rating: rating || 1000,
+        hasSubmitted: false
+      }],
+      challenge: {
+        id: randomChallenge.id!,
+        title: randomChallenge.title,
+        difficulty: randomChallenge.difficulty,
+        category: randomChallenge.category,
+        coinReward: randomChallenge.coinReward
+      },
+      createdAt: Timestamp.now(),
+      createdBy: userId,
+      isRematch: true,
+      targetOpponent: opponentId,
+      version: 'v2.0-database'
+    };
+    
+    const battlesRef = collection(db, 'CodeArena_Battles');
+    const docRef = await addDoc(battlesRef, battleData);
+    
+    console.log(`Created rematch battle ${docRef.id} targeting opponent: ${opponentId}`);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error creating rematch battle:', error);
+    throw error;
+  }
+};
+
+// Find rematch battle waiting for specific user
+export const findRematchBattle = async (
+  opponentId: string,
+  myUserId: string
+): Promise<string | null> => {
+  try {
+    const battlesRef = collection(db, 'CodeArena_Battles');
+    const q = query(
+      battlesRef,
+      where('status', '==', 'waiting'),
+      where('isRematch', '==', true),
+      where('targetOpponent', '==', myUserId),
+      where('createdBy', '==', opponentId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    console.log(`Finding rematch: opponent=${opponentId}, myUserId=${myUserId}, found=${querySnapshot.size}`);
+    
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].id;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error finding rematch battle:', error);
+    return null;
   }
 };
 
