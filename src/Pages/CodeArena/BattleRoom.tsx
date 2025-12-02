@@ -1,5 +1,5 @@
 import Editor from '@monaco-editor/react';
-import { doc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, Timestamp, updateDoc, type DocumentData } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -77,28 +77,28 @@ const BattleRoom = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addCoins } = useDataContext();
-  
+
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState(5);
   const [timeLeft, setTimeLeft] = useState(0);
-  
+
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [testCases, setTestCases] = useState<{ input: string; output: string }[]>([]);
-  
+
   // Editor state
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('python');
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  
+
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
-  
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const codeRef = useRef(code); // Keep track of latest code for auto-submit
   const testCasesRef = useRef(testCases); // Keep track of test cases for auto-submit
@@ -166,10 +166,10 @@ rl.on('close', () => {
   // Restore code from localStorage on mount (for page refresh)
   useEffect(() => {
     if (!battleId) return;
-    
+
     const savedCode = localStorage.getItem(getStorageKey());
     const savedLanguage = localStorage.getItem(getLanguageStorageKey());
-    
+
     if (savedCode) {
       console.log('Restoring code from localStorage');
       setCode(savedCode);
@@ -182,12 +182,12 @@ rl.on('close', () => {
   // Auto-save code to localStorage every 2 seconds
   useEffect(() => {
     if (!battleId || hasSubmitted) return;
-    
+
     const saveInterval = setInterval(() => {
       localStorage.setItem(getStorageKey(), code);
       localStorage.setItem(getLanguageStorageKey(), language);
     }, 2000);
-    
+
     return () => clearInterval(saveInterval);
   }, [battleId, code, language, hasSubmitted, getStorageKey, getLanguageStorageKey]);
 
@@ -250,15 +250,15 @@ rl.on('close', () => {
           const p1Result = battleData.participants[0].submissionResult!;
           const p2Result = battleData.participants[1].submissionResult!;
           const winner = determineBattleWinnerPiston(p1Result, p2Result);
-          
+
           // Build update object without undefined/null values
-          const battleUpdate: Record<string, unknown> = {
-            status: 'completed',
-            winnerId: winner.winnerId || '', // Use empty string for draws
-            winReason: winner.reason || 'Battle completed',
-            endTime: Timestamp.now()
+          const battleUpdate: Partial<DocumentData> = {
+            status: "completed",
+            winnerId: winner.winnerId || "",
+            winReason: winner.reason || "Battle completed",
+            endTime: Timestamp.now(),
           };
-          
+
           // Complete the battle
           await updateDoc(battleRef, battleUpdate);
 
@@ -301,7 +301,7 @@ rl.on('close', () => {
           // Set a flag to auto-submit on next load
           localStorage.setItem(`battle_autosubmit_${battleId}`, 'true');
         }
-        
+
         e.preventDefault();
         e.returnValue = 'Your code will be auto-submitted when you return. Continue?';
         return e.returnValue;
@@ -318,20 +318,20 @@ rl.on('close', () => {
   // Auto-submit if user refreshed during active battle
   useEffect(() => {
     if (!battleId || !user || !battle || hasSubmitted || isSubmittingRef.current) return;
-    
+
     const shouldAutoSubmit = localStorage.getItem(`battle_autosubmit_${battleId}`);
-    
+
     if (shouldAutoSubmit === 'true' && battle.status === 'active' && testCasesRef.current.length > 0) {
       console.log('Auto-submitting code after page refresh...');
       localStorage.removeItem(`battle_autosubmit_${battleId}`);
-      
+
       // Small delay to ensure everything is loaded
       const autoSubmitTimer = setTimeout(() => {
         if (!hasSubmitted && !isSubmittingRef.current) {
           handleSubmit();
         }
       }, 1000);
-      
+
       return () => clearTimeout(autoSubmitTimer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -371,19 +371,19 @@ rl.on('close', () => {
     if (battle?.status === 'active' && battle.startTime) {
       const startTime = battle.startTime.toDate().getTime();
       const duration = battle.timeLimit * 1000;
-      
+
       timerRef.current = setInterval(() => {
         const now = Date.now();
         const elapsed = now - startTime;
         const remaining = Math.max(0, duration - elapsed);
         setTimeLeft(Math.ceil(remaining / 1000));
-        
+
         if (remaining <= 0) {
           if (timerRef.current) clearInterval(timerRef.current);
           handleTimeUp();
         }
       }, 1000);
-      
+
       return () => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
@@ -407,19 +407,19 @@ rl.on('close', () => {
   // Handle leaving/forfeiting the battle
   const handleLeaveBattle = async () => {
     if (!user || !battle || !battleId || isLeaving) return;
-    
+
     const confirmLeave = window.confirm(
       '⚠️ Are you sure you want to leave?\n\nLeaving will forfeit the match and your opponent will win the prize!'
     );
-    
+
     if (!confirmLeave) return;
-    
+
     setIsLeaving(true);
-    
+
     try {
       const battleRef = doc(db, 'CodeArena_Battles', battleId);
       const opponent = battle.participants.find(p => p.odId !== user.uid);
-      
+
       // Update battle as forfeited
       await updateDoc(battleRef, {
         status: 'forfeited',
@@ -428,15 +428,15 @@ rl.on('close', () => {
         winReason: 'Opponent forfeited the battle',
         endTime: Timestamp.now()
       });
-      
+
       // Award prize to opponent
       if (opponent?.odId) {
         await addCoins(opponent.odId, battle.prize, 'Battle victory - opponent forfeited!');
       }
-      
+
       // Navigate away
       navigate('/dashboard/codearena');
-      
+
     } catch (error) {
       console.error('Error forfeiting battle:', error);
       alert('Failed to leave battle. Please try again.');
@@ -455,7 +455,7 @@ rl.on('close', () => {
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
-    
+
     // Clear the auto-submit flag
     localStorage.removeItem(`battle_autosubmit_${battleId}`);
 
@@ -494,7 +494,7 @@ rl.on('close', () => {
 
       // Update battle in Firestore
       const battleRef = doc(db, 'CodeArena_Battles', battleId);
-      
+
       // Get fresh battle data to avoid race conditions
       const freshBattle = await new Promise<Battle>((resolve) => {
         const unsub = onSnapshot(doc(db, 'CodeArena_Battles', battleId!), (snap) => {
@@ -502,7 +502,7 @@ rl.on('close', () => {
           resolve({ id: snap.id, ...snap.data() } as Battle);
         });
       });
-      
+
       const updatedParticipants = freshBattle.participants.map(p => {
         if (p.odId === user.uid) {
           return {
@@ -521,27 +521,28 @@ rl.on('close', () => {
 
       // Check if both players have submitted
       const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
-      
+
       if (allSubmitted) {
         // Determine winner using Piston determineBattleWinner
         const p1Result = updatedParticipants[0].submissionResult!;
         const p2Result = updatedParticipants[1].submissionResult!;
         const winner = determineBattleWinnerPiston(p1Result, p2Result);
-        
+
         // Build update object without undefined values
-        const battleUpdate: Record<string, unknown> = {
-          status: 'completed',
-          winReason: winner.reason || 'Battle completed',
-          endTime: Timestamp.now()
-        };
-        
+        const battleUpdate: Partial<DocumentData> = {
+  status: "completed",
+  winnerId: winner.winnerId || "",
+  winReason: winner.reason || "Battle completed",
+  endTime: Timestamp.now(),
+};
+
         // Only add winnerId if it's not null
         if (winner.winnerId !== null) {
           battleUpdate.winnerId = winner.winnerId;
         } else {
           battleUpdate.winnerId = ''; // Use empty string for draws
         }
-        
+
         await updateDoc(battleRef, battleUpdate);
 
         // Award coins to winner
@@ -557,7 +558,7 @@ rl.on('close', () => {
 
     } catch (error: unknown) {
       console.error('Battle submission error:', error);
-      
+
       let errorMessage = 'Submission failed. Please try again.';
       if (error instanceof SecurityError) {
         errorMessage = `Security Error: ${error.message}`;
@@ -575,7 +576,7 @@ rl.on('close', () => {
       }
 
       alert(errorMessage);
-      
+
       // Set error result
       setMyResult({
         success: false,
@@ -590,7 +591,7 @@ rl.on('close', () => {
 
     setIsSubmitting(false);
     isSubmittingRef.current = false;
-    
+
     // Clear saved code from localStorage after successful submission
     if (battleId) {
       localStorage.removeItem(getStorageKey());
@@ -640,16 +641,16 @@ rl.on('close', () => {
             ease: "easeInOut"
           }}
         />
-        
+
         <motion.div
           key={countdown}
           initial={{ scale: 0.3, opacity: 0, rotateY: -180 }}
           animate={{ scale: 1, opacity: 1, rotateY: 0 }}
           exit={{ scale: 2, opacity: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 20 
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 20
           }}
           className="text-center z-10"
         >
@@ -663,9 +664,9 @@ rl.on('close', () => {
               </div>
               <p className="text-gray-400 text-sm">{battle.participants[0]?.odName}</p>
             </div>
-            
+
             <div className="text-cyan-400 text-4xl font-bold">VS</div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
                 <span className="text-white font-bold text-lg">
@@ -677,9 +678,9 @@ rl.on('close', () => {
           </div>
 
           <p className="text-gray-400 text-xl mb-6">Battle starts in</p>
-          
+
           <motion.div
-            animate={{ 
+            animate={{
               scale: countdown === 0 ? [1, 1.3, 1] : [1, 1.2, 1],
               color: countdown <= 1 ? "#ef4444" : "#06b6d4"
             }}
@@ -692,7 +693,7 @@ rl.on('close', () => {
           >
             {countdown === 0 ? 'GO!' : countdown}
           </motion.div>
-          
+
           <motion.p
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1, repeat: Infinity }}
@@ -762,7 +763,7 @@ rl.on('close', () => {
             <Trophy className="w-4 h-4 text-yellow-400" />
             <span className="text-yellow-400 font-bold">{battle?.prize || 0} coins</span>
           </div>
-          
+
           <div className="flex items-center gap-2 px-3 py-1 text-green-400 bg-green-500/10 rounded-full border border-green-500/20">
             <Shield className="w-4 h-4" />
             <span className="text-sm font-medium">Secure Battle</span>
@@ -783,13 +784,13 @@ rl.on('close', () => {
               {battle?.difficulty}
             </span>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-4">
-            <div 
+            <div
               className="prose prose-invert prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: challenge?.problemStatement || '<p class="text-gray-400">Loading challenge...</p>' }}
             />
-            
+
             {/* Sample Test Cases */}
             {testCases.length > 0 && (
               <div className="mt-6 space-y-3">
@@ -825,7 +826,7 @@ rl.on('close', () => {
                   </span>
                 )}
               </div>
-              
+
               {/* Language Selector */}
               <div className="relative">
                 <button
@@ -836,7 +837,7 @@ rl.on('close', () => {
                   <span className="text-white capitalize">{language}</span>
                   <ChevronDown className="w-3 h-3 text-gray-400" />
                 </button>
-                
+
                 <AnimatePresence>
                   {showLanguageMenu && (
                     <motion.div
@@ -852,9 +853,8 @@ rl.on('close', () => {
                             setLanguage(lang.id);
                             setShowLanguageMenu(false);
                           }}
-                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700 ${
-                            language === lang.id ? 'text-cyan-400' : 'text-white'
-                          }`}
+                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-700 ${language === lang.id ? 'text-cyan-400' : 'text-white'
+                            }`}
                         >
                           {lang.name}
                         </button>
@@ -864,7 +864,7 @@ rl.on('close', () => {
                 </AnimatePresence>
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-hidden">
               <Editor
                 height="100%"
@@ -890,11 +890,10 @@ rl.on('close', () => {
           {/* Results / Opponent Status */}
           <div className="h-32 bg-gray-800/50 p-4 overflow-y-auto">
             {myResult ? (
-              <div className={`p-3 rounded-lg ${
-                myResult.passed 
-                  ? 'bg-green-900/20 border border-green-500/30' 
-                  : 'bg-red-900/20 border border-red-500/30'
-              }`}>
+              <div className={`p-3 rounded-lg ${myResult.passed
+                ? 'bg-green-900/20 border border-green-500/30'
+                : 'bg-red-900/20 border border-red-500/30'
+                }`}>
                 <div className="flex items-center gap-2">
                   {myResult.passed ? (
                     <CheckCircle className="w-5 h-5 text-green-400" />
@@ -906,10 +905,10 @@ rl.on('close', () => {
                   </span>
                 </div>
                 <p className="text-sm text-gray-400 mt-1">
-                  {myResult.passedCount} / {myResult.totalCount} test cases • 
+                  {myResult.passedCount} / {myResult.totalCount} test cases •
                   Time: {(myResult.totalTime || 0).toFixed(0)}ms
                 </p>
-                
+
                 {opponent?.hasSubmitted ? (
                   <p className="text-sm text-cyan-400 mt-2">
                     Waiting for results...
@@ -996,11 +995,10 @@ rl.on('close', () => {
           whileTap={{ scale: 0.98 }}
           onClick={handleSubmit}
           disabled={isSubmitting || hasSubmitted}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${
-            hasSubmitted
-              ? 'bg-green-600 text-white cursor-not-allowed'
-              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-          } disabled:opacity-70`}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${hasSubmitted
+            ? 'bg-green-600 text-white cursor-not-allowed'
+            : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+            } disabled:opacity-70`}
         >
           {isSubmitting ? (
             <>
