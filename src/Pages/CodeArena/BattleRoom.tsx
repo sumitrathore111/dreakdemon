@@ -1,23 +1,27 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { 
-  Clock, Send, Trophy, Code2,
-  CheckCircle, XCircle, Loader2,
-  ChevronDown
+import { doc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    CheckCircle,
+    ChevronDown,
+    Clock,
+    Code2,
+    Loader2,
+    Send, Trophy,
+    XCircle
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { doc, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../../service/Firebase';
-import { 
-  submitBattleCode, 
-  determineBattleWinner,
-  getSupportedLanguages,
-  type BattleSubmissionResult 
-} from '../../service/judge0';
 import { fetchProblemStatement, fetchProblemTestCases } from '../../service/codeforces';
+import { db } from '../../service/Firebase';
+import {
+    determineBattleWinner,
+    getSupportedLanguages,
+    submitBattleCode,
+    type BattleSubmissionResult
+} from '../../service/judge0';
 
 interface Participant {
   odId: string;
@@ -146,8 +150,44 @@ rl.on('close', () => {
           setTestCases(cases);
         }
 
+        // Check if current user has already submitted
+        const me = battleData.participants.find(p => p.odId === user?.uid);
+        if (me?.hasSubmitted && !hasSubmitted) {
+          setHasSubmitted(true);
+          if (me.submissionResult) {
+            setMyResult(me.submissionResult);
+          }
+        }
+
+        // Check if both players submitted - complete battle if not already
+        if (battleData.status === 'active' && battleData.participants.every(p => p.hasSubmitted)) {
+          const battleRef = doc(db, 'CodeArena_Battles', battleId);
+          const p1Result = battleData.participants[0].submissionResult!;
+          const p2Result = battleData.participants[1].submissionResult!;
+          const winner = determineBattleWinner(p1Result, p2Result);
+          
+          // Only update if not already completed
+          if (battleData.status !== 'completed') {
+            await updateDoc(battleRef, {
+              status: 'completed',
+              winnerId: winner.winnerId,
+              winReason: winner.reason,
+              endTime: Timestamp.now()
+            });
+
+            // Award coins
+            if (winner.winnerId && !winner.isDraw) {
+              await addCoins(winner.winnerId, battleData.prize, `Battle victory!`);
+            } else if (winner.isDraw) {
+              for (const p of battleData.participants) {
+                await addCoins(p.odId, battleData.entryFee, 'Battle draw - refund');
+              }
+            }
+          }
+        }
+
         // Check if battle is completed
-        if (battleData.status === 'completed' && battleData.winnerId) {
+        if (battleData.status === 'completed') {
           navigate(`/dashboard/codearena/battle/results/${battleId}`);
         }
 
@@ -156,7 +196,7 @@ rl.on('close', () => {
     );
 
     return () => unsubscribe();
-  }, [battleId]);
+  }, [battleId, user, hasSubmitted]);
 
   // Countdown timer
   useEffect(() => {
@@ -243,7 +283,15 @@ rl.on('close', () => {
       // Update battle in Firestore
       const battleRef = doc(db, 'CodeArena_Battles', battleId!);
       
-      const updatedParticipants = battle.participants.map(p => {
+      // Get fresh battle data to avoid race conditions
+      const freshBattle = await new Promise<Battle>((resolve) => {
+        const unsub = onSnapshot(doc(db, 'CodeArena_Battles', battleId!), (snap) => {
+          unsub();
+          resolve({ id: snap.id, ...snap.data() } as Battle);
+        });
+      });
+      
+      const updatedParticipants = freshBattle.participants.map(p => {
         if (p.odId === user.uid) {
           return {
             ...p,
@@ -263,8 +311,9 @@ rl.on('close', () => {
       
       if (allSubmitted) {
         // Determine winner
-        const results = updatedParticipants.map(p => p.submissionResult!);
-        const winner = determineBattleWinner(results[0], results[1]);
+        const p1Result = updatedParticipants[0].submissionResult!;
+        const p2Result = updatedParticipants[1].submissionResult!;
+        const winner = determineBattleWinner(p1Result, p2Result);
         
         await updateDoc(battleRef, {
           status: 'completed',
@@ -275,11 +324,11 @@ rl.on('close', () => {
 
         // Award coins to winner
         if (winner.winnerId && !winner.isDraw) {
-          await addCoins(winner.winnerId, battle.prize, `Battle victory!`);
+          await addCoins(winner.winnerId, freshBattle.prize, `Battle victory!`);
         } else if (winner.isDraw) {
           // Refund both players
-          for (const p of battle.participants) {
-            await addCoins(p.odId, battle.entryFee, 'Battle draw - refund');
+          for (const p of freshBattle.participants) {
+            await addCoins(p.odId, freshBattle.entryFee, 'Battle draw - refund');
           }
         }
       }

@@ -1,28 +1,40 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Swords, Users, Clock, Trophy, 
-  Search, X, Coins,
-  Zap, ChevronRight
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  Timestamp,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ChevronRight,
+  Clock,
+  Coins,
+  Search,
+  Swords,
+  Trophy,
+  Users,
+  X,
+  Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc,
-  doc,
-  Timestamp,
-  serverTimestamp
-} from 'firebase/firestore';
 import { db } from '../../service/Firebase';
 
+interface Wallet {
+  coins: number;
+  rating: number;
+  // Add other wallet properties as needed
+}
+
 interface BattleLobbyProps {
-  wallet: any;
+  wallet: Wallet;
 }
 
 interface WaitingBattle {
@@ -85,6 +97,38 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     return () => unsubscribe();
   }, [user]);
 
+  // Auto-matchmaking - automatically try to join battles
+  useEffect(() => {
+    if (!isSearching || !myBattleId) return;
+    
+    // Every 2 seconds, check if there's a battle we can join
+    const autoMatchInterval = setInterval(async () => {
+      const matchingBattle = waitingBattles.find(
+        (b) => b.difficulty === selectedDifficulty && 
+               b.entryFee === selectedEntry.fee &&
+               b.creatorId !== user?.uid
+      );
+
+      if (matchingBattle) {
+        clearInterval(autoMatchInterval);
+        
+        // Cancel our own battle first
+        try {
+          const myBattleRef = doc(db, 'CodeArena_Battles', myBattleId);
+          await updateDoc(myBattleRef, { status: 'cancelled' });
+        } catch {
+          console.log('Our battle was already taken');
+        }
+        
+        // Join the found battle
+        await joinBattle(matchingBattle);
+      }
+    }, 2000);
+
+    return () => clearInterval(autoMatchInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSearching, myBattleId, waitingBattles, selectedDifficulty, selectedEntry.fee]);
+
   // Watch for match when searching
   useEffect(() => {
     if (!myBattleId) return;
@@ -123,19 +167,21 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     setSearchTime(0);
 
     try {
+      // First check for existing battles to join immediately
+      const matchingBattle = waitingBattles.find(
+        (b) => b.difficulty === selectedDifficulty && 
+               b.entryFee === selectedEntry.fee &&
+               b.creatorId !== user.uid
+      );
+
       // Deduct entry fee
       await deductCoins(user.uid, selectedEntry.fee, 'Battle entry fee');
 
-      // Check for existing battles to join
-      const matchingBattle = waitingBattles.find(
-        (b) => b.difficulty === selectedDifficulty && b.entryFee === selectedEntry.fee
-      );
-
       if (matchingBattle) {
-        // Join existing battle
+        // Join existing battle immediately
         await joinBattle(matchingBattle);
       } else {
-        // Create new battle and wait
+        // Create new battle and wait for opponent
         await createBattle();
       }
     } catch (error) {
