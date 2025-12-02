@@ -1,41 +1,31 @@
 import Editor from '@monaco-editor/react';
-<<<<<<< HEAD
 import { doc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    CheckCircle,
-    ChevronDown,
-    Clock,
-    Code2,
-    Loader2,
-    Send, Trophy,
-    XCircle
-=======
-import { 
-  Clock, Send, Trophy, Code2,
-  CheckCircle, XCircle, Loader2,
-  ChevronDown, Shield
->>>>>>> 92cf51c29a53b9b12c833b5e15da477c8b14cf92
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Code2,
+  DoorOpen,
+  Loader2,
+  Send,
+  Shield,
+  Trophy,
+  XCircle
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-<<<<<<< HEAD
-import { fetchProblemStatement, fetchProblemTestCases } from '../../service/codeforces';
+import { SecurityError, ValidationError } from '../../middleware/inputValidator';
+import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
 import { db } from '../../service/Firebase';
 import {
-    determineBattleWinner,
-    getSupportedLanguages,
-    submitBattleCode,
-    type BattleSubmissionResult
+  determineBattleWinner,
+  getSupportedLanguages,
+  submitBattleCode,
+  type BattleSubmissionResult as Judge0BattleResult
 } from '../../service/judge0';
-=======
-import { doc, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../../service/Firebase';
-import { secureCodeExecutionService } from '../../service/secureCodeExecution';
-import { SecurityError, ValidationError } from '../../middleware/inputValidator';
-import { getSupportedLanguages } from '../../service/judge0';
 
 interface BattleSubmissionResult {
   success: boolean;
@@ -50,8 +40,6 @@ interface BattleSubmissionResult {
   totalCount?: number;
   totalTime?: number;
 }
-import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
->>>>>>> 92cf51c29a53b9b12c833b5e15da477c8b14cf92
 
 interface Participant {
   odId: string;
@@ -59,16 +47,12 @@ interface Participant {
   odProfilePic: string;
   rating: number;
   hasSubmitted: boolean;
-  submissionResult?: {
-    success: boolean;
-    executionTime: number;
-    status: string;
-  };
+  submissionResult?: Judge0BattleResult;
 }
 
 interface Battle {
   id: string;
-  status: 'waiting' | 'countdown' | 'active' | 'completed';
+  status: 'waiting' | 'countdown' | 'active' | 'completed' | 'forfeited';
   participants: Participant[];
   challenge: {
     id: string;
@@ -85,13 +69,14 @@ interface Battle {
   endTime?: Timestamp;
   winnerId?: string;
   winReason?: string;
+  forfeitedBy?: string;
 }
 
 const BattleRoom = () => {
   const { battleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { } = useDataContext();
+  const { addCoins } = useDataContext();
   
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,6 +96,8 @@ const BattleRoom = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [opponentLeft, setOpponentLeft] = useState(false);
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const languages = getSupportedLanguages();
@@ -191,39 +178,55 @@ rl.on('close', () => {
         if (me?.hasSubmitted && !hasSubmitted) {
           setHasSubmitted(true);
           if (me.submissionResult) {
-            setMyResult(me.submissionResult);
+            // Convert Judge0BattleResult to local BattleSubmissionResult for UI
+            setMyResult({
+              success: me.submissionResult.passed,
+              passed: me.submissionResult.passed,
+              status: me.submissionResult.passed ? 'Accepted' : 'Wrong Answer',
+              passedCount: me.submissionResult.passedCount,
+              totalCount: me.submissionResult.totalCount,
+              totalTime: me.submissionResult.totalTime,
+              executionTime: me.submissionResult.totalTime
+            });
           }
         }
 
         // Check if both players submitted - complete battle if not already
-        if (battleData.status === 'active' && battleData.participants.every(p => p.hasSubmitted)) {
+        const allPlayersSubmitted = battleData.participants.every(p => p.hasSubmitted);
+        if (battleData.status === 'active' && allPlayersSubmitted) {
           const battleRef = doc(db, 'CodeArena_Battles', battleId);
           const p1Result = battleData.participants[0].submissionResult!;
           const p2Result = battleData.participants[1].submissionResult!;
           const winner = determineBattleWinner(p1Result, p2Result);
           
-          // Only update if not already completed
-          if (battleData.status !== 'completed') {
-            await updateDoc(battleRef, {
-              status: 'completed',
-              winnerId: winner.winnerId,
-              winReason: winner.reason,
-              endTime: Timestamp.now()
-            });
+          // Build update object without undefined/null values
+          const battleUpdate: Record<string, unknown> = {
+            status: 'completed',
+            winnerId: winner.winnerId || '', // Use empty string for draws
+            winReason: winner.reason || 'Battle completed',
+            endTime: Timestamp.now()
+          };
+          
+          // Complete the battle
+          await updateDoc(battleRef, battleUpdate);
 
-            // Award coins
-            if (winner.winnerId && !winner.isDraw) {
-              await addCoins(winner.winnerId, battleData.prize, `Battle victory!`);
-            } else if (winner.isDraw) {
-              for (const p of battleData.participants) {
-                await addCoins(p.odId, battleData.entryFee, 'Battle draw - refund');
-              }
+          // Award coins
+          if (winner.winnerId && !winner.isDraw) {
+            await addCoins(winner.winnerId, battleData.prize, `Battle victory!`);
+          } else if (winner.isDraw) {
+            for (const p of battleData.participants) {
+              await addCoins(p.odId, battleData.entryFee, 'Battle draw - refund');
             }
           }
         }
 
-        // Check if battle is completed
-        if (battleData.status === 'completed') {
+        // Check if opponent forfeited/left
+        if (battleData.forfeitedBy && battleData.forfeitedBy !== user?.uid) {
+          setOpponentLeft(true);
+        }
+
+        // Check if battle is completed or forfeited
+        if (battleData.status === 'completed' || battleData.status === 'forfeited') {
           navigate(`/dashboard/codearena/battle/results/${battleId}`);
         }
 
@@ -232,11 +235,39 @@ rl.on('close', () => {
     );
 
     return () => unsubscribe();
-<<<<<<< HEAD
-  }, [battleId, user, hasSubmitted]);
-=======
-  }, [battleId, challenge]);
->>>>>>> 92cf51c29a53b9b12c833b5e15da477c8b14cf92
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battleId, user, hasSubmitted, challenge]);
+
+  // Handle page close/refresh - forfeit the battle
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (battle?.status === 'active' && !hasSubmitted) {
+        e.preventDefault();
+        e.returnValue = 'You are in an active battle. Leaving will forfeit the match!';
+        return e.returnValue;
+      }
+    };
+
+    const handleUnload = () => {
+      if (battle?.status === 'active' && battleId && user) {
+        // Use sendBeacon to ensure the request is sent even when page closes
+        const data = JSON.stringify({
+          odId: battleId,
+          odBattleId: user.uid,
+          action: 'forfeit'
+        });
+        navigator.sendBeacon('/api/forfeit-battle', data);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [battle?.status, battleId, user, hasSubmitted]);
 
   // Countdown timer
   useEffect(() => {
@@ -289,11 +320,13 @@ rl.on('close', () => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [battle?.status, battle?.startTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battle?.status, battle?.startTime, battle?.timeLimit]);
 
   // Set default code
   useEffect(() => {
     setCode(defaultCode[language] || defaultCode.python);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const handleTimeUp = async () => {
@@ -303,30 +336,91 @@ rl.on('close', () => {
     }
   };
 
+  // Handle leaving/forfeiting the battle
+  const handleLeaveBattle = async () => {
+    if (!user || !battle || !battleId || isLeaving) return;
+    
+    const confirmLeave = window.confirm(
+      '⚠️ Are you sure you want to leave?\n\nLeaving will forfeit the match and your opponent will win the prize!'
+    );
+    
+    if (!confirmLeave) return;
+    
+    setIsLeaving(true);
+    
+    try {
+      const battleRef = doc(db, 'CodeArena_Battles', battleId);
+      const opponent = battle.participants.find(p => p.odId !== user.uid);
+      
+      // Update battle as forfeited
+      await updateDoc(battleRef, {
+        status: 'forfeited',
+        forfeitedBy: user.uid,
+        winnerId: opponent?.odId || '',
+        winReason: 'Opponent forfeited the battle',
+        endTime: Timestamp.now()
+      });
+      
+      // Award prize to opponent
+      if (opponent?.odId) {
+        await addCoins(opponent.odId, battle.prize, 'Battle victory - opponent forfeited!');
+      }
+      
+      // Navigate away
+      navigate('/dashboard/codearena');
+      
+    } catch (error) {
+      console.error('Error forfeiting battle:', error);
+      alert('Failed to leave battle. Please try again.');
+      setIsLeaving(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user || !battle || isSubmitting || hasSubmitted || !battleId) return;
+
+    // Check if we have test cases
+    if (!testCases || testCases.length === 0) {
+      alert('No test cases available. Please try again.');
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
-      // Submit code using secure service
-      const result = await secureCodeExecutionService.submitBattleSolution(
-        battleId,
+      // Submit code using Judge0 service directly
+      const submissionResult = await submitBattleCode(
+        user.uid,
         code,
-        language
+        language,
+        testCases
       );
 
-      // Convert to expected format
-      const submissionResult = {
-        success: result.status === 'Accepted',
-        executionTime: parseFloat(result.time || '0'),
-        status: result.status || 'Unknown'
+      // Sanitize submission result - remove undefined values for Firestore
+      const sanitizedResult = {
+        userId: submissionResult.userId,
+        passed: submissionResult.passed,
+        passedCount: submissionResult.passedCount,
+        totalCount: submissionResult.totalCount,
+        totalTime: submissionResult.totalTime || 0,
+        totalMemory: submissionResult.totalMemory || 0,
+        submittedAt: submissionResult.submittedAt,
+        ...(submissionResult.compilationError ? { compilationError: submissionResult.compilationError } : {})
       };
 
-      setMyResult(submissionResult);
+      // Update UI with results
+      setMyResult({
+        success: sanitizedResult.passed,
+        passed: sanitizedResult.passed,
+        status: sanitizedResult.passed ? 'Accepted' : 'Wrong Answer',
+        passedCount: sanitizedResult.passedCount,
+        totalCount: sanitizedResult.totalCount,
+        totalTime: sanitizedResult.totalTime,
+        executionTime: sanitizedResult.totalTime
+      });
       setHasSubmitted(true);
 
-      // Update battle in Firestore with client submission (server validates)
+      // Update battle in Firestore
       const battleRef = doc(db, 'CodeArena_Battles', battleId);
       
       // Get fresh battle data to avoid race conditions
@@ -342,7 +436,7 @@ rl.on('close', () => {
           return {
             ...p,
             hasSubmitted: true,
-            submissionResult
+            submissionResult: sanitizedResult
           };
         }
         return p;
@@ -353,22 +447,30 @@ rl.on('close', () => {
         lastUpdate: Timestamp.now()
       });
 
-<<<<<<< HEAD
       // Check if both players have submitted
       const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
       
       if (allSubmitted) {
-        // Determine winner
+        // Determine winner using Judge0 determineBattleWinner
         const p1Result = updatedParticipants[0].submissionResult!;
         const p2Result = updatedParticipants[1].submissionResult!;
         const winner = determineBattleWinner(p1Result, p2Result);
         
-        await updateDoc(battleRef, {
+        // Build update object without undefined values
+        const battleUpdate: Record<string, unknown> = {
           status: 'completed',
-          winnerId: winner.winnerId,
-          winReason: winner.reason,
+          winReason: winner.reason || 'Battle completed',
           endTime: Timestamp.now()
-        });
+        };
+        
+        // Only add winnerId if it's not null
+        if (winner.winnerId !== null) {
+          battleUpdate.winnerId = winner.winnerId;
+        } else {
+          battleUpdate.winnerId = ''; // Use empty string for draws
+        }
+        
+        await updateDoc(battleRef, battleUpdate);
 
         // Award coins to winner
         if (winner.winnerId && !winner.isDraw) {
@@ -379,10 +481,9 @@ rl.on('close', () => {
             await addCoins(p.odId, freshBattle.entryFee, 'Battle draw - refund');
           }
         }
-=======
-      // Server-side handles battle completion and coin distribution
+      }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Battle submission error:', error);
       
       let errorMessage = 'Submission failed. Please try again.';
@@ -391,8 +492,16 @@ rl.on('close', () => {
       } else if (error instanceof ValidationError) {
         errorMessage = `Validation Error: ${error.message}`;
       } else if (error instanceof Error) {
-        errorMessage = error.message;
->>>>>>> 92cf51c29a53b9b12c833b5e15da477c8b14cf92
+        // Check for common Judge0 API errors
+        if (error.message.includes('API key not configured')) {
+          errorMessage = '⚠️ Code execution service not configured. Please contact the administrator to set up the Judge0 API key.';
+        } else if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+          errorMessage = '⏳ Too many submissions. Please wait a moment and try again.';
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          errorMessage = '🔑 Invalid API key. Please contact the administrator.';
+        } else {
+          errorMessage = error.message;
+        }
       }
 
       alert(errorMessage);
@@ -400,8 +509,12 @@ rl.on('close', () => {
       // Set error result
       setMyResult({
         success: false,
-        executionTime: 0,
-        status: 'Error'
+        passed: false,
+        status: 'Error',
+        passedCount: 0,
+        totalCount: testCases.length,
+        totalTime: 0,
+        executionTime: 0
       });
     }
 
@@ -744,9 +857,57 @@ rl.on('close', () => {
         </div>
       </div>
 
+      {/* Opponent Left Modal */}
+      <AnimatePresence>
+        {opponentLeft && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center border border-green-500/30"
+            >
+              <div className="w-20 h-20 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                <Trophy className="w-10 h-10 text-green-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-400 mb-2">🎉 You Win!</h3>
+              <p className="text-gray-300 mb-4">Your opponent left the battle.</p>
+              <p className="text-yellow-400 font-bold text-xl mb-6">
+                +{battle?.prize} coins awarded!
+              </p>
+              <button
+                onClick={() => navigate('/dashboard/codearena')}
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all"
+              >
+                Back to Arena
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Bottom Action Bar */}
       <div className="bg-gray-800 border-t border-gray-700 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleLeaveBattle}
+            disabled={isLeaving || battle?.status === 'completed'}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50"
+          >
+            {isLeaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <DoorOpen className="w-4 h-4" />
+            )}
+            <span className="text-sm font-medium">{isLeaving ? 'Leaving...' : 'Leave Battle'}</span>
+          </motion.button>
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Clock className="w-4 h-4" />
             <span>Time Limit: {battle?.timeLimit ? Math.floor(battle.timeLimit / 60) : 15} min</span>

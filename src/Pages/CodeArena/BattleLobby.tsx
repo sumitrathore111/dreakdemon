@@ -1,27 +1,37 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Swords, Users, Clock, Trophy, 
-  Search, X, Coins,
-  Zap, ChevronRight
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  Timestamp,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ChevronRight,
+  Clock,
+  Coins,
+  Search,
+  Shield,
+  Swords,
+  Trophy,
+  Users,
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc,
-  doc,
-  Timestamp,
-  serverTimestamp
-} from 'firebase/firestore';
+import { joinOrCreateBattle } from '../../service/battleService';
 import { db } from '../../service/Firebase';
+import { secureCodeExecutionService } from '../../service/secureCodeExecution';
+
+interface Wallet {
+  coins: number;
+  rating?: number;
+}
 
 interface BattleLobbyProps {
   wallet: Wallet;
@@ -84,25 +94,29 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       const battles: WaitingBattle[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.creatorId !== user?.uid) {
-          // Extract creator info from participants array if available
-          const creatorParticipant = data.participants?.[0];
-          
-          battles.push({ 
-            id: doc.id, 
-            creatorId: data.createdBy || data.creatorId || creatorParticipant?.odId || '',
-            creatorName: creatorParticipant?.odName || data.creatorName || 'Unknown User',
-            creatorProfilePic: creatorParticipant?.odProfilePic || data.creatorProfilePic || '',
-            creatorRating: creatorParticipant?.rating || data.creatorRating || 1000,
-            difficulty: data.difficulty,
-            entryFee: data.entryFee,
-            prize: data.prize,
-            timeLimit: data.timeLimit,
-            status: data.status,
-            challenge: data.challenge,
-            createdAt: data.createdAt
-          });
+        // Extract creator info from participants array if available
+        const creatorParticipant = data.participants?.[0];
+        const creatorUserId = data.createdBy || data.creatorId || creatorParticipant?.odId || '';
+        
+        // Don't show user's own battles - prevent fighting yourself
+        if (creatorUserId === user?.uid) {
+          return;
         }
+        
+        battles.push({ 
+          id: doc.id, 
+          creatorId: creatorUserId,
+          creatorName: creatorParticipant?.odName || data.creatorName || 'Unknown User',
+          creatorProfilePic: creatorParticipant?.odProfilePic || data.creatorProfilePic || '',
+          creatorRating: creatorParticipant?.rating || data.creatorRating || 1000,
+          difficulty: data.difficulty,
+          entryFee: data.entryFee,
+          prize: data.prize,
+          timeLimit: data.timeLimit,
+          status: data.status,
+          challenge: data.challenge,
+          createdAt: data.createdAt
+        });
       });
       setWaitingBattles(battles);
     });
@@ -233,9 +247,9 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       const battleId = await joinOrCreateBattle(battleRequest);
       setMyBattleId(battleId);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating battle:', error);
-      alert(error.message || 'Failed to create battle');
+      alert(error instanceof Error ? error.message : 'Failed to create battle');
     } finally {
       setIsCreating(false);
     }
@@ -283,9 +297,9 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       // Navigate to battle room
       navigate(`/dashboard/codearena/battle/${battle.id}`);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining battle:', error);
-      alert(error.message || 'Failed to join battle');
+      alert(error instanceof Error ? error.message : 'Failed to join battle');
     }
   };
 

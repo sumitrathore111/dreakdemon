@@ -79,7 +79,8 @@ export const createRandomBattle = async (battleRequest: BattleRequest): Promise<
 // Find existing battle to join
 export const findAvailableBattle = async (
   difficulty: 'easy' | 'medium' | 'hard',
-  entryFee: number
+  entryFee: number,
+  userId: string
 ): Promise<string | null> => {
   try {
     const battlesRef = collection(db, 'CodeArena_Battles');
@@ -94,7 +95,8 @@ export const findAvailableBattle = async (
     
     for (const doc of querySnapshot.docs) {
       const battle = doc.data();
-      if (battle.participants.length < battle.maxParticipants) {
+      // Don't allow user to join their own battle
+      if (battle.participants.length < battle.maxParticipants && battle.createdBy !== userId) {
         return doc.id;
       }
     }
@@ -109,10 +111,10 @@ export const findAvailableBattle = async (
 // Join existing battle or create new one
 export const joinOrCreateBattle = async (battleRequest: BattleRequest): Promise<string> => {
   try {
-    const { difficulty, entryFee } = battleRequest;
+    const { difficulty, entryFee, userId } = battleRequest;
     
-    // First try to find an existing battle to join
-    const existingBattleId = await findAvailableBattle(difficulty, entryFee);
+    // First try to find an existing battle to join (excluding user's own battles)
+    const existingBattleId = await findAvailableBattle(difficulty, entryFee, userId);
     
     if (existingBattleId) {
       return existingBattleId;

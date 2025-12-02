@@ -1,16 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { 
-  Trophy, Medal, Coins, Clock, Target, 
-  TrendingUp, TrendingDown, Home,
-  RotateCcw, CheckCircle,
-  Star, Crown
+import {
+  CheckCircle,
+  Clock,
+  Coins,
+  Crown,
+  Home,
+  Medal,
+  RotateCcw,
+  Star,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Trophy
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../service/Firebase';
+
+interface Participant {
+  odId: string;
+  odName: string;
+  odProfilePic?: string;
+  rating: number;
+  level?: number;
+  score?: number;
+  totalTests?: number;
+  timeTaken?: number;
+  hasSubmitted: boolean;
+}
+
+interface Battle {
+  id: string;
+  status: 'waiting' | 'countdown' | 'active' | 'completed' | 'forfeited';
+  participants: Participant[];
+  winnerId?: string;
+  forfeitedBy?: string;
+  prizePool?: number;
+  prize?: number;
+}
 
 // Simple confetti effect
 const triggerConfetti = () => {
@@ -57,12 +87,13 @@ const BattleResults = () => {
   const { user } = useAuth();
   const { userprofile } = useDataContext();
   
-  const [battle, setBattle] = useState<any>(null);
+  const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
   const [isWinner, setIsWinner] = useState(false);
-  const [myData, setMyData] = useState<any>(null);
-  const [opponentData, setOpponentData] = useState<any>(null);
+  const [myData, setMyData] = useState<Participant | null>(null);
+  const [opponentData, setOpponentData] = useState<Participant | null>(null);
   const [ratingChange, setRatingChange] = useState(0);
+  const [winByForfeit, setWinByForfeit] = useState(false);
 
   useEffect(() => {
     const fetchBattleResults = async () => {
@@ -76,19 +107,24 @@ const BattleResults = () => {
           return;
         }
 
-        const battleData = { id: battleDoc.id, ...battleDoc.data() } as any;
+        const battleData = { id: battleDoc.id, ...battleDoc.data() } as Battle;
         setBattle(battleData);
 
-        // Find my data and opponent data
-        const me = battleData.participants?.find((p: any) => p.userId === user?.uid);
-        const opp = battleData.participants?.find((p: any) => p.userId !== user?.uid);
+        // Find my data and opponent data using odId field
+        const me = battleData.participants?.find((p: Participant) => p.odId === user?.uid);
+        const opp = battleData.participants?.find((p: Participant) => p.odId !== user?.uid);
         
-        setMyData(me);
-        setOpponentData(opp);
+        setMyData(me || null);
+        setOpponentData(opp || null);
 
         // Check if winner
         const won = battleData.winnerId === user?.uid;
         setIsWinner(won);
+
+        // Check if won by forfeit
+        if (battleData.status === 'forfeited' && battleData.forfeitedBy !== user?.uid) {
+          setWinByForfeit(true);
+        }
 
         // Calculate rating change (simplified ELO)
         if (won) {
@@ -112,7 +148,7 @@ const BattleResults = () => {
     };
 
     fetchBattleResults();
-  }, [battleId, user]);
+  }, [battleId, user, navigate]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -175,8 +211,20 @@ const BattleResults = () => {
                 transition={{ delay: 0.7 }}
                 className="text-2xl text-gray-300 mb-4"
               >
-                ✨ Congratulations! You won the battle! ✨
+                {winByForfeit 
+                  ? '🚪 Your opponent left the battle!' 
+                  : '✨ Congratulations! You won the battle! ✨'}
               </motion.p>
+              {winByForfeit && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.9 }}
+                  className="text-lg text-yellow-400"
+                >
+                  Prize coins have been awarded to you!
+                </motion.p>
+              )}
             </>
           ) : (
             <>

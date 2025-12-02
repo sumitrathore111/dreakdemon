@@ -1,20 +1,21 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+    AlertTriangle,
     ChevronRight,
     Code2,
     Coins,
     Crown,
+    History,
     Loader2,
     Star,
     Swords,
     Target,
     TrendingUp,
     Trophy,
-    Users,
-    AlertTriangle
+    Users
 } from 'lucide-react';
-import { Component, useEffect, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import { Component, useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -68,6 +69,7 @@ class ErrorBoundary extends Component<
 }
 
 // Import sub-components
+import BattleHistory from './BattleHistory';
 import BattleLobby from './BattleLobby';
 import BattleResults from './BattleResults';
 import BattleRoom from './BattleRoom';
@@ -120,7 +122,8 @@ const CodeArenaContent = () => {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/battle')) setActiveTab('battle');
+    if (path.includes('/battle/history')) setActiveTab('history');
+    else if (path.includes('/battle')) setActiveTab('battle');
     else if (path.includes('/practice')) setActiveTab('practice');
     else if (path.includes('/leaderboard')) setActiveTab('leaderboard');
     else setActiveTab('home');
@@ -230,6 +233,7 @@ const CodeArenaContent = () => {
               {[
                 { id: 'home', label: 'Home', icon: Code2, path: '' },
                 { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
+                { id: 'history', label: 'History', icon: History, path: 'battle/history' },
                 { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
                 { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
               ].map((tab) => (
@@ -271,6 +275,7 @@ const CodeArenaContent = () => {
             />
           } />
           <Route path="/battle" element={<BattleLobby wallet={wallet} />} />
+          <Route path="/battle/history" element={<BattleHistory />} />
           <Route path="/battle/:battleId" element={<BattleRoom />} />
           <Route path="/battle/results/:battleId" element={<BattleResults />} />
           <Route path="/practice" element={<PracticeChallenges />} />
@@ -297,7 +302,7 @@ const CodeArenaContent = () => {
           {[
             { id: 'home', label: 'Home', icon: Code2, path: '' },
             { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
-            { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
+            { id: 'history', label: 'History', icon: History, path: 'battle/history' },
             { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
           ].map((tab) => (
             <button
