@@ -13,7 +13,7 @@ import {
   Trophy,
   XCircle
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -100,7 +100,19 @@ const BattleRoom = () => {
   const [opponentLeft, setOpponentLeft] = useState(false);
   
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const codeRef = useRef(code); // Keep track of latest code for auto-submit
+  const testCasesRef = useRef(testCases); // Keep track of test cases for auto-submit
+  const isSubmittingRef = useRef(false); // Prevent duplicate submissions
   const languages = getSupportedLanguages();
+
+  // Update refs when values change
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
+
+  useEffect(() => {
+    testCasesRef.current = testCases;
+  }, [testCases]);
 
   const defaultCode: { [key: string]: string } = {
     python: `# Battle Mode - Write your solution fast!
@@ -146,6 +158,46 @@ rl.on('close', () => {
     console.log(result);
 });`,
   };
+
+  // LocalStorage key for saving code
+  const getStorageKey = useCallback(() => `battle_code_${battleId}`, [battleId]);
+  const getLanguageStorageKey = useCallback(() => `battle_language_${battleId}`, [battleId]);
+
+  // Restore code from localStorage on mount (for page refresh)
+  useEffect(() => {
+    if (!battleId) return;
+    
+    const savedCode = localStorage.getItem(getStorageKey());
+    const savedLanguage = localStorage.getItem(getLanguageStorageKey());
+    
+    if (savedCode) {
+      console.log('Restoring code from localStorage');
+      setCode(savedCode);
+    }
+    if (savedLanguage && ['python', 'cpp', 'java', 'javascript'].includes(savedLanguage)) {
+      setLanguage(savedLanguage);
+    }
+  }, [battleId, getStorageKey, getLanguageStorageKey]);
+
+  // Auto-save code to localStorage every 2 seconds
+  useEffect(() => {
+    if (!battleId || hasSubmitted) return;
+    
+    const saveInterval = setInterval(() => {
+      localStorage.setItem(getStorageKey(), code);
+      localStorage.setItem(getLanguageStorageKey(), language);
+    }, 2000);
+    
+    return () => clearInterval(saveInterval);
+  }, [battleId, code, language, hasSubmitted, getStorageKey, getLanguageStorageKey]);
+
+  // Clear localStorage when battle is completed or submitted
+  useEffect(() => {
+    if (hasSubmitted && battleId) {
+      localStorage.removeItem(getStorageKey());
+      localStorage.removeItem(getLanguageStorageKey());
+    }
+  }, [hasSubmitted, battleId, getStorageKey, getLanguageStorageKey]);
 
   // Subscribe to battle updates
   useEffect(() => {
@@ -238,36 +290,52 @@ rl.on('close', () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleId, user, hasSubmitted, challenge]);
 
-  // Handle page close/refresh - forfeit the battle
+  // Handle page close/refresh - auto-submit the code
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (battle?.status === 'active' && !hasSubmitted) {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      if (battle?.status === 'active' && !hasSubmitted && !isSubmittingRef.current) {
+        // Save the latest code to localStorage before refresh
+        if (battleId) {
+          localStorage.setItem(getStorageKey(), codeRef.current);
+          localStorage.setItem(getLanguageStorageKey(), language);
+          // Set a flag to auto-submit on next load
+          localStorage.setItem(`battle_autosubmit_${battleId}`, 'true');
+        }
+        
         e.preventDefault();
-        e.returnValue = 'You are in an active battle. Leaving will forfeit the match!';
+        e.returnValue = 'Your code will be auto-submitted when you return. Continue?';
         return e.returnValue;
       }
     };
 
-    const handleUnload = () => {
-      if (battle?.status === 'active' && battleId && user) {
-        // Use sendBeacon to ensure the request is sent even when page closes
-        const data = JSON.stringify({
-          odId: battleId,
-          odBattleId: user.uid,
-          action: 'forfeit'
-        });
-        navigator.sendBeacon('/api/forfeit-battle', data);
-      }
-    };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
     };
-  }, [battle?.status, battleId, user, hasSubmitted]);
+  }, [battle?.status, battleId, hasSubmitted, language, getStorageKey, getLanguageStorageKey]);
+
+  // Auto-submit if user refreshed during active battle
+  useEffect(() => {
+    if (!battleId || !user || !battle || hasSubmitted || isSubmittingRef.current) return;
+    
+    const shouldAutoSubmit = localStorage.getItem(`battle_autosubmit_${battleId}`);
+    
+    if (shouldAutoSubmit === 'true' && battle.status === 'active' && testCasesRef.current.length > 0) {
+      console.log('Auto-submitting code after page refresh...');
+      localStorage.removeItem(`battle_autosubmit_${battleId}`);
+      
+      // Small delay to ensure everything is loaded
+      const autoSubmitTimer = setTimeout(() => {
+        if (!hasSubmitted && !isSubmittingRef.current) {
+          handleSubmit();
+        }
+      }, 1000);
+      
+      return () => clearTimeout(autoSubmitTimer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battleId, user, battle?.status, hasSubmitted, testCases.length]);
 
   // Countdown timer
   useEffect(() => {
@@ -377,7 +445,7 @@ rl.on('close', () => {
   };
 
   const handleSubmit = async () => {
-    if (!user || !battle || isSubmitting || hasSubmitted || !battleId) return;
+    if (!user || !battle || isSubmitting || hasSubmitted || !battleId || isSubmittingRef.current) return;
 
     // Check if we have test cases
     if (!testCases || testCases.length === 0) {
@@ -385,7 +453,11 @@ rl.on('close', () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
+    
+    // Clear the auto-submit flag
+    localStorage.removeItem(`battle_autosubmit_${battleId}`);
 
     try {
       // Submit code using Judge0 service directly
@@ -519,6 +591,13 @@ rl.on('close', () => {
     }
 
     setIsSubmitting(false);
+    isSubmittingRef.current = false;
+    
+    // Clear saved code from localStorage after successful submission
+    if (battleId) {
+      localStorage.removeItem(getStorageKey());
+      localStorage.removeItem(getLanguageStorageKey());
+    }
   };
 
   const formatTime = (seconds: number) => {
