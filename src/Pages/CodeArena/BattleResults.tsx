@@ -133,13 +133,20 @@ const BattleResults = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8 px-4 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-10 left-10 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-20 w-60 h-60 bg-gradient-to-br from-purple-500/15 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-20 w-32 h-32 bg-gradient-to-br from-yellow-500/20 to-transparent rounded-full blur-2xl"></div>
+      </div>
+      
+      <div className="max-w-4xl mx-auto relative z-10">
         {/* Result Header */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-center mb-8"
+          className="text-center mb-10 relative"
         >
           {isWinner ? (
             <>
@@ -148,17 +155,32 @@ const BattleResults = () => {
                   rotate: [0, -10, 10, -10, 10, 0],
                   scale: [1, 1.1, 1]
                 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30"
+                transition={{ duration: 0.8, delay: 0.3, repeat: Infinity, repeatDelay: 3 }}
+                className="w-40 h-40 mx-auto mb-6 bg-gradient-to-br from-yellow-400 via-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-2xl shadow-yellow-500/50 relative overflow-hidden"
               >
-                <Trophy className="w-16 h-16 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/30 to-orange-300/30 rounded-full animate-pulse"></div>
+                <Trophy className="w-20 h-20 text-white relative z-10" />
               </motion.div>
-              <h1 className="text-4xl font-bold text-yellow-400 mb-2">Victory!</h1>
-              <p className="text-xl text-gray-300">Congratulations! You won the battle!</p>
+              <motion.h1 
+                initial={{ y: 20 }}
+                animate={{ y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-6xl font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 bg-clip-text text-transparent mb-4"
+              >
+                🏆 Victory!
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="text-2xl text-gray-300 mb-4"
+              >
+                ✨ Congratulations! You won the battle! ✨
+              </motion.p>
             </>
           ) : (
             <>
-              <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center">
+              <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center shadow-xl">
                 <Medal className="w-16 h-16 text-gray-400" />
               </div>
               <h1 className="text-4xl font-bold text-gray-400 mb-2">Defeat</h1>
@@ -172,51 +194,85 @@ const BattleResults = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-6 mb-6"
+          className="bg-gradient-to-br from-gray-800/60 via-gray-900/60 to-black/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 mb-8 relative overflow-hidden"
         >
-          <div className="grid grid-cols-3 gap-4 items-center">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-cyan-500/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+          
+          <div className="grid grid-cols-3 gap-6 items-center">
             {/* Player 1 (You) */}
-            <div className="text-center">
-              <div className={`w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-2xl font-bold text-white ${
-                isWinner 
-                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/30' 
-                  : 'bg-gradient-to-br from-cyan-400 to-blue-500'
-              }`}>
+            <motion.div 
+              initial={{ x: -30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-center"
+            >
+              <motion.div 
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg ${
+                  isWinner 
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30' 
+                    : 'bg-gradient-to-br from-cyan-400 to-blue-500 ring-2 ring-cyan-500/30 shadow-cyan-500/20'
+                }`}
+              >
                 {userprofile?.name?.[0] || 'Y'}
-              </div>
-              <p className="text-white font-semibold">{userprofile?.name || 'You'}</p>
-              <p className="text-sm text-gray-400">Level {myData?.level || 1}</p>
+              </motion.div>
+              <p className="text-white font-bold text-lg">{userprofile?.name || 'You'}</p>
+              <p className="text-sm text-gray-400 mb-2">Level {myData?.level || 1}</p>
               {isWinner && (
-                <div className="flex items-center justify-center gap-1 mt-2 text-yellow-400">
-                  <Crown className="w-4 h-4" />
-                  <span className="text-sm font-medium">Winner</span>
-                </div>
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.8, type: "spring" }}
+                  className="flex items-center justify-center gap-2 mt-2 text-yellow-400"
+                >
+                  <Crown className="w-5 h-5" />
+                  <span className="text-sm font-semibold">🏆 Winner</span>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
             {/* VS */}
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-600">VS</div>
+              <motion.div 
+                animate={{ rotateY: [0, 180, 360] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
+              >
+                VS
+              </motion.div>
             </div>
 
             {/* Player 2 (Opponent) */}
-            <div className="text-center">
-              <div className={`w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center text-2xl font-bold text-white ${
-                !isWinner 
-                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/30' 
-                  : 'bg-gradient-to-br from-red-400 to-orange-500'
-              }`}>
+            <motion.div 
+              initial={{ x: 30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-center"
+            >
+              <motion.div 
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg ${
+                  !isWinner 
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30' 
+                    : 'bg-gradient-to-br from-red-400 to-orange-500 ring-2 ring-red-500/30 shadow-red-500/20'
+                }`}
+              >
                 {opponentData?.odName?.[0] || 'O'}
-              </div>
-              <p className="text-white font-semibold">{opponentData?.odName || 'Opponent'}</p>
-              <p className="text-sm text-gray-400">Level {opponentData?.level || 1}</p>
+              </motion.div>
+              <p className="text-white font-bold text-lg">{opponentData?.odName || 'Opponent'}</p>
+              <p className="text-sm text-gray-400 mb-2">Level {opponentData?.level || 1}</p>
               {!isWinner && (
-                <div className="flex items-center justify-center gap-1 mt-2 text-yellow-400">
-                  <Crown className="w-4 h-4" />
-                  <span className="text-sm font-medium">Winner</span>
-                </div>
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.8, type: "spring" }}
+                  className="flex items-center justify-center gap-2 mt-2 text-yellow-400"
+                >
+                  <Crown className="w-5 h-5" />
+                  <span className="text-sm font-semibold">🏆 Winner</span>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -351,26 +407,28 @@ const BattleResults = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-4"
+          className="flex flex-col sm:flex-row gap-6"
         >
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.05, y: -2, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)" }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/dashboard/codearena/battle')}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all"
+            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all relative overflow-hidden group"
           >
-            <RotateCcw className="w-5 h-5" />
-            Battle Again
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <RotateCcw className="w-6 h-6 relative" />
+            <span className="relative">⚔️ Battle Again</span>
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/dashboard/codearena')}
-            className="flex-1 flex items-center justify-center gap-2 py-4 bg-gray-700/50 text-white font-semibold rounded-xl border border-gray-600 hover:bg-gray-700 transition-all"
+            className="flex-1 flex items-center justify-center gap-3 py-4 px-6 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white font-bold text-lg rounded-xl border border-gray-600 hover:border-gray-500 shadow-lg transition-all relative overflow-hidden group"
           >
-            <Home className="w-5 h-5" />
-            Back to Arena
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-500/20 to-gray-400/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <Home className="w-6 h-6 relative" />
+            <span className="relative">🏠 Back to Arena</span>
           </motion.button>
         </motion.div>
       </div>

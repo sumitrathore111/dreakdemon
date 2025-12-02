@@ -1,37 +1,27 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  Timestamp,
-  updateDoc,
-  where
-} from 'firebase/firestore';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-  ChevronRight,
-  Clock,
-  Coins,
-  Search,
-  Swords,
-  Trophy,
-  Users,
-  X,
-  Zap
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Swords, Users, Clock, Trophy, 
+  Search, X, Coins,
+  Zap, ChevronRight
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  where, 
+  onSnapshot, 
+  updateDoc,
+  doc,
+  Timestamp,
+  serverTimestamp
+} from 'firebase/firestore';
 import { db } from '../../service/Firebase';
-
-interface Wallet {
-  coins: number;
-  rating: number;
-  // Add other wallet properties as needed
-}
 
 interface BattleLobbyProps {
   wallet: Wallet;
@@ -41,27 +31,33 @@ interface WaitingBattle {
   id: string;
   creatorId: string;
   creatorName: string;
-  creatorProfilePic: string;
-  creatorRating: number;
+  creatorProfilePic?: string;
+  creatorRating?: number;
   difficulty: 'easy' | 'medium' | 'hard';
   entryFee: number;
   prize: number;
   timeLimit: number;
   status: 'waiting' | 'matched' | 'active';
+  challenge?: {
+    id: string;
+    title: string;
+    difficulty: string;
+    category: string;
+  };
   createdAt: Timestamp;
 }
 
 const difficulties = [
-  { id: 'easy', label: 'Easy', color: 'bg-green-500', rating: '800-1200', time: 10 },
-  { id: 'medium', label: 'Medium', color: 'bg-yellow-500', rating: '1200-1600', time: 15 },
-  { id: 'hard', label: 'Hard', color: 'bg-red-500', rating: '1600-2000', time: 20 },
+  { id: 'easy', label: 'Easy', color: 'bg-green-500', rating: '800-1200', time: 15 },
+  { id: 'medium', label: 'Medium', color: 'bg-yellow-500', rating: '1200-1600', time: 20 },
+  { id: 'hard', label: 'Hard', color: 'bg-red-500', rating: '1600-2000', time: 30 },
 ];
 
 const entryOptions = [
+  { fee: 5, prize: 9 },
+  { fee: 10, prize: 18 },
+  { fee: 20, prize: 36 },
   { fee: 50, prize: 90 },
-  { fee: 100, prize: 180 },
-  { fee: 200, prize: 360 },
-  { fee: 500, prize: 900 },
 ];
 
 const BattleLobby = ({ wallet }: BattleLobbyProps) => {
@@ -72,6 +68,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('medium');
   const [selectedEntry, setSelectedEntry] = useState(entryOptions[1]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [waitingBattles, setWaitingBattles] = useState<WaitingBattle[]>([]);
   const [myBattleId, setMyBattleId] = useState<string | null>(null);
   const [searchTime, setSearchTime] = useState(0);
@@ -86,9 +83,25 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const battles: WaitingBattle[] = [];
       snapshot.forEach((doc) => {
-        const data = doc.data() as Omit<WaitingBattle, 'id'>;
+        const data = doc.data();
         if (data.creatorId !== user?.uid) {
-          battles.push({ id: doc.id, ...data });
+          // Extract creator info from participants array if available
+          const creatorParticipant = data.participants?.[0];
+          
+          battles.push({ 
+            id: doc.id, 
+            creatorId: data.createdBy || data.creatorId || creatorParticipant?.odId || '',
+            creatorName: creatorParticipant?.odName || data.creatorName || 'Unknown User',
+            creatorProfilePic: creatorParticipant?.odProfilePic || data.creatorProfilePic || '',
+            creatorRating: creatorParticipant?.rating || data.creatorRating || 1000,
+            difficulty: data.difficulty,
+            entryFee: data.entryFee,
+            prize: data.prize,
+            timeLimit: data.timeLimit,
+            status: data.status,
+            challenge: data.challenge,
+            createdAt: data.createdAt
+          });
         }
       });
       setWaitingBattles(battles);
@@ -191,85 +204,89 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   };
 
   const createBattle = async () => {
-    const difficultyConfig = difficulties.find(d => d.id === selectedDifficulty);
-    
-    const battleRef = await addDoc(collection(db, 'CodeArena_Battles'), {
-      creatorId: user!.uid,
-      creatorName: userprofile?.name || user!.email?.split('@')[0] || 'User',
-      creatorProfilePic: userprofile?.profilePic || '',
-      creatorRating: wallet?.rating || 1000,
-      difficulty: selectedDifficulty,
-      entryFee: selectedEntry.fee,
-      prize: selectedEntry.prize,
-      timeLimit: (difficultyConfig?.time || 15) * 60, // Convert to seconds
-      status: 'waiting',
-      participants: [{
-        odId: user!.uid,
-        odName: userprofile?.name || user!.email?.split('@')[0] || 'User',
-        odProfilePic: userprofile?.profilePic || '',
-        rating: wallet?.rating || 1000,
-        hasSubmitted: false
-      }],
-      createdAt: serverTimestamp()
-    });
-
-    setMyBattleId(battleRef.id);
+    try {
+      setIsCreating(true);
+      
+      // Ensure wallet exists before verification
+      if (!wallet) {
+        alert('Wallet not initialized. Please refresh the page.');
+        return;
+      }
+      
+      // Verify user has sufficient coins
+      const hasEnoughCoins = await secureCodeExecutionService.verifyBattleEntry(user!.uid, selectedEntry.fee);
+      
+      if (!hasEnoughCoins) {
+        alert(`Insufficient coins for battle entry fee! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
+        return;
+      }
+      
+      const battleRequest = {
+        difficulty: selectedDifficulty as 'easy' | 'medium' | 'hard',
+        entryFee: selectedEntry.fee,
+        userId: user!.uid,
+        userName: userprofile?.name || user!.email?.split('@')[0] || 'User',
+        userAvatar: userprofile?.profilePic || '',
+        rating: wallet?.rating || 1000
+      };
+      
+      const battleId = await joinOrCreateBattle(battleRequest);
+      setMyBattleId(battleId);
+      
+    } catch (error: any) {
+      console.error('Error creating battle:', error);
+      alert(error.message || 'Failed to create battle');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const joinBattle = async (battle: WaitingBattle) => {
-    const battleRef = doc(db, 'CodeArena_Battles', battle.id);
-    
-    // Get a random problem based on difficulty
-    const problem = await getRandomProblem(battle.difficulty);
-    
-    await updateDoc(battleRef, {
-      status: 'countdown',
-      participants: [
-        {
-          odId: battle.creatorId,
-          odName: battle.creatorName,
-          odProfilePic: battle.creatorProfilePic,
-          rating: battle.creatorRating,
-          hasSubmitted: false
-        },
-        {
-          odId: user!.uid,
-          odName: userprofile?.name || user!.email?.split('@')[0] || 'User',
-          odProfilePic: userprofile?.profilePic || '',
-          rating: wallet?.rating || 1000,
-          hasSubmitted: false
-        }
-      ],
-      problem,
-      matchedAt: serverTimestamp()
-    });
+    try {
+      // Ensure wallet exists before verification
+      if (!wallet) {
+        alert('Wallet not initialized. Please refresh the page.');
+        return;
+      }
+      
+      // Verify user has sufficient coins
+      const hasEnoughCoins = await secureCodeExecutionService.verifyBattleEntry(user!.uid, battle.entryFee);
+      
+      if (!hasEnoughCoins) {
+        alert(`Insufficient coins for battle entry fee! You have ${wallet.coins || 0} coins but need ${battle.entryFee} coins.`);
+        return;
+      }
+      
+      const battleRef = doc(db, 'CodeArena_Battles', battle.id);
+      
+      await updateDoc(battleRef, {
+        status: 'countdown',
+        participants: [
+          {
+            odId: battle.creatorId || '',
+            odName: battle.creatorName || 'Unknown User',
+            odProfilePic: battle.creatorProfilePic || '',
+            rating: battle.creatorRating || 1000,
+            hasSubmitted: false
+          },
+          {
+            odId: user!.uid,
+            odName: userprofile?.name || user!.email?.split('@')[0] || 'User',
+            odProfilePic: userprofile?.profilePic || '',
+            rating: wallet?.rating || 1000,
+            hasSubmitted: false
+          }
+        ],
+        matchedAt: Timestamp.now()
+      });
 
-    // Navigate to battle room
-    navigate(`/dashboard/codearena/battle/${battle.id}`);
-  };
-
-  const getRandomProblem = async (difficulty: string) => {
-    // Rating ranges for difficulties
-    const ratingRanges: { [key: string]: { min: number; max: number } } = {
-      easy: { min: 800, max: 1200 },
-      medium: { min: 1200, max: 1600 },
-      hard: { min: 1600, max: 2000 }
-    };
-
-    const range = ratingRanges[difficulty] || ratingRanges.medium;
-    const rating = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-    
-    // Sample contest IDs (you can expand this)
-    const contestIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    const contestId = contestIds[Math.floor(Math.random() * contestIds.length)];
-    const index = ['A', 'B', 'C'][Math.floor(Math.random() * 3)];
-
-    return {
-      contestId,
-      index,
-      name: `Problem ${index}`,
-      rating
-    };
+      // Navigate to battle room
+      navigate(`/dashboard/codearena/battle/${battle.id}`);
+      
+    } catch (error: any) {
+      console.error('Error joining battle:', error);
+      alert(error.message || 'Failed to join battle');
+    }
   };
 
   const handleCancelSearch = async () => {
@@ -346,36 +363,42 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Finding Opponent...
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                🔍 Finding Opponent...
               </h3>
-              <p className="text-gray-500 mb-4">
-                Searching for a {selectedDifficulty} battle
+              <p className="text-gray-600 mb-6 text-lg">
+                Searching for a <span className="font-bold text-blue-600">{selectedDifficulty}</span> battle 🎯
               </p>
 
-              <div className="flex items-center justify-center gap-2 text-2xl font-mono text-gray-700 mb-6">
-                <Clock className="w-5 h-5" />
+              <div className="flex items-center justify-center gap-3 text-3xl font-mono bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6 font-bold">
+                <Clock className="w-6 h-6 text-blue-500" />
                 {formatSearchTime(searchTime)}
               </div>
 
-              <div className="flex items-center justify-center gap-4 text-sm text-gray-500 mb-6">
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  {waitingBattles.length} players waiting
-                </span>
-                <span className="flex items-center gap-1">
-                  <Coins className="w-4 h-4" />
-                  Entry: {selectedEntry.fee}
+              <div className="flex items-center justify-center gap-6 text-sm text-gray-600 mb-8">
+                <motion.span 
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full"
+                >
+                  <Users className="w-4 h-4 text-green-600" />
+                  <span className="font-semibold text-green-700">{waitingBattles.length} players waiting</span>
+                </motion.span>
+                <span className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-full">
+                  <Coins className="w-4 h-4 text-amber-600" />
+                  <span className="font-semibold text-amber-700">Entry: {selectedEntry.fee}</span>
                 </span>
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleCancelSearch}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-2xl hover:from-red-600 hover:to-pink-600 transition-all shadow-lg"
               >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
+                <X className="w-5 h-5" />
+                Cancel Battle 🚫
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
@@ -385,44 +408,56 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Select Difficulty</h3>
         
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           {difficulties.map((diff) => (
-            <button
+            <motion.button
               key={diff.id}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedDifficulty(diff.id)}
-              className={`p-4 rounded-xl border-2 transition-all ${
+              className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden ${
                 selectedDifficulty === diff.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg transform scale-105'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-lg bg-gradient-to-br from-white to-gray-50'
               }`}
             >
-              <div className={`w-3 h-3 rounded-full ${diff.color} mb-2`} />
+              {selectedDifficulty === diff.id && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-2xl"></div>
+              )}
+              <div className={`w-4 h-4 rounded-full ${diff.color} mb-3 mx-auto shadow-md`} />
               <p className="font-medium text-gray-900">{diff.label}</p>
               <p className="text-xs text-gray-500">{diff.rating}</p>
               <p className="text-xs text-gray-400 mt-1">
                 <Clock className="w-3 h-3 inline mr-1" />
                 {diff.time} min
               </p>
-            </button>
+            </motion.button>
           ))}
         </div>
 
-        <h3 className="font-semibold text-gray-900 mb-4">Entry Fee & Prize</h3>
+        <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
+          <span className="text-2xl">💰</span> Entry Fee & Prize
+        </h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {entryOptions.map((option) => (
-            <button
+            <motion.button
               key={option.fee}
+              whileHover={{ scale: wallet?.coins >= option.fee ? 1.05 : 1 }}
+              whileTap={{ scale: wallet?.coins >= option.fee ? 0.95 : 1 }}
               onClick={() => setSelectedEntry(option)}
               disabled={wallet?.coins < option.fee}
-              className={`p-4 rounded-xl border-2 transition-all ${
+              className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden ${
                 selectedEntry.fee === option.fee
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-amber-400 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-lg'
                   : wallet?.coins < option.fee
-                  ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 opacity-50 cursor-not-allowed'
+                  : 'border-gray-200 hover:border-amber-300 hover:shadow-lg bg-gradient-to-br from-white to-gray-50'
               }`}
             >
+              {selectedEntry.fee === option.fee && (
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-yellow-400/10 rounded-2xl"></div>
+              )}
               <div className="flex items-center gap-1 text-amber-600 font-medium">
                 <Coins className="w-4 h-4" />
                 {option.fee}
@@ -431,26 +466,44 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                 <Trophy className="w-3 h-3" />
                 Win {option.prize}
               </div>
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Find Match Button */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: !isCreating ? 1.02 : 1, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+          whileTap={{ scale: !isCreating ? 0.98 : 1 }}
           onClick={handleFindMatch}
-          disabled={!wallet || wallet.coins < selectedEntry.fee || isSearching}
-          className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all ${
-            wallet?.coins >= selectedEntry.fee
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+          disabled={!wallet || wallet.coins < selectedEntry.fee || isSearching || isCreating}
+          className={`w-full py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden shadow-lg ${
+            wallet?.coins >= selectedEntry.fee && !isCreating
+              ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700'
+              : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
-          <Zap className="w-5 h-5" />
-          Find Match
-          <ChevronRight className="w-5 h-5" />
+          {isCreating ? (
+            <>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+              />
+              Creating Secure Battle...
+            </>
+          ) : (
+            <>
+              <Zap className="w-5 h-5" />
+              Find Secure Match
+              <ChevronRight className="w-5 h-5" />
+            </>
+          )}
         </motion.button>
+
+        <div className="flex items-center justify-center gap-2 mt-2 text-sm text-green-600">
+          <Shield className="w-4 h-4" />
+          <span>Secure Battle System - Random Database Challenges</span>
+        </div>
 
         {wallet?.coins < selectedEntry.fee && (
           <p className="text-center text-red-500 text-sm mt-3">
@@ -461,13 +514,24 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
       {/* Available Battles */}
       {waitingBattles.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
-            Open Battles
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-              {waitingBattles.length} available
-            </span>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-white to-green-50 rounded-2xl border border-green-200 shadow-lg p-6 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-green-100 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
+          <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            🎮 Open Battles
+            <motion.span 
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full font-semibold shadow-md"
+            >
+              {waitingBattles.length} live
+            </motion.span>
           </h3>
 
           <div className="space-y-3">
@@ -523,7 +587,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* How It Works */}

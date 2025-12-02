@@ -323,7 +323,7 @@ export const defaultChallenges: Omit<Challenge, 'id'>[] = [
     difficulty: 'easy',
     category: 'Arrays',
     points: 10,
-    coinReward: 100,
+    coinReward: 10,
     timeLimit: 15,
     memoryLimit: 256,
     problemStatement: `<div class="problem-statement">
@@ -775,7 +775,7 @@ public class Main {
     difficulty: 'medium',
     category: 'Dynamic Programming',
     points: 25,
-    coinReward: 250,
+    coinReward: 25,
     timeLimit: 15,
     memoryLimit: 256,
     problemStatement: `<div class="problem-statement">
