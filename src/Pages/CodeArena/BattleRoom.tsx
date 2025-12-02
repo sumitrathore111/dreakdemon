@@ -19,13 +19,13 @@ import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
-import { db } from '../../service/Firebase';
 import {
-  determineBattleWinner,
-  getSupportedLanguages,
-  submitBattleCode,
-  type BattleSubmissionResult as Judge0BattleResult
-} from '../../service/judge0';
+  determineBattleWinnerPiston,
+  getPistonSupportedLanguages,
+  submitBattleCodePiston,
+  type PistonBattleSubmissionResult
+} from '../../service/codeExecution';
+import { db } from '../../service/Firebase';
 
 interface BattleSubmissionResult {
   success: boolean;
@@ -47,7 +47,7 @@ interface Participant {
   odProfilePic: string;
   rating: number;
   hasSubmitted: boolean;
-  submissionResult?: Judge0BattleResult;
+  submissionResult?: PistonBattleSubmissionResult;
 }
 
 interface Battle {
@@ -103,7 +103,7 @@ const BattleRoom = () => {
   const codeRef = useRef(code); // Keep track of latest code for auto-submit
   const testCasesRef = useRef(testCases); // Keep track of test cases for auto-submit
   const isSubmittingRef = useRef(false); // Prevent duplicate submissions
-  const languages = getSupportedLanguages();
+  const languages = getPistonSupportedLanguages();
 
   // Update refs when values change
   useEffect(() => {
@@ -230,7 +230,7 @@ rl.on('close', () => {
         if (me?.hasSubmitted && !hasSubmitted) {
           setHasSubmitted(true);
           if (me.submissionResult) {
-            // Convert Judge0BattleResult to local BattleSubmissionResult for UI
+            // Convert PistonBattleResult to local BattleSubmissionResult for UI
             setMyResult({
               success: me.submissionResult.passed,
               passed: me.submissionResult.passed,
@@ -249,7 +249,7 @@ rl.on('close', () => {
           const battleRef = doc(db, 'CodeArena_Battles', battleId);
           const p1Result = battleData.participants[0].submissionResult!;
           const p2Result = battleData.participants[1].submissionResult!;
-          const winner = determineBattleWinner(p1Result, p2Result);
+          const winner = determineBattleWinnerPiston(p1Result, p2Result);
           
           // Build update object without undefined/null values
           const battleUpdate: Record<string, unknown> = {
@@ -460,8 +460,8 @@ rl.on('close', () => {
     localStorage.removeItem(`battle_autosubmit_${battleId}`);
 
     try {
-      // Submit code using Judge0 service directly
-      const submissionResult = await submitBattleCode(
+      // Submit code using Piston API (FREE - no quota limits!)
+      const submissionResult = await submitBattleCodePiston(
         user.uid,
         code,
         language,
@@ -523,10 +523,10 @@ rl.on('close', () => {
       const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
       
       if (allSubmitted) {
-        // Determine winner using Judge0 determineBattleWinner
+        // Determine winner using Piston determineBattleWinner
         const p1Result = updatedParticipants[0].submissionResult!;
         const p2Result = updatedParticipants[1].submissionResult!;
-        const winner = determineBattleWinner(p1Result, p2Result);
+        const winner = determineBattleWinnerPiston(p1Result, p2Result);
         
         // Build update object without undefined values
         const battleUpdate: Record<string, unknown> = {
@@ -564,13 +564,11 @@ rl.on('close', () => {
       } else if (error instanceof ValidationError) {
         errorMessage = `Validation Error: ${error.message}`;
       } else if (error instanceof Error) {
-        // Check for common Judge0 API errors
-        if (error.message.includes('API key not configured')) {
-          errorMessage = '⚠️ Code execution service not configured. Please contact the administrator to set up the Judge0 API key.';
+        // Check for common API errors
+        if (error.message.includes('API request failed')) {
+          errorMessage = '⚠️ Code execution service temporarily unavailable. Please try again.';
         } else if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
           errorMessage = '⏳ Too many submissions. Please wait a moment and try again.';
-        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-          errorMessage = '🔑 Invalid API key. Please contact the administrator.';
         } else {
           errorMessage = error.message;
         }
