@@ -20,16 +20,21 @@ import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { db } from '../../service/Firebase';
 
+interface SubmissionResult {
+  passedCount: number;
+  totalCount: number;
+  totalTime: number;
+  passed: boolean;
+}
+
 interface Participant {
   odId: string;
   odName: string;
   odProfilePic?: string;
   rating: number;
   level?: number;
-  score?: number;
-  totalTests?: number;
-  timeTaken?: number;
   hasSubmitted: boolean;
+  submissionResult?: SubmissionResult;
 }
 
 interface Battle {
@@ -340,7 +345,9 @@ const BattleResults = () => {
             {/* Tests Passed */}
             <div className="grid grid-cols-3 gap-4 items-center">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{myData?.score || 0}/{myData?.totalTests || 0}</p>
+                <p className="text-2xl font-bold text-white">
+                  {myData?.submissionResult?.passedCount || 0}/{myData?.submissionResult?.totalCount || 0}
+                </p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-gray-400">
@@ -349,14 +356,18 @@ const BattleResults = () => {
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{opponentData?.score || 0}/{opponentData?.totalTests || 0}</p>
+                <p className="text-2xl font-bold text-white">
+                  {opponentData?.submissionResult?.passedCount || 0}/{opponentData?.submissionResult?.totalCount || 0}
+                </p>
               </div>
             </div>
 
             {/* Time Taken */}
             <div className="grid grid-cols-3 gap-4 items-center">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{formatTime(myData?.timeTaken || 0)}</p>
+                <p className="text-2xl font-bold text-white">
+                  {formatTime(Math.round((myData?.submissionResult?.totalTime || 0) / 1000))}
+                </p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-gray-400">
@@ -365,7 +376,9 @@ const BattleResults = () => {
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">{formatTime(opponentData?.timeTaken || 0)}</p>
+                <p className="text-2xl font-bold text-white">
+                  {formatTime(Math.round((opponentData?.submissionResult?.totalTime || 0) / 1000))}
+                </p>
               </div>
             </div>
           </div>
