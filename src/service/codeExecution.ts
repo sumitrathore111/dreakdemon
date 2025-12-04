@@ -1,6 +1,6 @@
 // Piston API - Free code execution service (NO API KEY REQUIRED!)
 // Documentation: https://github.com/engineer-man/piston
-// This is used for Practice mode to avoid Judge0 API quota limits
+// This is used for Practice mode code execution
 
 const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
 
@@ -137,7 +137,7 @@ function getFileName(language: string): string {
   }
 }
 
-// Run test cases - returns format compatible with Judge0 interface
+// Run test cases - returns standard execution result format
 export async function runTestCasesPiston(
   code: string,
   language: string,
@@ -222,7 +222,7 @@ export async function runTestCasesPiston(
   };
 }
 
-// Quick run - returns format compatible with Judge0 interface
+// Quick run - returns standard execution result format
 export async function quickRunPiston(
   code: string,
   language: string,
@@ -245,7 +245,7 @@ export async function quickRunPiston(
   };
 }
 
-// Get supported languages list - same format as Judge0
+// Get supported languages list
 export const getPistonSupportedLanguages = () => {
   return Object.keys(languageMap).filter(l => l !== 'python3').map(lang => ({
     id: lang,
@@ -316,7 +316,7 @@ export async function checkPistonAvailability(): Promise<boolean> {
 // BATTLE-SPECIFIC FUNCTIONS (Piston API)
 // ============================================
 
-// Battle submission result interface - compatible with Judge0 format
+// Battle submission result interface
 export interface PistonBattleSubmissionResult {
   userId: string;
   passed: boolean;

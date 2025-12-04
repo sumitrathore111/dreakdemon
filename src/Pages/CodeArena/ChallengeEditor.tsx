@@ -1,22 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { 
-  Play, Send, CheckCircle, XCircle, Coins, Lightbulb,
-  ArrowLeft, Code2, Loader2, Trophy, Clock, Zap,
-  ChevronDown, RefreshCw, Shield
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+    ArrowLeft,
+    CheckCircle,
+    ChevronDown,
+    Clock,
+    Code2,
+    Coins, Lightbulb,
+    Loader2,
+    Play,
+    RefreshCw,
+    Send,
+    Shield,
+    Trophy,
+    XCircle,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  fetchChallengeById,
-  getChallengeTestCases,
-  type Challenge 
-} from '../../service/challenges';
-import { getSupportedLanguages } from '../../service/judge0';
-import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
+import {
+    fetchChallengeById,
+    getChallengeTestCases,
+    type Challenge
+} from '../../service/challenges';
+import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 
 const ChallengeEditor = () => {
   const { challengeId } = useParams(); // Format: "contestId-index" e.g., "1800-A"
@@ -47,7 +57,7 @@ const ChallengeEditor = () => {
   const [showHint, setShowHint] = useState(false);
   const [solved, setSolved] = useState(false);
 
-  const languages = getSupportedLanguages();
+  const languages = secureCodeExecutionService.getSupportedLanguages();
 
   const defaultCode: { [key: string]: string } = {
     python: `# Write your solution here

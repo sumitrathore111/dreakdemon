@@ -2,16 +2,16 @@ import Editor from '@monaco-editor/react';
 import { doc, onSnapshot, Timestamp, updateDoc } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  CheckCircle,
-  ChevronDown,
-  Clock,
-  Code2,
-  DoorOpen,
-  Loader2,
-  Send,
-  Shield,
-  Trophy,
-  XCircle
+    CheckCircle,
+    ChevronDown,
+    Clock,
+    Code2,
+    DoorOpen,
+    Loader2,
+    Send,
+    Shield,
+    Trophy,
+    XCircle
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,10 +20,10 @@ import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
 import {
-  determineBattleWinnerPiston,
-  getPistonSupportedLanguages,
-  submitBattleCodePiston,
-  type PistonBattleSubmissionResult
+    determineBattleWinnerPiston,
+    getPistonSupportedLanguages,
+    submitBattleCodePiston,
+    type PistonBattleSubmissionResult
 } from '../../service/codeExecution';
 import { db } from '../../service/Firebase';
 
@@ -103,7 +103,80 @@ const BattleRoom = () => {
   const codeRef = useRef(code); // Keep track of latest code for auto-submit
   const testCasesRef = useRef(testCases); // Keep track of test cases for auto-submit
   const isSubmittingRef = useRef(false); // Prevent duplicate submissions
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const languages = getPistonSupportedLanguages();
+
+  // Gamer-style beep sound for countdown (3, 2, 1, GO!)
+  const playBeep = useCallback((count: number) => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      const now = ctx.currentTime;
+
+      if (count === 0) {
+        // GO! - Epic esports victory fanfare with multiple oscillators
+        const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 - Major chord arpeggio
+        freqs.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now + i * 0.05);
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.15, now + i * 0.05);
+          gain.gain.linearRampToValueAtTime(0.15, now + i * 0.05 + 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start(now + i * 0.05);
+          osc.stop(now + 0.6);
+        });
+        // Add power bass hit
+        const bass = ctx.createOscillator();
+        const bassGain = ctx.createGain();
+        bass.connect(bassGain);
+        bassGain.connect(ctx.destination);
+        bass.type = 'sawtooth';
+        bass.frequency.setValueAtTime(130.81, now); // C3
+        bass.frequency.exponentialRampToValueAtTime(65.41, now + 0.2); // Drop to C2
+        bassGain.gain.setValueAtTime(0.25, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        bass.start(now);
+        bass.stop(now + 0.4);
+      } else {
+        // 3, 2, 1 - Retro arcade blip with punch
+        const baseFreq = count === 3 ? 330 : count === 2 ? 440 : 587; // E4, A4, D5
+        
+        // Main blip
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = 'square';
+        osc1.frequency.setValueAtTime(baseFreq * 2, now);
+        osc1.frequency.exponentialRampToValueAtTime(baseFreq, now + 0.08);
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc1.start(now);
+        osc1.stop(now + 0.15);
+
+        // Sub punch
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(baseFreq / 2, now);
+        gain2.gain.setValueAtTime(0.15, now);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc2.start(now);
+        osc2.stop(now + 0.12);
+      }
+    } catch (e) {
+      console.log('Audio not supported');
+    }
+  }, []);
 
   // Update refs when values change
   useEffect(() => {
@@ -337,13 +410,15 @@ rl.on('close', () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleId, user, battle?.status, hasSubmitted, testCases.length]);
 
-  // Countdown timer
+  // Countdown timer with beep sounds
   useEffect(() => {
     if (battle?.status === 'countdown') {
       if (countdown > 0) {
+        playBeep(countdown); // Play beep for 3, 2, 1
         const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
         return () => clearTimeout(timer);
       } else if (countdown === 0) {
+        playBeep(0); // Play GO! beep
         // Show "GO!" for 1 second, then start the battle
         const timer = setTimeout(async () => {
           if (battleId) {
@@ -357,7 +432,7 @@ rl.on('close', () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [battle?.status, countdown, battleId]);
+  }, [battle?.status, countdown, battleId, playBeep]);
 
   // Reset countdown when battle status changes to countdown
   useEffect(() => {

@@ -262,7 +262,7 @@ rl.on('close', () => {
         totalCount: 0,
         totalTime: 0,
         totalMemory: 0,
-        compilationError: error?.message || 'Submission failed. Check Judge0 API configuration.'
+        compilationError: error?.message || 'Submission failed. Please try again.'
       });
     }
 

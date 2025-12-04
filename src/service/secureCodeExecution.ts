@@ -1,8 +1,8 @@
 // Secure code execution service with backend proxy
 
-import { doc, updateDoc, increment, writeBatch, getDoc } from 'firebase/firestore';
-import { db, auth } from './Firebase';
-import { validateCodeSubmission, codeSubmissionLimiter } from '../middleware/inputValidator';
+import { doc, getDoc, increment, updateDoc, writeBatch } from 'firebase/firestore';
+import { codeSubmissionLimiter, validateCodeSubmission } from '../middleware/inputValidator';
+import { auth, db } from './Firebase';
 
 interface ExecutionResult {
   output: string;
@@ -267,7 +267,7 @@ class SecureCodeExecutionService {
     }
   }
 
-  // Map language names to Judge0 IDs
+  // Map language names to Piston language IDs
   private getLanguageId(language: string): number {
     const languageMap: { [key: string]: number } = {
       'javascript': 63, // Node.js
@@ -285,6 +285,20 @@ class SecureCodeExecutionService {
     }
 
     return id;
+  }
+
+  // Get supported languages list
+  getSupportedLanguages() {
+    const languages = [
+      { id: 'python', name: 'Python', languageId: 71 },
+      { id: 'javascript', name: 'JavaScript', languageId: 63 },
+      { id: 'cpp', name: 'C++', languageId: 54 },
+      { id: 'java', name: 'Java', languageId: 62 },
+      { id: 'c', name: 'C', languageId: 50 },
+      { id: 'go', name: 'Go', languageId: 60 },
+      { id: 'rust', name: 'Rust', languageId: 73 }
+    ];
+    return languages;
   }
 
   // Verify user has sufficient coins for battle entry
