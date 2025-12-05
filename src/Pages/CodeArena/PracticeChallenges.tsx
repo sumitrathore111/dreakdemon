@@ -41,7 +41,10 @@ const PracticeChallenges = () => {
       try {
         // Fetch all 3000 questions from GitHub
         const questionsData = await fetchAllQuestions();
+        console.log('Questions loaded:', questionsData.length);
+        
         const topics = await getAllTopics();
+        console.log('Topics:', topics.length);
         
         // Convert questions to challenge format
         const challengesData = questionsData.map((q: Question) => ({
@@ -62,6 +65,7 @@ const PracticeChallenges = () => {
           constraints: q.constraints,
         }));
         
+        console.log('Challenges prepared:', challengesData.length);
         setChallenges(challengesData);
         setFilteredChallenges(challengesData.slice(0, PROBLEMS_PER_PAGE));
         setAvailableTopics(topics);
@@ -95,8 +99,11 @@ const PracticeChallenges = () => {
       );
     }
 
+    console.log('Filtered challenges:', filtered.length, 'from', challenges.length);
     const start = (page - 1) * PROBLEMS_PER_PAGE;
-    setFilteredChallenges(filtered.slice(start, start + PROBLEMS_PER_PAGE));
+    const paginated = filtered.slice(start, start + PROBLEMS_PER_PAGE);
+    console.log('Paginated challenges:', paginated.length);
+    setFilteredChallenges(paginated);
   }, [challenges, selectedDifficulty, selectedTopic, searchQuery, page]);
 
   const handleRefresh = async () => {
