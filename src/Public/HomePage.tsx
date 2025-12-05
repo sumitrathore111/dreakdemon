@@ -1,16 +1,15 @@
-import { memo } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { ArrowRight, Play, Sparkles, TrendingUp } from "lucide-react";
-import { 
-  services as homePageServices, 
-  features as homePageFeatures, 
-  testimonials as homePageTestimonials, 
-  statistics, 
-  galleryImages as homePageGallery 
-} from "../data/homePageData";
-import { ServiceCard, FeatureCard, TestimonialCard } from "../components/HomePage/Cards";
+import { memo } from "react";
+import { Link } from "react-router-dom";
+import { FeatureCard, ServiceCard, TestimonialCard } from "../components/HomePage/Cards";
 import { useRevealAnimation } from "../components/hooks/useRevealAnimation";
+import {
+    features as homePageFeatures,
+    galleryImages as homePageGallery,
+    services as homePageServices,
+    testimonials as homePageTestimonials,
+    statistics
+} from "../data/homePageData";
 
 // Statistics Card Component
 const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: number }) => {
@@ -107,7 +106,7 @@ const HeroSection = memo(() => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/signup" className="group relative px-8 py-4 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 inline-flex items-center justify-center">
+              <Link to="/signup" className="group relative px-8 py-4 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 inline-flex items-center justify-center">
                 <span className="relative z-10 flex items-center gap-3">
                   Start Your Journey
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -152,13 +151,10 @@ const HeroSection = memo(() => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/20 to-cyan-600/20 rounded-3xl blur-3xl" />
               <div className="relative w-full h-[600px] rounded-3xl shadow-2xl overflow-hidden">
-                <Image
+                <img
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80"
                   alt="Developers collaborating on a project"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
               
@@ -283,12 +279,10 @@ export default function HomePage() {
                 key={index}
                 className="group relative aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
               >
-                <Image
+                <img
                   src={image.url}
                   alt={image.alt}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -344,7 +338,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link href="/signup" className="group relative px-10 py-5 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-[#00ADB5]/25 transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 inline-flex items-center">
+              <Link to="/signup" className="group relative px-10 py-5 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-[#00ADB5]/25 transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 inline-flex items-center">
                 <span className="relative z-10 flex items-center gap-3">
                   Start Your Journey Now
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />

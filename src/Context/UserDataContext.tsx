@@ -1798,28 +1798,42 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // LEADERBOARDS
     const fetchGlobalLeaderboard = async () => {
         try {
-            // Fetch all wallets
-            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
+            // Fetch all data in parallel for speed
+            const [walletsSnapshot, progressSnapshot, battlesSnapshot] = await Promise.all([
+                getDocs(collection(db, "CodeArena_Wallets")),
+                getDocs(collection(db, "CodeArena_UserProgress")),
+                getDocs(collection(db, "CodeArena_Battles"))
+            ]);
+            
             const wallets = walletsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Fetch all user progress
-            const progressSnapshot = await getDocs(collection(db, "CodeArena_UserProgress"));
             const progressMap = new Map();
             progressSnapshot.docs.forEach(doc => {
                 progressMap.set(doc.id, doc.data());
+            });
+            
+            // Count wins from battles
+            const winsMap = new Map<string, number>();
+            battlesSnapshot.docs.forEach(doc => {
+                const battle = doc.data();
+                if ((battle.status === 'completed' || battle.status === 'forfeited') && battle.winnerId) {
+                    const currentWins = winsMap.get(battle.winnerId) || 0;
+                    winsMap.set(battle.winnerId, currentWins + 1);
+                }
             });
             
             // Calculate rankings
             const rankings = wallets.map((wallet: any) => {
                 const progress = progressMap.get(wallet.userId) || {};
                 const solvedChallenges = progress.solvedChallenges || [];
+                const battlesWon = winsMap.get(wallet.userId) || wallet.achievements?.battlesWon || 0;
                 
                 return {
                     odId: wallet.userId,
                     odName: wallet.userName || 'Unknown',
                     rating: wallet.coins || 0,
                     problemsSolved: solvedChallenges.length,
-                    battlesWon: wallet.achievements?.battlesWon || 0,
+                    battlesWon: battlesWon,
                     level: wallet.level || 1,
                     avatar: wallet.userName?.[0] || '?',
                     coins: wallet.coins || 0
@@ -1850,15 +1864,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             startOfWeek.setDate(now.getDate() - now.getDay());
             startOfWeek.setHours(0, 0, 0, 0);
             
-            // Fetch submissions from this week
-            const q = query(
+            // Fetch all data in parallel for speed
+            const submissionsQuery = query(
                 collection(db, "CodeArena_Submissions"),
                 where("submittedAt", ">=", Timestamp.fromDate(startOfWeek)),
                 where("status", "==", "Accepted")
             );
-            const submissionsSnapshot = await getDocs(q);
             
-            // Aggregate by user
+            const [submissionsSnapshot, walletsSnapshot, battlesSnapshot] = await Promise.all([
+                getDocs(submissionsQuery),
+                getDocs(collection(db, "CodeArena_Wallets")),
+                getDocs(collection(db, "CodeArena_Battles"))
+            ]);
+            
+            // Aggregate submissions by user
             const userStats = new Map();
             submissionsSnapshot.docs.forEach(doc => {
                 const data = doc.data();
@@ -1880,23 +1899,64 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 stats.pointsEarned += data.pointsEarned || 0;
             });
             
-            // Fetch wallet data for additional info
-            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
             const walletsMap = new Map();
             walletsSnapshot.docs.forEach(doc => {
                 walletsMap.set(doc.id, doc.data());
             });
             
+            // Count wins from this week and track battle participants
+            const winsMap = new Map<string, number>();
+            const battleParticipants = new Map<string, { odId: string; odName: string }>();
+            battlesSnapshot.docs.forEach(doc => {
+                const battle = doc.data();
+                const battleTime = battle.createdAt?.toDate?.() || new Date(0);
+                if (battleTime >= startOfWeek) {
+                    // Track all participants from this week's battles
+                    if (battle.creatorId) {
+                        battleParticipants.set(battle.creatorId, { 
+                            odId: battle.creatorId, 
+                            odName: battle.creatorName || 'Unknown' 
+                        });
+                    }
+                    if (battle.opponentId) {
+                        battleParticipants.set(battle.opponentId, { 
+                            odId: battle.opponentId, 
+                            odName: battle.opponentName || 'Unknown' 
+                        });
+                    }
+                    // Count wins
+                    if ((battle.status === 'completed' || battle.status === 'forfeited') && battle.winnerId) {
+                        const currentWins = winsMap.get(battle.winnerId) || 0;
+                        winsMap.set(battle.winnerId, currentWins + 1);
+                    }
+                }
+            });
+            
+            // Add battle participants who don't have submissions
+            battleParticipants.forEach((participant, odId) => {
+                if (!userStats.has(odId)) {
+                    userStats.set(odId, {
+                        userId: odId,
+                        userName: participant.odName,
+                        problemsSolved: new Set(),
+                        coinsEarned: 0,
+                        pointsEarned: 0
+                    });
+                }
+            });
+            
             // Convert to rankings array
             const rankings = Array.from(userStats.values())
                 .map((stats: any) => {
-                    const wallet = walletsMap.get(stats.userId) || {};
+                    const odId = stats.userId;
+                    const wallet = walletsMap.get(odId) || {};
+                    const battlesWon = winsMap.get(odId) || 0;
                     return {
-                        odId: stats.userId,
+                        odId: odId,
                         odName: stats.userName || 'Unknown',
-                        rating: stats.coinsEarned,
+                        rating: stats.coinsEarned + (battlesWon * 50),
                         problemsSolved: stats.problemsSolved.size,
-                        battlesWon: wallet.achievements?.battlesWon || 0,
+                        battlesWon: battlesWon,
                         level: wallet.level || 1,
                         avatar: stats.userName?.[0] || '?',
                         coins: wallet.coins || 0
@@ -1924,13 +1984,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             
-            // Fetch submissions from this month
-            const q = query(
-                collection(db, "CodeArena_Submissions"),
-                where("submittedAt", ">=", Timestamp.fromDate(startOfMonth)),
-                where("status", "==", "Accepted")
-            );
-            const submissionsSnapshot = await getDocs(q);
+            // Fetch all data in parallel for faster loading - monthly
+            const [submissionsSnapshot, walletsSnapshot, battlesSnapshot] = await Promise.all([
+                getDocs(query(
+                    collection(db, "CodeArena_Submissions"),
+                    where("submittedAt", ">=", Timestamp.fromDate(startOfMonth)),
+                    where("status", "==", "Accepted")
+                )),
+                getDocs(collection(db, "CodeArena_Wallets")),
+                getDocs(collection(db, "CodeArena_Battles"))
+            ]);
             
             // Aggregate by user
             const userStats = new Map();
@@ -1954,23 +2017,65 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 stats.pointsEarned += data.pointsEarned || 0;
             });
             
-            // Fetch wallet data for additional info
-            const walletsSnapshot = await getDocs(collection(db, "CodeArena_Wallets"));
+            // Process wallet data - monthly
             const walletsMap = new Map();
             walletsSnapshot.docs.forEach(doc => {
                 walletsMap.set(doc.id, doc.data());
             });
             
-            // Convert to rankings array
+            // Process battles from this month to count real wins and track participants
+            const winsMap = new Map<string, number>();
+            const battleParticipants = new Map<string, { odId: string; odName: string }>();
+            battlesSnapshot.docs.forEach(doc => {
+                const battle = doc.data();
+                const battleTime = battle.createdAt?.toDate?.() || new Date(0);
+                if (battleTime >= startOfMonth) {
+                    // Track all participants from this month's battles
+                    if (battle.creatorId) {
+                        battleParticipants.set(battle.creatorId, { 
+                            odId: battle.creatorId, 
+                            odName: battle.creatorName || 'Unknown' 
+                        });
+                    }
+                    if (battle.opponentId) {
+                        battleParticipants.set(battle.opponentId, { 
+                            odId: battle.opponentId, 
+                            odName: battle.opponentName || 'Unknown' 
+                        });
+                    }
+                    // Count wins
+                    if ((battle.status === 'completed' || battle.status === 'forfeited') && battle.winnerId) {
+                        const currentWins = winsMap.get(battle.winnerId) || 0;
+                        winsMap.set(battle.winnerId, currentWins + 1);
+                    }
+                }
+            });
+            
+            // Add battle participants who don't have submissions
+            battleParticipants.forEach((participant, odId) => {
+                if (!userStats.has(odId)) {
+                    userStats.set(odId, {
+                        userId: odId,
+                        userName: participant.odName,
+                        problemsSolved: new Set(),
+                        coinsEarned: 0,
+                        pointsEarned: 0
+                    });
+                }
+            });
+            
+            // Convert to rankings array - monthly
             const rankings = Array.from(userStats.values())
                 .map((stats: any) => {
-                    const wallet = walletsMap.get(stats.userId) || {};
+                    const odId = stats.userId;
+                    const wallet = walletsMap.get(odId) || {};
+                    const battlesWon = winsMap.get(odId) || 0;
                     return {
-                        odId: stats.userId,
+                        odId: odId,
                         odName: stats.userName || 'Unknown',
-                        rating: stats.coinsEarned,
+                        rating: stats.coinsEarned + (battlesWon * 50),
                         problemsSolved: stats.problemsSolved.size,
-                        battlesWon: wallet.achievements?.battlesWon || 0,
+                        battlesWon: battlesWon,
                         level: wallet.level || 1,
                         avatar: stats.userName?.[0] || '?',
                         coins: wallet.coins || 0

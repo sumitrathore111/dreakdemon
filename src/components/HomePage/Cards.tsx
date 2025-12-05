@@ -1,7 +1,6 @@
-import { memo, useState, useCallback } from 'react';
-import Image from 'next/image';
-import { ExternalLink, CheckCircle } from 'lucide-react';
-import type { ServiceData, FeatureData, TestimonialData } from '../../data/homePageData';
+import { CheckCircle, ExternalLink } from 'lucide-react';
+import { memo, useCallback, useState } from 'react';
+import type { FeatureData, ServiceData, TestimonialData } from '../../data/homePageData';
 import { useRevealAnimation } from '../hooks/useRevealAnimation';
 
 // Service Card Component
@@ -29,15 +28,13 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
     >
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-        <Image
+        <img
           src={service.image}
           alt={service.title}
-          fill
-          className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoad={handleImageLoad}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
         
         {/* Overlay Gradient */}
@@ -102,15 +99,13 @@ export const FeatureCard = memo(({ feature, index }: FeatureCardProps) => {
     >
       <div className="relative h-80">
         {/* Background Image */}
-        <Image
+        <img
           src={feature.image}
           alt={feature.title}
-          fill
-          className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoad={handleImageLoad}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
         
         {/* Dynamic Gradient Overlay */}
@@ -190,17 +185,14 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
       <footer className="flex items-center gap-4 relative z-10">
         <div className="relative flex-shrink-0">
           <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-[#00ADB5]/30 shadow-lg">
-            <Image
+            <img
               src={testimonial.image}
               alt={testimonial.name}
-              fill
-              className={`object-cover transition-opacity duration-500 ${
+              className={`w-full h-full object-cover transition-opacity duration-500 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={handleImageLoad}
-              sizes="64px"
             />
-          </div>
           </div>
           
           {/* Verified Badge */}

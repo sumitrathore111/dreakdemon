@@ -17,7 +17,7 @@ import PublicNavBar from "./Public/PublicNevBar";
 
 
 // Lazy-loaded pages
-const HomePage = lazy(() => import("./Public/HomePage").then(mod => ({ default: mod.HomePage })));
+const HomePage = lazy(() => import("./Public/HomePage"));
 const AboutPage = lazy(() => import("./Public/CompanyAbout").then(mod => ({ default: mod.AboutPage })));
 const ContactUs = lazy(() => import("./Public/ContactUs").then(mod => ({ default: mod.ContactUs })));
 const Login = lazy(() => import("./Auth/LoginScreen"));

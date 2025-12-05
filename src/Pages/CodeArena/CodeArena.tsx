@@ -1,26 +1,26 @@
+import { collection, getDocs } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    ChevronRight,
-    Code2,
-    Coins,
-    Crown,
-    History,
-    Loader2,
-    Star,
-    Swords,
-    Target,
-    TrendingUp,
-    Trophy,
-    Users
+  AlertTriangle,
+  ChevronRight,
+  Code2,
+  Coins,
+  Crown,
+  History,
+  Loader2,
+  Star,
+  Swords,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-
-// Error Boundary Component
+import { db } from '../../service/Firebase'; // Error Boundary Component
 class ErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean; error?: Error }
@@ -84,13 +84,103 @@ const CodeArenaContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { getUserWallet, initializeWallet, subscribeToWallet, userprofile } = useDataContext();
+  const { getUserWallet, initializeWallet, subscribeToWallet, userprofile, fetchGlobalLeaderboard, getUserProgress } = useDataContext();
   
   const [activeTab, setActiveTab] = useState('home');
   const [wallet, setWallet] = useState<any>(null);
+  const [userStats, setUserStats] = useState({
+    problemsSolved: 0,
+    battlesWon: 0,
+    currentStreak: 0,
+    globalRank: '-' as string | number
+  });
   const [loading, setLoading] = useState(true);
   const [showWallet, setShowWallet] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch real user stats
+  const fetchUserStats = async (userId: string, walletData: any) => {
+    try {
+      // Get problems solved from user progress
+      const userProgress = await getUserProgress?.(userId);
+      const solvedCount = userProgress?.solvedChallenges?.length || walletData?.achievements?.problemsSolved || 0;
+      
+      // Get battles won directly from Firebase (same as BattleHistory)
+      let battlesWon = 0;
+      let currentStreak = 0;
+      try {
+        const battlesRef = collection(db, 'CodeArena_Battles');
+        const snapshot = await getDocs(battlesRef);
+        const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Filter battles where user participated
+        const userBattles = allBattles.filter((battle: any) => {
+          const participants = battle.participants || [];
+          return participants.some((p: any) => {
+            const odId = p.odId || p.userId;
+            return odId === userId;
+          });
+        });
+        
+        // Count wins
+        userBattles.forEach((battle: any) => {
+          if (battle.winnerId === userId) {
+            battlesWon++;
+          }
+        });
+        
+        // Calculate current streak from consecutive wins (sorted by date, newest first)
+        const completedBattles = userBattles
+          .filter((b: any) => b.status === 'completed' || b.status === 'forfeited')
+          .sort((a: any, b: any) => {
+            const getTime = (ts: any) => {
+              if (!ts) return 0;
+              if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
+              if (ts instanceof Date) return ts.getTime();
+              return typeof ts === 'number' ? ts : 0;
+            };
+            return getTime(b.createdAt) - getTime(a.createdAt);
+          });
+        
+        // Count consecutive wins from most recent
+        for (const battle of completedBattles) {
+          if (battle.winnerId === userId) {
+            currentStreak++;
+          } else if (battle.winnerId) {
+            // Lost this battle, streak ends
+            break;
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching battles:', e);
+        battlesWon = walletData?.achievements?.battlesWon || 0;
+        currentStreak = walletData?.streak?.current || 0;
+      }
+      
+      // Get global rank from leaderboard
+      let globalRank: string | number = '-';
+      try {
+        const leaderboard = await fetchGlobalLeaderboard?.();
+        const userRanking = leaderboard?.find((p: any) => p.odId === userId);
+        if (userRanking) globalRank = userRanking.rank;
+      } catch { /* no rank */ }
+      
+      setUserStats({
+        problemsSolved: solvedCount,
+        battlesWon: battlesWon,
+        currentStreak: currentStreak,
+        globalRank: globalRank
+      });
+    } catch (err) {
+      console.error('Error fetching user stats:', err);
+      setUserStats({
+        problemsSolved: walletData?.achievements?.problemsSolved || 0,
+        battlesWon: walletData?.achievements?.battlesWon || 0,
+        currentStreak: walletData?.streak?.current || 0,
+        globalRank: '-'
+      });
+    }
+  };
 
   useEffect(() => {
     const initWallet = async () => {
@@ -101,8 +191,9 @@ const CodeArenaContent = () => {
             await initializeWallet(user.uid, userprofile?.name || user.email?.split('@')[0] || 'User');
           }
           
-          const unsubscribe = subscribeToWallet(user.uid, (walletData) => {
+          const unsubscribe = subscribeToWallet(user.uid, async (walletData) => {
             setWallet(walletData);
+            await fetchUserStats(user.uid, walletData);
             setLoading(false);
           });
           
@@ -118,6 +209,7 @@ const CodeArenaContent = () => {
     };
     
     initWallet();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, getUserWallet, initializeWallet, subscribeToWallet, userprofile]);
 
   useEffect(() => {
@@ -130,10 +222,10 @@ const CodeArenaContent = () => {
   }, [location]);
 
   const stats = [
-    { label: 'Problems Solved', value: wallet?.achievements?.problemsSolved || 0, icon: Code2, color: 'text-emerald-600 bg-emerald-50' },
-    { label: 'Battles Won', value: wallet?.achievements?.battlesWon || 0, icon: Swords, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Current Streak', value: wallet?.streak?.current || 0, icon: Star, color: 'text-orange-600 bg-orange-50' },
-    { label: 'Global Rank', value: wallet?.globalRank || '-', icon: Trophy, color: 'text-amber-600 bg-amber-50' },
+    { label: 'Problems Solved', value: userStats.problemsSolved, icon: Code2, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'Battles Won', value: userStats.battlesWon, icon: Swords, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Current Streak', value: userStats.currentStreak, icon: Star, color: 'text-orange-600 bg-orange-50' },
+    { label: 'Global Rank', value: userStats.globalRank, icon: Trophy, color: 'text-amber-600 bg-amber-50' },
   ];
 
   const quickActions = [

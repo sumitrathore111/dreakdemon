@@ -1,24 +1,24 @@
 import {
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  Timestamp,
-  updateDoc,
-  where
+    collection,
+    doc,
+    onSnapshot,
+    query,
+    Timestamp,
+    updateDoc,
+    where
 } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ChevronRight,
-  Clock,
-  Coins,
-  Search,
-  Shield,
-  Swords,
-  Trophy,
-  Users,
-  X,
-  Zap
+    ChevronRight,
+    Clock,
+    Coins,
+    Search,
+    Shield,
+    Swords,
+    Trophy,
+    Users,
+    X,
+    Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -331,22 +331,22 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   return (
     <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-red-100 rounded-xl">
-            <Swords className="w-6 h-6 text-red-600" />
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <Swords className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Battle Arena</h2>
-            <p className="text-gray-500 text-sm">Compete against other coders in real-time</p>
+            <h2 className="text-lg font-bold text-gray-900">Battle Arena</h2>
+            <p className="text-gray-500 text-xs">Compete against other coders in real-time</p>
           </div>
         </div>
 
         {/* Balance */}
-        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg">
-          <Coins className="w-5 h-5 text-amber-600" />
-          <span className="text-amber-700 font-semibold">
-            Your Balance: {wallet?.coins?.toLocaleString() || 0} coins
+        <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
+          <Coins className="w-4 h-4 text-amber-600" />
+          <span className="text-amber-700 font-semibold text-sm">
+            Balance: {wallet?.coins?.toLocaleString() || 0} coins
           </span>
         </div>
       </div>
@@ -419,64 +419,64 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       </AnimatePresence>
 
       {/* Battle Configuration */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Select Difficulty</h3>
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <h3 className="font-semibold text-gray-900 text-sm mb-3">Select Difficulty</h3>
         
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {difficulties.map((diff) => (
             <motion.button
               key={diff.id}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedDifficulty(diff.id)}
-              className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden ${
+              className={`p-3 rounded-xl border-2 transition-all relative overflow-hidden ${
                 selectedDifficulty === diff.id
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg transform scale-105'
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-lg bg-gradient-to-br from-white to-gray-50'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md bg-gradient-to-br from-white to-gray-50'
               }`}
             >
               {selectedDifficulty === diff.id && (
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-2xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-xl"></div>
               )}
-              <div className={`w-4 h-4 rounded-full ${diff.color} mb-3 mx-auto shadow-md`} />
-              <p className="font-medium text-gray-900">{diff.label}</p>
+              <div className={`w-3 h-3 rounded-full ${diff.color} mb-2 mx-auto shadow-sm`} />
+              <p className="font-medium text-gray-900 text-sm">{diff.label}</p>
               <p className="text-xs text-gray-500">{diff.rating}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                <Clock className="w-3 h-3 inline mr-1" />
-                {diff.time} min
+              <p className="text-xs text-gray-400 mt-0.5">
+                <Clock className="w-3 h-3 inline mr-0.5" />
+                {diff.time}m
               </p>
             </motion.button>
           ))}
         </div>
 
-        <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2">
-          <span className="text-2xl">💰</span> Entry Fee & Prize
+        <h3 className="font-semibold text-sm text-gray-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">💰</span> Entry Fee & Prize
         </h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {entryOptions.map((option) => (
             <motion.button
               key={option.fee}
-              whileHover={{ scale: wallet?.coins >= option.fee ? 1.05 : 1 }}
-              whileTap={{ scale: wallet?.coins >= option.fee ? 0.95 : 1 }}
+              whileHover={{ scale: wallet?.coins >= option.fee ? 1.03 : 1 }}
+              whileTap={{ scale: wallet?.coins >= option.fee ? 0.97 : 1 }}
               onClick={() => setSelectedEntry(option)}
               disabled={wallet?.coins < option.fee}
-              className={`p-5 rounded-2xl border-2 transition-all relative overflow-hidden ${
+              className={`p-3 rounded-xl border-2 transition-all relative overflow-hidden ${
                 selectedEntry.fee === option.fee
-                  ? 'border-amber-400 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-lg'
+                  ? 'border-amber-400 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-md'
                   : wallet?.coins < option.fee
                   ? 'border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 opacity-50 cursor-not-allowed'
-                  : 'border-gray-200 hover:border-amber-300 hover:shadow-lg bg-gradient-to-br from-white to-gray-50'
+                  : 'border-gray-200 hover:border-amber-300 hover:shadow-md bg-gradient-to-br from-white to-gray-50'
               }`}
             >
               {selectedEntry.fee === option.fee && (
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-yellow-400/10 rounded-2xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-yellow-400/10 rounded-xl"></div>
               )}
-              <div className="flex items-center gap-1 text-amber-600 font-medium">
-                <Coins className="w-4 h-4" />
+              <div className="flex items-center justify-center gap-1 text-amber-600 font-medium text-sm">
+                <Coins className="w-3.5 h-3.5" />
                 {option.fee}
               </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
+              <div className="flex items-center justify-center gap-1 text-green-600 text-xs mt-0.5">
                 <Trophy className="w-3 h-3" />
                 Win {option.prize}
               </div>
@@ -486,11 +486,11 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
         {/* Find Match Button */}
         <motion.button
-          whileHover={{ scale: !isCreating ? 1.02 : 1, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+          whileHover={{ scale: !isCreating ? 1.02 : 1 }}
           whileTap={{ scale: !isCreating ? 0.98 : 1 }}
           onClick={handleFindMatch}
           disabled={!wallet || wallet.coins < selectedEntry.fee || isSearching || isCreating}
-          className={`w-full py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden shadow-lg ${
+          className={`w-full py-3 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all shadow-md ${
             wallet?.coins >= selectedEntry.fee && !isCreating
               ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700'
               : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed'
@@ -501,27 +501,27 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
               />
-              Creating Secure Battle...
+              Creating...
             </>
           ) : (
             <>
-              <Zap className="w-5 h-5" />
-              Find Secure Match
-              <ChevronRight className="w-5 h-5" />
+              <Zap className="w-4 h-4" />
+              Find Match
+              <ChevronRight className="w-4 h-4" />
             </>
           )}
         </motion.button>
 
-        <div className="flex items-center justify-center gap-2 mt-2 text-sm text-green-600">
-          <Shield className="w-4 h-4" />
-          <span>Secure Battle System - Random Database Challenges</span>
+        <div className="flex items-center justify-center gap-2 mt-2 text-xs text-green-600">
+          <Shield className="w-3 h-3" />
+          <span>Secure Battle System</span>
         </div>
 
         {wallet?.coins < selectedEntry.fee && (
-          <p className="text-center text-red-500 text-sm mt-3">
-            Insufficient coins. You need {selectedEntry.fee - wallet.coins} more coins.
+          <p className="text-center text-red-500 text-xs mt-2">
+            Need {selectedEntry.fee - wallet.coins} more coins
           </p>
         )}
       </div>
@@ -531,49 +531,48 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-white to-green-50 rounded-2xl border border-green-200 shadow-lg p-6 relative overflow-hidden"
+          className="bg-gradient-to-br from-white to-green-50 rounded-xl border border-green-200 shadow p-4 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-green-100 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
-          <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-              <Users className="w-6 h-6 text-white" />
+          <h3 className="font-bold text-sm text-gray-900 mb-3 flex items-center gap-2">
+            <div className="p-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
+              <Users className="w-4 h-4 text-white" />
             </div>
-            🎮 Open Battles
+            Open Battles
             <motion.span 
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full font-semibold shadow-md"
+              className="text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-0.5 rounded-full font-semibold"
             >
               {waitingBattles.length} live
             </motion.span>
           </h3>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {waitingBattles.map((battle) => (
               <motion.div
                 key={battle.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <img
                     src={battle.creatorProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${battle.creatorId}`}
                     alt={battle.creatorName}
-                    className="w-10 h-10 rounded-full"
+                    className="w-8 h-8 rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-gray-900">{battle.creatorName}</p>
-                    <p className="text-sm text-gray-500">
-                      Rating: {battle.creatorRating} • {battle.difficulty}
+                    <p className="font-medium text-gray-900 text-sm">{battle.creatorName}</p>
+                    <p className="text-xs text-gray-500">
+                      {battle.creatorRating} • {battle.difficulty}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-amber-600 font-medium">
-                      <Coins className="w-4 h-4" />
+                    <div className="flex items-center gap-1 text-amber-600 font-medium text-sm">
+                      <Coins className="w-3 h-3" />
                       {battle.entryFee}
                     </div>
                     <div className="text-xs text-green-600">
@@ -589,7 +588,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                       }
                     }}
                     disabled={wallet?.coins < battle.entryFee}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       wallet?.coins >= battle.entryFee
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -605,34 +604,34 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       )}
 
       {/* How It Works */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">How Battles Work</h3>
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <h3 className="font-semibold text-gray-900 text-sm mb-3">How Battles Work</h3>
         
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-3">
           {[
             {
               icon: Coins,
               title: 'Pay Entry Fee',
-              description: 'Both players contribute coins to the prize pool'
+              description: 'Contribute coins to prize pool'
             },
             {
               icon: Swords,
-              title: 'Solve the Problem',
-              description: 'Race to solve the same coding problem faster'
+              title: 'Solve Problem',
+              description: 'Race to solve faster'
             },
             {
               icon: Trophy,
               title: 'Winner Takes All',
-              description: 'First to solve correctly wins the prize pool'
+              description: 'Win the prize pool'
             }
           ].map((step, index) => (
-            <div key={index} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <step.icon className="w-5 h-5 text-blue-600" />
+            <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              <div className="p-1.5 bg-blue-100 rounded-lg">
+                <step.icon className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <h4 className="font-medium text-gray-900">{step.title}</h4>
-                <p className="text-sm text-gray-500">{step.description}</p>
+                <h4 className="font-medium text-gray-900 text-sm">{step.title}</h4>
+                <p className="text-xs text-gray-500">{step.description}</p>
               </div>
             </div>
           ))}

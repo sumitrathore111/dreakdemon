@@ -1,3 +1,4 @@
+import { collection, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
     ArrowDownRight,
@@ -18,6 +19,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { db } from '../../service/Firebase';
 
 interface WalletPanelProps {
   wallet: any;
@@ -26,19 +28,146 @@ interface WalletPanelProps {
 
 const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
   const { user } = useAuth();
-  const { fetchUserTransactions } = useDataContext();
+  const { fetchUserTransactions, getUserProgress } = useDataContext();
   
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
+  const [realStats, setRealStats] = useState({
+    problemsSolved: 0,
+    battlesWon: 0,
+    currentStreak: 0
+  });
+
+  // Fetch real stats from Firebase
+  useEffect(() => {
+    const fetchRealStats = async () => {
+      if (!user) return;
+      
+      try {
+        // Get problems solved from user progress
+        const userProgress = await getUserProgress?.(user.uid);
+        const solvedCount = userProgress?.solvedChallenges?.length || wallet?.achievements?.problemsSolved || 0;
+        
+        // Get battles won and streak from Firebase
+        let battlesWon = 0;
+        let currentStreak = 0;
+        
+        try {
+          const battlesRef = collection(db, 'CodeArena_Battles');
+          const snapshot = await getDocs(battlesRef);
+          const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          
+          // Filter battles where user participated
+          const userBattles = allBattles.filter((battle: any) => {
+            const participants = battle.participants || [];
+            return participants.some((p: any) => {
+              const odId = p.odId || p.userId;
+              return odId === user.uid;
+            });
+          });
+          
+          // Count wins
+          userBattles.forEach((battle: any) => {
+            if (battle.winnerId === user.uid) {
+              battlesWon++;
+            }
+          });
+          
+          // Calculate current streak from consecutive wins
+          const completedBattles = userBattles
+            .filter((b: any) => b.status === 'completed' || b.status === 'forfeited')
+            .sort((a: any, b: any) => {
+              const getTime = (ts: any) => {
+                if (!ts) return 0;
+                if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
+                if (ts instanceof Date) return ts.getTime();
+                return typeof ts === 'number' ? ts : 0;
+              };
+              return getTime(b.createdAt) - getTime(a.createdAt);
+            });
+          
+          for (const battle of completedBattles) {
+            if (battle.winnerId === user.uid) {
+              currentStreak++;
+            } else if (battle.winnerId) {
+              break;
+            }
+          }
+        } catch (e) {
+          console.error('Error fetching battles for wallet:', e);
+          battlesWon = wallet?.achievements?.battlesWon || 0;
+          currentStreak = wallet?.streak?.current || 0;
+        }
+        
+        setRealStats({
+          problemsSolved: solvedCount,
+          battlesWon: battlesWon,
+          currentStreak: currentStreak
+        });
+      } catch (error) {
+        console.error('Error fetching real stats:', error);
+        setRealStats({
+          problemsSolved: wallet?.achievements?.problemsSolved || 0,
+          battlesWon: wallet?.achievements?.battlesWon || 0,
+          currentStreak: wallet?.streak?.current || 0
+        });
+      }
+    };
+    
+    fetchRealStats();
+  }, [user, wallet, getUserProgress]);
 
   useEffect(() => {
     const loadTransactions = async () => {
       if (!user) return;
       
       try {
-        const data = await fetchUserTransactions(user.uid);
-        setTransactions(data);
+        // Try to fetch from transactions collection
+        let data = await fetchUserTransactions(user.uid);
+        
+        // If no transactions, try to build from battle history
+        if (!data || data.length === 0) {
+          try {
+            const battlesRef = collection(db, 'CodeArena_Battles');
+            const snapshot = await getDocs(battlesRef);
+            const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Filter completed battles where user participated
+            const userBattles = allBattles.filter((battle: any) => {
+              const participants = battle.participants || [];
+              return participants.some((p: any) => {
+                const odId = p.odId || p.userId;
+                return odId === user.uid;
+              }) && (battle.status === 'completed' || battle.status === 'forfeited');
+            });
+            
+            // Convert battles to transaction format
+            data = userBattles.map((battle: any) => {
+              const isWinner = battle.winnerId === user.uid;
+              return {
+                id: battle.id,
+                type: isWinner ? 'earn' : 'spend',
+                category: 'battle',
+                amount: isWinner ? (battle.prize || battle.entryFee * 2 || 0) : (battle.entryFee || 0),
+                description: isWinner ? `Won battle - ${battle.challenge?.title || 'Coding Battle'}` : `Lost battle - ${battle.challenge?.title || 'Coding Battle'}`,
+                createdAt: battle.endTime || battle.createdAt
+              };
+            }).sort((a: any, b: any) => {
+              const getTime = (ts: any) => {
+                if (!ts) return 0;
+                if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
+                if (ts instanceof Date) return ts.getTime();
+                return typeof ts === 'number' ? ts : 0;
+              };
+              return getTime(b.createdAt) - getTime(a.createdAt);
+            });
+          } catch (e) {
+            console.error('Error building transactions from battles:', e);
+          }
+        }
+        
+        setTransactions(data || []);
       } catch (error) {
         console.error('Error loading transactions:', error);
       } finally {
@@ -47,7 +176,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
     };
 
     loadTransactions();
-  }, [user]);
+  }, [user, fetchUserTransactions]);
 
   const getTransactionIcon = (type: string, category: string) => {
     if (type === 'earn') {
@@ -91,7 +220,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full max-w-md bg-gray-900 border-l border-gray-700/50 overflow-hidden flex flex-col"
+        className="h-full w-full max-w-sm bg-gray-900 border-l border-gray-700/50 overflow-hidden flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700/50">
@@ -197,14 +326,14 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
                   <Target className="w-5 h-5 text-green-400 mb-2" />
                   <p className="text-2xl font-bold text-white">
-                    {wallet?.achievements?.problemsSolved || 0}
+                    {realStats.problemsSolved}
                   </p>
                   <p className="text-sm text-gray-400">Problems Solved</p>
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
                   <Swords className="w-5 h-5 text-blue-400 mb-2" />
                   <p className="text-2xl font-bold text-white">
-                    {wallet?.achievements?.battlesWon || 0}
+                    {realStats.battlesWon}
                   </p>
                   <p className="text-sm text-gray-400">Battles Won</p>
                 </div>
@@ -218,9 +347,9 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
                   <Zap className="w-5 h-5 text-orange-400 mb-2" />
                   <p className="text-2xl font-bold text-white">
-                    {wallet?.streak?.current || 0}
+                    {realStats.currentStreak}
                   </p>
-                  <p className="text-sm text-gray-400">Day Streak</p>
+                  <p className="text-sm text-gray-400">Win Streak</p>
                 </div>
               </div>
 
