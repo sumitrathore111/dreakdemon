@@ -5,19 +5,18 @@ export interface Question {
   id: string;
   title: string;
   description: string;
+  category: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  topic: string;
-  examples: string;
+  coins: number;
   constraints: string;
-  language: string;
-  sampleCode: string;
-  testCases: Array<{
-    input: string;
-    output: string;
+  solution_hint: string;
+  test_cases: Array<{
+    input: Record<string, any>;
+    expected_output: string;
   }>;
 }
 
-const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/Amitsharma7300/3000-question/main';
+const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/Amitsharma7300/3000-question/main/data/questions';
 let cachedQuestions: Question[] | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 3600000; // 1 hour in milliseconds
@@ -38,12 +37,12 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
     
     // Try multiple possible file names
     const possibleFiles = [
-      'questions.json',
-      'all-questions.json',
-      'data.json',
-      '3000-questions.json',
-      'questions/all.json',
-      'src/questions.json'
+      'all_questions.json',
+      'loops_questions.json',
+      'arrays_questions.json',
+      'strings_questions.json',
+      'dsa_questions.json',
+      'sql_questions.json'
     ];
 
     for (const fileName of possibleFiles) {
@@ -123,22 +122,22 @@ const parseMarkdownQuestion = (content: string, fileName: string): Question | nu
     // Extract frontmatter or metadata
     const titleMatch = content.match(/^#\s+(.+?)$/m);
     const difficultyMatch = content.match(/difficulty:\s*(easy|medium|hard)/i);
-    const topicMatch = content.match(/topic:\s*(.+?)$/m) || content.match(/category:\s*(.+?)$/m);
+    const categoryMatch = content.match(/category:\s*(.+?)$/m) || content.match(/topic:\s*(.+?)$/m);
     const descriptionMatch = content.match(/##\s*Description\s*\n([\s\S]*?)(?=##|$)/);
-    const examplesMatch = content.match(/##\s*Examples?\s*\n([\s\S]*?)(?=##|$)/);
+    const coinsMatch = content.match(/coins:\s*(\d+)/i);
+    const hintsMatch = content.match(/hint:\s*(.+?)$/m) || content.match(/solution_hint:\s*(.+?)$/mi);
     const constraintsMatch = content.match(/##\s*Constraints?\s*\n([\s\S]*?)(?=##|$)/);
 
     return {
       id: fileName.replace('.md', '').replace(/\s+/g, '-').toLowerCase(),
       title: titleMatch?.[1] || 'Untitled Problem',
       description: descriptionMatch?.[1]?.trim() || '',
+      category: categoryMatch?.[1]?.trim()?.toLowerCase() || 'general',
       difficulty: (difficultyMatch?.[1]?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard',
-      topic: topicMatch?.[1]?.trim() || 'General',
-      examples: examplesMatch?.[1]?.trim() || '',
+      coins: parseInt(coinsMatch?.[1] || '10') || 10,
       constraints: constraintsMatch?.[1]?.trim() || '',
-      language: 'javascript',
-      sampleCode: '// Write your solution here\n',
-      testCases: [],
+      solution_hint: hintsMatch?.[1]?.trim() || '',
+      test_cases: [],
     };
   } catch (error) {
     console.error('Error parsing markdown question:', error);
@@ -157,12 +156,12 @@ export const getQuestionsByDifficulty = async (
 };
 
 /**
- * Get questions filtered by topic
+ * Get questions filtered by category
  */
 export const getQuestionsByTopic = async (topic: string): Promise<Question[]> => {
   const questions = await fetchAllQuestions();
   return questions.filter(
-    q => q.topic.toLowerCase().includes(topic.toLowerCase())
+    q => q.category.toLowerCase().includes(topic.toLowerCase())
   );
 };
 
@@ -181,7 +180,7 @@ export const getFilteredQuestions = async (
 
   if (topic) {
     questions = questions.filter(
-      q => q.topic.toLowerCase().includes(topic.toLowerCase())
+      q => q.category.toLowerCase().includes(topic.toLowerCase())
     );
   }
 
@@ -238,7 +237,7 @@ export const getRandomQuestions = async (
  */
 export const getAllTopics = async (): Promise<string[]> => {
   const questions = await fetchAllQuestions();
-  const topics = new Set(questions.map(q => q.topic));
+  const topics = new Set(questions.map(q => q.category));
   return Array.from(topics).sort();
 };
 
@@ -259,7 +258,7 @@ export const getQuestionsStatistics = async () => {
   };
 
   questions.forEach(q => {
-    stats.topics[q.topic] = (stats.topics[q.topic] || 0) + 1;
+    stats.topics[q.category] = (stats.topics[q.category] || 0) + 1;
   });
 
   return stats;
@@ -276,7 +275,7 @@ export const searchQuestions = async (searchTerm: string): Promise<Question[]> =
     q => 
       q.title.toLowerCase().includes(term) ||
       q.description.toLowerCase().includes(term) ||
-      q.topic.toLowerCase().includes(term)
+      q.category.toLowerCase().includes(term)
   );
 };
 
@@ -302,150 +301,133 @@ export const clearQuestionsCache = () => {
 const generateSampleQuestions = (): Question[] => {
   const sampleQuestions: Question[] = [
     {
-      id: '1',
-      title: 'Two Sum',
-      description: 'Given an array of integers nums and an integer target, return the indices of the two numbers that add up to target.',
+      id: 'ARR_E_0001',
+      title: 'Print array elements',
+      description: 'Write a program to print all elements of an array.',
+      category: 'arrays',
       difficulty: 'easy',
-      topic: 'Arrays',
-      examples: 'Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: nums[0] + nums[1] == 9',
-      constraints: '2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9',
-      language: 'javascript',
-      sampleCode: 'var twoSum = function(nums, target) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[2,7,11,15], 9', output: '[0,1]' },
-        { input: '[3,2,4], 6', output: '[1,2]' },
+      coins: 10,
+      constraints: '1 <= n <= 100',
+      solution_hint: 'Use a simple loop to iterate through array elements',
+      test_cases: [
+        { input: { arr: [1, 2, 3] }, expected_output: '1 2 3' },
       ]
     },
     {
-      id: '2',
-      title: 'Reverse String',
-      description: 'Write a function that reverses a string. The input string is given as an array of characters s.',
+      id: 'ARR_E_0002',
+      title: 'Find maximum element',
+      description: 'Find the maximum element in an array.',
+      category: 'arrays',
       difficulty: 'easy',
-      topic: 'Strings',
-      examples: 'Input: s = ["h","e","l","l","o"]\nOutput: ["o","l","l","e","h"]',
-      constraints: '1 <= s.length <= 10^5\ns[i] is a printable ascii character.',
-      language: 'javascript',
-      sampleCode: 'var reverseString = function(s) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '["h","e","l","l","o"]', output: '["o","l","l","e","h"]' },
+      coins: 10,
+      constraints: '1 <= n <= 100, -10^4 <= arr[i] <= 10^4',
+      solution_hint: 'Compare each element with the current maximum',
+      test_cases: [
+        { input: { arr: [3, 7, 2, 9, 1] }, expected_output: '9' },
       ]
     },
     {
-      id: '3',
+      id: 'STR_E_0001',
+      title: 'String length',
+      description: 'Find the length of a string without using built-in length function.',
+      category: 'strings',
+      difficulty: 'easy',
+      coins: 10,
+      constraints: '1 <= string length <= 1000',
+      solution_hint: 'Count characters until end of string',
+      test_cases: [
+        { input: { str: 'hello' }, expected_output: '5' },
+      ]
+    },
+    {
+      id: 'LOOP_E_0001',
+      title: 'Print numbers 1 to N',
+      description: 'Write a program to print numbers from 1 to N.',
+      category: 'loops',
+      difficulty: 'easy',
+      coins: 10,
+      constraints: '1 <= N <= 100',
+      solution_hint: 'Use a simple for loop from 1 to N',
+      test_cases: [
+        { input: { n: 5 }, expected_output: '1 2 3 4 5' },
+      ]
+    },
+    {
+      id: 'DSA_M_0001',
       title: 'Binary Search',
-      description: 'Given an array of integers nums which is sorted in ascending order, and an integer target, write a function to search target in nums.',
-      difficulty: 'easy',
-      topic: 'Searching',
-      examples: 'Input: nums = [-1,0,3,5,9,12], target = 9\nOutput: 4',
-      constraints: '1 <= nums.length <= 10^4\n-10^4 < nums[i], target < 10^4',
-      language: 'javascript',
-      sampleCode: 'var search = function(nums, target) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[-1,0,3,5,9,12], 9', output: '4' },
-        { input: '[-1,0,3,5,9,12], 13', output: '-1' },
+      description: 'Implement binary search to find an element in a sorted array.',
+      category: 'dsa',
+      difficulty: 'medium',
+      coins: 25,
+      constraints: '1 <= n <= 10^4, sorted array',
+      solution_hint: 'Divide the search space in half each time',
+      test_cases: [
+        { input: { arr: [1, 3, 5, 7, 9], target: 5 }, expected_output: '2' },
       ]
     },
     {
-      id: '4',
-      title: 'Valid Parentheses',
-      description: 'Given a string s containing just the characters "(", ")", "{", "}", "[" and "]", determine if the input string is valid.',
-      difficulty: 'easy',
-      topic: 'Stacks',
-      examples: 'Input: s = "()"\nOutput: true\n\nInput: s = "([])"\nOutput: true',
-      constraints: '1 <= s.length <= 10^4\ns consists of parentheses only "()"{}[]',
-      language: 'javascript',
-      sampleCode: 'var isValid = function(s) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '"()"', output: 'true' },
-        { input: '"([)]"', output: 'false' },
-      ]
-    },
-    {
-      id: '5',
+      id: 'DSA_M_0002',
       title: 'Merge Sorted Arrays',
-      description: 'You are given two integer arrays nums1 and nums2, sorted in non-decreasing order, and two integers m and n.',
+      description: 'Merge two sorted arrays into a single sorted array.',
+      category: 'dsa',
       difficulty: 'medium',
-      topic: 'Arrays',
-      examples: 'Input: nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3\nOutput: [1,2,2,3,5,6]',
-      constraints: 'nums1.length == m + n\nnums2.length == n',
-      language: 'javascript',
-      sampleCode: 'var merge = function(nums1, m, nums2, n) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[1,2,3,0,0,0], 3, [2,5,6], 3', output: '[1,2,2,3,5,6]' },
+      coins: 25,
+      constraints: '1 <= n, m <= 10^4',
+      solution_hint: 'Use two pointers to traverse both arrays',
+      test_cases: [
+        { input: { arr1: [1, 3, 5], arr2: [2, 4, 6] }, expected_output: '[1, 2, 3, 4, 5, 6]' },
       ]
     },
     {
-      id: '6',
-      title: 'Maximum Subarray',
-      description: 'Given an integer array nums, find the subarray with the largest sum, and return its sum.',
+      id: 'DSA_M_0003',
+      title: 'Longest Common Substring',
+      description: 'Find the longest common substring between two strings.',
+      category: 'dsa',
       difficulty: 'medium',
-      topic: 'Dynamic Programming',
-      examples: 'Input: nums = [-2,1,-3,4,-1,2,1,-5,4]\nOutput: 6\nExplanation: [4,-1,2,1] has the largest sum = 6.',
-      constraints: '1 <= nums.length <= 10^5\n-10^4 <= nums[i] <= 10^4',
-      language: 'javascript',
-      sampleCode: 'var maxSubArray = function(nums) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[-2,1,-3,4,-1,2,1,-5,4]', output: '6' },
-        { input: '[5,4,-1,7,8]', output: '23' },
+      coins: 25,
+      constraints: '1 <= str length <= 1000',
+      solution_hint: 'Use dynamic programming with 2D array',
+      test_cases: [
+        { input: { str1: 'abcd', str2: 'acbd' }, expected_output: '2' },
       ]
     },
     {
-      id: '7',
-      title: 'Longest Substring Without Repeating Characters',
-      description: 'Given a string s, find the length of the longest substring without repeating characters.',
+      id: 'LOOP_M_0001',
+      title: 'Fibonacci Series',
+      description: 'Generate the first N numbers of the Fibonacci series.',
+      category: 'loops',
       difficulty: 'medium',
-      topic: 'Strings',
-      examples: 'Input: s = "abcabcbb"\nOutput: 3\nExplanation: The answer is "abc", with the length of 3.',
-      constraints: '0 <= s.length <= 5 * 10^4\ns consists of English letters, digits, symbols and spaces.',
-      language: 'javascript',
-      sampleCode: 'var lengthOfLongestSubstring = function(s) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '"abcabcbb"', output: '3' },
-        { input: '"bbbbb"', output: '1' },
+      coins: 25,
+      constraints: '1 <= N <= 50',
+      solution_hint: 'Each number is the sum of the previous two',
+      test_cases: [
+        { input: { n: 5 }, expected_output: '[0, 1, 1, 2, 3]' },
       ]
     },
     {
-      id: '8',
-      title: 'Median of Two Sorted Arrays',
-      description: 'Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.',
+      id: 'DSA_H_0001',
+      title: 'Longest Increasing Subsequence',
+      description: 'Find the length of the longest increasing subsequence in an array.',
+      category: 'dsa',
       difficulty: 'hard',
-      topic: 'Arrays',
-      examples: 'Input: nums1 = [1,3], nums2 = [2]\nOutput: 2.00000',
-      constraints: 'nums1.length == m\nnums2.length == n\n0 <= m <= 1000',
-      language: 'javascript',
-      sampleCode: 'var findMedianSortedArrays = function(nums1, nums2) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[1,3], [2]', output: '2' },
-        { input: '[1,2], [3,4]', output: '2.5' },
+      coins: 50,
+      constraints: '1 <= n <= 1000, -10^4 <= arr[i] <= 10^4',
+      solution_hint: 'Use dynamic programming approach',
+      test_cases: [
+        { input: { arr: [10, 9, 2, 5, 3, 7, 101, 18] }, expected_output: '4' },
       ]
     },
     {
-      id: '9',
-      title: 'Regular Expression Matching',
-      description: 'Given an input string s and a pattern p, implement regular expression matching with support for "." and "*".',
-      difficulty: 'hard',
-      topic: 'Dynamic Programming',
-      examples: 'Input: s = "aa", p = "a"\nOutput: false\n\nInput: s = "aa", p = ".*"',
-      constraints: '1 <= s.length <= 20\n1 <= p.length <= 30',
-      language: 'javascript',
-      sampleCode: 'var isMatch = function(s, p) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '"aa", "a"', output: 'false' },
-        { input: '"aa", "a*"', output: 'true' },
-      ]
-    },
-    {
-      id: '10',
-      title: 'Container With Most Water',
-      description: 'You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]).',
-      difficulty: 'medium',
-      topic: 'Arrays',
-      examples: 'Input: height = [1,8,6,2,5,4,8,3,7]\nOutput: 49',
-      constraints: 'n == height.length\n2 <= n <= 10^5\n0 <= height[i] <= 10^4',
-      language: 'javascript',
-      sampleCode: 'var maxArea = function(height) {\n    // Your solution here\n};',
-      testCases: [
-        { input: '[1,8,6,2,5,4,8,3,7]', output: '49' },
+      id: 'SQL_E_0001',
+      title: 'SELECT all records',
+      description: 'Write a SQL query to select all records from a table.',
+      category: 'sql',
+      difficulty: 'easy',
+      coins: 10,
+      constraints: 'Standard SQL syntax',
+      solution_hint: 'Use SELECT * FROM table_name',
+      test_cases: [
+        { input: { table: 'users' }, expected_output: 'All user records' },
       ]
     }
   ];

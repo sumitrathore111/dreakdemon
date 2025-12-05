@@ -112,7 +112,7 @@ export async function createBattle1v1(userId: string, userRating: number, diffic
         id: question.id,
         title: question.title,
         difficulty: question.difficulty,
-        topic: question.topic,
+        category: question.category,
         timeLimit: question.timeLimit,
         pointsPerCorrect: question.pointsPerCorrect,
       },
@@ -152,7 +152,7 @@ export async function createTournamentBattle(userId: string, difficulty: 'easy' 
       questions: questions.map(q => ({
         id: q.id,
         title: q.title,
-        topic: q.topic,
+        category: q.category,
         difficulty: q.difficulty,
         timeLimit: q.timeLimit,
         pointsPerCorrect: q.pointsPerCorrect,

@@ -52,17 +52,18 @@ const PracticeChallenges = () => {
           title: q.title,
           description: q.description,
           difficulty: q.difficulty,
-          topic: q.topic,
-          tags: [q.topic],
-          coinReward: q.difficulty === 'easy' ? 50 : q.difficulty === 'medium' ? 100 : 200,
+          topic: q.category,
+          tags: [q.category],
+          coinReward: q.coins,
           acceptanceRate: 75,
-          category: q.topic,
+          category: q.category,
           isDaily: false,
           isPremium: false,
-          testCases: q.testCases,
-          sampleCode: q.sampleCode,
-          examples: q.examples,
+          testCases: q.test_cases,
+          sampleCode: '',
+          examples: '',
           constraints: q.constraints,
+          solution_hint: q.solution_hint,
         }));
         
         console.log('Challenges prepared:', challengesData.length);
@@ -116,15 +117,16 @@ const PracticeChallenges = () => {
         title: q.title,
         description: q.description,
         difficulty: q.difficulty,
-        topic: q.topic,
-        tags: [q.topic],
-        coinReward: q.difficulty === 'easy' ? 50 : q.difficulty === 'medium' ? 100 : 200,
+        topic: q.category,
+        tags: [q.category],
+        coinReward: q.coins,
         acceptanceRate: 75,
-        category: q.topic,
+        category: q.category,
         isDaily: false,
         isPremium: false,
-        testCases: q.testCases,
-        sampleCode: q.sampleCode,
+        testCases: q.test_cases,
+        sampleCode: '',
+        solution_hint: q.solution_hint,
       }));
       
       setChallenges(challengesData);
@@ -340,12 +342,12 @@ const PracticeChallenges = () => {
                     </motion.span>
                     
                     <span className="text-gray-600 text-xs bg-gray-100 px-2 py-1 rounded">
-                      {challenge.topic}
+                      {challenge.category}
                     </span>
                     
                     <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
                       <Coins className="w-3 h-3" />
-                      {challenge.coinReward}
+                      {challenge.coins}
                     </span>
                   </div>
                 </div>
