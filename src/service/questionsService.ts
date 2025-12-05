@@ -303,111 +303,271 @@ export const clearQuestionsCache = () => {
 };
 
 /**
- * Generate sample questions for testing/fallback
+ * Generate 3000+ comprehensive sample questions for testing/fallback
  */
 const generateSampleQuestions = (): Question[] => {
   const sampleQuestions: Question[] = [];
   let questionId = 1;
 
-  // Generate 50 sample questions (10 per category, mix of difficulties)
-  const loopsQuestions = [
-    { title: 'Print numbers 1 to N', description: 'Write a program to print numbers from 1 to N', difficulty: 'easy' as const },
-    { title: 'Print even numbers', description: 'Print all even numbers from 1 to N', difficulty: 'easy' as const },
-    { title: 'Sum of first N numbers', description: 'Calculate sum of first N natural numbers', difficulty: 'easy' as const },
-    { title: 'Factorial calculation', description: 'Calculate factorial of N', difficulty: 'easy' as const },
-    { title: 'Fibonacci Series', description: 'Generate first N Fibonacci numbers', difficulty: 'medium' as const },
-    { title: 'Prime number checker', description: 'Check if N is a prime number', difficulty: 'medium' as const },
-    { title: 'Armstrong number', description: 'Check if number is Armstrong number', difficulty: 'medium' as const },
-    { title: 'Nested loop patterns', description: 'Print pyramid patterns using nested loops', difficulty: 'medium' as const },
-    { title: 'Complex number series', description: 'Generate complex number patterns', difficulty: 'hard' as const },
-    { title: 'Optimized iteration', description: 'Solve loop problems with optimizations', difficulty: 'hard' as const },
-  ];
-
-  const arrayQuestions = [
-    { title: 'Array traversal', description: 'Traverse and print all array elements', difficulty: 'easy' as const },
-    { title: 'Find maximum', description: 'Find maximum element in array', difficulty: 'easy' as const },
-    { title: 'Find minimum', description: 'Find minimum element in array', difficulty: 'easy' as const },
-    { title: 'Array sum', description: 'Calculate sum of all array elements', difficulty: 'easy' as const },
-    { title: 'Two pointer approach', description: 'Find pair with given sum using two pointers', difficulty: 'medium' as const },
-    { title: 'Merge sorted arrays', description: 'Merge two sorted arrays', difficulty: 'medium' as const },
-    { title: 'Subarray problems', description: 'Find subarray with maximum sum', difficulty: 'medium' as const },
-    { title: 'Rotation problems', description: 'Rotate array elements', difficulty: 'medium' as const },
-    { title: 'Complex array ops', description: 'Advanced array manipulation', difficulty: 'hard' as const },
-    { title: 'Array optimization', description: 'Optimize array operations', difficulty: 'hard' as const },
-  ];
-
-  const stringQuestions = [
-    { title: 'String length', description: 'Find length of string without built-in functions', difficulty: 'easy' as const },
-    { title: 'Reverse string', description: 'Reverse a string', difficulty: 'easy' as const },
-    { title: 'Palindrome check', description: 'Check if string is palindrome', difficulty: 'easy' as const },
-    { title: 'String repetition', description: 'Repeat string N times', difficulty: 'easy' as const },
-    { title: 'Anagram check', description: 'Check if two strings are anagrams', difficulty: 'medium' as const },
-    { title: 'Substring search', description: 'Find substring in string', difficulty: 'medium' as const },
-    { title: 'String permutations', description: 'Generate all permutations of string', difficulty: 'medium' as const },
-    { title: 'Pattern matching', description: 'Match pattern in string', difficulty: 'medium' as const },
-    { title: 'Complex string ops', description: 'Advanced string manipulation', difficulty: 'hard' as const },
-    { title: 'String encoding', description: 'Encode/decode strings', difficulty: 'hard' as const },
-  ];
-
-  const dsaQuestions = [
-    { title: 'Binary search', description: 'Implement binary search algorithm', difficulty: 'easy' as const },
-    { title: 'Linear search', description: 'Implement linear search', difficulty: 'easy' as const },
-    { title: 'Bubble sort', description: 'Implement bubble sort algorithm', difficulty: 'easy' as const },
-    { title: 'Stack operations', description: 'Implement basic stack operations', difficulty: 'easy' as const },
-    { title: 'Queue operations', description: 'Implement queue data structure', difficulty: 'medium' as const },
-    { title: 'Linked list traversal', description: 'Traverse linked list', difficulty: 'medium' as const },
-    { title: 'Tree traversal', description: 'Implement tree traversal methods', difficulty: 'medium' as const },
-    { title: 'Graph algorithms', description: 'Implement BFS and DFS', difficulty: 'medium' as const },
-    { title: 'Dynamic programming', description: 'Solve DP problems', difficulty: 'hard' as const },
-    { title: 'Advanced algorithms', description: 'Complex algorithm problems', difficulty: 'hard' as const },
-  ];
-
-  const sqlQuestions = [
-    { title: 'SELECT queries', description: 'Write basic SELECT queries', difficulty: 'easy' as const },
-    { title: 'WHERE clause', description: 'Filter data with WHERE', difficulty: 'easy' as const },
-    { title: 'ORDER BY', description: 'Sort results with ORDER BY', difficulty: 'easy' as const },
-    { title: 'Basic aggregation', description: 'Use COUNT, SUM, AVG functions', difficulty: 'easy' as const },
-    { title: 'JOIN operations', description: 'Perform INNER, LEFT, RIGHT JOINs', difficulty: 'medium' as const },
-    { title: 'GROUP BY queries', description: 'Group data with GROUP BY', difficulty: 'medium' as const },
-    { title: 'Subqueries', description: 'Write nested queries', difficulty: 'medium' as const },
-    { title: 'HAVING clause', description: 'Filter groups with HAVING', difficulty: 'medium' as const },
-    { title: 'Complex queries', description: 'Write complex multi-join queries', difficulty: 'hard' as const },
-    { title: 'Query optimization', description: 'Optimize SQL queries', difficulty: 'hard' as const },
-  ];
-
-  const allQuestions = [
-    ...loopsQuestions.map(q => ({ ...q, category: 'loops' })),
-    ...arrayQuestions.map(q => ({ ...q, category: 'arrays' })),
-    ...stringQuestions.map(q => ({ ...q, category: 'strings' })),
-    ...dsaQuestions.map(q => ({ ...q, category: 'dsa' })),
-    ...sqlQuestions.map(q => ({ ...q, category: 'sql' })),
-  ];
-
-  allQuestions.forEach(q => {
-    const coinsMap = { easy: 10, medium: 25, hard: 50 };
-    const categoryPrefix = q.category.substring(0, 3).toUpperCase();
-    const diffPrefix = q.difficulty.charAt(0).toUpperCase();
-    
-    sampleQuestions.push({
-      id: `${categoryPrefix}_${diffPrefix}_${String(questionId).padStart(4, '0')}`,
-      title: q.title,
-      description: q.description,
-      category: q.category,
-      difficulty: q.difficulty,
-      coins: coinsMap[q.difficulty],
-      constraints: `Standard constraints for ${q.category} problems`,
-      solution_hint: `Hint: Think about the core concept of ${q.category}`,
-      test_cases: [
-        { 
-          input: { case: 1 }, 
-          expected_output: 'Sample output 1' 
-        },
+  // Generate questions for each category
+  const categories = [
+    {
+      name: 'loops',
+      prefix: 'LOOP',
+      count: 450,
+      samples: [
+        'Print numbers 1 to N',
+        'Print even numbers',
+        'Sum of first N numbers',
+        'Factorial calculation',
+        'Fibonacci Series',
+        'Prime number checker',
+        'Armstrong number',
+        'Nested loop patterns',
+        'Complex number series',
+        'Optimized iteration',
+        'Pattern printing with loops',
+        'Reverse digit printing',
+        'Sum of digits',
+        'Perfect number check',
+        'GCD calculation using loops',
+        'LCM calculation',
+        'Multiplication table',
+        'Nested pyramid patterns',
+        'Hollow pyramid patterns',
+        'Number triangle',
       ]
-    });
-    questionId++;
-  });
+    },
+    {
+      name: 'arrays',
+      prefix: 'ARR',
+      count: 450,
+      samples: [
+        'Array traversal',
+        'Find maximum',
+        'Find minimum',
+        'Array sum',
+        'Two pointer approach',
+        'Merge sorted arrays',
+        'Subarray problems',
+        'Rotation problems',
+        'Complex array ops',
+        'Array optimization',
+        'Reverse array',
+        'Array rotation left',
+        'Array rotation right',
+        'Find second largest',
+        'Move zeros to end',
+        'Duplicate elements',
+        'Majority element',
+        'Missing number',
+        'First repeating element',
+        'Rearrange positive and negative',
+      ]
+    },
+    {
+      name: 'strings',
+      prefix: 'STR',
+      count: 450,
+      samples: [
+        'String length',
+        'Reverse string',
+        'Palindrome check',
+        'String repetition',
+        'Anagram check',
+        'Substring search',
+        'String permutations',
+        'Pattern matching',
+        'Complex string ops',
+        'String encoding',
+        'Case conversion',
+        'Character frequency',
+        'Remove duplicates',
+        'Longest substring',
+        'String compression',
+        'Word reversal',
+        'Vowel counting',
+        'String rotation',
+        'Isomorphic strings',
+        'Edit distance',
+      ]
+    },
+    {
+      name: 'dsa',
+      prefix: 'DSA',
+      count: 1050,
+      samples: [
+        'Binary search',
+        'Linear search',
+        'Bubble sort',
+        'Stack operations',
+        'Queue operations',
+        'Linked list traversal',
+        'Tree traversal',
+        'Graph algorithms',
+        'Dynamic programming',
+        'Advanced algorithms',
+        'Merge sort',
+        'Quick sort',
+        'Heap sort',
+        'BFS traversal',
+        'DFS traversal',
+        'Binary tree height',
+        'Tree level order',
+        'Graph connectivity',
+        'Dijkstra algorithm',
+        'Knapsack problem',
+        'LCS problem',
+        'LIS problem',
+        'Backtracking problems',
+        'Divide and conquer',
+        'Trie operations',
+        'Segment trees',
+        'Fenwick trees',
+        'Union find',
+        'Topological sort',
+        'Strongly connected components',
+      ]
+    },
+    {
+      name: 'sql',
+      prefix: 'SQL',
+      count: 650,
+      samples: [
+        'SELECT queries',
+        'WHERE clause',
+        'ORDER BY',
+        'Basic aggregation',
+        'JOIN operations',
+        'GROUP BY queries',
+        'Subqueries',
+        'HAVING clause',
+        'Complex queries',
+        'Query optimization',
+        'DISTINCT keyword',
+        'LIMIT and OFFSET',
+        'LIKE operator',
+        'IN operator',
+        'BETWEEN operator',
+        'NULL handling',
+        'CASE expressions',
+        'String functions',
+        'Date functions',
+        'Aggregate functions',
+      ]
+    },
+  ];
 
-  console.log('📝 Generated', sampleQuestions.length, 'comprehensive sample questions for testing');
+  // Generate questions for each category
+  for (const category of categories) {
+    // Calculate how many easy, medium, hard questions
+    const easyCount = Math.floor(category.count * 0.3);
+    const mediumCount = Math.floor(category.count * 0.4);
+    const hardCount = category.count - easyCount - mediumCount;
+
+    // Generate easy questions
+    for (let i = 0; i < easyCount; i++) {
+      const sampleTitle = category.samples[i % category.samples.length];
+      const variation = Math.floor(i / category.samples.length) + 1;
+      
+      sampleQuestions.push({
+        id: `${category.prefix}_E_${String(i + 1).padStart(4, '0')}`,
+        title: `${sampleTitle} - Variation ${variation}`,
+        description: `Write a solution for: ${sampleTitle}. This is an easy level problem in the ${category.name} category.`,
+        category: category.name,
+        difficulty: 'easy',
+        coins: 10,
+        constraints: `Standard constraints for ${category.name} problems. Time complexity should be O(n) or better.`,
+        solution_hint: `Hint: Think about using basic concepts and simple approaches for this ${category.name} problem.`,
+        test_cases: [
+          { 
+            input: { testCase: 1 }, 
+            expected_output: 'Expected output 1' 
+          },
+          { 
+            input: { testCase: 2 }, 
+            expected_output: 'Expected output 2' 
+          },
+        ]
+      });
+    }
+
+    // Generate medium questions
+    for (let i = 0; i < mediumCount; i++) {
+      const sampleTitle = category.samples[i % category.samples.length];
+      const variation = Math.floor(i / category.samples.length) + 1;
+      
+      sampleQuestions.push({
+        id: `${category.prefix}_M_${String(easyCount + i + 1).padStart(4, '0')}`,
+        title: `${sampleTitle} - Advanced Variation ${variation}`,
+        description: `Solve advanced: ${sampleTitle}. This is a medium level problem requiring intermediate understanding of ${category.name}.`,
+        category: category.name,
+        difficulty: 'medium',
+        coins: 25,
+        constraints: `Advanced constraints for ${category.name} problems. Consider edge cases and optimize for better complexity.`,
+        solution_hint: `Hint: Consider using intermediate data structures or algorithms specific to ${category.name} for this problem.`,
+        test_cases: [
+          { 
+            input: { testCase: 1, complexity: 'high' }, 
+            expected_output: 'Expected output 1' 
+          },
+          { 
+            input: { testCase: 2, complexity: 'high' }, 
+            expected_output: 'Expected output 2' 
+          },
+          { 
+            input: { testCase: 3, complexity: 'high' }, 
+            expected_output: 'Expected output 3' 
+          },
+        ]
+      });
+    }
+
+    // Generate hard questions
+    for (let i = 0; i < hardCount; i++) {
+      const sampleTitle = category.samples[i % category.samples.length];
+      const variation = Math.floor(i / category.samples.length) + 1;
+      
+      sampleQuestions.push({
+        id: `${category.prefix}_H_${String(easyCount + mediumCount + i + 1).padStart(4, '0')}`,
+        title: `${sampleTitle} - Expert Challenge ${variation}`,
+        description: `Expert level challenge: ${sampleTitle}. This is a hard level problem requiring deep knowledge of advanced ${category.name} concepts.`,
+        category: category.name,
+        difficulty: 'hard',
+        coins: 50,
+        constraints: `Complex constraints for ${category.name} problems. Optimize for both time and space complexity. Handle all edge cases.`,
+        solution_hint: `Hint: This requires advanced knowledge of ${category.name}. Consider multiple approaches and choose the most efficient one.`,
+        test_cases: [
+          { 
+            input: { testCase: 1, complexity: 'extreme' }, 
+            expected_output: 'Expected output 1' 
+          },
+          { 
+            input: { testCase: 2, complexity: 'extreme' }, 
+            expected_output: 'Expected output 2' 
+          },
+          { 
+            input: { testCase: 3, complexity: 'extreme' }, 
+            expected_output: 'Expected output 3' 
+          },
+          { 
+            input: { testCase: 4, complexity: 'extreme' }, 
+            expected_output: 'Expected output 4' 
+          },
+        ]
+      });
+    }
+  }
+
+  console.log('📝 Generated', sampleQuestions.length, 'comprehensive programming questions');
+  console.log('Breakdown:', {
+    loops: sampleQuestions.filter(q => q.category === 'loops').length,
+    arrays: sampleQuestions.filter(q => q.category === 'arrays').length,
+    strings: sampleQuestions.filter(q => q.category === 'strings').length,
+    dsa: sampleQuestions.filter(q => q.category === 'dsa').length,
+    sql: sampleQuestions.filter(q => q.category === 'sql').length,
+  });
+  
   cachedQuestions = sampleQuestions;
   cacheTimestamp = Date.now();
   return sampleQuestions;
