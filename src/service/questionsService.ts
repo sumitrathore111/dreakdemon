@@ -299,140 +299,109 @@ export const clearQuestionsCache = () => {
  * Generate sample questions for testing/fallback
  */
 const generateSampleQuestions = (): Question[] => {
-  const sampleQuestions: Question[] = [
-    {
-      id: 'ARR_E_0001',
-      title: 'Print array elements',
-      description: 'Write a program to print all elements of an array.',
-      category: 'arrays',
-      difficulty: 'easy',
-      coins: 10,
-      constraints: '1 <= n <= 100',
-      solution_hint: 'Use a simple loop to iterate through array elements',
-      test_cases: [
-        { input: { arr: [1, 2, 3] }, expected_output: '1 2 3' },
-      ]
-    },
-    {
-      id: 'ARR_E_0002',
-      title: 'Find maximum element',
-      description: 'Find the maximum element in an array.',
-      category: 'arrays',
-      difficulty: 'easy',
-      coins: 10,
-      constraints: '1 <= n <= 100, -10^4 <= arr[i] <= 10^4',
-      solution_hint: 'Compare each element with the current maximum',
-      test_cases: [
-        { input: { arr: [3, 7, 2, 9, 1] }, expected_output: '9' },
-      ]
-    },
-    {
-      id: 'STR_E_0001',
-      title: 'String length',
-      description: 'Find the length of a string without using built-in length function.',
-      category: 'strings',
-      difficulty: 'easy',
-      coins: 10,
-      constraints: '1 <= string length <= 1000',
-      solution_hint: 'Count characters until end of string',
-      test_cases: [
-        { input: { str: 'hello' }, expected_output: '5' },
-      ]
-    },
-    {
-      id: 'LOOP_E_0001',
-      title: 'Print numbers 1 to N',
-      description: 'Write a program to print numbers from 1 to N.',
-      category: 'loops',
-      difficulty: 'easy',
-      coins: 10,
-      constraints: '1 <= N <= 100',
-      solution_hint: 'Use a simple for loop from 1 to N',
-      test_cases: [
-        { input: { n: 5 }, expected_output: '1 2 3 4 5' },
-      ]
-    },
-    {
-      id: 'DSA_M_0001',
-      title: 'Binary Search',
-      description: 'Implement binary search to find an element in a sorted array.',
-      category: 'dsa',
-      difficulty: 'medium',
-      coins: 25,
-      constraints: '1 <= n <= 10^4, sorted array',
-      solution_hint: 'Divide the search space in half each time',
-      test_cases: [
-        { input: { arr: [1, 3, 5, 7, 9], target: 5 }, expected_output: '2' },
-      ]
-    },
-    {
-      id: 'DSA_M_0002',
-      title: 'Merge Sorted Arrays',
-      description: 'Merge two sorted arrays into a single sorted array.',
-      category: 'dsa',
-      difficulty: 'medium',
-      coins: 25,
-      constraints: '1 <= n, m <= 10^4',
-      solution_hint: 'Use two pointers to traverse both arrays',
-      test_cases: [
-        { input: { arr1: [1, 3, 5], arr2: [2, 4, 6] }, expected_output: '[1, 2, 3, 4, 5, 6]' },
-      ]
-    },
-    {
-      id: 'DSA_M_0003',
-      title: 'Longest Common Substring',
-      description: 'Find the longest common substring between two strings.',
-      category: 'dsa',
-      difficulty: 'medium',
-      coins: 25,
-      constraints: '1 <= str length <= 1000',
-      solution_hint: 'Use dynamic programming with 2D array',
-      test_cases: [
-        { input: { str1: 'abcd', str2: 'acbd' }, expected_output: '2' },
-      ]
-    },
-    {
-      id: 'LOOP_M_0001',
-      title: 'Fibonacci Series',
-      description: 'Generate the first N numbers of the Fibonacci series.',
-      category: 'loops',
-      difficulty: 'medium',
-      coins: 25,
-      constraints: '1 <= N <= 50',
-      solution_hint: 'Each number is the sum of the previous two',
-      test_cases: [
-        { input: { n: 5 }, expected_output: '[0, 1, 1, 2, 3]' },
-      ]
-    },
-    {
-      id: 'DSA_H_0001',
-      title: 'Longest Increasing Subsequence',
-      description: 'Find the length of the longest increasing subsequence in an array.',
-      category: 'dsa',
-      difficulty: 'hard',
-      coins: 50,
-      constraints: '1 <= n <= 1000, -10^4 <= arr[i] <= 10^4',
-      solution_hint: 'Use dynamic programming approach',
-      test_cases: [
-        { input: { arr: [10, 9, 2, 5, 3, 7, 101, 18] }, expected_output: '4' },
-      ]
-    },
-    {
-      id: 'SQL_E_0001',
-      title: 'SELECT all records',
-      description: 'Write a SQL query to select all records from a table.',
-      category: 'sql',
-      difficulty: 'easy',
-      coins: 10,
-      constraints: 'Standard SQL syntax',
-      solution_hint: 'Use SELECT * FROM table_name',
-      test_cases: [
-        { input: { table: 'users' }, expected_output: 'All user records' },
-      ]
-    }
+  const categories = ['loops', 'arrays', 'strings', 'dsa', 'sql'];
+  const sampleQuestions: Question[] = [];
+  let questionId = 1;
+
+  // Generate 50 sample questions (10 per category, mix of difficulties)
+  const loopsQuestions = [
+    { title: 'Print numbers 1 to N', description: 'Write a program to print numbers from 1 to N', difficulty: 'easy' as const },
+    { title: 'Print even numbers', description: 'Print all even numbers from 1 to N', difficulty: 'easy' as const },
+    { title: 'Sum of first N numbers', description: 'Calculate sum of first N natural numbers', difficulty: 'easy' as const },
+    { title: 'Factorial calculation', description: 'Calculate factorial of N', difficulty: 'easy' as const },
+    { title: 'Fibonacci Series', description: 'Generate first N Fibonacci numbers', difficulty: 'medium' as const },
+    { title: 'Prime number checker', description: 'Check if N is a prime number', difficulty: 'medium' as const },
+    { title: 'Armstrong number', description: 'Check if number is Armstrong number', difficulty: 'medium' as const },
+    { title: 'Nested loop patterns', description: 'Print pyramid patterns using nested loops', difficulty: 'medium' as const },
+    { title: 'Complex number series', description: 'Generate complex number patterns', difficulty: 'hard' as const },
+    { title: 'Optimized iteration', description: 'Solve loop problems with optimizations', difficulty: 'hard' as const },
   ];
 
-  console.log('📝 Generated', sampleQuestions.length, 'sample questions for testing');
+  const arrayQuestions = [
+    { title: 'Array traversal', description: 'Traverse and print all array elements', difficulty: 'easy' as const },
+    { title: 'Find maximum', description: 'Find maximum element in array', difficulty: 'easy' as const },
+    { title: 'Find minimum', description: 'Find minimum element in array', difficulty: 'easy' as const },
+    { title: 'Array sum', description: 'Calculate sum of all array elements', difficulty: 'easy' as const },
+    { title: 'Two pointer approach', description: 'Find pair with given sum using two pointers', difficulty: 'medium' as const },
+    { title: 'Merge sorted arrays', description: 'Merge two sorted arrays', difficulty: 'medium' as const },
+    { title: 'Subarray problems', description: 'Find subarray with maximum sum', difficulty: 'medium' as const },
+    { title: 'Rotation problems', description: 'Rotate array elements', difficulty: 'medium' as const },
+    { title: 'Complex array ops', description: 'Advanced array manipulation', difficulty: 'hard' as const },
+    { title: 'Array optimization', description: 'Optimize array operations', difficulty: 'hard' as const },
+  ];
+
+  const stringQuestions = [
+    { title: 'String length', description: 'Find length of string without built-in functions', difficulty: 'easy' as const },
+    { title: 'Reverse string', description: 'Reverse a string', difficulty: 'easy' as const },
+    { title: 'Palindrome check', description: 'Check if string is palindrome', difficulty: 'easy' as const },
+    { title: 'String repetition', description: 'Repeat string N times', difficulty: 'easy' as const },
+    { title: 'Anagram check', description: 'Check if two strings are anagrams', difficulty: 'medium' as const },
+    { title: 'Substring search', description: 'Find substring in string', difficulty: 'medium' as const },
+    { title: 'String permutations', description: 'Generate all permutations of string', difficulty: 'medium' as const },
+    { title: 'Pattern matching', description: 'Match pattern in string', difficulty: 'medium' as const },
+    { title: 'Complex string ops', description: 'Advanced string manipulation', difficulty: 'hard' as const },
+    { title: 'String encoding', description: 'Encode/decode strings', difficulty: 'hard' as const },
+  ];
+
+  const dsaQuestions = [
+    { title: 'Binary search', description: 'Implement binary search algorithm', difficulty: 'easy' as const },
+    { title: 'Linear search', description: 'Implement linear search', difficulty: 'easy' as const },
+    { title: 'Bubble sort', description: 'Implement bubble sort algorithm', difficulty: 'easy' as const },
+    { title: 'Stack operations', description: 'Implement basic stack operations', difficulty: 'easy' as const },
+    { title: 'Queue operations', description: 'Implement queue data structure', difficulty: 'medium' as const },
+    { title: 'Linked list traversal', description: 'Traverse linked list', difficulty: 'medium' as const },
+    { title: 'Tree traversal', description: 'Implement tree traversal methods', difficulty: 'medium' as const },
+    { title: 'Graph algorithms', description: 'Implement BFS and DFS', difficulty: 'medium' as const },
+    { title: 'Dynamic programming', description: 'Solve DP problems', difficulty: 'hard' as const },
+    { title: 'Advanced algorithms', description: 'Complex algorithm problems', difficulty: 'hard' as const },
+  ];
+
+  const sqlQuestions = [
+    { title: 'SELECT queries', description: 'Write basic SELECT queries', difficulty: 'easy' as const },
+    { title: 'WHERE clause', description: 'Filter data with WHERE', difficulty: 'easy' as const },
+    { title: 'ORDER BY', description: 'Sort results with ORDER BY', difficulty: 'easy' as const },
+    { title: 'Basic aggregation', description: 'Use COUNT, SUM, AVG functions', difficulty: 'easy' as const },
+    { title: 'JOIN operations', description: 'Perform INNER, LEFT, RIGHT JOINs', difficulty: 'medium' as const },
+    { title: 'GROUP BY queries', description: 'Group data with GROUP BY', difficulty: 'medium' as const },
+    { title: 'Subqueries', description: 'Write nested queries', difficulty: 'medium' as const },
+    { title: 'HAVING clause', description: 'Filter groups with HAVING', difficulty: 'medium' as const },
+    { title: 'Complex queries', description: 'Write complex multi-join queries', difficulty: 'hard' as const },
+    { title: 'Query optimization', description: 'Optimize SQL queries', difficulty: 'hard' as const },
+  ];
+
+  const allQuestions = [
+    ...loopsQuestions.map(q => ({ ...q, category: 'loops' })),
+    ...arrayQuestions.map(q => ({ ...q, category: 'arrays' })),
+    ...stringQuestions.map(q => ({ ...q, category: 'strings' })),
+    ...dsaQuestions.map(q => ({ ...q, category: 'dsa' })),
+    ...sqlQuestions.map(q => ({ ...q, category: 'sql' })),
+  ];
+
+  allQuestions.forEach(q => {
+    const coinsMap = { easy: 10, medium: 25, hard: 50 };
+    const categoryPrefix = q.category.substring(0, 3).toUpperCase();
+    const diffPrefix = q.difficulty.charAt(0).toUpperCase();
+    
+    sampleQuestions.push({
+      id: `${categoryPrefix}_${diffPrefix}_${String(questionId).padStart(4, '0')}`,
+      title: q.title,
+      description: q.description,
+      category: q.category,
+      difficulty: q.difficulty,
+      coins: coinsMap[q.difficulty],
+      constraints: `Standard constraints for ${q.category} problems`,
+      solution_hint: `Hint: Think about the core concept of ${q.category}`,
+      test_cases: [
+        { 
+          input: { case: 1 }, 
+          expected_output: 'Sample output 1' 
+        },
+      ]
+    });
+    questionId++;
+  });
+
+  console.log('📝 Generated', sampleQuestions.length, 'comprehensive sample questions for testing');
   cachedQuestions = sampleQuestions;
   cacheTimestamp = Date.now();
   return sampleQuestions;
