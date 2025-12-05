@@ -67,10 +67,17 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
 
     // If JSON files don't work, try fetching from a CSV or index file
     console.log('Trying alternative file format...');
-    return await fetchQuestionsFromFiles();
+    const alternativeQuestions = await fetchQuestionsFromFiles();
+    if (alternativeQuestions.length > 0) {
+      return alternativeQuestions;
+    }
+    
+    // If no questions found from GitHub, use sample questions
+    console.log('⚠️ No questions found from GitHub, generating sample questions...');
+    return generateSampleQuestions();
   } catch (error) {
     console.error('❌ Error fetching questions from GitHub:', error);
-    console.log('⚠️ Generating sample questions for testing...');
+    console.log('⚠️ Falling back to sample questions...');
     return generateSampleQuestions();
   }
 };
@@ -299,7 +306,6 @@ export const clearQuestionsCache = () => {
  * Generate sample questions for testing/fallback
  */
 const generateSampleQuestions = (): Question[] => {
-  const categories = ['loops', 'arrays', 'strings', 'dsa', 'sql'];
   const sampleQuestions: Question[] = [];
   let questionId = 1;
 
