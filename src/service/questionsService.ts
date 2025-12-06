@@ -11,7 +11,7 @@ export interface Question {
   constraints: string;
   solution_hint: string;
   test_cases: Array<{
-    input: Record<string, any>;
+    input: string;
     expected_output: string;
   }>;
 }
@@ -303,6 +303,506 @@ export const clearQuestionsCache = () => {
 };
 
 /**
+ * Get category-specific realistic questions with proper test cases
+ */
+const getCategoryQuestions = (category: string) => {
+  const questionBank: Record<string, any> = {
+    loops: {
+      easy: [
+        {
+          title: 'Print Numbers 1 to N',
+          description: 'Write a program to print all numbers from 1 to N, each on a new line.',
+          constraints: '1 ≤ N ≤ 100',
+          hint: 'Use a simple loop starting from 1 to N',
+          test_cases: [
+            { input: '5', expected_output: '1\n2\n3\n4\n5' },
+            { input: '3', expected_output: '1\n2\n3' }
+          ]
+        },
+        {
+          title: 'Print Even Numbers',
+          description: 'Print all even numbers from 1 to N.',
+          constraints: '1 ≤ N ≤ 100',
+          hint: 'Check if a number is divisible by 2',
+          test_cases: [
+            { input: '10', expected_output: '2\n4\n6\n8\n10' },
+            { input: '5', expected_output: '2\n4' }
+          ]
+        },
+        {
+          title: 'Sum of N Numbers',
+          description: 'Calculate the sum of first N natural numbers.',
+          constraints: '1 ≤ N ≤ 1000',
+          hint: 'Add all numbers from 1 to N in a loop',
+          test_cases: [
+            { input: '5', expected_output: '15' },
+            { input: '10', expected_output: '55' }
+          ]
+        },
+      ],
+      medium: [
+        {
+          title: 'Print Multiplication Table',
+          description: 'Print the multiplication table of N up to 10.',
+          constraints: '1 ≤ N ≤ 100',
+          hint: 'Use nested loops to print table format',
+          test_cases: [
+            { input: '2', expected_output: '2 4 6 8 10 12 14 16 18 20' },
+            { input: '3', expected_output: '3 6 9 12 15 18 21 24 27 30' }
+          ]
+        },
+        {
+          title: 'Fibonacci Series',
+          description: 'Print the first N Fibonacci numbers.',
+          constraints: '1 ≤ N ≤ 50',
+          hint: 'Use two variables to track previous and current numbers',
+          test_cases: [
+            { input: '5', expected_output: '0 1 1 2 3' },
+            { input: '6', expected_output: '0 1 1 2 3 5' }
+          ]
+        },
+        {
+          title: 'Factorial of N',
+          description: 'Calculate the factorial of N.',
+          constraints: '0 ≤ N ≤ 20',
+          hint: 'Multiply all numbers from 1 to N',
+          test_cases: [
+            { input: '5', expected_output: '120' },
+            { input: '6', expected_output: '720' }
+          ]
+        },
+      ],
+      hard: [
+        {
+          title: 'Prime Numbers Up to N',
+          description: 'Find all prime numbers up to N.',
+          constraints: '1 ≤ N ≤ 1000',
+          hint: 'Use Sieve of Eratosthenes for efficiency',
+          test_cases: [
+            { input: '10', expected_output: '2 3 5 7' },
+            { input: '20', expected_output: '2 3 5 7 11 13 17 19' }
+          ]
+        },
+        {
+          title: 'Reverse a Number',
+          description: 'Reverse the digits of a given number N.',
+          constraints: '1 ≤ N ≤ 1000000',
+          hint: 'Extract digits using modulo and division',
+          test_cases: [
+            { input: '12345', expected_output: '54321' },
+            { input: '1000', expected_output: '0001' }
+          ]
+        },
+        {
+          title: 'Armstrong Number Checker',
+          description: 'Check if a number is an Armstrong number (narcissistic number).',
+          constraints: '1 ≤ N ≤ 1000000',
+          hint: 'Sum of digits raised to power of number of digits',
+          test_cases: [
+            { input: '153', expected_output: 'true' },
+            { input: '154', expected_output: 'false' }
+          ]
+        },
+      ]
+    },
+    arrays: {
+      easy: [
+        {
+          title: 'Array Sum',
+          description: 'Find the sum of all elements in an array.',
+          constraints: '1 ≤ size ≤ 100, -1000 ≤ elements ≤ 1000',
+          hint: 'Initialize sum to 0 and add each element',
+          test_cases: [
+            { input: '5\n1 2 3 4 5', expected_output: '15' },
+            { input: '3\n10 20 30', expected_output: '60' }
+          ]
+        },
+        {
+          title: 'Array Maximum',
+          description: 'Find the maximum element in an array.',
+          constraints: '1 ≤ size ≤ 100',
+          hint: 'Compare each element with max variable',
+          test_cases: [
+            { input: '5\n3 1 4 1 5', expected_output: '5' },
+            { input: '3\n10 5 8', expected_output: '10' }
+          ]
+        },
+        {
+          title: 'Array Reversal',
+          description: 'Reverse an array.',
+          constraints: '1 ≤ size ≤ 100',
+          hint: 'Use two pointers or create new reversed array',
+          test_cases: [
+            { input: '5\n1 2 3 4 5', expected_output: '5 4 3 2 1' },
+            { input: '3\na b c', expected_output: 'c b a' }
+          ]
+        },
+      ],
+      medium: [
+        {
+          title: 'Array Rotation',
+          description: 'Rotate array elements by k positions.',
+          constraints: '1 ≤ size ≤ 1000, 0 ≤ k ≤ 1000',
+          hint: 'Use modulo to handle k > size',
+          test_cases: [
+            { input: '5 2\n1 2 3 4 5', expected_output: '4 5 1 2 3' },
+            { input: '4 1\n1 2 3 4', expected_output: '4 1 2 3' }
+          ]
+        },
+        {
+          title: 'Merge Two Arrays',
+          description: 'Merge two sorted arrays into one sorted array.',
+          constraints: '1 ≤ size1, size2 ≤ 1000',
+          hint: 'Use two pointers technique',
+          test_cases: [
+            { input: '3 3\n1 3 5\n2 4 6', expected_output: '1 2 3 4 5 6' },
+            { input: '2 2\n1 5\n2 3', expected_output: '1 2 3 5' }
+          ]
+        },
+        {
+          title: 'Remove Duplicates',
+          description: 'Remove duplicate elements from an array.',
+          constraints: '1 ≤ size ≤ 1000',
+          hint: 'Use a set or frequency map',
+          test_cases: [
+            { input: '5\n1 2 2 3 1', expected_output: '1 2 3' },
+            { input: '4\n5 5 5 5', expected_output: '5' }
+          ]
+        },
+      ],
+      hard: [
+        {
+          title: 'Longest Subarray',
+          description: 'Find the longest contiguous subarray with sum equal to target.',
+          constraints: '1 ≤ size ≤ 10000',
+          hint: 'Use prefix sum and hashmap',
+          test_cases: [
+            { input: '5 5\n1 2 3 1 4', expected_output: '3' },
+            { input: '4 2\n1 1 1 1', expected_output: '2' }
+          ]
+        },
+        {
+          title: 'Median of Array',
+          description: 'Find the median of an unsorted array.',
+          constraints: '1 ≤ size ≤ 10000',
+          hint: 'Sort or use heap/quickselect',
+          test_cases: [
+            { input: '5\n3 1 4 1 5', expected_output: '3' },
+            { input: '4\n1 2 3 4', expected_output: '2.5' }
+          ]
+        },
+        {
+          title: 'Max Product Subarray',
+          description: 'Find maximum product of a contiguous subarray.',
+          constraints: '1 ≤ size ≤ 1000, -100 ≤ elements ≤ 100',
+          hint: 'Track both max and min (for negatives)',
+          test_cases: [
+            { input: '4\n2 3 -2 4', expected_output: '6' },
+            { input: '3\n-2 3 -4', expected_output: '24' }
+          ]
+        },
+      ]
+    },
+    strings: {
+      easy: [
+        {
+          title: 'String Length',
+          description: 'Find the length of a string.',
+          constraints: '0 ≤ length ≤ 1000',
+          hint: 'Count characters or use length function',
+          test_cases: [
+            { input: 'hello', expected_output: '5' },
+            { input: 'code', expected_output: '4' }
+          ]
+        },
+        {
+          title: 'Reverse String',
+          description: 'Reverse a given string.',
+          constraints: '0 ≤ length ≤ 1000',
+          hint: 'Iterate from end to start',
+          test_cases: [
+            { input: 'hello', expected_output: 'olleh' },
+            { input: 'racecar', expected_output: 'racecar' }
+          ]
+        },
+        {
+          title: 'Palindrome Check',
+          description: 'Check if a string is a palindrome.',
+          constraints: '1 ≤ length ≤ 1000',
+          hint: 'Compare string with its reverse',
+          test_cases: [
+            { input: 'racecar', expected_output: 'true' },
+            { input: 'hello', expected_output: 'false' }
+          ]
+        },
+      ],
+      medium: [
+        {
+          title: 'Anagram Checker',
+          description: 'Check if two strings are anagrams.',
+          constraints: '1 ≤ length ≤ 1000',
+          hint: 'Sort characters or count frequency',
+          test_cases: [
+            { input: 'listen\nsilent', expected_output: 'true' },
+            { input: 'hello\nworld', expected_output: 'false' }
+          ]
+        },
+        {
+          title: 'Word Frequency',
+          description: 'Count frequency of each word in a string.',
+          constraints: '1 ≤ length ≤ 1000',
+          hint: 'Use a frequency map/dictionary',
+          test_cases: [
+            { input: 'hello world hello', expected_output: 'hello 2 world 1' },
+            { input: 'a b c a', expected_output: 'a 2 b 1 c 1' }
+          ]
+        },
+        {
+          title: 'Substring Search',
+          description: 'Find all occurrences of a substring in a string.',
+          constraints: '1 ≤ length ≤ 1000',
+          hint: 'Use string matching or KMP algorithm',
+          test_cases: [
+            { input: 'helloello\nell', expected_output: '1 5' },
+            { input: 'aaaa\naa', expected_output: '0 1 2' }
+          ]
+        },
+      ],
+      hard: [
+        {
+          title: 'Longest Palindrome',
+          description: 'Find the longest palindromic substring.',
+          constraints: '1 ≤ length ≤ 1000',
+          hint: 'Use expand around center or DP',
+          test_cases: [
+            { input: 'babad', expected_output: 'bab' },
+            { input: 'banana', expected_output: 'anana' }
+          ]
+        },
+        {
+          title: 'Edit Distance',
+          description: 'Find minimum edits to convert string1 to string2.',
+          constraints: '1 ≤ length ≤ 500',
+          hint: 'Use dynamic programming',
+          test_cases: [
+            { input: 'horse\nros', expected_output: '3' },
+            { input: 'abc\nabc', expected_output: '0' }
+          ]
+        },
+        {
+          title: 'Pattern Matching',
+          description: 'Implement pattern matching with wildcards.',
+          constraints: '1 ≤ length ≤ 500',
+          hint: 'Use dynamic programming or recursion',
+          test_cases: [
+            { input: 'aa\na', expected_output: 'false' },
+            { input: 'aa\n*', expected_output: 'true' }
+          ]
+        },
+      ]
+    },
+    dsa: {
+      easy: [
+        {
+          title: 'Binary Search',
+          description: 'Implement binary search on a sorted array.',
+          constraints: '1 ≤ size ≤ 1000, sorted array',
+          hint: 'Divide search space in half each iteration',
+          test_cases: [
+            { input: '5 3\n1 3 5 7 9', expected_output: '1' },
+            { input: '5 7\n1 3 5 7 9', expected_output: '3' }
+          ]
+        },
+        {
+          title: 'Linear Search',
+          description: 'Find the first occurrence of an element.',
+          constraints: '1 ≤ size ≤ 1000',
+          hint: 'Iterate through array checking each element',
+          test_cases: [
+            { input: '5 3\n1 3 5 3 9', expected_output: '1' },
+            { input: '5 2\n1 3 5 7 9', expected_output: '-1' }
+          ]
+        },
+        {
+          title: 'Bubble Sort',
+          description: 'Sort an array using bubble sort.',
+          constraints: '1 ≤ size ≤ 100',
+          hint: 'Compare adjacent elements and swap',
+          test_cases: [
+            { input: '5\n5 2 8 1 9', expected_output: '1 2 5 8 9' },
+            { input: '3\n3 1 2', expected_output: '1 2 3' }
+          ]
+        },
+      ],
+      medium: [
+        {
+          title: 'Binary Tree Level Order',
+          description: 'Print binary tree in level order (BFS).',
+          constraints: '1 ≤ nodes ≤ 1000',
+          hint: 'Use a queue for BFS traversal',
+          test_cases: [
+            { input: '7\n1 2 3 4 5 6 7', expected_output: '1\n2 3\n4 5 6 7' },
+            { input: '3\n1 2 3', expected_output: '1\n2 3' }
+          ]
+        },
+        {
+          title: 'DFS Traversal',
+          description: 'Perform depth-first search on a graph.',
+          constraints: '1 ≤ nodes ≤ 1000',
+          hint: 'Use recursion or explicit stack',
+          test_cases: [
+            { input: '4\n0 1\n0 2\n1 3\n2 3', expected_output: '0 1 3 2' },
+            { input: '3\n0 1\n1 2', expected_output: '0 1 2' }
+          ]
+        },
+        {
+          title: 'Merge Sort',
+          description: 'Sort an array using merge sort.',
+          constraints: '1 ≤ size ≤ 1000',
+          hint: 'Divide array and merge sorted subarrays',
+          test_cases: [
+            { input: '5\n5 2 8 1 9', expected_output: '1 2 5 8 9' },
+            { input: '4\n4 3 2 1', expected_output: '1 2 3 4' }
+          ]
+        },
+      ],
+      hard: [
+        {
+          title: 'Dijkstra Algorithm',
+          description: 'Find shortest path using Dijkstra algorithm.',
+          constraints: '1 ≤ nodes ≤ 1000',
+          hint: 'Use min-heap priority queue',
+          test_cases: [
+            { input: '4 5\n0 1 4\n0 2 1\n1 3 1\n2 1 2\n2 3 5', expected_output: '0 3 1 4' },
+            { input: '3 3\n0 1 1\n0 2 4\n1 2 2', expected_output: '0 1 3' }
+          ]
+        },
+        {
+          title: 'LCS Problem',
+          description: 'Find longest common subsequence of two strings.',
+          constraints: '1 ≤ length ≤ 500',
+          hint: 'Use dynamic programming',
+          test_cases: [
+            { input: 'AGGTAB\nGXTXAYB', expected_output: '5' },
+            { input: 'abc\nabc', expected_output: '3' }
+          ]
+        },
+        {
+          title: 'Knapsack Problem',
+          description: 'Solve 0/1 knapsack problem with given capacity.',
+          constraints: '1 ≤ n ≤ 1000, capacity ≤ 10000',
+          hint: 'Use dynamic programming',
+          test_cases: [
+            { input: '3 50\n10 20 30\n60 100 120', expected_output: '220' },
+            { input: '4 5\n2 3 4 5\n3 4 5 6', expected_output: '10' }
+          ]
+        },
+      ]
+    },
+    sql: {
+      easy: [
+        {
+          title: 'SELECT All Columns',
+          description: 'Write a query to select all columns from a table.',
+          constraints: 'Standard SQL',
+          hint: 'Use SELECT * FROM table_name',
+          test_cases: [
+            { input: 'SELECT * FROM users', expected_output: 'Query executed successfully' },
+            { input: 'SELECT * FROM products', expected_output: 'Query executed successfully' }
+          ]
+        },
+        {
+          title: 'WHERE Clause',
+          description: 'Write a query with WHERE clause to filter records.',
+          constraints: 'Standard SQL',
+          hint: 'Use WHERE condition',
+          test_cases: [
+            { input: 'SELECT * FROM users WHERE age > 18', expected_output: 'Filtered results' },
+            { input: 'SELECT * FROM products WHERE price < 100', expected_output: 'Filtered results' }
+          ]
+        },
+        {
+          title: 'ORDER BY Clause',
+          description: 'Write a query to order results.',
+          constraints: 'Standard SQL',
+          hint: 'Use ORDER BY column ASC/DESC',
+          test_cases: [
+            { input: 'SELECT * FROM users ORDER BY age DESC', expected_output: 'Sorted results' },
+            { input: 'SELECT * FROM products ORDER BY price ASC', expected_output: 'Sorted results' }
+          ]
+        },
+      ],
+      medium: [
+        {
+          title: 'JOIN Operation',
+          description: 'Write a query using INNER JOIN.',
+          constraints: 'Standard SQL',
+          hint: 'Use INNER JOIN ON condition',
+          test_cases: [
+            { input: 'SELECT * FROM users INNER JOIN orders ON users.id = orders.user_id', expected_output: 'Joined results' },
+            { input: 'SELECT * FROM products INNER JOIN categories ON products.cat_id = categories.id', expected_output: 'Joined results' }
+          ]
+        },
+        {
+          title: 'GROUP BY Query',
+          description: 'Write a query using GROUP BY with aggregation.',
+          constraints: 'Standard SQL',
+          hint: 'Use GROUP BY with SUM/COUNT/AVG',
+          test_cases: [
+            { input: 'SELECT department, COUNT(*) FROM employees GROUP BY department', expected_output: 'Grouped results' },
+            { input: 'SELECT category, SUM(price) FROM products GROUP BY category', expected_output: 'Grouped results' }
+          ]
+        },
+        {
+          title: 'Subquery',
+          description: 'Write a query using subquery.',
+          constraints: 'Standard SQL',
+          hint: 'Use WHERE column IN (SELECT ...)',
+          test_cases: [
+            { input: 'SELECT * FROM users WHERE id IN (SELECT user_id FROM orders)', expected_output: 'Subquery results' },
+            { input: 'SELECT * FROM products WHERE price > (SELECT AVG(price) FROM products)', expected_output: 'Subquery results' }
+          ]
+        },
+      ],
+      hard: [
+        {
+          title: 'Complex JOIN',
+          description: 'Write a complex query with multiple JOINs.',
+          constraints: 'Standard SQL',
+          hint: 'Use multiple INNER/LEFT JOINs',
+          test_cases: [
+            { input: 'SELECT * FROM users u JOIN orders o ON u.id = o.user_id JOIN items i ON o.id = i.order_id', expected_output: 'Complex joined results' },
+            { input: 'SELECT * FROM departments d LEFT JOIN employees e ON d.id = e.dept_id', expected_output: 'Complex joined results' }
+          ]
+        },
+        {
+          title: 'Window Functions',
+          description: 'Write a query using window functions.',
+          constraints: 'Standard SQL',
+          hint: 'Use ROW_NUMBER() OVER (PARTITION BY ...)',
+          test_cases: [
+            { input: 'SELECT *, ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary) FROM employees', expected_output: 'Window function results' },
+            { input: 'SELECT *, RANK() OVER (ORDER BY score DESC) FROM scores', expected_output: 'Window function results' }
+          ]
+        },
+        {
+          title: 'CTE Query',
+          description: 'Write a query using Common Table Expressions.',
+          constraints: 'Standard SQL',
+          hint: 'Use WITH cte_name AS (...)',
+          test_cases: [
+            { input: 'WITH cte AS (SELECT * FROM users WHERE active = 1) SELECT * FROM cte WHERE age > 18', expected_output: 'CTE results' },
+            { input: 'WITH RECURSIVE cte AS (SELECT 1 AS n UNION ALL SELECT n+1 FROM cte WHERE n < 10) SELECT * FROM cte', expected_output: 'Recursive CTE results' }
+          ]
+        },
+      ]
+    }
+  };
+
+  return questionBank[category] || { easy: [], medium: [], hard: [] };
+};
+
+/**
  * Generate 3000+ comprehensive sample questions for testing/fallback
  */
 const generateSampleQuestions = (): Question[] => {
@@ -458,103 +958,67 @@ const generateSampleQuestions = (): Question[] => {
     },
   ];
 
-  // Generate questions for each category
+  // Generate questions for each category with realistic problems and test cases
   for (const category of categories) {
     // Calculate how many easy, medium, hard questions
     const easyCount = Math.floor(category.count * 0.3);
     const mediumCount = Math.floor(category.count * 0.4);
     const hardCount = category.count - easyCount - mediumCount;
 
+    // Define category-specific questions
+    const categoryQuestions = getCategoryQuestions(category.name);
+
     // Generate easy questions
     for (let i = 0; i < easyCount; i++) {
-      const sampleTitle = category.samples[i % category.samples.length];
-      const variation = Math.floor(i / category.samples.length) + 1;
+      const qTemplate = categoryQuestions.easy[i % categoryQuestions.easy.length];
+      const qNum = i + 1;
       
       sampleQuestions.push({
-        id: `${category.prefix}_E_${String(i + 1).padStart(4, '0')}`,
-        title: `${sampleTitle} - Variation ${variation}`,
-        description: `Write a solution for: ${sampleTitle}. This is an easy level problem in the ${category.name} category.`,
+        id: `${category.prefix}_E_${String(qNum).padStart(4, '0')}`,
+        title: qTemplate.title,
+        description: qTemplate.description,
         category: category.name,
         difficulty: 'easy',
         coins: 10,
-        constraints: `Standard constraints for ${category.name} problems. Time complexity should be O(n) or better.`,
-        solution_hint: `Hint: Think about using basic concepts and simple approaches for this ${category.name} problem.`,
-        test_cases: [
-          { 
-            input: '5', 
-            expected_output: '5\n4\n3\n2\n1' 
-          },
-          { 
-            input: '10', 
-            expected_output: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1' 
-          },
-        ]
+        constraints: qTemplate.constraints,
+        solution_hint: qTemplate.hint,
+        test_cases: qTemplate.test_cases
       });
     }
 
     // Generate medium questions
     for (let i = 0; i < mediumCount; i++) {
-      const sampleTitle = category.samples[i % category.samples.length];
-      const variation = Math.floor(i / category.samples.length) + 1;
+      const qTemplate = categoryQuestions.medium[i % categoryQuestions.medium.length];
+      const qNum = easyCount + i + 1;
       
       sampleQuestions.push({
-        id: `${category.prefix}_M_${String(easyCount + i + 1).padStart(4, '0')}`,
-        title: `${sampleTitle} - Advanced Variation ${variation}`,
-        description: `Solve advanced: ${sampleTitle}. This is a medium level problem requiring intermediate understanding of ${category.name}.`,
+        id: `${category.prefix}_M_${String(qNum).padStart(4, '0')}`,
+        title: qTemplate.title,
+        description: qTemplate.description,
         category: category.name,
         difficulty: 'medium',
         coins: 25,
-        constraints: `Advanced constraints for ${category.name} problems. Consider edge cases and optimize for better complexity.`,
-        solution_hint: `Hint: Consider using intermediate data structures or algorithms specific to ${category.name} for this problem.`,
-        test_cases: [
-          { 
-            input: '5 3', 
-            expected_output: '8' 
-          },
-          { 
-            input: '10 7', 
-            expected_output: '17' 
-          },
-          { 
-            input: '100 50', 
-            expected_output: '150' 
-          },
-        ]
+        constraints: qTemplate.constraints,
+        solution_hint: qTemplate.hint,
+        test_cases: qTemplate.test_cases
       });
     }
 
     // Generate hard questions
     for (let i = 0; i < hardCount; i++) {
-      const sampleTitle = category.samples[i % category.samples.length];
-      const variation = Math.floor(i / category.samples.length) + 1;
+      const qTemplate = categoryQuestions.hard[i % categoryQuestions.hard.length];
+      const qNum = easyCount + mediumCount + i + 1;
       
       sampleQuestions.push({
-        id: `${category.prefix}_H_${String(easyCount + mediumCount + i + 1).padStart(4, '0')}`,
-        title: `${sampleTitle} - Expert Challenge ${variation}`,
-        description: `Expert level challenge: ${sampleTitle}. This is a hard level problem requiring deep knowledge of advanced ${category.name} concepts.`,
+        id: `${category.prefix}_H_${String(qNum).padStart(4, '0')}`,
+        title: qTemplate.title,
+        description: qTemplate.description,
         category: category.name,
         difficulty: 'hard',
         coins: 50,
-        constraints: `Complex constraints for ${category.name} problems. Optimize for both time and space complexity. Handle all edge cases.`,
-        solution_hint: `Hint: This requires advanced knowledge of ${category.name}. Consider multiple approaches and choose the most efficient one.`,
-        test_cases: [
-          { 
-            input: '5', 
-            expected_output: '120' 
-          },
-          { 
-            input: '10', 
-            expected_output: '3628800' 
-          },
-          { 
-            input: '3', 
-            expected_output: '6' 
-          },
-          { 
-            input: '7', 
-            expected_output: '5040' 
-          },
-        ]
+        constraints: qTemplate.constraints,
+        solution_hint: qTemplate.hint,
+        test_cases: qTemplate.test_cases
       });
     }
   }

@@ -247,8 +247,13 @@ rl.on('close', () => {
     setQuickRunResult(null);
 
     try {
-      // Get all test cases (including hidden) for validation
-      const testCases = await getValidationTestCases(challengeId);
+      // Use test cases from challenge object first, fall back to Firestore
+      let testCases = challenge.testCases || [];
+      
+      if (testCases.length === 0) {
+        // Fallback: Get test cases from Firestore
+        testCases = await getValidationTestCases(challengeId);
+      }
       
       if (testCases.length === 0) {
         setResults({
@@ -264,7 +269,14 @@ rl.on('close', () => {
         return;
       }
       
-      const result = await runTestCasesPiston(code, language, testCases);
+      // Transform test cases to match runTestCasesPiston format: { input, output }
+      // Handle both formats: { input, expectedOutput } and { input, expected_output }
+      const transformedTestCases = testCases.map(tc => ({
+        input: tc.input || '',
+        output: tc.expectedOutput || (tc as any).expected_output || ''
+      }));
+      
+      const result = await runTestCasesPiston(code, language, transformedTestCases);
       setResults(result);
 
       // If all tests passed, check if already solved before awarding coins
