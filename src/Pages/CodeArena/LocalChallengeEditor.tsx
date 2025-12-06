@@ -28,6 +28,21 @@ import {
 } from '../../service/challenges';
 import { getPistonSupportedLanguages, quickRunPiston, runTestCasesPiston } from '../../service/codeExecution';
 
+/**
+ * Map test cases from Question format to Challenge format
+ * Handles both snake_case and camelCase field names
+ */
+const mapTestCases = (testCases: any[]): any[] => {
+  if (!Array.isArray(testCases)) return [];
+  
+  return testCases.map(tc => ({
+    input: tc.input || '',
+    expectedOutput: tc.expectedOutput || tc.expected_output || '',
+    isHidden: tc.isHidden || false,
+    points: tc.points || 0
+  }));
+};
+
 const LocalChallengeEditor = () => {
   const { challengeId } = useParams();
   const navigate = useNavigate();
@@ -89,7 +104,7 @@ const LocalChallengeEditor = () => {
             outputFormat: 'Standard output',
             constraints: [(challengeData as any).constraints || 'N/A'],
             examples: [],
-            testCases: (challengeData as any).testCases || [],
+            testCases: mapTestCases((challengeData as any).testCases || (challengeData as any).test_cases || []),
             hints: [],
             tags: [(challengeData as any).category || (challengeData as any).topic],
             isPremium: false,

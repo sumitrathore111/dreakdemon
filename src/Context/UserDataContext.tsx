@@ -164,6 +164,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [contributors, setcontributers] = useState<Contributor[]>()
     const [avatrUrl, setAvatarUrl] = useState('')
 
+    // Initialize battle challenges from practice questions on app start
+    useEffect(() => {
+        const initBattleChallenges = async () => {
+            try {
+                const { seedBattleChallengesFromPractice } = await import('../service/challenges');
+                console.log('🚀 Seeding battle challenges from practice questions...');
+                await seedBattleChallengesFromPractice();
+            } catch (error) {
+                console.error('Error initializing battle challenges:', error);
+            }
+        };
+
+        // Only initialize once
+        initBattleChallenges();
+    }, []);
+
     const maleAvatarLilst = [
         "Eliza",
         "Easton",

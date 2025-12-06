@@ -1012,3 +1012,86 @@ export const initializeChallenges = async (): Promise<void> => {
     console.error('Error initializing challenges:', error);
   }
 };
+
+/**
+ * Seed battle challenges from practice questions
+ * This populates Firestore with the 3050+ practice questions for use in battles
+ */
+export const seedBattleChallengesFromPractice = async () => {
+  try {
+    const { fetchAllQuestions } = await import('./questionsService');
+    
+    console.log('📥 Fetching practice questions to seed battles...');
+    const practiceQuestions = await fetchAllQuestions();
+    
+    if (practiceQuestions.length === 0) {
+      console.warn('⚠️ No practice questions found to seed');
+      return;
+    }
+
+    // Check how many battle challenges already exist
+    const battlesRef = collection(db, 'CodeArena_Challenges');
+    const existingChallenges = await getDocs(battlesRef);
+    
+    if (existingChallenges.size > 0) {
+      console.log(`✓ Found ${existingChallenges.size} existing battle challenges, skipping seed`);
+      return;
+    }
+
+    console.log(`🌱 Seeding ${practiceQuestions.length} challenges to Firestore...`);
+    
+    let addedCount = 0;
+    const batchSize = 100;
+    
+    for (let i = 0; i < practiceQuestions.length; i += batchSize) {
+      const batch = practiceQuestions.slice(i, i + batchSize);
+      
+      for (const question of batch) {
+        try {
+          // Convert practice question to challenge format
+          const challenge: Challenge = {
+            id: question.id,
+            title: question.title,
+            description: question.description,
+            difficulty: question.difficulty as 'easy' | 'medium' | 'hard',
+            category: question.category,
+            points: question.coins || 10,
+            coinReward: question.coins || 10,
+            timeLimit: 15 * 60 * 1000, // 15 minutes in milliseconds
+            memoryLimit: 256,
+            problemStatement: question.description,
+            inputFormat: 'Standard input',
+            outputFormat: 'Standard output',
+            constraints: [question.constraints || 'N/A'],
+            examples: [],
+            testCases: (question.test_cases || []).map(tc => ({
+              input: tc.input || '',
+              expectedOutput: tc.expected_output || '',
+              isHidden: false,
+              points: 1
+            })),
+            hints: question.solution_hint ? [{ text: question.solution_hint, coinCost: 5 }] : [],
+            tags: [question.category],
+            isPremium: false,
+            isDaily: false,
+            totalSubmissions: 0,
+            successfulSubmissions: 0,
+            acceptanceRate: 0,
+          };
+
+          await addDoc(battlesRef, challenge);
+          addedCount++;
+        } catch (error) {
+          console.error(`Failed to add challenge ${question.id}:`, error);
+        }
+      }
+      
+      console.log(`Progress: ${Math.min(i + batchSize, practiceQuestions.length)}/${practiceQuestions.length}`);
+    }
+    
+    console.log(`✅ Successfully seeded ${addedCount} battle challenges to Firestore!`);
+  } catch (error) {
+    console.error('❌ Error seeding battle challenges:', error);
+  }
+};
+

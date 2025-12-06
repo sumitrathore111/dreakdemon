@@ -320,6 +320,16 @@ const getCategoryQuestions = (category: string) => {
           ]
         },
         {
+          title: 'Print Numbers from N to 1 (Reverse)',
+          description: 'Write a program to print all numbers from N down to 1 in reverse order.',
+          constraints: '1 ≤ N ≤ 100',
+          hint: 'Use a loop starting from N down to 1',
+          test_cases: [
+            { input: '5', expected_output: '5\n4\n3\n2\n1' },
+            { input: '10', expected_output: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1' }
+          ]
+        },
+        {
           title: 'Print Even Numbers',
           description: 'Print all even numbers from 1 to N.',
           constraints: '1 ≤ N ≤ 100',
@@ -958,9 +968,9 @@ const generateSampleQuestions = (): Question[] => {
     },
   ];
 
-  // Generate questions for each category with realistic problems and test cases
+  // Generate questions for each category with realistic problems and clear learning progression
   for (const category of categories) {
-    // Calculate how many easy, medium, hard questions
+    // Calculate how many easy, medium, hard questions (30% - 40% - 30% distribution)
     const easyCount = Math.floor(category.count * 0.3);
     const mediumCount = Math.floor(category.count * 0.4);
     const hardCount = category.count - easyCount - mediumCount;
@@ -968,57 +978,94 @@ const generateSampleQuestions = (): Question[] => {
     // Define category-specific questions
     const categoryQuestions = getCategoryQuestions(category.name);
 
-    // Generate easy questions
+    // Helper to generate test case variations
+    const generateTestCaseVariation = (baseTestCases: any[], index: number) => {
+      const multipliers = [1, 1.5, 2, 2.5, 3, 4, 5];
+      const multiplier = multipliers[index % multipliers.length];
+      
+      return baseTestCases.map(tc => {
+        try {
+          // Try to parse as number and scale
+          const num = parseInt(tc.input);
+          if (!isNaN(num) && num > 0) {
+            return {
+              input: String(Math.floor(num * multiplier)),
+              expected_output: tc.expected_output
+            };
+          }
+        } catch (e) {
+          // If not a number, keep original
+        }
+        return tc;
+      });
+    };
+
+    // Generate EASY questions - Foundation building
     for (let i = 0; i < easyCount; i++) {
-      const qTemplate = categoryQuestions.easy[i % categoryQuestions.easy.length];
-      const qNum = i + 1;
+      const baseTemplateIndex = i % categoryQuestions.easy.length;
+      const baseTemplate = categoryQuestions.easy[baseTemplateIndex];
+      const variationIndex = Math.floor(i / categoryQuestions.easy.length);
+      
+      const testCases = variationIndex === 0 
+        ? baseTemplate.test_cases 
+        : generateTestCaseVariation(baseTemplate.test_cases, variationIndex);
       
       sampleQuestions.push({
-        id: `${category.prefix}_E_${String(qNum).padStart(4, '0')}`,
-        title: qTemplate.title,
-        description: qTemplate.description,
+        id: `${category.prefix}_E_${String(i + 1).padStart(4, '0')}`,
+        title: `${baseTemplate.title}${variationIndex > 0 ? ` #${variationIndex + 1}` : ''}`,
+        description: `${baseTemplate.description}${variationIndex > 0 ? `\n\n✓ Problem Variant ${variationIndex + 1}` : '\n\n✓ Start here - Basic level'}`,
         category: category.name,
         difficulty: 'easy',
         coins: 10,
-        constraints: qTemplate.constraints,
-        solution_hint: qTemplate.hint,
-        test_cases: qTemplate.test_cases
+        constraints: baseTemplate.constraints,
+        solution_hint: baseTemplate.hint,
+        test_cases: testCases
       });
     }
 
-    // Generate medium questions
+    // Generate MEDIUM questions - Intermediate building
     for (let i = 0; i < mediumCount; i++) {
-      const qTemplate = categoryQuestions.medium[i % categoryQuestions.medium.length];
-      const qNum = easyCount + i + 1;
+      const baseTemplateIndex = i % categoryQuestions.medium.length;
+      const baseTemplate = categoryQuestions.medium[baseTemplateIndex];
+      const variationIndex = Math.floor(i / categoryQuestions.medium.length);
+      
+      const testCases = variationIndex === 0 
+        ? baseTemplate.test_cases 
+        : generateTestCaseVariation(baseTemplate.test_cases, variationIndex);
       
       sampleQuestions.push({
-        id: `${category.prefix}_M_${String(qNum).padStart(4, '0')}`,
-        title: qTemplate.title,
-        description: qTemplate.description,
+        id: `${category.prefix}_M_${String(easyCount + i + 1).padStart(4, '0')}`,
+        title: `${baseTemplate.title}${variationIndex > 0 ? ` #${variationIndex + 1}` : ''}`,
+        description: `${baseTemplate.description}${variationIndex > 0 ? `\n\n✓ Problem Variant ${variationIndex + 1}` : '\n\n✓ Intermediate level - Apply concepts'}`,
         category: category.name,
         difficulty: 'medium',
         coins: 25,
-        constraints: qTemplate.constraints,
-        solution_hint: qTemplate.hint,
-        test_cases: qTemplate.test_cases
+        constraints: baseTemplate.constraints,
+        solution_hint: baseTemplate.hint,
+        test_cases: testCases
       });
     }
 
-    // Generate hard questions
+    // Generate HARD questions - Advanced combining
     for (let i = 0; i < hardCount; i++) {
-      const qTemplate = categoryQuestions.hard[i % categoryQuestions.hard.length];
-      const qNum = easyCount + mediumCount + i + 1;
+      const baseTemplateIndex = i % categoryQuestions.hard.length;
+      const baseTemplate = categoryQuestions.hard[baseTemplateIndex];
+      const variationIndex = Math.floor(i / categoryQuestions.hard.length);
+      
+      const testCases = variationIndex === 0 
+        ? baseTemplate.test_cases 
+        : generateTestCaseVariation(baseTemplate.test_cases, variationIndex);
       
       sampleQuestions.push({
-        id: `${category.prefix}_H_${String(qNum).padStart(4, '0')}`,
-        title: qTemplate.title,
-        description: qTemplate.description,
+        id: `${category.prefix}_H_${String(easyCount + mediumCount + i + 1).padStart(4, '0')}`,
+        title: `${baseTemplate.title}${variationIndex > 0 ? ` #${variationIndex + 1}` : ''}`,
+        description: `${baseTemplate.description}${variationIndex > 0 ? `\n\n✓ Problem Variant ${variationIndex + 1}` : '\n\n✓ Hard level - Master the concept'}`,
         category: category.name,
         difficulty: 'hard',
         coins: 50,
-        constraints: qTemplate.constraints,
-        solution_hint: qTemplate.hint,
-        test_cases: qTemplate.test_cases
+        constraints: baseTemplate.constraints,
+        solution_hint: baseTemplate.hint,
+        test_cases: testCases
       });
     }
   }
