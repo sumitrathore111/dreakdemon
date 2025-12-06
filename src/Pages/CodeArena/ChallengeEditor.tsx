@@ -17,7 +17,7 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
@@ -31,6 +31,7 @@ import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 const ChallengeEditor = () => {
   const { challengeId } = useParams(); // Format: "contestId-index" e.g., "1800-A"
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { } = useDataContext();
 
@@ -139,26 +140,40 @@ rl.on('close', () => {
       setLoading(true);
 
       try {
-        // Get challenge from database
-        const challengeData = await fetchChallengeById(challengeId);
+        // First, check if challenge data was passed via navigation state
+        const challengeData = (location.state as any)?.challenge;
         
         if (challengeData) {
-          setChallenge(challengeData);
+          setChallenge(challengeData as Challenge);
+          // Parse test cases from the challenge object
+          if (challengeData.testCases) {
+            setTestCases(Array.isArray(challengeData.testCases) ? challengeData.testCases : []);
+          }
+        } else {
+          // Fallback: Get challenge from database
+          const firestoreChallenge = await fetchChallengeById(challengeId);
+          
+          if (firestoreChallenge) {
+            setChallenge(firestoreChallenge);
+            // Fetch test cases (visible ones only for practice)
+            const cases = await getChallengeTestCases(challengeId, false);
+            setTestCases(cases);
+          } else {
+            // If not found in Firestore, show error
+            setChallenge(null);
+          }
         }
-
-        // Fetch test cases (visible ones only for practice)
-        const cases = await getChallengeTestCases(challengeId, false);
-        setTestCases(cases);
 
         setLoading(false);
       } catch (error) {
         console.error('Error loading challenge:', error);
+        setChallenge(null);
         setLoading(false);
       }
     };
 
     loadChallenge();
-  }, [challengeId]);
+  }, [challengeId, location]);
 
   // Set default code when language changes
   useEffect(() => {

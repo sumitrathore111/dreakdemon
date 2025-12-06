@@ -138,7 +138,9 @@ const PracticeChallenges = () => {
   };
 
   const handleSolve = (challenge: any) => {
-    navigate(`/dashboard/codearena/challenge/${challenge.id}`);
+    navigate(`/dashboard/codearena/challenge/${challenge.id}`, { 
+      state: { challenge } 
+    });
   };
 
   const stats = [

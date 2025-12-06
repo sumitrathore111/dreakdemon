@@ -18,7 +18,7 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import {
@@ -31,6 +31,7 @@ import { getPistonSupportedLanguages, quickRunPiston, runTestCasesPiston } from 
 const LocalChallengeEditor = () => {
   const { challengeId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { addCoins, getUserProgress, markChallengeAsSolved } = useDataContext();
 
@@ -67,7 +68,42 @@ const LocalChallengeEditor = () => {
       setLoading(true);
 
       try {
-        const challengeData = await fetchChallengeById(challengeId);
+        // First check if challenge was passed via navigation state
+        let challengeData = (location.state as any)?.challenge as Challenge | undefined;
+        
+        // If challenge came from PracticeChallenges, it has different field names
+        // Map it to Challenge interface format
+        if (challengeData && !challengeData.problemStatement) {
+          challengeData = {
+            id: challengeData.id,
+            title: challengeData.title,
+            description: challengeData.description,
+            difficulty: challengeData.difficulty as 'easy' | 'medium' | 'hard' | 'expert',
+            category: challengeData.category || challengeData.topic,
+            points: 100,
+            coinReward: (challengeData as any).coinReward || 10,
+            timeLimit: 5000,
+            memoryLimit: 256,
+            problemStatement: challengeData.description,
+            inputFormat: 'Standard input',
+            outputFormat: 'Standard output',
+            constraints: [(challengeData as any).constraints || 'N/A'],
+            examples: [],
+            testCases: (challengeData as any).testCases || [],
+            hints: [],
+            tags: [(challengeData as any).category || (challengeData as any).topic],
+            isPremium: false,
+            isDaily: false,
+            totalSubmissions: 0,
+            successfulSubmissions: 0,
+            acceptanceRate: 0,
+          } as Challenge;
+        }
+
+        if (!challengeData) {
+          // Fallback: Get challenge from Firestore
+          challengeData = await fetchChallengeById(challengeId);
+        }
 
         if (challengeData) {
           setChallenge(challengeData);
@@ -88,7 +124,7 @@ const LocalChallengeEditor = () => {
     };
 
     loadChallenge();
-  }, [challengeId]);
+  }, [challengeId, location]);
 
   // Update code when language changes
   useEffect(() => {
