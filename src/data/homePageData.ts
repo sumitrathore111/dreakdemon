@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Code, Brain, Users, Target, GitBranch, Lightbulb, Trophy, Star } from 'lucide-react';
+import { Brain, Code, GitBranch, Lightbulb, Star, Target, Trophy, Users } from 'lucide-react';
 
 export interface ServiceData {
   icon: LucideIcon;
@@ -200,10 +200,5 @@ export const galleryImages = [
     url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=80",
     alt: "Developer conference",
     caption: "Tech conference networking"
-  },
-  {
-    url: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&q=80",
-    alt: "Coding bootcamp",
-    caption: "Intensive coding session"
   }
 ];
