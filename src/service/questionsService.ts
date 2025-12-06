@@ -1,5 +1,9 @@
-// Service to fetch 100 well-structured questions from GitHub repository
-// Database-light: Fetches from GitHub, no local generation or repetition
+// Service to fetch 1000 well-structured questions from multiple sources
+// Database-light: Primary = GitHub, Secondary = public/questions.json, Tertiary = bundled import
+// Includes filtering, searching, and randomization
+
+// Import local questions as fallback
+import questionsData from '../../questions.json';
 
 export interface Question {
   id: string;
@@ -18,45 +22,81 @@ export interface Question {
 
 // GitHub raw content URL for our questions repository
 const GITHUB_QUESTIONS_URL = 'https://raw.githubusercontent.com/moohhiit/CodeArena-Questions/main/questions.json';
+// Local public folder fallback
+const LOCAL_QUESTIONS_URL = '/questions.json';
 
 let cachedQuestions: Question[] | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
 /**
- * Fetch all questions from GitHub repository
+ * Fetch all questions from multiple sources with fallback chain:
+ * 1. GitHub repository (if available)
+ * 2. Local public/questions.json (static asset)
+ * 3. Bundled questions.json import
  * Uses caching to reduce API calls
  */
 export const fetchAllQuestions = async (): Promise<Question[]> => {
   // Return cached questions if still valid
   if (cachedQuestions && Date.now() - cacheTimestamp < CACHE_DURATION) {
-    console.log('✓ Returning cached questions:', cachedQuestions.length);
+    console.log('✓ Using cached questions:', cachedQuestions.length);
     return cachedQuestions;
   }
 
+  // Try GitHub first
   try {
-    console.log('📥 Fetching 100 questions from GitHub...');
+    console.log('📥 Attempting to fetch from GitHub...');
     const response = await fetch(GITHUB_QUESTIONS_URL);
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: Failed to fetch questions`);
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (Array.isArray(data) && data.length > 0) {
+        console.log(`✓ Loaded ${data.length} questions from GitHub`);
+        cachedQuestions = data;
+        cacheTimestamp = Date.now();
+        return data;
+      }
     }
-    
-    const data = await response.json();
-    
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new Error('Invalid questions format or empty data');
-    }
-    
-    console.log(`✓ Successfully fetched ${data.length} questions from GitHub`);
-    cachedQuestions = data;
-    cacheTimestamp = Date.now();
-    return data;
-  } catch (error) {
-    console.error('❌ Error fetching questions from GitHub:', error);
-    console.log('⚠️ No fallback available - please check GitHub repository');
-    return [];
+  } catch (githubError) {
+    console.warn('⚠️ GitHub fetch failed, trying local...');
   }
+
+  // Try local public folder
+  try {
+    console.log('📥 Attempting to fetch from local /questions.json...');
+    const response = await fetch(LOCAL_QUESTIONS_URL);
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (Array.isArray(data) && data.length > 0) {
+        console.log(`✓ Loaded ${data.length} questions from local file`);
+        cachedQuestions = data;
+        cacheTimestamp = Date.now();
+        return data;
+      }
+    }
+  } catch (localError) {
+    console.warn('⚠️ Local file fetch failed, using bundled data...');
+  }
+
+  // Use bundled questions as final fallback
+  try {
+    const localQuestions = questionsData as Question[];
+    
+    if (Array.isArray(localQuestions) && localQuestions.length > 0) {
+      console.log(`✓ Loaded ${localQuestions.length} questions from bundled data`);
+      cachedQuestions = localQuestions;
+      cacheTimestamp = Date.now();
+      return localQuestions;
+    }
+  } catch (bundleError) {
+    console.error('❌ Failed to load bundled questions:', bundleError);
+  }
+
+  console.error('❌ All question sources failed');
+  return [];
 };
 
 /**
