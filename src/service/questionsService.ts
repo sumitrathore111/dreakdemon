@@ -481,12 +481,12 @@ const generateSampleQuestions = (): Question[] => {
         solution_hint: `Hint: Think about using basic concepts and simple approaches for this ${category.name} problem.`,
         test_cases: [
           { 
-            input: { testCase: 1 }, 
-            expected_output: 'Expected output 1' 
+            input: '5', 
+            expected_output: '5\n4\n3\n2\n1' 
           },
           { 
-            input: { testCase: 2 }, 
-            expected_output: 'Expected output 2' 
+            input: '10', 
+            expected_output: '10\n9\n8\n7\n6\n5\n4\n3\n2\n1' 
           },
         ]
       });
@@ -508,16 +508,16 @@ const generateSampleQuestions = (): Question[] => {
         solution_hint: `Hint: Consider using intermediate data structures or algorithms specific to ${category.name} for this problem.`,
         test_cases: [
           { 
-            input: { testCase: 1, complexity: 'high' }, 
-            expected_output: 'Expected output 1' 
+            input: '5 3', 
+            expected_output: '8' 
           },
           { 
-            input: { testCase: 2, complexity: 'high' }, 
-            expected_output: 'Expected output 2' 
+            input: '10 7', 
+            expected_output: '17' 
           },
           { 
-            input: { testCase: 3, complexity: 'high' }, 
-            expected_output: 'Expected output 3' 
+            input: '100 50', 
+            expected_output: '150' 
           },
         ]
       });
@@ -539,20 +539,20 @@ const generateSampleQuestions = (): Question[] => {
         solution_hint: `Hint: This requires advanced knowledge of ${category.name}. Consider multiple approaches and choose the most efficient one.`,
         test_cases: [
           { 
-            input: { testCase: 1, complexity: 'extreme' }, 
-            expected_output: 'Expected output 1' 
+            input: '5', 
+            expected_output: '120' 
           },
           { 
-            input: { testCase: 2, complexity: 'extreme' }, 
-            expected_output: 'Expected output 2' 
+            input: '10', 
+            expected_output: '3628800' 
           },
           { 
-            input: { testCase: 3, complexity: 'extreme' }, 
-            expected_output: 'Expected output 3' 
+            input: '3', 
+            expected_output: '6' 
           },
           { 
-            input: { testCase: 4, complexity: 'extreme' }, 
-            expected_output: 'Expected output 4' 
+            input: '7', 
+            expected_output: '5040' 
           },
         ]
       });

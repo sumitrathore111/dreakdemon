@@ -489,17 +489,12 @@ rl.on('close', () => {
                     Sample Test Cases ({visibleTestCases.length})
                   </h3>
                   
-                  {visibleTestCases.map((tc, idx) => {
-                    // Handle both object and string inputs
-                    const inputDisplay = typeof tc.input === 'string' ? tc.input : JSON.stringify(tc.input, null, 2);
-                    const outputDisplay = typeof tc.expectedOutput === 'string' ? tc.expectedOutput : JSON.stringify(tc.expectedOutput, null, 2);
-                    
-                    return (
+                  {visibleTestCases.map((tc, idx) => (
                     <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
                       <div className="grid grid-cols-2 divide-x divide-gray-700">
                         <div className="p-3">
                           <p className="text-xs text-gray-400 mb-2">Input</p>
-                          <pre className="text-sm text-white font-mono whitespace-pre-wrap">{inputDisplay}</pre>
+                          <pre className="text-sm text-white font-mono whitespace-pre-wrap">{tc.input}</pre>
                         </div>
                         <div className="p-3">
                           <div className="flex items-center justify-between mb-2">
@@ -513,15 +508,14 @@ rl.on('close', () => {
                             </button>
                           </div>
                           {showExpectedOutput[idx] ? (
-                            <pre className="text-sm text-white font-mono whitespace-pre-wrap">{outputDisplay}</pre>
+                            <pre className="text-sm text-white font-mono whitespace-pre-wrap">{tc.expectedOutput}</pre>
                           ) : (
                             <p className="text-sm text-gray-500 italic">Click "Show" to reveal</p>
                           )}
                         </div>
                       </div>
                     </div>
-                  );
-                  })}
+                  ))}
                 </div>
 
                 {/* Hints */}
