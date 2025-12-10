@@ -1,19 +1,19 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  ChevronRight,
-  Code2,
-  Coins,
-  Crown,
-  History,
-  Loader2,
-  Star,
-  Swords,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users
+    AlertTriangle,
+    ChevronRight,
+    Code2,
+    Coins,
+    Crown,
+    History,
+    Loader2,
+    Star,
+    Swords,
+    Target,
+    TrendingUp,
+    Trophy,
+    Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
@@ -111,7 +111,7 @@ const CodeArenaContent = () => {
       try {
         const battlesRef = collection(db, 'CodeArena_Battles');
         const snapshot = await getDocs(battlesRef);
-        const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
         
         // Filter battles where user participated
         const userBattles = allBattles.filter((battle: any) => {

@@ -18,7 +18,7 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import {
@@ -83,8 +83,8 @@ const LocalChallengeEditor = () => {
       setLoading(true);
 
       try {
-        // First check if challenge was passed via navigation state
-        let challengeData = (location.state as any)?.challenge as Challenge | undefined;
+          // First check if challenge was passed via navigation state
+          let challengeData: Challenge | null | undefined = (location.state as any)?.challenge as Challenge | undefined;
         
         // If challenge came from PracticeChallenges, it has different field names
         // Map it to Challenge interface format
@@ -94,7 +94,7 @@ const LocalChallengeEditor = () => {
             title: challengeData.title,
             description: challengeData.description,
             difficulty: challengeData.difficulty as 'easy' | 'medium' | 'hard' | 'expert',
-            category: challengeData.category || challengeData.topic,
+            category: challengeData.category || (challengeData as any).topic,
             points: 100,
             coinReward: (challengeData as any).coinReward || 10,
             timeLimit: 5000,
@@ -266,8 +266,8 @@ rl.on('close', () => {
       let testCases = challenge.testCases || [];
       
       if (testCases.length === 0) {
-        // Fallback: Get test cases from Firestore
-        testCases = await getValidationTestCases(challengeId);
+        // Fallback: Get test cases from Firestore and map to Challenge TestCase shape
+        testCases = mapTestCases(await getValidationTestCases(challengeId) || []);
       }
       
       if (testCases.length === 0) {

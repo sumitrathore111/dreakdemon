@@ -56,7 +56,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
         try {
           const battlesRef = collection(db, 'CodeArena_Battles');
           const snapshot = await getDocs(battlesRef);
-          const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
           
           // Filter battles where user participated
           const userBattles = allBattles.filter((battle: any) => {
@@ -131,7 +131,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
           try {
             const battlesRef = collection(db, 'CodeArena_Battles');
             const snapshot = await getDocs(battlesRef);
-            const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
             
             // Filter completed battles where user participated
             const userBattles = allBattles.filter((battle: any) => {
