@@ -105,8 +105,8 @@ export default function CourseAbout({ project, onContribute }: Props) {
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                    {contrib.name.charAt(0)}
+                    <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
+                    {contrib.name?.charAt(0) || ''}
                   </div>
                 )}
                 <span className="font-medium text-slate-900 dark:text-white">

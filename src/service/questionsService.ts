@@ -11,10 +11,17 @@ export interface Question {
   description: string;
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  coins: number;
+  coinReward?: number;
+  coins?: number;
   constraints: string;
   solution_hint: string;
-  test_cases: Array<{
+  testCases?: Array<{
+    input: string;
+    expectedOutput: string;
+    isHidden?: boolean;
+    points?: number;
+  }>;
+  test_cases?: Array<{
     input: string;
     expected_output: string;
   }>;
@@ -50,15 +57,16 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
     
     if (response.ok) {
       const data = await response.json();
-      
-      if (Array.isArray(data) && data.length > 0) {
-        console.log(`✓ Loaded ${data.length} questions from GitHub`);
-        cachedQuestions = data;
+      const normalized = normalizeQuestions(data);
+
+      if (normalized.length > 0) {
+        console.log(`✓ Loaded ${normalized.length} questions from GitHub`);
+        cachedQuestions = normalized;
         cacheTimestamp = Date.now();
-        return data;
+        return normalized;
       }
     }
-  } catch (githubError) {
+  } catch {
     console.warn('⚠️ GitHub fetch failed, trying local...');
   }
 
@@ -69,27 +77,29 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
     
     if (response.ok) {
       const data = await response.json();
-      
-      if (Array.isArray(data) && data.length > 0) {
-        console.log(`✓ Loaded ${data.length} questions from local file`);
-        cachedQuestions = data;
+      const normalized = normalizeQuestions(data);
+
+      if (normalized.length > 0) {
+        console.log(`✓ Loaded ${normalized.length} questions from local file`);
+        cachedQuestions = normalized;
         cacheTimestamp = Date.now();
-        return data;
+        return normalized;
       }
     }
-  } catch (localError) {
+  } catch {
     console.warn('⚠️ Local file fetch failed, using bundled data...');
   }
 
   // Use bundled questions as final fallback
   try {
-    const localQuestions = questionsData as Question[];
-    
-    if (Array.isArray(localQuestions) && localQuestions.length > 0) {
-      console.log(`✓ Loaded ${localQuestions.length} questions from bundled data`);
-      cachedQuestions = localQuestions;
+    const localQuestionsRaw = questionsData as unknown;
+    const normalized = normalizeQuestions(localQuestionsRaw);
+
+    if (normalized.length > 0) {
+      console.log(`✓ Loaded ${normalized.length} questions from bundled data`);
+      cachedQuestions = normalized;
       cacheTimestamp = Date.now();
-      return localQuestions;
+      return normalized;
     }
   } catch (bundleError) {
     console.error('❌ Failed to load bundled questions:', bundleError);
@@ -98,6 +108,77 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
   console.error('❌ All question sources failed');
   return [];
 };
+
+/**
+ * Normalize raw question data from different sources to the internal Question[] shape.
+ * Supports objects with a `problems` array (like public/questions.json) and
+ * normalizes `difficulty` to lowercase values ('easy'|'medium'|'hard') and
+ * maps common alternate field names.
+ */
+function normalizeQuestions(raw: unknown): Question[] {
+  if (!raw) return [];
+
+  let arr: unknown[] = [];
+
+  if (Array.isArray(raw)) {
+    arr = raw as unknown[];
+  } else {
+    const rawObj = raw as Record<string, unknown>;
+    if (Array.isArray(rawObj.problems)) arr = rawObj.problems as unknown[];
+    else if (Array.isArray(rawObj.questions)) arr = rawObj.questions as unknown[];
+    else return [];
+  }
+
+  return arr.map((item: unknown) => {
+    const q = item as Record<string, unknown>;
+
+    const diffRaw = String(q['difficulty'] ?? q['level'] ?? '').trim().toLowerCase();
+    let difficulty: 'easy' | 'medium' | 'hard' = 'medium';
+    if (diffRaw.startsWith('e')) difficulty = 'easy';
+    else if (diffRaw.startsWith('m')) difficulty = 'medium';
+    else if (diffRaw.startsWith('h')) difficulty = 'hard';
+
+    const idVal = q['id'] ?? q['_id'] ?? '';
+    const titleVal = q['title'] ?? q['name'] ?? 'Untitled';
+    const descriptionVal = q['description'] ?? q['prompt'] ?? '';
+
+    let categoryVal = 'General';
+    if (typeof q['category'] === 'string') categoryVal = String(q['category']);
+    else if (Array.isArray(q['tags']) && (q['tags'] as unknown[]).length > 0) {
+      categoryVal = String((q['tags'] as unknown[])[0]);
+    } else if (typeof q['topic'] === 'string') categoryVal = String(q['topic']);
+
+    const coinRewardVal = Number(q['coinReward'] ?? q['coins'] ?? q['reward'] ?? 0) || 0;
+
+    const testCasesVal = Array.isArray(q['testCases']) ? (q['testCases'] as unknown[]) : Array.isArray(q['test_cases']) ? (q['test_cases'] as unknown[]) : [];
+
+    const mapTestCase = (it: unknown) => {
+      const r = it as Record<string, unknown>;
+      const input = String(r['input'] ?? r['stdin'] ?? '');
+      const expectedOutput = String(r['output'] ?? r['expected_output'] ?? r['expectedOutput'] ?? '');
+      const isHidden = Boolean(r['isHidden'] ?? r['hidden'] ?? false);
+      const points = typeof r['points'] === 'number' ? (r['points'] as number) : undefined;
+      return { input, expectedOutput, expected_output: expectedOutput, isHidden, points };
+    };
+
+    return {
+      id: String(idVal),
+      title: String(titleVal),
+      description: String(descriptionVal),
+      category: categoryVal,
+      difficulty,
+      coinReward: coinRewardVal,
+      coins: coinRewardVal,
+      constraints: String(q['constraints'] ?? q['limits'] ?? ''),
+      solution_hint: String(q['solution_hint'] ?? q['hint'] ?? ''),
+      testCases: (testCasesVal as unknown[]).map(mapTestCase),
+      test_cases: (testCasesVal as unknown[]).map((t) => {
+        const tc = mapTestCase(t);
+        return { input: tc.input, expected_output: tc.expected_output };
+      }),
+    } as Question;
+  });
+}
 
 /**
  * Get questions filtered by difficulty

@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import {
-    BookOpen,
-    ChevronRight,
-    Code2,
-    Coins,
-    RefreshCw,
-    Search,
-    Star,
-    Target,
-    Zap
+  BookOpen,
+  ChevronRight,
+  Code2,
+  Coins,
+  RefreshCw,
+  Search,
+  Star,
+  Target,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -340,7 +340,10 @@ const PracticeChallenges = () => {
                         'bg-red-50 text-red-700 border border-red-200'
                       }`}
                     >
-                      {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
+                      {challenge.difficulty
+                        ? challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)
+                        : 'Unknown'
+                      }
                     </motion.span>
                     
                     <span className="text-gray-600 text-xs bg-gray-100 px-2 py-1 rounded">
@@ -349,7 +352,7 @@ const PracticeChallenges = () => {
                     
                     <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
                       <Coins className="w-3 h-3" />
-                      {challenge.coins}
+                      {challenge.coinReward || challenge.coins || 0}
                     </span>
                   </div>
                 </div>

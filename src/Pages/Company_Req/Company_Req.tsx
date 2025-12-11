@@ -1,24 +1,24 @@
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Search,
-  Sparkles,
-  TrendingUp,
-  Users,
-  Building2,
-  Briefcase,
-  MapPin,
-  GraduationCap,
-  Calendar,
-  IndianRupee,
-  Filter,
-  X,
-  ExternalLink,
-  Target,
+    Briefcase,
+    Building2,
+    Calendar,
+    ExternalLink,
+    Filter,
+    GraduationCap,
+    IndianRupee,
+    MapPin,
+    Search,
+    Sparkles,
+    Target,
+    TrendingUp,
+    Users,
+    X,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { companies } from "../../data";
-import { useDataContext } from "../../Context/UserDataContext";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../Context/AuthContext";
+import { useDataContext } from "../../Context/UserDataContext";
+import { companies } from "../../data";
 
 // const industryColors: Record<string, string> = {
 //   Technology: "from-blue-500 to-cyan-500",
@@ -307,8 +307,8 @@ export default function JobExplorer() {
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold" style={{ backgroundColor: '#00ADB5' }}>
-                          {job.company_name.charAt(0)}
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold" style={{ backgroundColor: '#00ADB5' }}>
+                          {job.company_name?.charAt(0) || ''}
                         </div>
                         <div>
                           <h3 className="font-medium">{job.company_name}</h3>

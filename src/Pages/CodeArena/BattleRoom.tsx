@@ -734,7 +734,7 @@ rl.on('close', () => {
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-2">
                 <span className="text-white font-bold text-lg">
-                  {battle.participants[0]?.odName.charAt(0)}
+                  {battle.participants[0]?.odName?.charAt(0) || ''}
                 </span>
               </div>
               <p className="text-gray-400 text-sm">{battle.participants[0]?.odName}</p>
@@ -745,7 +745,7 @@ rl.on('close', () => {
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
                 <span className="text-white font-bold text-lg">
-                  {battle.participants[1]?.odName.charAt(0)}
+                  {battle.participants[1]?.odName?.charAt(0) || ''}
                 </span>
               </div>
               <p className="text-gray-400 text-sm">{battle.participants[1]?.odName}</p>

@@ -1,414 +1,197 @@
 [
-  {
-    "id": "ARR_E_0001",
-    "title": "Two Sum",
-    "description": "Given an array of integers and a target, find two numbers that add up to the target",
-    "category": "array",
-    "difficulty": "easy",
-    "coins": 15,
-    "constraints": "1 ≤ N ≤ 10000, -10^9 ≤ arr[i] ≤ 10^9",
-    "solution_hint": "Use a hash map to store seen numbers",
-    "test_cases": [
-      {
-        "input": "[2,7,11,15], target=9",
-        "expected_output": "[0,1]"
-      },
-      {
-        "input": "[3,2,4], target=6",
-        "expected_output": "[1,2]"
-      },
-      {
-        "input": "[3,3], target=6",
-        "expected_output": "[0,1]"
-      }
-    ]
-  },
-  {
-    "id": "STR_E_0002",
-    "title": "Valid Palindrome",
-    "description": "Check if a string is a palindrome considering only alphanumeric characters",
-    "category": "string",
-    "difficulty": "easy",
-    "coins": 15,
-    "constraints": "1 ≤ s.length ≤ 2×10^5",
-    "solution_hint": "Use two pointers approach",
-    "test_cases": [
-      {
-        "input": "A man, a plan, a canal: Panama",
-        "expected_output": "true"
-      },
-      {
-        "input": "race a car",
-        "expected_output": "false"
-      },
-      {
-        "input": " ",
-        "expected_output": "true"
-      }
-    ]
-  },
-  {
-    "id": "ARR_M_0003",
-    "title": "Container With Most Water",
-    "description": "Find two lines that together with the x-axis form a container with maximum area",
-    "category": "array",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "n == height.length, 2 ≤ n ≤ 10^5",
-    "solution_hint": "Use two pointer technique",
-    "test_cases": [
-      {
-        "input": "[1,8,6,2,5,4,8,3,7]",
-        "expected_output": "49"
-      },
-      {
-        "input": "[1,1]",
-        "expected_output": "1"
-      }
-    ]
-  },
-  {
-    "id": "STR_M_0004",
-    "title": "Longest Substring Without Repeating",
-    "description": "Find the length of the longest substring without repeating characters",
-    "category": "string",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "0 ≤ s.length ≤ 5×10^4",
-    "solution_hint": "Use sliding window with hash map",
-    "test_cases": [
-      {
-        "input": "abcabcbb",
-        "expected_output": "3"
-      },
-      {
-        "input": "bbbbb",
-        "expected_output": "1"
-      },
-      {
-        "input": "pwwkew",
-        "expected_output": "3"
-      }
-    ]
-  },
-  {
-    "id": "ARR_M_0005",
-    "title": "3Sum",
-    "description": "Find all unique triplets in the array that sum to zero",
-    "category": "array",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "3 ≤ nums.length ≤ 3000, -10^5 ≤ nums[i] ≤ 10^5",
-    "solution_hint": "Sort array and use two pointers",
-    "test_cases": [
-      {
-        "input": "[-1,0,1,2,-1,-4]",
-        "expected_output": "[[-1,-1,2],[-1,0,1]]"
-      },
-      {
-        "input": "[0,0,0,0]",
-        "expected_output": "[[0,0,0]]"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0006",
-    "title": "Median of Two Sorted Arrays",
-    "description": "Find the median of two sorted arrays",
-    "category": "array",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "nums1.length + nums2.length ≤ 2000",
-    "solution_hint": "Use binary search",
-    "test_cases": [
-      {
-        "input": "nums1 = [1,3], nums2 = [2]",
-        "expected_output": "2.00000"
-      },
-      {
-        "input": "nums1 = [1,2], nums2 = [3,4]",
-        "expected_output": "2.50000"
-      }
-    ]
-  },
-  {
-    "id": "STR_H_0007",
-    "title": "Regular Expression Matching",
-    "description": "Implement regular expression matching with '.' and '*'",
-    "category": "string",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "1 ≤ s.length ≤ 20, 1 ≤ p.length ≤ 30",
-    "solution_hint": "Use dynamic programming",
-    "test_cases": [
-      {
-        "input": "s = 'aa', p = 'a'",
-        "expected_output": "false"
-      },
-      {
-        "input": "s = 'aa', p = 'a*'",
-        "expected_output": "true"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0008",
-    "title": "Trapping Rain Water",
-    "description": "Calculate how much water can be trapped after raining",
-    "category": "array",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "n == height.length, 1 ≤ n ≤ 2×10^4",
-    "solution_hint": "Use two pointer approach",
-    "test_cases": [
-      {
-        "input": "[0,1,0,2,1,0,1,3,2,1,2,1]",
-        "expected_output": "6"
-      },
-      {
-        "input": "[4,2,0,3,2,5]",
-        "expected_output": "9"
-      }
-    ]
-  },
-  {
-    "id": "ARR_E_0009",
-    "title": "Contains Duplicate",
-    "description": "Determine if array contains any duplicate",
-    "category": "array",
-    "difficulty": "easy",
-    "coins": 15,
-    "constraints": "1 ≤ nums.length ≤ 10^5, -10^9 ≤ nums[i] ≤ 10^9",
-    "solution_hint": "Use hash set",
-    "test_cases": [
-      {
-        "input": "[1,2,3,1]",
-        "expected_output": "true"
-      },
-      {
-        "input": "[1,2,3,4]",
-        "expected_output": "false"
-      },
-      {
-        "input": "[99,99]",
-        "expected_output": "true"
-      }
-    ]
-  },
-  {
-    "id": "ARR_E_0010",
-    "title": "Best Time to Buy and Sell Stock",
-    "description": "Find maximum profit from buying and selling stock once",
-    "category": "array",
-    "difficulty": "easy",
-    "coins": 15,
-    "constraints": "1 ≤ prices.length ≤ 10^5, 0 ≤ prices[i] ≤ 10^4",
-    "solution_hint": "Track minimum price and maximum profit",
-    "test_cases": [
-      {
-        "input": "[7,1,5,3,6,4]",
-        "expected_output": "5"
-      },
-      {
-        "input": "[7,6,4,3,1]",
-        "expected_output": "0"
-      }
-    ]
-  },
-  {
-    "id": "ARR_M_0011",
-    "title": "Maximum Subarray",
-    "description": "Find the contiguous subarray with largest sum",
-    "category": "array",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "1 ≤ nums.length ≤ 10^5, -10^4 ≤ nums[i] ≤ 10^4",
-    "solution_hint": "Use Kadane's algorithm",
-    "test_cases": [
-      {
-        "input": "[-2,1,-3,4,-1,2,1,-5,4]",
-        "expected_output": "6"
-      },
-      {
-        "input": "[5,4,-1,7,8]",
-        "expected_output": "29"
-      }
-    ]
-  },
-  {
-    "id": "ARR_M_0012",
-    "title": "Product of Array Except Self",
-    "description": "Return array where each element is product of all other elements",
-    "category": "array",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "2 ≤ nums.length ≤ 10^5",
-    "solution_hint": "Use prefix and suffix products",
-    "test_cases": [
-      {
-        "input": "[1,2,3,4]",
-        "expected_output": "[24,12,8,6]"
-      },
-      {
-        "input": "[-1,1,0,-3,3]",
-        "expected_output": "[0,0,9,0,0]"
-      }
-    ]
-  },
-  {
-    "id": "STR_E_0013",
-    "title": "Valid Parentheses",
-    "description": "Check if the parentheses are valid",
-    "category": "string",
-    "difficulty": "easy",
-    "coins": 15,
-    "constraints": "1 ≤ s.length ≤ 10^4",
-    "solution_hint": "Use stack data structure",
-    "test_cases": [
-      {
-        "input": "()",
-        "expected_output": "true"
-      },
-      {
-        "input": "([{}])",
-        "expected_output": "true"
-      },
-      {
-        "input": "([)]",
-        "expected_output": "false"
-      }
-    ]
-  },
-  {
-    "id": "STR_M_0014",
-    "title": "Group Anagrams",
-    "description": "Group anagrams together from the given list of strings",
-    "category": "string",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "1 ≤ strs.length ≤ 10^4, 0 ≤ strs[i].length ≤ 100",
-    "solution_hint": "Use hash map with sorted string as key",
-    "test_cases": [
-      {
-        "input": "[\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
-        "expected_output": "[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]"
-      },
-      {
-        "input": "[\"\"]",
-        "expected_output": "[[\"\"]]"
-      }
-    ]
-  },
-  {
-    "id": "ARR_M_0015",
-    "title": "Merge Intervals",
-    "description": "Merge all overlapping intervals",
-    "category": "array",
-    "difficulty": "medium",
-    "coins": 25,
-    "constraints": "1 ≤ intervals.length ≤ 10^4",
-    "solution_hint": "Sort by start time and merge",
-    "test_cases": [
-      {
-        "input": "[[1,3],[2,6],[8,10],[15,18]]",
-        "expected_output": "[[1,6],[8,10],[15,18]]"
-      },
-      {
-        "input": "[[1,4],[4,5]]",
-        "expected_output": "[[1,5]]"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0016",
-    "title": "LRU Cache",
-    "description": "Implement LRU (Least Recently Used) Cache",
-    "category": "design",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "1 ≤ capacity ≤ 3000, 0 ≤ key, value ≤ 10^9",
-    "solution_hint": "Use HashMap and doubly linked list",
-    "test_cases": [
-      {
-        "input": "capacity=2",
-        "expected_output": "cache operations work correctly"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0017",
-    "title": "Course Schedule",
-    "description": "Determine if you can finish all courses given prerequisites",
-    "category": "graph",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "1 ≤ numCourses ≤ 2000, 0 ≤ prerequisites.length ≤ 5000",
-    "solution_hint": "Use topological sort or DFS",
-    "test_cases": [
-      {
-        "input": "numCourses=2, prerequisites=[[1,0]]",
-        "expected_output": "true"
-      },
-      {
-        "input": "numCourses=2, prerequisites=[[1,0],[0,1]]",
-        "expected_output": "false"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0018",
-    "title": "Word Ladder",
-    "description": "Find shortest transformation sequence from beginWord to endWord",
-    "category": "graph",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "1 ≤ beginWord.length ≤ 10, 1 ≤ wordList.length ≤ 5000",
-    "solution_hint": "Use BFS with word transformation",
-    "test_cases": [
-      {
-        "input": "beginWord='hit', endWord='cog', wordList=['hot','dot','dog','lot','log','cog']",
-        "expected_output": "5"
-      }
-    ]
-  },
-  {
-    "id": "ARR_H_0019",
-    "title": "Binary Tree Level Order Traversal",
-    "description": "Return the level order traversal of a binary tree",
-    "category": "tree",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "The number of nodes in the tree is in the range [0, 2000]",
-    "solution_hint": "Use BFS with queue",
-    "test_cases": [
-      {
-        "input": "[3,9,20,null,null,15,7]",
-        "expected_output": "[[3],[9,20],[15,7]]"
-      },
-      {
-        "input": "[1]",
-        "expected_output": "[[1]]"
-      }
-    ]
-  },
-  {
-    "id": "STR_H_0020",
-    "title": "Minimum Window Substring",
-    "description": "Find the minimum window substring containing all characters of t",
-    "category": "string",
-    "difficulty": "hard",
-    "coins": 50,
-    "constraints": "m == s.length, n == t.length, 1 ≤ m, n ≤ 10^5",
-    "solution_hint": "Use sliding window with character frequency",
-    "test_cases": [
-      {
-        "input": "s='ADOBECODEBANC', t='ABC'",
-        "expected_output": "BANC"
-      },
-      {
-        "input": "s='a', t='a'",
-        "expected_output": "a"
-      }
-    ]
-  }
+ {
+  "problems": [
+    {
+      "id": "A001",
+      "title": "Maximum Subarray Sum",
+      "difficulty": "Medium",
+      "timeLimit": "1s",
+      "memoryLimit": "256MB",
+      "description": "Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+      "inputFormat": "First line contains integer n (1 ≤ n ≤ 10^5) - the length of array.\nSecond line contains n integers a_i (-10^4 ≤ a_i ≤ 10^4) - array elements.",
+      "outputFormat": "Print a single integer - the maximum sum of contiguous subarray.",
+      "constraints": [
+        "1 ≤ n ≤ 100000",
+        "-10000 ≤ nums[i] ≤ 10000"
+      ],
+      "tags": ["array", "dynamic-programming", "kadane"],
+      "testCases": [
+        {
+          "input": "9\n-2 1 -3 4 -1 2 1 -5 4",
+          "output": "6",
+          "explanation": "Subarray [4,-1,2,1] has the largest sum = 6"
+        },
+        {
+          "input": "1\n5",
+          "output": "5",
+          "explanation": "Single element array"
+        },
+        {
+          "input": "5\n-1 -2 -3 -4 -5",
+          "output": "-1",
+          "explanation": "All negative, choose the largest"
+        }
+      ]
+    },
+    {
+      "id": "A002",
+      "title": "Rotate Array",
+      "difficulty": "Easy",
+      "timeLimit": "2s",
+      "memoryLimit": "256MB",
+      "description": "Given an array, rotate the array to the right by k steps, where k is non-negative.",
+      "inputFormat": "First line contains two integers n and k (1 ≤ n ≤ 10^5, 0 ≤ k ≤ 10^9) - array length and rotation steps.\nSecond line contains n integers a_i (1 ≤ a_i ≤ 10^9) - array elements.",
+      "outputFormat": "Print n integers - the rotated array.",
+      "constraints": [
+        "1 ≤ n ≤ 100000",
+        "0 ≤ k ≤ 10^9",
+        "1 ≤ nums[i] ≤ 10^9"
+      ],
+      "tags": ["array", "math"],
+      "testCases": [
+        {
+          "input": "7 3\n1 2 3 4 5 6 7",
+          "output": "5 6 7 1 2 3 4",
+          "explanation": "Rotate right by 3 steps"
+        },
+        {
+          "input": "3 2\n-1 -100 3",
+          "output": "-100 3 -1",
+          "explanation": "Rotate right by 2 steps"
+        },
+        {
+          "input": "2 5\n1 2",
+          "output": "2 1",
+          "explanation": "k=5 is same as k=1 for length 2"
+        }
+      ]
+    },
+    {
+      "id": "A003",
+      "title": "Find Missing Number",
+      "difficulty": "Easy",
+      "timeLimit": "1s",
+      "memoryLimit": "256MB",
+      "description": "Given an array nums containing n distinct numbers in the range [0, n], return the only number in the range that is missing from the array.",
+      "inputFormat": "First line contains integer n (1 ≤ n ≤ 10^4).\nSecond line contains n integers - array elements (each in range [0, n]).",
+      "outputFormat": "Print a single integer - the missing number.",
+      "constraints": [
+        "1 ≤ n ≤ 10000",
+        "0 ≤ nums[i] ≤ n",
+        "All numbers are distinct"
+      ],
+      "tags": ["array", "math", "bit-manipulation"],
+      "testCases": [
+        {
+          "input": "3\n3 0 1",
+          "output": "2",
+          "explanation": "n=3, array has [0,1,3], missing 2"
+        },
+        {
+          "input": "2\n0 1",
+          "output": "2",
+          "explanation": "Range [0,2], missing 2"
+        },
+        {
+          "input": "9\n9 6 4 2 3 5 7 0 1",
+          "output": "8",
+          "explanation": "Missing number is 8"
+        }
+      ]
+    },
+    {
+      "id": "A004",
+      "title": "Product of Array Except Self",
+      "difficulty": "Medium",
+      "timeLimit": "2s",
+      "memoryLimit": "256MB",
+      "description": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i]. You must write an algorithm that runs in O(n) time and without using the division operation.",
+      "inputFormat": "First line contains integer n (2 ≤ n ≤ 10^5).\nSecond line contains n integers a_i (1 ≤ |a_i| ≤ 30) - array elements.",
+      "outputFormat": "Print n integers - the product array.",
+      "constraints": [
+        "2 ≤ n ≤ 100000",
+        "-30 ≤ nums[i] ≤ 30",
+        "Product of any prefix/suffix fits in 32-bit integer"
+      ],
+      "tags": ["array", "prefix-sum"],
+      "testCases": [
+        {
+          "input": "4\n1 2 3 4",
+          "output": "24 12 8 6",
+          "explanation": "[2*3*4, 1*3*4, 1*2*4, 1*2*3]"
+        },
+        {
+          "input": "5\n-1 1 0 -3 3",
+          "output": "0 0 9 0 0",
+          "explanation": "Product except self with zero"
+        }
+      ]
+    },
+    {
+      "id": "A005",
+      "title": "Container With Most Water",
+      "difficulty": "Medium",
+      "timeLimit": "1s",
+      "memoryLimit": "256MB",
+      "description": "You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the i-th line are (i, 0) and (i, height[i]). Find two lines that together with the x-axis form a container, such that the container contains the most water. Return the maximum amount of water a container can store.",
+      "inputFormat": "First line contains integer n (2 ≤ n ≤ 10^5).\nSecond line contains n integers h_i (0 ≤ h_i ≤ 10^4) - heights.",
+      "outputFormat": "Print a single integer - maximum water area.",
+      "constraints": [
+        "2 ≤ n ≤ 100000",
+        "0 ≤ height[i] ≤ 10000"
+      ],
+      "tags": ["array", "two-pointers", "greedy"],
+      "testCases": [
+        {
+          "input": "9\n1 8 6 2 5 4 8 3 7",
+          "output": "49",
+          "explanation": "Lines at index 1 and 8, area = min(8,7) * 7 = 49"
+        },
+        {
+          "input": "2\n1 1",
+          "output": "1",
+          "explanation": "Only two lines, area = 1"
+        },
+        {
+          "input": "6\n4 3 2 1 4 5",
+          "output": "16",
+          "explanation": "Lines at index 0 and 5, area = min(4,5) * 5 = 20? No, distance is 5"
+        }
+      ]
+    },
+    {
+      "id": "A006",
+      "title": "Find All Duplicates in Array",
+      "difficulty": "Medium",
+      "timeLimit": "1s",
+      "memoryLimit": "256MB",
+      "description": "Given an integer array nums of length n where all integers are in the range [1, n] and each integer appears once or twice, return an array of all the integers that appears twice. You must solve it without extra space and in O(n) runtime.",
+      "inputFormat": "First line contains integer n (1 ≤ n ≤ 10^5).\nSecond line contains n integers a_i (1 ≤ a_i ≤ n).",
+      "outputFormat": "Print all duplicate numbers in any order (space-separated). If no duplicates, print empty line.",
+      "constraints": [
+        "1 ≤ n ≤ 100000",
+        "1 ≤ nums[i] ≤ n",
+        "Each element appears once or twice"
+      ],
+      "tags": ["array", "hash-table"],
+      "testCases": [
+        {
+          "input": "8\n4 3 2 7 8 2 3 1",
+          "output": "2 3",
+          "explanation": "2 and 3 appear twice"
+        },
+        {
+          "input": "2\n1 1",
+          "output": "1",
+          "explanation": "1 appears twice"
+        },
+        {
+          "input": "1\n1",
+          "output": "",
+          "explanation": "No duplicates"
+        }
+      ]
+    }
+  ]
+}
 ]

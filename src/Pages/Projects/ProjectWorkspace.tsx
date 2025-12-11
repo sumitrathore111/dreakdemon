@@ -1,12 +1,22 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Activity,
+    Bell,
+    CheckCircle, Circle, Clock,
+    FileText,
+    MessageSquare,
+    Send,
+    Shield,
+    Trash2,
+    Upload,
+    User,
+    UserCheck,
+    UserPlus,
+    UserX
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { 
-  CheckCircle, Circle, Clock, User, MessageSquare, 
-  Upload, Bell, Activity, FileText, Send, Trash2, 
-  UserPlus, UserCheck, UserX, Shield
-} from 'lucide-react';
 
 interface Task {
   id: string;
@@ -849,7 +859,7 @@ export default function ProjectWorkspace() {
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center">
                           <span className="text-white font-bold text-lg">
-                            {member.userName.charAt(0).toUpperCase()}
+                            {(member.userName?.charAt(0) || '').toUpperCase()}
                           </span>
                         </div>
                         <div>

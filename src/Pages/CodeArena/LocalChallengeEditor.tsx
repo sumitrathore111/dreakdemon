@@ -394,7 +394,10 @@ rl.on('close', () => {
             </h1>
             <div className="flex items-center gap-3 text-sm">
               <span className={`px-2 py-0.5 rounded-full border ${getDifficultyColor(challenge.difficulty)}`}>
-                {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
+                {challenge.difficulty
+                  ? challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)
+                  : 'Unknown'
+                }
               </span>
               <span className="text-gray-400">{challenge.category}</span>
               <span className="flex items-center gap-1 text-yellow-400">

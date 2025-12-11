@@ -17,7 +17,7 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
@@ -332,7 +332,10 @@ rl.on('close', () => {
               {challenge && (
                 <>
                   <span className={`px-2 py-0.5 rounded-full border ${getDifficultyColor(challenge.difficulty)}`}>
-                    {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
+                    {challenge.difficulty
+                      ? challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)
+                      : 'Unknown'
+                    }
                   </span>
                   <span className="text-gray-400">Category: {challenge.category || 'N/A'}</span>
                   <span className="flex items-center gap-1 text-yellow-400">
