@@ -1,24 +1,25 @@
 import {
-    collection,
-    doc,
-    onSnapshot,
-    query,
-    Timestamp,
-    updateDoc,
-    where
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  Timestamp,
+  updateDoc,
+  where
 } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ChevronRight,
-    Clock,
-    Coins,
-    Search,
-    Shield,
-    Swords,
-    Trophy,
-    Users,
-    X,
-    Zap
+  ChevronRight,
+  Clock,
+  Coins,
+  Search,
+  Shield,
+  Swords,
+  Trophy,
+  Users,
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -309,9 +310,9 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         // Refund entry fee
         await deductCoins(user!.uid, -selectedEntry.fee, 'Battle cancelled - refund');
         
-        // Delete the battle document
+        // Delete the battle document so it doesn't show to other users
         const battleRef = doc(db, 'CodeArena_Battles', myBattleId);
-        await updateDoc(battleRef, { status: 'cancelled' });
+        await deleteDoc(battleRef);
       } catch (error) {
         console.error('Error cancelling battle:', error);
       }
