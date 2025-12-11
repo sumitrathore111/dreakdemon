@@ -21,7 +21,7 @@ export interface Question {
 }
 
 // GitHub raw content URL for our questions repository
-const GITHUB_QUESTIONS_URL = 'https://raw.githubusercontent.com/moohhiit/CodeArena-Questions/main/questions.json';
+const GITHUB_QUESTIONS_URL = 'https://github.com/moohhiit/NextStep/blob/main/questions.json';
 // Local public folder fallback
 const LOCAL_QUESTIONS_URL = '/questions.json';
 
