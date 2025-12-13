@@ -1,10 +1,19 @@
+import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { Bold, Clock, FileText, Italic, Lightbulb, Link2, List, ListOrdered, Send, Tag } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
+import { useDataContext } from '../../Context/UserDataContext';
+import { db } from '../../service/Firebase';
 
 export default function IdeaSubmission() {
-  // Simulated auth and data context
-  const user = { name: 'Demo User' }; // Replace with useAuth()
-  const submitIdea = async (data: any) => { console.log('Submitting:', data); }; // Replace with useDataContext()
+  // Get actual auth and data context
+  const { user } = useAuth();
+  const { submitIdea, triggerIdeasRefresh } = useDataContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const ideaToEdit = (location && (location as any).state && (location as any).state.ideaToEdit) ? (location as any).state.ideaToEdit : null;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -31,6 +40,17 @@ export default function IdeaSubmission() {
     // Initialize editor content
     if (editorRef.current && formData.description) {
       editorRef.current.innerHTML = formData.description;
+    }
+
+    // If navigated here to edit an idea, prefill form
+    if (ideaToEdit) {
+      setFormData({
+        title: ideaToEdit.title || '',
+        description: ideaToEdit.description || '',
+        category: ideaToEdit.category || '',
+        expectedTimeline: ideaToEdit.expectedTimeline || ''
+      });
+      if (editorRef.current) editorRef.current.innerHTML = ideaToEdit.description || '';
     }
   }, []);
 
@@ -62,9 +82,26 @@ export default function IdeaSubmission() {
 
     setSubmitting(true);
     try {
-      // Submit to Firebase
+      if (ideaToEdit && ideaToEdit.id) {
+        // Update existing idea document directly
+        const ideaRef = doc(db, 'Project_Ideas', ideaToEdit.id);
+        await updateDoc(ideaRef, {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          expectedTimeline: formData.expectedTimeline,
+          editedAt: Timestamp.now()
+        });
+        alert('✅ Idea updated successfully');
+        try { triggerIdeasRefresh && triggerIdeasRefresh(); } catch (err) { /* noop */ }
+        navigate('/dashboard/projects');
+        return;
+      }
+
+      // Submit new idea to Firebase
       await submitIdea(formData);
-      
+      try { triggerIdeasRefresh && triggerIdeasRefresh(); } catch (err) { /* noop */ }
+
       setSubmitted(true);
       setFormData({ title: '', description: '', category: '', expectedTimeline: '' });
       if (editorRef.current) {

@@ -14,7 +14,7 @@ import ScrollToTop from "./Component/ScrollToTop";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
 import ProjectDetail from "./Pages/Projects/ProjectDetails";
 import PublicNavBar from "./Public/PublicNevBar";
-
+import Documentation from "./Public/Documentation";
 
 // Lazy-loaded pages
 const HomePage = lazy(() => import("./Public/HomePage"));
@@ -50,6 +50,7 @@ function PublicLayout() {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/documentation" element={<Documentation />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
             <Route path="*" element={<Navigate to="/" />} />

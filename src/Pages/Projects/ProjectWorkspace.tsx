@@ -1,17 +1,18 @@
+import { Timestamp } from 'firebase/firestore';
 import {
-    Activity,
-    Bell,
-    CheckCircle, Circle, Clock,
-    FileText,
-    MessageSquare,
-    Send,
-    Shield,
-    Trash2,
-    Upload,
-    User,
-    UserCheck,
-    UserPlus,
-    UserX
+  Activity,
+  Bell,
+  CheckCircle, Circle, Clock,
+  FileText,
+  MessageSquare,
+  Send,
+  Shield,
+  Trash2,
+  Upload,
+  User,
+  UserCheck,
+  UserPlus,
+  UserX
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -26,6 +27,13 @@ interface Task {
   priority: 'low' | 'medium' | 'high';
   assignedTo?: string;
   dueDate?: string;
+  completedBy?: string | null;
+  completedByName?: string | null;
+  completedAt?: any;
+  pendingVerification?: boolean;
+  verified?: boolean;
+  verificationFeedback?: string | null;
+  verifiedBy?: string | null;
 }
 
 interface Member {
@@ -67,6 +75,7 @@ export default function ProjectWorkspace() {
   const [members, setMembers] = useState<Member[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [verificationFeedbacks, setVerificationFeedbacks] = useState<Record<string, string>>({});
   
   // Task form
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -264,6 +273,10 @@ export default function ProjectWorkspace() {
   };
 
   const addTask = async () => {
+    if (userRole !== 'creator') {
+      alert('Only the project creator can add tasks');
+      return;
+    }
     if (!newTask.title.trim()) {
       alert('Please enter a task title');
       return;
@@ -312,6 +325,76 @@ export default function ProjectWorkspace() {
     } catch (error) {
       console.error('Error deleting task:', error);
       alert('Failed to delete task');
+    }
+  };
+
+  const markTaskCompletedByMember = async (taskId: string) => {
+    if (!user) return;
+    try {
+      await updateTaskInDb(projectId!, taskId, {
+        completedBy: user.uid,
+        completedByName: user.displayName || user.email?.split('@')[0] || 'User',
+        completedAt: Timestamp.now(),
+        pendingVerification: true
+      });
+
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, completedBy: user.uid, completedByName: user.displayName, completedAt: new Date().toISOString(), pendingVerification: true } as any : t));
+    } catch (error) {
+      console.error('Error marking task completed:', error);
+      alert('Failed to mark task completed');
+    }
+  };
+
+  const approveTaskVerification = async (taskId: string) => {
+    if (userRole !== 'creator') {
+      alert('Only the project creator can verify completed tasks');
+      return;
+    }
+
+    try {
+      const feedback = verificationFeedbacks[taskId] || '';
+      await updateTaskInDb(projectId!, taskId, {
+        verified: true,
+        verifiedBy: user?.uid,
+        verifiedByName: user?.displayName || user?.email?.split('@')[0] || 'Creator',
+        verifiedAt: Timestamp.now(),
+        verificationFeedback: feedback,
+        pendingVerification: false,
+        status: 'completed'
+      });
+
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, verified: true, verificationFeedback: feedback, pendingVerification: false, status: 'completed' } as any : t));
+      setVerificationFeedbacks(prev => ({ ...prev, [taskId]: '' }));
+    } catch (error) {
+      console.error('Error approving verification:', error);
+      alert('Failed to approve verification');
+    }
+  };
+
+  const rejectTaskVerification = async (taskId: string) => {
+    if (userRole !== 'creator') {
+      alert('Only the project creator can reject verification');
+      return;
+    }
+
+    try {
+      const feedback = verificationFeedbacks[taskId] || '';
+      await updateTaskInDb(projectId!, taskId, {
+        verified: false,
+        verificationFeedback: feedback,
+        pendingVerification: false,
+        status: 'inprogress',
+        // clear completedBy info so member can rework
+        completedBy: null,
+        completedAt: null,
+        completedByName: null
+      });
+
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, verified: false, verificationFeedback: feedback, pendingVerification: false, status: 'inprogress', completedBy: undefined, completedAt: undefined } as any : t));
+      setVerificationFeedbacks(prev => ({ ...prev, [taskId]: '' }));
+    } catch (error) {
+      console.error('Error rejecting verification:', error);
+      alert('Failed to reject verification');
     }
   };
 
@@ -499,15 +582,25 @@ export default function ProjectWorkspace() {
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-black text-gray-900">Tasks</h2>
-              <button
-                onClick={() => setShowTaskForm(!showTaskForm)}
-                className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
-              >
-                + Add Task
-              </button>
+              {userRole === 'creator' ? (
+                <button
+                  onClick={() => setShowTaskForm(!showTaskForm)}
+                  className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
+                >
+                  + Add Task
+                </button>
+              ) : (
+                <button
+                  disabled
+                  title="Only the project creator can add tasks"
+                  className="px-4 py-2 bg-gray-200 text-gray-500 font-semibold rounded-lg cursor-not-allowed"
+                >
+                  + Add Task
+                </button>
+              )}
             </div>
 
-            {showTaskForm && (
+            {showTaskForm && userRole === 'creator' && (
               <div className="bg-white rounded-xl shadow-lg p-6 mb-4">
                 <h3 className="text-lg font-bold mb-4">New Task</h3>
                 <div className="space-y-4">
@@ -539,6 +632,7 @@ export default function ProjectWorkspace() {
                       value={newTask.assignedTo}
                       onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
                       className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                      disabled={userRole !== 'creator'}
                     >
                       <option value="">Assign to...</option>
                       {members.map(member => (
@@ -626,6 +720,38 @@ export default function ProjectWorkspace() {
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
                               <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Completion / Verification actions */}
+                        <div className="mt-3">
+                          {task.pendingVerification && userRole === 'creator' && (
+                            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+                              <p className="text-sm text-yellow-800 font-semibold">Completion pending verification</p>
+                              <p className="text-xs text-gray-600">Marked completed by: {task.completedByName || 'Member'}</p>
+                              <textarea
+                                placeholder="Add verification feedback (optional)"
+                                value={verificationFeedbacks[task.id] || ''}
+                                onChange={(e) => setVerificationFeedbacks(prev => ({ ...prev, [task.id]: e.target.value }))}
+                                className="w-full mt-2 p-2 border rounded-md"
+                              />
+                              <div className="flex gap-2 mt-2">
+                                <button onClick={() => approveTaskVerification(task.id)} className="px-3 py-2 bg-green-500 text-white rounded-lg">Approve</button>
+                                <button onClick={() => rejectTaskVerification(task.id)} className="px-3 py-2 bg-red-500 text-white rounded-lg">Reject</button>
+                              </div>
+                            </div>
+                          )}
+
+                          {!task.pendingVerification && !task.verified && task.assignedTo === (user?.displayName || user?.email?.split('@')[0]) && (
+                            <div className="mt-2">
+                              <button onClick={() => markTaskCompletedByMember(task.id)} className="px-3 py-2 bg-[#00ADB5] text-white rounded-lg">Mark Completed</button>
+                            </div>
+                          )}
+
+                          {task.verified && (
+                            <div className="mt-2 bg-green-50 border-l-4 border-green-400 p-2 rounded">
+                              <p className="text-sm text-green-800 font-semibold">Verified completed</p>
+                              {task.verificationFeedback && <p className="text-xs text-gray-600">Feedback: {task.verificationFeedback}</p>}
                             </div>
                           )}
                         </div>

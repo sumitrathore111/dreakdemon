@@ -44,6 +44,9 @@ interface DataContextType {
     fetchAllIdeas: () => Promise<any[]>;
     updateIdeaStatus: (ideaId: string, status: string, feedback: string, reviewedBy: string) => Promise<void>;
     deleteProject: (projectId: string) => Promise<void>;
+    // UI refresh signal for projects/ideas
+    ideasRefreshSignal?: number;
+    triggerIdeasRefresh?: () => void;
     
     // Project Collaboration functions
     sendJoinRequest: (projectId: string, projectTitle: string, creatorId: string, application: any) => Promise<void>;
@@ -66,6 +69,8 @@ interface DataContextType {
     // Project Workspace functions
     addTask: (projectId: string, task: any) => Promise<void>;
     fetchTasks: (projectId: string) => Promise<any[]>;
+    fetchCompletedTasksCount: (userId: string) => Promise<number>;
+    fetchProjectsCompletedCount: (userId: string) => Promise<number>;
     updateTask: (projectId: string, taskId: string, updates: any) => Promise<void>;
     deleteTask: (projectId: string, taskId: string) => Promise<void>;
     sendMessage: (projectId: string, message: any) => Promise<void>;
@@ -163,6 +168,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [userprofile, setProfile] = useState<any>(null);
     const [contributors, setcontributers] = useState<Contributor[]>()
     const [avatrUrl, setAvatarUrl] = useState('')
+    // Simple refresh signal to notify components to reload ideas/projects lists
+    const [ideasRefreshSignal, setIdeasRefreshSignal] = useState<number>(0);
+    const triggerIdeasRefresh = () => setIdeasRefreshSignal((s) => s + 1);
 
     // Initialize battle challenges from practice questions on app start
     useEffect(() => {
@@ -1051,6 +1059,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error) {
             console.error("Error deleting file:", error);
             throw error;
+        }
+    };
+
+    // Fetch count of verified tasks completed by a user across projects
+    const fetchCompletedTasksCount = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "Project_Tasks"),
+                where("completedBy", "==", userId),
+                where("verified", "==", true)
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.size;
+        } catch (error) {
+            console.error("Error fetching completed tasks count:", error);
+            return 0;
+        }
+    };
+
+    // Fetch count of distinct projects where the user has verified completed tasks
+    const fetchProjectsCompletedCount = async (userId: string) => {
+        try {
+            const q = query(
+                collection(db, "Project_Tasks"),
+                where("completedBy", "==", userId),
+                where("verified", "==", true)
+            );
+            const snapshot = await getDocs(q);
+            const projects = new Set<string>();
+            snapshot.docs.forEach(d => {
+                const data: any = d.data();
+                if (data.projectId) projects.add(data.projectId);
+            });
+            return projects.size;
+        } catch (error) {
+            console.error("Error fetching projects completed count:", error);
+            return 0;
         }
     };
 
@@ -2405,6 +2450,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             fetchAllIdeas,
             updateIdeaStatus,
             deleteProject,
+            ideasRefreshSignal,
+            triggerIdeasRefresh,
             // Project Collaboration
             sendJoinRequest,
             fetchJoinRequests,
@@ -2424,6 +2471,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // Project Workspace
             addTask,
             fetchTasks,
+            fetchCompletedTasksCount,
+            fetchProjectsCompletedCount,
             updateTask,
             deleteTask,
             sendMessage,

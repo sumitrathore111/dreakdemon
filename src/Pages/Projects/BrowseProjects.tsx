@@ -1,6 +1,7 @@
 import {
   Calendar,
-  CheckCircle, Clock,
+  CheckCircle,
+  Clock,
   Code2,
   Filter,
   Lightbulb,
@@ -10,7 +11,7 @@ import {
   Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 
@@ -30,7 +31,7 @@ interface Project {
 
 export default function BrowseProjects() {
   const { user } = useAuth();
-  const { fetchAllIdeas, sendJoinRequest, fetchAllJoinRequests, getProjectMembers } = useDataContext();
+  const { fetchAllIdeas, sendJoinRequest, fetchAllJoinRequests, getProjectMembers, fetchTasks, fetchCompletedTasksCount, deleteProject, ideasRefreshSignal, triggerIdeasRefresh } = useDataContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'browse' | 'myideas' | 'myprojects'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,6 +40,10 @@ export default function BrowseProjects() {
   const [myIdeas, setMyIdeas] = useState<any[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completedCount, setCompletedCount] = useState<number>(0);
+  // projectTaskCounts removed (was unused) — completed tasks tracked in `completedTasks`
+  const [completedTasks, setCompletedTasks] = useState<any[]>([]);
+  const [myProjectsView, setMyProjectsView] = useState<'projects' | 'ideas'>('projects');
   
   // Track user's join requests and memberships
   const [userJoinRequests, setUserJoinRequests] = useState<Record<string, any>>({});
@@ -65,7 +70,74 @@ export default function BrowseProjects() {
     loadMyIdeas();
     loadMyProjects();
     loadUserAccessStatus();
+    loadCompletedData();
   }, [user]);
+
+  // If navigated back after editing/creating an idea, refresh lists instantly
+  const location = useLocation();
+  useEffect(() => {
+    if (location && (location as any).state && (location as any).state.refreshIdeas) {
+      (async () => {
+        try {
+          await loadApprovedProjects();
+          await loadMyIdeas();
+          await loadMyProjects();
+        } finally {
+          // clear the navigation state so refresh only runs once
+          navigate(location.pathname, { replace: true, state: {} });
+        }
+      })();
+    }
+  }, [location]);
+
+  // Subscribe to context refresh signal so lists reload automatically
+  useEffect(() => {
+    if (typeof ideasRefreshSignal === 'number') {
+      (async () => {
+        try {
+          await loadApprovedProjects();
+          await loadMyIdeas();
+          await loadMyProjects();
+        } catch (err) {
+          console.error('Error refreshing ideas on signal:', err);
+        }
+      })();
+    }
+  }, [ideasRefreshSignal]);
+
+  const loadCompletedData = async () => {
+    if (!user) return;
+    try {
+      // overall verified completed tasks
+      const total = await fetchCompletedTasksCount(user.uid);
+      setCompletedCount(total);
+
+      // collect completed tasks per approved project
+      const allIdeas = await fetchAllIdeas();
+      const approved = allIdeas.filter((i: any) => i.status === 'approved');
+
+      const tasksCollected: any[] = [];
+
+      await Promise.all(
+        approved.map(async (idea: any) => {
+          try {
+            const tasks = await fetchTasks(idea.id);
+            const userCompleted = tasks.filter((t: any) => t.completedBy === user.uid && t.verified === true);
+            if (userCompleted.length > 0) {
+              userCompleted.forEach((t: any) => tasksCollected.push({ ...t, projectTitle: idea.title, projectId: idea.id }));
+            }
+          } catch (err) {
+            // ignore individual project errors
+          }
+        })
+      );
+
+      // project task counts no longer tracked separately
+      setCompletedTasks(tasksCollected);
+    } catch (error) {
+      console.error('Error loading completed data:', error);
+    }
+  };
 
   const loadApprovedProjects = async () => {
     setLoading(true);
@@ -360,6 +432,30 @@ export default function BrowseProjects() {
     return matchesSearch && matchesCategory;
   });
 
+  // Represent user's ideas as completed-task entries (for display in My Projects)
+  const myIdeasAsProjects: Project[] = myIdeas.map((idea: any) => ({
+    id: idea.id,
+    title: idea.title,
+    description: idea.description || idea.summary || '',
+    category: idea.category || 'Uncategorized',
+    creator: idea.userName || '',
+    creatorId: idea.userId || '',
+    members: 1,
+    status: 'Task Completed',
+    progress: 100,
+    tags: [idea.category || ''],
+    createdAt: idea.submittedAt || new Date().toISOString()
+  }));
+
+  const combinedMyWork: Project[] = [...myProjects, ...myIdeasAsProjects];
+
+  const completedByProject: Record<string, any[]> = completedTasks.reduce((acc: Record<string, any[]>, t: any) => {
+    const key = t.projectId || t.projectTitle || 'Unknown Project';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(t);
+    return acc;
+  }, {});
+
   return (
     <div className="min-h-screen bg-white p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -407,11 +503,11 @@ export default function BrowseProjects() {
             >
               <div className="flex items-center justify-center gap-1 sm:gap-2">
                 <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">My Ideas</span>
-                <span className="sm:hidden">Ideas</span>
-                {myIdeas.length > 0 && (
+                <span className="hidden sm:inline">Tasks Completed</span>
+                <span className="sm:hidden">Completed</span>
+                {completedTasks.length > 0 && (
                   <span className="bg-white text-[#00ADB5] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
-                    {myIdeas.length}
+                    {completedTasks.length}
                   </span>
                 )}
               </div>
@@ -428,9 +524,9 @@ export default function BrowseProjects() {
                 <Code2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">My Projects</span>
                 <span className="sm:hidden">Projects</span>
-                {myProjects.length > 0 && (
+                {combinedMyWork.length > 0 && (
                   <span className="bg-white text-[#00ADB5] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold">
-                    {myProjects.length}
+                    {combinedMyWork.length}
                   </span>
                 )}
               </div>
@@ -595,55 +691,129 @@ export default function BrowseProjects() {
           </div>
         )}
 
-        {/* My Ideas Tab */}
+        {/* Tasks Completed Tab (replaces My Ideas) */}
         {activeTab === 'myideas' && (
           <div>
-            {myIdeas.length === 0 ? (
+            {/* Certificate Progress Banner */}
+            <div className="mb-6 bg-gradient-to-r from-cyan-50 via-blue-50 to-cyan-50 border-2 border-cyan-200 rounded-2xl p-6 sm:p-8 shadow-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-3xl sm:text-4xl">📜</div>
+                    <h3 className="text-2xl sm:text-3xl font-black text-gray-900">Certification Progress</h3>
+                  </div>
+                  {completedCount >= 50 ? (
+                    <div>
+                      <p className="text-lg sm:text-xl font-bold text-green-700 mb-2">🎉 Congratulations!</p>
+                      <p className="text-gray-700 text-sm sm:text-base">You've completed <span className="font-black text-green-600">{completedCount}</span> verified tasks and earned your <span className="font-bold">Verified Certificate</span>! Visit your profile to download it.</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-700 font-semibold">{completedCount} of 50 tasks completed</span>
+                          <span className="text-[#00ADB5] font-bold text-lg">{Math.round((completedCount / 50) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#00ADB5] to-cyan-500 transition-all duration-500"
+                            style={{ width: `${(completedCount / 50) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-sm sm:text-base">
+                        Complete <span className="font-bold">{50 - completedCount}</span> more tasks to earn your <span className="font-semibold text-[#00ADB5]">Verified Certificate</span> and showcase your expertise!
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="hidden sm:flex flex-col items-center justify-center">
+                  <div className="text-6xl mb-2">🏆</div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-cyan-200 text-sm text-gray-600 flex items-center gap-2">
+                <span>💡</span>
+                <span>Keep contributing to projects to unlock your certification and boost your profile credibility.</span>
+              </div>
+            </div>
+
+            {completedTasks.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                 <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No ideas submitted yet</h3>
-                <p className="text-gray-600 mb-6">Submit your project idea and get it approved by our team</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No completed tasks yet</h3>
+                <p className="text-gray-600 mb-6">Complete tasks in project workspaces to earn verification.</p>
                 <button
-                  onClick={() => navigate('/dashboard/projects/submit-idea')}
+                  onClick={() => setActiveTab('browse')}
                   className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                 >
-                  Submit Your First Idea
+                  Browse Projects
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {myIdeas.map((idea) => (
-                  <div key={idea.id} className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">{idea.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3">
-                          Submitted on {new Date(idea.submittedAt).toLocaleDateString()}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">✅ Tasks You've Completed</h3>
+                  <p className="text-gray-600">Showcasing your verified achievements across projects</p>
+                </div>
+                {Object.keys(completedByProject).map((projectTitle) => (
+                  <div key={projectTitle} className="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border border-cyan-100">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="px-3 py-1 bg-gradient-to-r from-[#00ADB5] to-cyan-500 text-white rounded-full text-xs font-bold">
+                            PROJECT
+                          </div>
+                        </div>
+                        <h4 className="text-xl sm:text-2xl font-black text-gray-900 mb-1">{completedByProject[projectTitle][0].projectTitle || projectTitle}</h4>
+                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                          <span className="text-xl">🎯</span>
+                          <span><span className="font-bold text-[#00ADB5]">{completedByProject[projectTitle].length}</span> verified task{completedByProject[projectTitle].length !== 1 ? 's' : ''}</span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {idea.status === 'pending' && (
-                          <span className="px-4 py-2 bg-yellow-100 text-yellow-700 font-semibold rounded-lg flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            Pending Review
-                          </span>
-                        )}
-                        {idea.status === 'approved' && (
-                          <span className="px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4" />
-                            Approved
-                          </span>
-                        )}
-                      </div>
+                      <div className="text-4xl">📊</div>
                     </div>
-                    {idea.status === 'approved' && (
-                      <button
-                        onClick={() => navigate('/dashboard/projects/create')}
-                        className="mt-4 px-6 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
-                      >
-                        Create Project
-                      </button>
-                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {completedByProject[projectTitle].map((t: any) => (
+                        <div key={t.id} className="p-4 bg-white rounded-xl border-2 border-cyan-100 hover:border-[#00ADB5] hover:shadow-md transition-all">
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-green-600 text-lg">✓</span>
+                                <h5 className="font-bold text-gray-900 text-sm sm:text-base break-words">{t.title || t.name || 'Task'}</h5>
+                              </div>
+                              <div className="text-xs text-gray-500 ml-6">📅 {(() => {
+                                let dateToShow = null;
+                                if (t.verifiedAt) {
+                                  if (typeof t.verifiedAt === 'object' && t.verifiedAt.toDate) {
+                                    dateToShow = t.verifiedAt.toDate();
+                                  } else if (typeof t.verifiedAt === 'string') {
+                                    dateToShow = new Date(t.verifiedAt);
+                                  }
+                                } else if (t.completedAt) {
+                                  if (typeof t.completedAt === 'object' && t.completedAt.toDate) {
+                                    dateToShow = t.completedAt.toDate();
+                                  } else if (typeof t.completedAt === 'string') {
+                                    dateToShow = new Date(t.completedAt);
+                                  }
+                                }
+                                return dateToShow ? dateToShow.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date not available';
+                              })()}</div>
+                            </div>
+                            <div className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full">
+                              <span className="text-xs font-bold text-green-700 flex items-center gap-1">
+                                <span className="text-green-600">🏅</span>
+                                Verified
+                              </span>
+                            </div>
+                          </div>
+                          <div className="pl-6">
+                            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg p-2">
+                              Task completed and verified by project maintainer
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -651,76 +821,195 @@ export default function BrowseProjects() {
           </div>
         )}
 
-        {/* My Projects Tab */}
+        {/* My Projects Tab (combined projects + ideas shown as 'Task Completed') */}
         {activeTab === 'myprojects' && (
           <div>
-            {myProjects.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-                <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No projects yet</h3>
-                <p className="text-gray-600 mb-6">Join existing projects or create your own once your idea is approved</p>
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={() => setActiveTab('browse')}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition-all"
-                  >
-                    Browse Projects
-                  </button>
+            {/* View Filter Buttons */}
+            <div className="mb-6 flex gap-3">
+              <button
+                onClick={() => setMyProjectsView('projects')}
+                className={`px-6 py-3 rounded-xl font-bold transition-all ${
+                  myProjectsView === 'projects'
+                    ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white shadow-lg'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-5 h-5" />
+                  <span>Projects</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setMyProjectsView('ideas')}
+                className={`px-6 py-3 rounded-xl font-bold transition-all ${
+                  myProjectsView === 'ideas'
+                    ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white shadow-lg'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5" />
+                  <span>Ideas</span>
+                </div>
+              </button>
+            </div>
+
+            {myProjectsView === 'projects' ? (
+              // Projects View
+              myProjects.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                  <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No projects yet</h3>
+                  <p className="text-gray-600 mb-6">Join existing projects or create your own once your idea is approved</p>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={() => setActiveTab('browse')}
+                      className="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition-all"
+                    >
+                      Browse Projects
+                    </button>
+                    <button
+                      onClick={() => navigate('/dashboard/projects/submit-idea')}
+                      className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                    >
+                      Submit Idea
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {myProjects.map((project) => (
+                    <div
+                      key={project.id}
+                      onClick={() => navigate(`/dashboard/projects/workspace/${project.id}`)}
+                      className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6 cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-xl font-black text-gray-900">{project.title}</h3>
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded">
+                              CREATOR
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-sm">{project.description}</p>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-gray-600">Progress</span>
+                          <span className="text-sm font-black text-[#00ADB5]">{project.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${project.progress}%`, backgroundColor: '#00ADB5' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{project.members} members</span>
+                          </div>
+                        </div>
+                        <button className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors">
+                          Manage →
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              // Ideas View
+              myIdeas.length === 0 ? (
+                <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                  <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No ideas submitted yet</h3>
+                  <p className="text-gray-600 mb-6">Submit your project idea and get it approved by our team</p>
                   <button
                     onClick={() => navigate('/dashboard/projects/submit-idea')}
                     className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
                   >
-                    Submit Idea
+                    Submit Your First Idea
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {myProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    onClick={() => navigate(`/dashboard/projects/workspace/${project.id}`)}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6 cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-black text-gray-900">{project.title}</h3>
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded">
-                            CREATOR
-                          </span>
+              ) : (
+                <div className="space-y-4">
+                  {myIdeas.map((idea) => (
+                    <div key={idea.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#00ADB5]">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">{idea.title}</h3>
+                          <p className="text-sm text-gray-600 mb-3">{idea.description}</p>
+                          <p className="text-xs text-gray-500">
+                            📅 Submitted on {new Date(idea.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
                         </div>
-                        <p className="text-gray-600 text-sm">{project.description}</p>
-                      </div>
-                    </div>
+                        <div>
+                          {idea.status === 'pending' && (
+                            <span className="px-4 py-2 bg-yellow-100 text-yellow-700 font-semibold rounded-lg flex items-center gap-2 whitespace-nowrap">
+                              <Clock className="w-4 h-4" />
+                              Pending
+                            </span>
+                          )}
+                          {idea.status === 'approved' && (
+                            <span className="px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg flex items-center gap-2 whitespace-nowrap">
+                              <CheckCircle className="w-4 h-4" />
+                              Approved
+                            </span>
+                          )}
 
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-gray-600">Progress</span>
-                        <span className="text-sm font-black text-[#00ADB5]">{project.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${project.progress}%`, backgroundColor: '#00ADB5' }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          <span>{project.members} members</span>
+                          {/* Owner actions: Edit / Delete */}
+                          {user && idea.userId === user.uid && (
+                            <div className="mt-3 flex flex-col items-end gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/dashboard/projects/submit-idea', { state: { ideaToEdit: idea } });
+                                }}
+                                className="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (!confirm('Are you sure you want to delete this idea? This cannot be undone.')) return;
+                                  try {
+                                    await deleteProject(idea.id);
+                                    // update local state
+                                    setMyIdeas(prev => prev.filter((it) => it.id !== idea.id));
+                                    try { triggerIdeasRefresh && triggerIdeasRefresh(); } catch (err) { /* noop */ }
+                                  } catch (err) {
+                                    console.error('Failed to delete idea', err);
+                                    alert('Failed to delete idea. Please try again.');
+                                  }
+                                }}
+                                className="px-4 py-2 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-100"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <button className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors">
-                        Manage →
-                      </button>
+                      {idea.status === 'approved' && (
+                        <button
+                          onClick={() => navigate('/dashboard/projects/create')}
+                          className="mt-4 px-6 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
+                        >
+                          Create Project →
+                        </button>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         )}
