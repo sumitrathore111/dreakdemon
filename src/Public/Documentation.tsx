@@ -48,9 +48,8 @@ const NextStepDocumentation = () => {
     { id: 'codearena', icon: Swords, label: 'CodeArena' },
     { id: 'career-paths', icon: Target, label: 'Career Paths' },
     { id: 'learning', icon: BookOpen, label: 'Courses' },
-    { id: 'progress', icon: TrendingUp, label: 'Track Progress' },
-    { id: 'achievements', icon: Award, label: 'Achievements' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
+
+    
   ];
 
   const content = {
@@ -184,81 +183,7 @@ const NextStepDocumentation = () => {
         }
       ]
     },
-    'progress': {
-      title: 'Track Your Progress',
-      sections: [
-        {
-          heading: 'Personal Dashboard',
-          text: 'Visualize your learning journey with an intuitive dashboard showing completed courses, skills acquired, projects finished, and time invested in your growth.',
-          image: '📊'
-        },
-        {
-          heading: 'Skill Assessment',
-          text: 'Track your proficiency across different skills with regular assessments. See where you excel and identify areas that need more attention.',
-          image: '📈'
-        },
-        {
-          heading: 'Milestone Tracking',
-          text: 'Set goals and track progress towards your career milestones:\n• Learning targets\n• Project completion\n• Certification goals\n• CodeArena ranking progress\n• Skill development\n• Networking objectives',
-          image: '🎯'
-        },
-        {
-          heading: 'Analytics & Insights',
-          text: 'Get detailed insights into your learning patterns, strengths, and areas for improvement. Use data-driven recommendations to optimize your learning strategy.',
-          image: '🔍'
-        }
-      ]
-    },
-    'achievements': {
-      title: 'Achievements & Recognition',
-      sections: [
-        {
-          heading: 'Earn Badges',
-          text: 'Unlock achievement badges as you progress:\n• Course completion badges\n• Skill mastery certificates\n• CodeArena champion badges\n• Project excellence awards\n• Community contributor recognition\n• Battle victory streaks\n• Milestone achievements',
-          image: '🏅'
-        },
-        {
-          heading: 'Certificates',
-          text: 'Earn verified certificates upon completing courses and learning paths. Share them on LinkedIn, add them to your resume, and showcase your expertise to employers.',
-          image: '📜'
-        },
-        {
-          heading: 'Showcase Your Success',
-          text: 'Build a public profile showcasing your achievements, completed projects, earned certificates, CodeArena stats, and skills. Let recruiters and employers discover your potential.',
-          image: '🌟'
-        },
-        {
-          heading: 'Leaderboards',
-          text: 'Compete friendly with peers on leaderboards. Get recognized for your consistency, project quality, community contributions, and coding prowess in CodeArena.',
-          image: '🏆'
-        }
-      ]
-    },
-    'settings': {
-      title: 'Settings & Preferences',
-      sections: [
-        {
-          heading: 'Profile Settings',
-          text: 'Customize your profile with your bio, skills, interests, and career goals. Keep your information updated to get the most relevant recommendations.',
-          image: '👤'
-        },
-        {
-          heading: 'Learning Preferences',
-          text: 'Set your learning preferences:\n• Preferred learning style (video, text, interactive)\n• Time commitment (daily learning goals)\n• Difficulty level\n• Areas of interest\n• Notification preferences',
-          image: '⚙️'
-        },
-        {
-          heading: 'Privacy & Security',
-          text: 'Control your privacy settings, manage data sharing preferences, and secure your account with two-factor authentication. Your data security is our priority.',
-          image: '🔒'
-        },
-        {
-          heading: 'Integrations',
-          text: 'Connect NextStep with your favorite tools:\n• Calendar sync for scheduling\n• LinkedIn profile integration\n• GitHub repository linking\n• Google Drive for resources\n• Slack for notifications',
-          image: '🔗'
-        }
-      ]
-    }
+ 
   };
 
   const activeContent = content[activeSection as keyof typeof content];

@@ -117,12 +117,12 @@ function PublicLayout() {
 
 function LoginRedirect() {
   const { user } = useAuth();
-  return user ? <Navigate to="/dashboard" replace /> : <Login />;
+  return user ? <Navigate to="/dashboard/db" replace /> : <Login />;
 }
 
 function SignupRedirect() {
   const { user } = useAuth();
-  return user ? <Navigate to="/dashboard" replace /> : <Signup />;
+  return user ? <Navigate to="/dashboard/db" replace /> : <Signup />;
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
