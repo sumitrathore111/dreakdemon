@@ -1,3 +1,17 @@
+// Utility to deeply remove undefined fields from an object
+function removeUndefinedFields(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedFields);
+  } else if (obj && typeof obj === 'object') {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = removeUndefinedFields(value);
+      }
+      return acc;
+    }, {} as any);
+  }
+  return obj;
+}
 // Random Battle Creator Service
 // Creates battles with random challenges from database
 
@@ -10,7 +24,7 @@ import {
   where
 } from 'firebase/firestore';
 import { db } from './Firebase';
-import { getRandomBattleChallenge } from './challenges';
+import { getRandomQuestion } from './questionsService';
 
 interface BattleRequest {
   difficulty: 'easy' | 'medium' | 'hard';
@@ -26,19 +40,26 @@ export const createRandomBattle = async (battleRequest: BattleRequest): Promise<
   try {
     const { difficulty, entryFee, userId, userName, userAvatar, rating } = battleRequest;
     
-    // Get random challenge from database
-    const randomChallenge = await getRandomBattleChallenge(difficulty);
-    
-    if (!randomChallenge) {
-      throw new Error(`No ${difficulty} challenges found in database`);
+    // Get random question from questions.json
+    const randomQuestion = await getRandomQuestion(difficulty);
+    if (!randomQuestion) {
+      throw new Error(`No ${difficulty} questions found in questions.json`);
     }
-    
     // Calculate prize (winner takes all minus platform fee)
     const prize = entryFee * 2 * 0.9; // 10% platform fee
-    
     // Battle time limit based on difficulty
     const timeLimit = difficulty === 'easy' ? 900 : difficulty === 'medium' ? 1200 : 1800; // 15-30 minutes
-    
+    // Store the full question object as challenge, ensuring all required fields are present
+    const challenge = {
+      id: randomQuestion.id,
+      title: randomQuestion.title,
+      difficulty: randomQuestion.difficulty,
+      category: randomQuestion.category,
+      coinReward: randomQuestion.coinReward,
+      description: randomQuestion.description,
+      testCases: randomQuestion.testCases,
+      test_cases: randomQuestion.test_cases
+    };
     const battleData = {
       status: 'waiting',
       difficulty,
@@ -53,22 +74,14 @@ export const createRandomBattle = async (battleRequest: BattleRequest): Promise<
         rating: rating || 1000,
         hasSubmitted: false
       }],
-      challenge: {
-        id: randomChallenge.id!,
-        title: randomChallenge.title,
-        difficulty: randomChallenge.difficulty,
-        category: randomChallenge.category,
-        coinReward: randomChallenge.coinReward
-      },
+      challenge: removeUndefinedFields(challenge),
       createdAt: Timestamp.now(),
       createdBy: userId,
-      version: 'v2.0-database'
+      version: 'v2.0-questionsjson'
     };
-    
     const battlesRef = collection(db, 'CodeArena_Battles');
     const docRef = await addDoc(battlesRef, battleData);
-    
-    console.log(`Created battle ${docRef.id} with challenge: ${randomChallenge.title}`);
+    console.log(`Created battle ${docRef.id} with question: ${randomQuestion.title}`);
     return docRef.id;
   } catch (error) {
     console.error('Error creating random battle:', error);
@@ -140,19 +153,25 @@ export const createRematchBattle = async (
   try {
     const { difficulty, entryFee, userId, userName, userAvatar, rating } = battleRequest;
     
-    // Get random challenge from database
-    const randomChallenge = await getRandomBattleChallenge(difficulty);
-    
-    if (!randomChallenge) {
-      throw new Error(`No ${difficulty} challenges found in database`);
+    // Get random question from questions.json
+    const randomQuestion = await getRandomQuestion(difficulty);
+    if (!randomQuestion) {
+      throw new Error(`No ${difficulty} questions found in questions.json`);
     }
-    
     // Calculate prize (winner takes all minus platform fee)
     const prize = entryFee * 2 * 0.9; // 10% platform fee
-    
     // Battle time limit based on difficulty
     const timeLimit = difficulty === 'easy' ? 900 : difficulty === 'medium' ? 1200 : 1800;
-    
+    const challenge = {
+      id: randomQuestion.id,
+      title: randomQuestion.title,
+      difficulty: randomQuestion.difficulty,
+      category: randomQuestion.category,
+      coinReward: randomQuestion.coinReward,
+      description: randomQuestion.description,
+      testCases: randomQuestion.testCases,
+      test_cases: randomQuestion.test_cases
+    };
     const battleData = {
       status: 'waiting',
       difficulty,
@@ -167,18 +186,12 @@ export const createRematchBattle = async (
         rating: rating || 1000,
         hasSubmitted: false
       }],
-      challenge: {
-        id: randomChallenge.id!,
-        title: randomChallenge.title,
-        difficulty: randomChallenge.difficulty,
-        category: randomChallenge.category,
-        coinReward: randomChallenge.coinReward
-      },
+      challenge: removeUndefinedFields(challenge),
       createdAt: Timestamp.now(),
       createdBy: userId,
       isRematch: true,
       targetOpponent: opponentId,
-      version: 'v2.0-database'
+      version: 'v2.0-questionsjson'
     };
     
     const battlesRef = collection(db, 'CodeArena_Battles');

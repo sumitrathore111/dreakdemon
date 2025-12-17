@@ -1,4 +1,4 @@
-import { ArrowRight, Award, BookOpen, Coins, Compass, Crown, Lightbulb, Menu, Settings, Sparkles, Star, Swords, Target, TrendingUp, Trophy } from 'lucide-react';
+import { ArrowRight,BookOpen, Coins, Compass, Crown, Lightbulb, Menu, Sparkles, Star, Swords, Target, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

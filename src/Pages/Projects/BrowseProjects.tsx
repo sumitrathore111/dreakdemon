@@ -1076,14 +1076,7 @@ export default function BrowseProjects() {
                           )}
                         </div>
                       </div>
-                      {idea.status === 'approved' && (
-                        <button
-                          onClick={() => navigate('/dashboard/projects/create')}
-                          className="mt-4 px-6 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
-                        >
-                          Create Project →
-                        </button>
-                      )}
+
                     </div>
                   ))}
                 </div>

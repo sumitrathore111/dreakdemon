@@ -2,28 +2,28 @@ import Editor from '@monaco-editor/react';
 import { doc, onSnapshot, Timestamp, updateDoc, type DocumentData } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    CheckCircle,
-    ChevronDown,
-    Clock,
-    Code2,
-    DoorOpen,
-    Loader2,
-    Send,
-    Shield,
-    Trophy,
-    XCircle
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Code2,
+  DoorOpen,
+  Loader2,
+  Send,
+  Shield,
+  Trophy,
+  XCircle
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
-import { fetchChallengeById, getChallengeTestCases, type Challenge } from '../../service/challenges';
+import { type Challenge } from '../../service/challenges';
 import {
-    determineBattleWinnerPiston,
-    getPistonSupportedLanguages,
-    submitBattleCodePiston,
-    type PistonBattleSubmissionResult
+  determineBattleWinnerPiston,
+  getPistonSupportedLanguages,
+  submitBattleCodePiston,
+  type PistonBattleSubmissionResult
 } from '../../service/codeExecution';
 import { db } from '../../service/Firebase';
 
@@ -60,6 +60,9 @@ interface Battle {
     difficulty: string;
     category: string;
     coinReward: number;
+    description?: string;
+    testCases?: Array<any>;
+    test_cases?: Array<any>;
   };
   difficulty: string;
   entryFee: number;
@@ -287,14 +290,42 @@ rl.on('close', () => {
         const battleData = { id: snapshot.id, ...snapshot.data() } as Battle;
         setBattle(battleData);
 
-        // Load challenge details
+        // If challenge is from questions.json, use its data directly
         if (battleData.challenge && !challenge) {
-          const challengeData = await fetchChallengeById(battleData.challenge.id);
-          if (challengeData) {
-            setChallenge(challengeData);
-            // Get test cases for validation (includes hidden ones for battles)
-            const cases = await getChallengeTestCases(battleData.challenge.id, true);
+          if (
+            battleData.challenge.description &&
+            (Array.isArray(battleData.challenge.testCases) || Array.isArray(battleData.challenge.test_cases))
+          ) {
+            setChallenge(battleData.challenge as any);
+            // Prefer testCases, fallback to test_cases
+            const cases = (battleData.challenge.testCases && battleData.challenge.testCases.length > 0)
+              ? battleData.challenge.testCases.map((tc: any) => ({ input: tc.input, output: tc.expectedOutput || tc.output || tc.expected_output || '' }))
+              : (battleData.challenge.test_cases || []).map((tc: any) => ({ input: tc.input, output: tc.expected_output || tc.output || '' }));
             setTestCases(cases);
+          } else {
+            // As a last resort, show a random question from questions.json and update the battle document for consistency
+            try {
+              const { getRandomQuestion } = await import('../../service/questionsService');
+              const randomQ = await getRandomQuestion();
+              if (randomQ) {
+                // Save the randomQ to Firestore for this battle
+                const battleRef = doc(db, 'CodeArena_Battles', battleId);
+                await updateDoc(battleRef, {
+                  challenge: {
+                    ...randomQ,
+                    testCases: randomQ.testCases,
+                    test_cases: randomQ.test_cases,
+                  }
+                });
+                setChallenge(randomQ as any);
+                const cases = (randomQ.testCases && randomQ.testCases.length > 0)
+                  ? randomQ.testCases.map((tc: any) => ({ input: tc.input, output: tc.expectedOutput || tc.output || tc.expected_output || '' }))
+                  : (randomQ.test_cases || []).map((tc: any) => ({ input: tc.input, output: tc.expected_output || tc.output || '' }));
+                setTestCases(cases);
+              }
+            } catch (e) {
+              // ignore
+            }
           }
         }
 
@@ -861,10 +892,12 @@ rl.on('close', () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
-            <div
-              className="prose prose-invert prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: challenge?.problemStatement || '<p class="text-gray-400">Loading challenge...</p>' }}
-            />
+            <div className="bg-gray-800/80 rounded-xl shadow-lg border border-cyan-900/30 p-5 mb-4 max-h-96 overflow-y-auto custom-scrollbar">
+              <div
+                className="prose prose-invert prose-base max-w-none problem-statement-prose"
+                dangerouslySetInnerHTML={{ __html: (challenge?.problemStatement || challenge?.description || '<p class=\"text-white-400\">Loading challenge...</p>') }}
+              />
+            </div>
 
             {/* Sample Test Cases */}
             {testCases.length > 0 && (
@@ -1096,14 +1129,38 @@ rl.on('close', () => {
 
       {/* Problem Statement Styles */}
       <style>{`
-        .prose pre {
-          background: #1f2937;
-          padding: 0.5rem;
-          border-radius: 0.25rem;
-          font-size: 0.75rem;
+        .problem-statement-prose, .problem-statement-prose *, .problem-statement-prose h1, .problem-statement-prose h2, .problem-statement-prose h3 {
+          color: #fff !important;
         }
-        .prose p {
-          margin: 0.5rem 0;
+        .problem-statement-prose h1, .problem-statement-prose h2, .problem-statement-prose h3 {
+          margin-top: 1.2em;
+          margin-bottom: 0.5em;
+        }
+        .problem-statement-prose ul, .problem-statement-prose ol {
+          margin-left: 1.5em;
+          margin-bottom: 1em;
+        }
+        .problem-statement-prose pre, .problem-statement-prose code {
+          background: #1e293b;
+          color: #facc15;
+          border-radius: 0.3em;
+          padding: 0.3em 0.6em;
+          font-size: 1em;
+        }
+        .problem-statement-prose p {
+          margin: 0.7em 0;
+          line-height: 1.7;
+        }
+        .problem-statement-prose table {
+          background: #0f172a;
+          border-radius: 0.3em;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border-radius: 4px;
         }
       `}</style>
     </div>
