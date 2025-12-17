@@ -6,7 +6,7 @@ import {
     LogOut,
     Menu,
     MessageSquare,
-    Settings,
+    Store,
     Trophy,
     UserCircle,
 } from "lucide-react";
@@ -26,10 +26,10 @@ export default function DashboardLayout() {
   
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
-    { name: "Projects", path: "/dashboard/projects", icon: <Folder size={20} /> },
+    { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
     { name: "Courses", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
-    { name: "Company Requirements", path: "/dashboard/company_req", icon: <Settings size={20} /> },
+    { name: "ProjectBazar", path: "/dashboard/company_req", icon: <Store size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
