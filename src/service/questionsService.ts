@@ -27,9 +27,7 @@ export interface Question {
   }>;
 }
 
-// GitHub raw content URL for our questions repository
-const GITHUB_QUESTIONS_URL = 'https://github.com/moohhiit/NextStep/blob/main/questions.json';
-// Local public folder fallback
+// Local public folder for questions
 const LOCAL_QUESTIONS_URL = '/questions.json';
 
 let cachedQuestions: Question[] | null = null;
@@ -38,9 +36,8 @@ const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
 /**
  * Fetch all questions from multiple sources with fallback chain:
- * 1. GitHub repository (if available)
- * 2. Local public/questions.json (static asset)
- * 3. Bundled questions.json import
+ * 1. Local public/questions.json (static asset) - PRIMARY
+ * 2. Bundled questions.json import - FALLBACK
  * Uses caching to reduce API calls
  */
 export const fetchAllQuestions = async (): Promise<Question[]> => {
@@ -50,27 +47,7 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
     return cachedQuestions;
   }
 
-  // Try GitHub first
-  try {
-    console.log('📥 Attempting to fetch from GitHub...');
-    const response = await fetch(GITHUB_QUESTIONS_URL);
-    
-    if (response.ok) {
-      const data = await response.json();
-      const normalized = normalizeQuestions(data);
-
-      if (normalized.length > 0) {
-        console.log(`✓ Loaded ${normalized.length} questions from GitHub`);
-        cachedQuestions = normalized;
-        cacheTimestamp = Date.now();
-        return normalized;
-      }
-    }
-  } catch {
-    console.warn('⚠️ GitHub fetch failed, trying local...');
-  }
-
-  // Try local public folder
+  // Try local public folder first (most reliable)
   try {
     console.log('📥 Attempting to fetch from local /questions.json...');
     const response = await fetch(LOCAL_QUESTIONS_URL);
@@ -90,7 +67,7 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
     console.warn('⚠️ Local file fetch failed, using bundled data...');
   }
 
-  // Use bundled questions as final fallback
+  // Use bundled questions as fallback
   try {
     const localQuestionsRaw = questionsData as unknown;
     const normalized = normalizeQuestions(localQuestionsRaw);
