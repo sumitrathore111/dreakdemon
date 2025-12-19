@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ExternalLink, Github, Heart, ShoppingCart, Star, Eye } from 'lucide-react';
+import { ExternalLink, Eye, Github, ShoppingCart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { MarketplaceProject } from '../../../types/marketplace';
 
@@ -18,7 +18,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-xl transition-all"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all"
     >
       <Link to={`/dashboard/marketplace/project/${project.id}`}>
         {/* Image */}
@@ -40,7 +40,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-lg ${
               project.isFree
                 ? 'bg-green-500 text-white'
-                : 'bg-white text-teal-500'
+                : 'bg-white dark:bg-gray-800 text-teal-500 dark:text-teal-400'
             }`}>
               {formatPrice(project.price)}
             </span>
@@ -58,12 +58,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         {/* Content */}
         <div className="p-5">
           {/* Title */}
-          <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 hover:text-teal-500 transition-colors">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 hover:text-teal-500 dark:hover:text-teal-400 transition-colors">
             {project.title}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
             {project.description}
           </p>
 
@@ -72,13 +72,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             {project.techStack.slice(0, 3).map((tech, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium"
+                className="px-2 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-400 rounded text-xs font-medium"
               >
                 {tech}
               </span>
             ))}
             {project.techStack.length > 3 && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-medium">
                 +{project.techStack.length - 3}
               </span>
             )}
@@ -92,14 +92,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               className="w-8 h-8 rounded-full border-2 border-teal-400"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {project.sellerName}
               </p>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center justify-between text-sm text-gray-600 border-t border-gray-200 pt-3">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
             <div className="flex items-center gap-1">
               <Eye className="w-4 h-4" />
               <span>{project.views || 0}</span>
@@ -120,13 +120,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {(project.links.github || project.links.liveDemo) && (
             <div className="flex gap-3 mt-3">
               {project.links.github && (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                   <Github className="w-4 h-4" />
                   <span className="text-xs">Code</span>
                 </div>
               )}
               {project.links.liveDemo && (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                   <ExternalLink className="w-4 h-4" />
                   <span className="text-xs">Demo</span>
                 </div>

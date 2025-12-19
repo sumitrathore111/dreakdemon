@@ -20,11 +20,11 @@ const CompleteProfilePopup: React.FC<CompleteProfilePopupProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
-        <h2 className="text-xl font-semibold mb-3 text-gray-800">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+        <h2 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">
           Complete Your Profile
         </h2>
-        <p className="text-gray-600 mb-5">
+        <p className="text-gray-600 dark:text-gray-400 mb-5">
           To continue using the app, please complete your profile first.
         </p>
         <button

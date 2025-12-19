@@ -208,11 +208,11 @@ const BattleHistory = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Swords className="w-5 h-5 text-blue-500" />
             Battle History
           </h2>
-          <p className="text-gray-500 text-xs mt-0.5">Your past matches and performance</p>
+          <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">Your past matches and performance</p>
         </div>
         <button
           onClick={() => navigate('/dashboard/codearena/battle')}
@@ -225,15 +225,15 @@ const BattleHistory = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-        <div className="bg-white rounded-lg border border-gray-200 p-3">
-          <div className="flex items-center gap-1.5 text-gray-500 text-xs mb-0.5">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+          <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs mb-0.5">
             <Target className="w-3.5 h-3.5" />
             Total
           </div>
-          <p className="text-lg font-bold text-gray-900">{stats.totalBattles}</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.totalBattles}</p>
         </div>
         
-        <div className="bg-white rounded-lg border border-green-200 p-3 bg-green-50/50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-700 p-3 bg-green-50/50 dark:bg-green-900/20">
           <div className="flex items-center gap-1.5 text-green-600 text-xs mb-0.5">
             <Trophy className="w-3.5 h-3.5" />
             Wins
@@ -241,7 +241,7 @@ const BattleHistory = () => {
           <p className="text-lg font-bold text-green-600">{stats.wins}</p>
         </div>
         
-        <div className="bg-white rounded-lg border border-red-200 p-3 bg-red-50/50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-700 p-3 bg-red-50/50 dark:bg-red-900/20">
           <div className="flex items-center gap-1.5 text-red-600 text-xs mb-0.5">
             <XCircle className="w-3.5 h-3.5" />
             Losses
@@ -249,7 +249,7 @@ const BattleHistory = () => {
           <p className="text-lg font-bold text-red-600">{stats.losses}</p>
         </div>
         
-        <div className="bg-white rounded-lg border border-blue-200 p-3 bg-blue-50/50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700 p-3 bg-blue-50/50 dark:bg-blue-900/20">
           <div className="flex items-center gap-1.5 text-blue-600 text-xs mb-0.5">
             <Crown className="w-3.5 h-3.5" />
             Win Rate
@@ -257,7 +257,7 @@ const BattleHistory = () => {
           <p className="text-lg font-bold text-blue-600">{stats.winRate}%</p>
         </div>
         
-        <div className={`bg-white rounded-lg border p-3 ${stats.totalEarnings >= 0 ? 'border-amber-200 bg-amber-50/50' : 'border-gray-200'}`}>
+        <div className={`bg-white dark:bg-gray-800 rounded-lg border p-3 ${stats.totalEarnings >= 0 ? 'border-amber-200 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
           <div className="flex items-center gap-1.5 text-amber-600 text-xs mb-0.5">
             <Coins className="w-3.5 h-3.5" />
             Earnings
@@ -269,7 +269,7 @@ const BattleHistory = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 bg-white rounded-lg border border-gray-200 p-1 w-fit">
+      <div className="flex items-center gap-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1 w-fit">
         {[
           { id: 'all', label: 'All' },
           { id: 'won', label: 'Wins' },
@@ -281,7 +281,7 @@ const BattleHistory = () => {
             className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
               filter === tab.id
                 ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             {tab.label}
@@ -292,10 +292,10 @@ const BattleHistory = () => {
       {/* Battle List */}
       <div className="space-y-2">
         {getFilteredBattles().length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <Swords className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-gray-700 mb-1">No battles found</h3>
-            <p className="text-gray-500 text-sm mb-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <Swords className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">No battles found</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
               {filter === 'all' 
                 ? "You haven't participated in any battles yet." 
                 : filter === 'won' 
@@ -324,10 +324,10 @@ const BattleHistory = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.03 }}
                 onClick={() => navigate(`/dashboard/codearena/battle/results/${battle.id}`)}
-                className={`bg-white rounded-lg border p-3 cursor-pointer hover:shadow-sm transition-all group ${
+                className={`bg-white dark:bg-gray-800 rounded-lg border p-3 cursor-pointer hover:shadow-sm transition-all group ${
                   isWinner 
-                    ? 'border-green-200 hover:border-green-300' 
-                    : 'border-red-200 hover:border-red-300'
+                    ? 'border-green-200 dark:border-green-700 hover:border-green-300 dark:hover:border-green-600' 
+                    : 'border-red-200 dark:border-red-700 hover:border-red-300 dark:hover:border-red-600'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -353,30 +353,30 @@ const BattleHistory = () => {
                           {isWinner ? 'Victory' : 'Defeat'}
                         </span>
                         {wonByForfeit && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 rounded-full">
                             Left
                           </span>
                         )}
                         {lostByForfeit && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
                             Forfeit
                           </span>
                         )}
                       </div>
                       
-                      <p className="text-gray-700 text-sm">
+                      <p className="text-gray-700 dark:text-gray-300 text-sm">
                         vs {opponent?.odName || 'Unknown'}
                       </p>
                       
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {formatDate(battle.endTime || battle.createdAt)}
                         </span>
                         <span className={`px-1.5 py-0.5 rounded text-[10px] capitalize ${
-                          battle.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
-                          battle.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                          battle.difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' :
+                          battle.difficulty === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400' :
+                          'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400'
                         }`}>
                           {battle.difficulty}
                         </span>
@@ -389,7 +389,7 @@ const BattleHistory = () => {
                     {/* Test Results */}
                     {myResult?.submissionResult && (
                       <div className="text-right hidden md:block">
-                        <p className="text-xs text-gray-500">Tests</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Tests</p>
                         <p className={`text-sm font-bold ${myResult.submissionResult.passed ? 'text-green-600' : 'text-orange-600'}`}>
                           {myResult.submissionResult.passedCount}/{myResult.submissionResult.totalCount}
                         </p>
@@ -398,7 +398,7 @@ const BattleHistory = () => {
 
                     {/* Coins */}
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Coins</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Coins</p>
                       <p className={`text-sm font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}`}>
                         {isWinner ? '+' : '-'}{isWinner ? battle.prize : battle.entryFee}
                       </p>
@@ -411,8 +411,8 @@ const BattleHistory = () => {
 
                 {/* Win Reason */}
                 {battle.winReason && (
-                  <div className="mt-2 pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-500">
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       <span className="font-medium">Result: </span>
                       {battle.winReason}
                     </p>

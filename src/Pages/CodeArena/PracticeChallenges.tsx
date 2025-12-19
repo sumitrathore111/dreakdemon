@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import {
-  BookOpen,
-  ChevronRight,
-  Code2,
-  Coins,
-  RefreshCw,
-  Search,
-  Star,
-  Target,
-  Zap
+    BookOpen,
+    ChevronRight,
+    Code2,
+    Coins,
+    RefreshCw,
+    Search,
+    Star,
+    Target,
+    Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -151,22 +151,22 @@ const PracticeChallenges = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl border border-gray-200 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-xl">
-              <Target className="w-6 h-6 text-green-600" />
+            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+              <Target className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">⚡ Practice Challenges</h2>
-              <p className="text-gray-500 text-sm">Solve coding challenges from 3000+ questions and earn coins</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">⚡ Practice Challenges</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Solve coding challenges from 3000+ questions and earn coins</p>
             </div>
           </div>
           
@@ -192,13 +192,13 @@ const PracticeChallenges = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ y: -2, scale: 1.02 }}
-            className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all group"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all group"
           >
-            <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3 group-hover:scale-110 transition-transform`}>
+            <div className={`inline-flex p-2 rounded-lg ${stat.color} dark:bg-opacity-20 mb-3 group-hover:scale-110 transition-transform`}>
               <stat.icon className="w-4 h-4" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-sm text-gray-500">{stat.label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -208,7 +208,7 @@ const PracticeChallenges = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
         {/* Search */}
         <div className="relative">
@@ -221,7 +221,7 @@ const PracticeChallenges = () => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
         </div>
 
@@ -239,7 +239,7 @@ const PracticeChallenges = () => {
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                 selectedDifficulty === diff.id
                   ? diff.color
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {diff.label}
@@ -257,7 +257,7 @@ const PracticeChallenges = () => {
               className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                 selectedTopic === 'all'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               All Topics
@@ -271,14 +271,14 @@ const PracticeChallenges = () => {
                 className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                   selectedTopic === topic
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {topic}
               </motion.button>
             ))}
             {availableTopics.length > 10 && (
-              <span className="px-4 py-2 text-xs text-gray-500">+{availableTopics.length - 10} more</span>
+              <span className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">+{availableTopics.length - 10} more</span>
             )}
           </div>
         )}
@@ -290,25 +290,25 @@ const PracticeChallenges = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center bg-white rounded-xl border border-gray-200 p-8"
+            className="text-center bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8"
           >
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
             />
-            <p className="text-gray-600">Loading 3000+ questions from GitHub...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading 3000+ questions from GitHub...</p>
           </motion.div>
         </div>
       ) : filteredChallenges.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 bg-white rounded-xl border border-gray-200"
+          className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
         >
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-700 text-lg">No challenges found</p>
-          <p className="text-gray-500 text-sm mt-2">Try adjusting your filters</p>
+          <p className="text-gray-700 dark:text-gray-300 text-lg">No challenges found</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Try adjusting your filters</p>
         </motion.div>
       ) : (
         <div className="space-y-3">
@@ -319,25 +319,25 @@ const PracticeChallenges = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: index * 0.05, duration: 0.4 }}
               whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-blue-300 transition-all group"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {challenge.title}
                     </h3>
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors line-clamp-2">{challenge.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{challenge.description}</p>
                   
                   <div className="flex flex-wrap items-center gap-3 text-sm mb-3">
                     <motion.span 
                       whileHover={{ scale: 1.05 }}
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        challenge.difficulty === 'easy' ? 'bg-green-50 text-green-700 border border-green-200' :
-                        challenge.difficulty === 'medium' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                        'bg-red-50 text-red-700 border border-red-200'
+                        challenge.difficulty === 'easy' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700' :
+                        challenge.difficulty === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700' :
+                        'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700'
                       }`}
                     >
                       {challenge.difficulty
@@ -346,11 +346,11 @@ const PracticeChallenges = () => {
                       }
                     </motion.span>
                     
-                    <span className="text-gray-600 text-xs bg-gray-100 px-2 py-1 rounded">
+                    <span className="text-gray-600 dark:text-gray-400 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                       {challenge.category}
                     </span>
                     
-                    <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
+                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-medium">
                       <Coins className="w-3 h-3" />
                       {challenge.coinReward || challenge.coins || 0}
                     </span>
@@ -386,12 +386,12 @@ const PracticeChallenges = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-6 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
+            className="px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
           >
             Previous
           </motion.button>
           
-          <span className="px-4 py-3 text-gray-700 text-sm bg-white rounded-lg border border-gray-200">
+          <span className="px-4 py-3 text-gray-700 dark:text-gray-300 text-sm bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             Page {page}
           </span>
           

@@ -1,31 +1,31 @@
-import { useEffect, useState } from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Building,
-  Plus,
-  X,
-  Edit3,
-  Save,
-  FileText,
-  GraduationCap,
-  Briefcase,
-  Award,
-  Globe,
+    Award,
+    Briefcase,
+    Building,
+    Edit3,
+    FileText,
+    Globe,
+    GraduationCap,
+    Mail,
+    MapPin,
+    Phone,
+    Plus,
+    Save,
+    User,
+    X,
 } from "lucide-react";
+import type { ChangeEvent, KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Textarea,
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Input,
+    Label,
+    Textarea,
 } from "../../Component/Global/ui";
 import { useDataContext } from "../../Context/UserDataContext";
 
@@ -209,14 +209,14 @@ export default function Profile() {
   }, [])
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Profile
           </h1>
-          <p className="text-gray-500 mt-1 text-sm sm:text-base">
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm sm:text-base">
             Manage your personal information and skills
           </p>
         </div>
@@ -241,9 +241,9 @@ export default function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Summary */}
         <div>
-          <Card className="bg-white/80 backdrop-blur-sm">
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Profile Summary</CardTitle>
+              <CardTitle className="dark:text-white">Profile Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <div
@@ -288,7 +288,7 @@ export default function Profile() {
         </div>
         {/* Basic Information */}
         <div className="lg:col-span-2">
-          <Card className="bg-white/80 backdrop-blur-sm">
+          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-600" />

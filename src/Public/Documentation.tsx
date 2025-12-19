@@ -1,4 +1,4 @@
-import { ArrowRight,BookOpen, Coins, Compass, Crown, Lightbulb, Menu, Sparkles, Star, Swords, Target, Trophy } from 'lucide-react';
+import { ArrowRight, BookOpen, Coins, Compass, Crown, Lightbulb, Menu, Sparkles, Star, Swords, Target, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -189,33 +189,33 @@ const NextStepDocumentation = () => {
   const activeContent = content[activeSection as keyof typeof content];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Animated Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-cyan-400/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-400/10 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/15 to-pink-400/10 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-cyan-400/10 dark:from-blue-600/10 dark:to-cyan-600/5 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-400/10 dark:from-cyan-600/10 dark:to-blue-600/5 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-600/10 dark:to-pink-600/5 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* Sidebar (desktop only) */}
-      <div className={`hidden md:block bg-white/80 backdrop-blur-xl border-r border-gray-200/50 fixed top-0 bottom-0 pt-20 overflow-y-auto shadow-xl z-10 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'}`}>
+      <div className={`hidden md:block bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 fixed top-0 bottom-0 pt-20 overflow-y-auto shadow-xl z-10 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'}`}>
 
         <nav className="p-2">
           <div className="mb-2 px-3">
             <div className="flex items-center gap-2">
               {/* Mobile menu button */}
-              <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded hover:bg-gray-100 transition-colors">
+              <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 <Menu className="w-5 h-5" />
               </button>
               <button
                 aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 onClick={() => setCollapsed((s) => !s)}
-                className="p-1 rounded hover:bg-gray-100 transition-colors"
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <ArrowRight className={`w-4 h-4 transform transition-transform ${collapsed ? 'rotate-180' : ''}`} />
               </button>
               {!collapsed && (
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Navigation
                 </div>
               )}
@@ -231,7 +231,7 @@ const NextStepDocumentation = () => {
                 className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3'} ${collapsed ? 'px-2 py-3' : 'px-4 py-3'} rounded-xl mb-1 transition-all duration-300 transform ${
                   activeSection === item.id
                     ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold shadow-lg scale-105'
-                    : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-md font-medium'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md font-medium'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -242,11 +242,11 @@ const NextStepDocumentation = () => {
         </nav>
 
         {!collapsed && (
-          <div className="p-6 mt-4 border-t border-gray-200/50">
-            <div className="bg-gradient-to-br from-[#00ADB5]/10 to-cyan-50 border-2 border-[#00ADB5]/20 rounded-2xl p-4 hover:shadow-xl transition-all duration-300">
+          <div className="p-6 mt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+            <div className="bg-gradient-to-br from-[#00ADB5]/10 to-cyan-50 dark:from-[#00ADB5]/20 dark:to-gray-800 border-2 border-[#00ADB5]/20 rounded-2xl p-4 hover:shadow-xl transition-all duration-300">
               <BookOpen className="w-8 h-8 text-[#00ADB5] mb-2" />
-              <h3 className="font-black text-gray-900 mb-1">Need Help?</h3>
-              <p className="text-sm text-gray-600 mb-3 font-medium">Explore our guides and start your journey today.</p>
+              <h3 className="font-black text-gray-900 dark:text-white mb-1">Need Help?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">Explore our guides and start your journey today.</p>
               <button onClick={() => navigate('/contact')} className="w-full bg-gradient-to-r from-[#00ADB5] to-cyan-600 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                 Get Support
               </button>
@@ -260,11 +260,11 @@ const NextStepDocumentation = () => {
         <div className="max-w-4xl mx-auto relative">
           {/* Header with Badge */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-lg mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg mb-4">
               <Sparkles className="w-4 h-4 text-[#00ADB5]" />
-              <span className="text-sm font-bold text-gray-800">📚 Documentation</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">📚 Documentation</span>
             </div>
-            <h1 className="text-4xl lg:text-5xl font-black text-gray-900 mb-2 leading-tight">
+            <h1 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight">
               {activeContent.title}
             </h1>
             <div className="h-1 w-24 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-full"></div>
@@ -304,15 +304,15 @@ const NextStepDocumentation = () => {
             {activeContent.sections.map((section: { heading: string; text: string; image: string }, index: number) => (
               <div
                 key={index}
-                className="group bg-white/80 backdrop-blur-sm border-2 border-gray-200/50 rounded-3xl p-8 hover:border-[#00ADB5]/30 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl p-8 hover:border-[#00ADB5]/30 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
               >
                 <div className="flex items-start gap-6">
                   <div className="text-6xl group-hover:scale-110 transition-transform duration-300">{section.image}</div>
                   <div className="flex-1">
-                    <h2 className="text-2xl lg:text-3xl font-black text-gray-900 mb-4 group-hover:text-[#00ADB5] transition-colors duration-300">
+                    <h2 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-4 group-hover:text-[#00ADB5] transition-colors duration-300">
                       {section.heading}
                     </h2>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line font-medium">{section.text}</p>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line font-medium">{section.text}</p>
                   </div>
                 </div>
               </div>
@@ -368,10 +368,10 @@ const NextStepDocumentation = () => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white/95 backdrop-blur-md p-4 overflow-y-auto shadow-2xl">
+          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-4 overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-bold">Navigation</div>
-              <button onClick={() => setMobileOpen(false)} className="p-2 rounded hover:bg-gray-100"><ArrowRight className="w-4 h-4 rotate-180" /></button>
+              <div className="text-lg font-bold dark:text-white">Navigation</div>
+              <button onClick={() => setMobileOpen(false)} className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><ArrowRight className="w-4 h-4 rotate-180" /></button>
             </div>
             <nav>
               {sidebarItems.map((item) => {
@@ -384,7 +384,7 @@ const NextStepDocumentation = () => {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all duration-300 transform ${
                       activeSection === item.id
                         ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold shadow-lg scale-105'
-                        : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-md font-medium'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md font-medium'
                     }`}
                   >
                     <Icon className="w-5 h-5" />

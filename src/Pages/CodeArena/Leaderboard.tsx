@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import {
-    Award,
-    Calendar,
-    Clock,
-    Crown,
-    Loader2,
-    Medal,
-    Star,
-    TrendingUp,
-    Trophy
+  Award,
+  Calendar,
+  Clock,
+  Crown,
+  Loader2,
+  Medal,
+  Star,
+  TrendingUp,
+  Trophy
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
@@ -81,27 +81,27 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl border border-gray-200 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-amber-100 rounded-xl">
+            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
               <Trophy className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">🏆 Leaderboard</h2>
-              <p className="text-gray-500 text-sm">Compete with the best coders</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">🏆 Leaderboard</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Compete with the best coders</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 bg-gray-100 p-2 rounded-lg">
+          <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
             {[
               { id: 'global', label: 'All Time', icon: Trophy },
               { id: 'weekly', label: 'Weekly', icon: Calendar },
@@ -115,7 +115,7 @@ const Leaderboard = () => {
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -131,9 +131,9 @@ const Leaderboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl border border-gray-200 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 text-center">Top Performers</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">Top Performers</h3>
         
         <div className="flex items-end justify-center gap-4 md:gap-8">
           {/* 2nd Place */}
@@ -152,13 +152,13 @@ const Leaderboard = () => {
                   <span className="text-white text-sm font-bold">2</span>
                 </div>
               </div>
-              <p className="text-gray-900 font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
+              <p className="text-gray-900 dark:text-white font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[1]?.odName}
               </p>
-              <p className="text-gray-600 text-xs">Level {rankings[1]?.level}</p>
-              <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center">
+              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[1]?.level}</p>
+              <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-lg">{rankings[1]?.rating}</span>
-                <span className="text-gray-600 text-xs">{rankings[1]?.problemsSolved} solved</span>
+                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[1]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -178,13 +178,13 @@ const Leaderboard = () => {
                   <Crown className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <p className="text-gray-900 font-bold text-base md:text-lg text-center truncate max-w-[100px] md:max-w-[120px]">
+              <p className="text-gray-900 dark:text-white font-bold text-base md:text-lg text-center truncate max-w-[100px] md:max-w-[120px]">
                 {rankings[0]?.odName}
               </p>
-              <p className="text-gray-600 text-xs">Level {rankings[0]?.level}</p>
-              <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-amber-50 border border-amber-200 shadow-md flex flex-col items-center justify-center">
+              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[0]?.level}</p>
+              <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 shadow-md flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-xl">{rankings[0]?.rating}</span>
-                <span className="text-gray-600 text-xs">{rankings[0]?.problemsSolved} solved</span>
+                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[0]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -205,13 +205,13 @@ const Leaderboard = () => {
                   <span className="text-white text-sm font-bold">3</span>
                 </div>
               </div>
-              <p className="text-gray-900 font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
+              <p className="text-gray-900 dark:text-white font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[2]?.odName}
               </p>
-              <p className="text-gray-600 text-xs">Level {rankings[2]?.level}</p>
-              <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-orange-50 border border-orange-200 flex flex-col items-center justify-center">
+              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[2]?.level}</p>
+              <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 flex flex-col items-center justify-center">
                 <span className="text-blue-600 font-bold text-lg">{rankings[2]?.rating}</span>
-                <span className="text-gray-600 text-xs">{rankings[2]?.problemsSolved} solved</span>
+                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[2]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -223,7 +223,7 @@ const Leaderboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5"
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-5"
         >
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -231,14 +231,14 @@ const Leaderboard = () => {
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xl font-bold text-white shadow-lg">
                   {wallet?.userName?.[0] || 'Y'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white dark:border-gray-800">
                   {myRank?.rank || '?'}
                 </div>
               </div>
               
               <div>
-                <p className="text-gray-900 font-semibold text-lg">{wallet?.userName || 'You'}</p>
-                <p className="text-sm text-gray-500">Your Current Rank</p>
+                <p className="text-gray-900 dark:text-white font-semibold text-lg">{wallet?.userName || 'You'}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Your Current Rank</p>
               </div>
             </div>
 
@@ -249,11 +249,11 @@ const Leaderboard = () => {
               </div>
               <div className="text-center">
                 <p className="text-emerald-600 font-bold text-xl">{myRank?.problemsSolved || 0}</p>
-                <p className="text-xs text-gray-500">Solved</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Solved</p>
               </div>
               <div className="text-center">
                 <p className="text-purple-600 font-bold text-xl">{myRank?.battlesWon || 0}</p>
-                <p className="text-xs text-gray-500">Wins</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Wins</p>
               </div>
             </div>
           </div>
@@ -265,10 +265,10 @@ const Leaderboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
       >
         {/* Table Header */}
-        <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-700">
+        <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300">
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-5">Player</div>
           <div className="col-span-2 text-center">Rating</div>
@@ -281,21 +281,21 @@ const Leaderboard = () => {
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
           </div>
         ) : rankings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
             <Trophy className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-lg font-medium">No rankings yet</p>
             <p className="text-sm">Start solving challenges to appear on the leaderboard!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {rankings.map((player, index) => (
               <motion.div
                 key={player.odId || index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
-                className={`grid grid-cols-12 gap-2 px-4 py-4 items-center hover:bg-gray-50 transition-colors ${
-                  player.odId === user?.uid ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                className={`grid grid-cols-12 gap-2 px-4 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                  player.odId === user?.uid ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : ''
                 }`}
               >
                 {/* Rank */}
@@ -309,7 +309,7 @@ const Leaderboard = () => {
                       {getRankIcon(player.rank)}
                     </div>
                   ) : (
-                    <span className="text-gray-500 font-medium">{player.rank}</span>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium">{player.rank}</span>
                   )}
                 </div>
 
@@ -324,13 +324,13 @@ const Leaderboard = () => {
                     {player.avatar || player.odName?.[0] || '?'}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-gray-900 font-medium truncate flex items-center gap-2">
+                    <p className="text-gray-900 dark:text-white font-medium truncate flex items-center gap-2">
                       {player.odName}
                       {player.odId === user?.uid && (
-                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">You</span>
+                        <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">You</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600 flex items-center gap-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
                       <Star className="w-3 h-3 text-amber-500" />
                       Level {player.level}
                     </p>
@@ -365,18 +365,18 @@ const Leaderboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-white rounded-xl border border-gray-200 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <Award className="w-5 h-5 text-amber-600" />
           Weekly Rewards
         </h3>
         
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { rank: '1st Place', coins: 100, icon: Crown, bgColor: 'bg-amber-50', iconBg: 'bg-amber-500', borderColor: 'border-amber-200' },
-            { rank: '2nd Place', coins: 50, icon: Medal, bgColor: 'bg-gray-50', iconBg: 'bg-gray-500', borderColor: 'border-gray-200' },
-            { rank: '3rd Place', coins: 200, icon: Medal, bgColor: 'bg-orange-50', iconBg: 'bg-orange-500', borderColor: 'border-orange-200' },
+            { rank: '1st Place', coins: 100, icon: Crown, bgColor: 'bg-amber-50 dark:bg-amber-900/30', iconBg: 'bg-amber-500', borderColor: 'border-amber-200 dark:border-amber-700' },
+            { rank: '2nd Place', coins: 50, icon: Medal, bgColor: 'bg-gray-50 dark:bg-gray-700', iconBg: 'bg-gray-500', borderColor: 'border-gray-200 dark:border-gray-600' },
+            { rank: '3rd Place', coins: 200, icon: Medal, bgColor: 'bg-orange-50 dark:bg-orange-900/30', iconBg: 'bg-orange-500', borderColor: 'border-orange-200 dark:border-orange-700' },
           ].map((reward, i) => (
             <motion.div 
               key={i} 
@@ -389,7 +389,7 @@ const Leaderboard = () => {
                 <reward.icon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-gray-900 font-medium">{reward.rank}</p>
+                <p className="text-gray-900 dark:text-white font-medium">{reward.rank}</p>
                 <p className="text-amber-600 font-bold text-lg">{reward.coins.toLocaleString()} coins</p>
               </div>
             </motion.div>

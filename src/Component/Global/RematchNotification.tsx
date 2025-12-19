@@ -303,18 +303,18 @@ const RematchNotification = () => {
               initial={{ scale: 0.8, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.8, opacity: 0, y: 20 }}
-              className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden"
             >
               {/* Background decoration */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-100 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-100 dark:from-orange-900/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100 dark:from-blue-900/30 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
 
               {/* Close button */}
               <button
                 onClick={handleDecline}
-                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
 
               {/* Header */}
@@ -328,26 +328,26 @@ const RematchNotification = () => {
                     <Swords className="w-10 h-10 text-white" />
                   </div>
                 </motion.div>
-                <h3 className="text-2xl font-bold text-gray-900">⚔️ Rematch Challenge!</h3>
-                <p className="text-gray-600 mt-2">Someone wants a rematch with you</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">⚔️ Rematch Challenge!</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Someone wants a rematch with you</p>
               </div>
 
               {/* Challenger Info */}
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-6">
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-xl mb-6">
                 <img
                   src={incomingRematch.challengerAvatar}
                   alt={incomingRematch.challengerName}
                   className="w-16 h-16 rounded-full border-3 border-blue-500 shadow-md"
                 />
                 <div>
-                  <p className="font-bold text-lg text-gray-900">{incomingRematch.challengerName}</p>
-                  <p className="text-gray-600 text-sm">
-                    Rating: <span className="font-semibold text-blue-600">{incomingRematch.challengerRating}</span>
+                  <p className="font-bold text-lg text-gray-900 dark:text-white">{incomingRematch.challengerName}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Rating: <span className="font-semibold text-blue-600 dark:text-blue-400">{incomingRematch.challengerRating}</span>
                   </p>
-                  <p className="text-gray-500 text-sm capitalize">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">
                     Difficulty: <span className={`font-semibold ${
-                      incomingRematch.difficulty === 'easy' ? 'text-green-600' :
-                      incomingRematch.difficulty === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                      incomingRematch.difficulty === 'easy' ? 'text-green-600 dark:text-green-400' :
+                      incomingRematch.difficulty === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                     }`}>{incomingRematch.difficulty}</span>
                   </p>
                 </div>
@@ -355,22 +355,22 @@ const RematchNotification = () => {
 
               {/* Entry Fee & Prize */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-amber-50 rounded-xl text-center">
-                  <Coins className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                  <p className="text-xs text-amber-600 font-medium">Entry Fee</p>
-                  <p className="text-xl font-bold text-amber-700">{incomingRematch.entryFee}</p>
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/30 rounded-xl text-center">
+                  <Coins className="w-6 h-6 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Entry Fee</p>
+                  <p className="text-xl font-bold text-amber-700 dark:text-amber-300">{incomingRematch.entryFee}</p>
                 </div>
-                <div className="p-4 bg-green-50 rounded-xl text-center">
-                  <Trophy className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                  <p className="text-xs text-green-600 font-medium">Prize Pool</p>
-                  <p className="text-xl font-bold text-green-700">{incomingRematch.prize}</p>
+                <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-xl text-center">
+                  <Trophy className="w-6 h-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">Prize Pool</p>
+                  <p className="text-xl font-bold text-green-700 dark:text-green-300">{incomingRematch.prize}</p>
                 </div>
               </div>
 
               {/* Wallet Balance */}
-              <div className="flex items-center justify-center gap-2 p-3 bg-gray-100 rounded-lg mb-6">
-                <Coins className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700">
+              <div className="flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg mb-6">
+                <Coins className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <span className="text-gray-700 dark:text-gray-300">
                   Your Balance: <span className="font-bold">{wallet?.coins || 0} coins</span>
                 </span>
               </div>
@@ -381,7 +381,7 @@ const RematchNotification = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleDecline}
-                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Decline
                 </motion.button>

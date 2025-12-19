@@ -1,13 +1,13 @@
+import {
+    addDoc,
+    collection,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-} from "firebase/firestore";
 import { auth, db } from "../../service/Firebase";
 
 export default function Messages() {
@@ -38,18 +38,18 @@ export default function Messages() {
   };
 
   return (
-    <div className="mt-6 border rounded p-4 bg-gray-50">
-      <h2 className="font-semibold mb-2">Messages</h2>
-      <div className="h-40 overflow-y-auto border p-2 bg-white mb-2">
+    <div className="mt-6 border rounded p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+      <h2 className="font-semibold mb-2 text-gray-900 dark:text-white">Messages</h2>
+      <div className="h-40 overflow-y-auto border dark:border-gray-700 p-2 bg-white dark:bg-gray-900 mb-2">
         {messages.map((m) => (
-          <p key={m.id} className="mb-1">
-            <span className="font-bold">{m.sender}: </span>{m.text}
+          <p key={m.id} className="mb-1 text-gray-900 dark:text-gray-100">
+            <span className="font-bold text-cyan-600 dark:text-cyan-400">{m.sender}: </span>{m.text}
           </p>
         ))}
       </div>
       <div className="flex gap-2">
         <input
-          className="flex-1 border rounded px-2 py-1"
+          className="flex-1 border rounded px-2 py-1 bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
           value={newMsg}
           onChange={(e) => setNewMsg(e.target.value)}
           placeholder="Type message..."

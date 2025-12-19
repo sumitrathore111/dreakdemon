@@ -1,20 +1,20 @@
+import {
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Code,
+  Play,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Trophy,
+  Users,
+  Youtube
+} from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  BookOpen, 
-  Clock, 
-  Star, 
-  Users, 
-  Award, 
-  TrendingUp,
-  Code,
-  Sparkles,
-  CheckCircle,
-  ArrowRight,
-  Youtube,
-  Trophy,
-  Play
-} from 'lucide-react';
 import { useAuth } from '../Context/AuthContext';
 
 interface Course {
@@ -266,7 +266,7 @@ const Courses: React.FC = () => {
     : allCourses.filter(c => c.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <header className="relative overflow-hidden pt-12 pb-20" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -333,22 +333,22 @@ const Courses: React.FC = () => {
               color: '#FFD700'
             }
           ].map((item, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-cyan-300">
+            <div key={idx} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 dark:border-gray-700 hover:border-cyan-300">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl" style={{ backgroundColor: item.color }}>
                   {item.step}
                 </div>
                 <item.icon className="w-8 h-8" style={{ color: item.color }} />
               </div>
-              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-gray-600">{item.description}</p>
+              <h3 className="text-xl font-bold mb-2 dark:text-white">{item.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{item.description}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Category Filter */}
-      <section className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+      <section className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 overflow-x-auto">
             {['all', 'Web Development', 'AI'].map((category) => (
@@ -358,7 +358,7 @@ const Courses: React.FC = () => {
                 className={`px-5 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
                   selectedCategory === category
                     ? 'text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 style={{
                   backgroundColor: selectedCategory === category ? '#00ADB5' : ''
@@ -377,7 +377,7 @@ const Courses: React.FC = () => {
           {filteredCourses.map((course) => (
             <article
               key={course.id}
-              className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+              className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
             >
               {/* Thumbnail */}
               <div className="relative h-48 overflow-hidden">
@@ -398,23 +398,23 @@ const Courses: React.FC = () => {
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    course.level === 'Beginner' ? 'bg-green-100 text-green-700' :
-                    course.level === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
-                    'bg-purple-100 text-purple-700'
+                    course.level === 'Beginner' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                    course.level === 'Intermediate' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                    'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
                   }`}>
                     {course.level}
                   </span>
                   <div className="flex items-center gap-1 text-yellow-500">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-medium text-gray-700">{course.rating}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{course.rating}</span>
                   </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{course.description}</p>
-                <p className="text-xs text-gray-500 mb-3">by {course.instructor}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{course.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{course.description}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mb-3">by {course.instructor}</p>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
                   <Clock className="w-4 h-4" />
                   <span>{course.duration}</span>
                   <span className="text-gray-300">•</span>
@@ -427,14 +427,14 @@ const Courses: React.FC = () => {
                   <span className="font-semibold">5 Curated Projects + Mentor</span>
                 </div>
 
-                <div className="border-t pt-3 mb-3">
+                <div className="border-t dark:border-gray-700 pt-3 mb-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-green-600">
+                    <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                       <CheckCircle className="w-4 h-4" />
                       <span className="text-sm font-medium">YouTube: FREE</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Full Package</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Full Package</p>
                       <p className="text-xl font-bold" style={{ color: '#00ADB5' }}>₹{course.price}</p>
                     </div>
                   </div>
@@ -451,7 +451,7 @@ const Courses: React.FC = () => {
 
                 <button
                   onClick={handleJoinProject}
-                  className="w-full py-2 rounded-xl font-medium border-2 transition-all hover:bg-cyan-50"
+                  className="w-full py-2 rounded-xl font-medium border-2 transition-all hover:bg-cyan-50 dark:hover:bg-cyan-900/30"
                   style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
                 >
                   Browse Projects →
@@ -474,7 +474,7 @@ const Courses: React.FC = () => {
           </p>
           <button
             onClick={handleJoinProject}
-            className="px-8 py-4 bg-white text-cyan-600 font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 flex items-center gap-2 mx-auto text-lg"
+            className="px-8 py-4 bg-white dark:bg-gray-800 text-cyan-600 dark:text-cyan-400 font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 flex items-center gap-2 mx-auto text-lg"
           >
             <ArrowRight className="w-6 h-6" />
             Browse Open Projects
@@ -510,15 +510,15 @@ const Courses: React.FC = () => {
               description: 'Get certificates endorsed by project creators who worked with you'
             }
           ].map((benefit, idx) => (
-            <div key={idx} className="flex gap-4 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
+            <div key={idx} className="flex gap-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
                   <benefit.icon className="w-6 h-6" style={{ color: '#00ADB5' }} />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-bold mb-2">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
+                <h3 className="text-lg font-bold mb-2 dark:text-white">{benefit.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{benefit.description}</p>
               </div>
             </div>
           ))}

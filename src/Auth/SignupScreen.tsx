@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signupWithEmail } from "../service/auth";
 
 export default function Signup() {
@@ -41,8 +41,8 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center px-4 pt-20">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 pt-20">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-slate-200 dark:border-gray-700">
         {/* Logo */}
         <img
           src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
@@ -50,16 +50,16 @@ export default function Signup() {
         />
 
         {/* Title */}
-        <h1 className="text-3xl font-bold text-slate-800 text-center mb-2">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white text-center mb-2">
           Create Account
         </h1>
-        <p className="text-slate-500 text-center text-sm mb-6">
+        <p className="text-slate-500 dark:text-gray-400 text-center text-sm mb-6">
           Join us and start your journey 🚀
         </p>
 
         {/* Error */}
         {err && (
-          <p className="text-red-600 text-sm mb-4 bg-red-50 border border-red-200 p-2 rounded-md">
+          <p className="text-red-600 dark:text-red-400 text-sm mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-2 rounded-md">
             {err}
           </p>
         )}
@@ -74,11 +74,11 @@ export default function Signup() {
         >
           {/* Name */}
           <div>
-            <label className="block text-slate-600 text-sm mb-1">
+            <label className="block text-slate-600 dark:text-gray-300 text-sm mb-1">
               Full Name
             </label>
             <input
-              className={`w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition ${
+              className={`w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition dark:text-white ${
                 err?.includes("name") ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="Full Name"
@@ -89,10 +89,10 @@ export default function Signup() {
 
           {/* Email */}
           <div>
-            <label className="block text-slate-600 text-sm mb-1">Email</label>
+            <label className="block text-slate-600 dark:text-gray-300 text-sm mb-1">Email</label>
             <input
               type="email"
-              className={`w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition ${
+              className={`w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition dark:text-white ${
                 err?.includes("email") ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="you@example.com"
@@ -103,12 +103,12 @@ export default function Signup() {
 
           {/* Password */}
           <div>
-            <label className="block text-slate-600 text-sm mb-1">
+            <label className="block text-slate-600 dark:text-gray-300 text-sm mb-1">
               Password
             </label>
             <input
               type="password"
-              className={`w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition ${
+              className={`w-full rounded-xl border dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 outline-none focus:ring-2 focus:ring-[#00ADB5] transition dark:text-white ${
                 err?.includes("Password") ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="••••••••"
@@ -133,7 +133,7 @@ export default function Signup() {
         </form>
 
         {/* Footer */}
-        <p className="text-center text-sm mt-6 text-slate-600">
+        <p className="text-center text-sm mt-6 text-slate-600 dark:text-gray-400">
           Already have an account?{" "}
           <Link
             to="/login"

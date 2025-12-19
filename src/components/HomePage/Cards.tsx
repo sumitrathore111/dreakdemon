@@ -20,14 +20,14 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   return (
     <article
       ref={ref}
-      className={`group relative bg-white rounded-3xl shadow-lg overflow-hidden transition-all duration-700 transform 
+      className={`group relative bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden transition-all duration-700 transform 
         hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       {/* Image Container */}
-      <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+      <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
         <img
           src={service.image}
           alt={service.title}
@@ -47,19 +47,19 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
 
         {/* Stats Badge */}
         {service.stats && (
-          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 transform group-hover:scale-105 transition-all duration-300">
-            <div className="text-lg font-black text-gray-900">{service.stats.number}</div>
-            <div className="text-xs text-gray-600 font-medium">{service.stats.label}</div>
+          <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-xl px-3 py-2 transform group-hover:scale-105 transition-all duration-300">
+            <div className="text-lg font-black text-gray-900 dark:text-white">{service.stats.number}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{service.stats.label}</div>
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="p-6 space-y-4">
-        <h3 className="font-bold text-xl text-gray-900 leading-tight group-hover:text-[#00ADB5] transition-colors duration-300">
+        <h3 className="font-bold text-xl text-gray-900 dark:text-white leading-tight group-hover:text-[#00ADB5] transition-colors duration-300">
           {service.title}
         </h3>
-        <p className="text-gray-600 leading-relaxed text-sm">
+        <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
           {service.description}
         </p>
         
@@ -164,7 +164,7 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
   return (
     <article
       ref={ref}
-      className={`group relative bg-white rounded-3xl p-8 shadow-xl transition-all duration-700 transform hover:shadow-2xl hover:-translate-y-1 overflow-hidden ${
+      className={`group relative bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl transition-all duration-700 transform hover:shadow-2xl hover:-translate-y-1 overflow-hidden ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       }`}
       style={{ transitionDelay: `${index * 200}ms` }}
@@ -177,7 +177,7 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
       <div className="text-6xl text-[#00ADB5]/20 font-serif mb-4 relative z-10">"</div>
       
       {/* Quote Content */}
-      <blockquote className="text-gray-700 text-lg mb-6 relative z-10 leading-relaxed italic">
+      <blockquote className="text-gray-700 dark:text-gray-300 text-lg mb-6 relative z-10 leading-relaxed italic">
         {testimonial.quote}
       </blockquote>
       
@@ -197,15 +197,15 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
           
           {/* Verified Badge */}
           {testimonial.verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
               <CheckCircle className="w-3 h-3 text-white" />
             </div>
           )}
         </div>
         
         <div className="flex-1">
-          <h4 className="font-bold text-lg text-gray-900">{testimonial.name}</h4>
-          <p className="text-sm text-gray-600">{testimonial.role} at {testimonial.company}</p>
+          <h4 className="font-bold text-lg text-gray-900 dark:text-white">{testimonial.name}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role} at {testimonial.company}</p>
           
           {/* Rating Stars */}
           <div className="flex items-center gap-1 mt-1">

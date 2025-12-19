@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Youtube, 
-  Lock, 
-  CheckCircle, 
-  Clock, 
-  Trophy, 
-  MessageCircle,
-  Download,
-  ArrowLeft,
-  Zap
+import {
+    ArrowLeft,
+    CheckCircle,
+    Clock,
+    Download,
+    Lock,
+    MessageCircle,
+    Trophy,
+    Youtube,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 
 const CourseView: React.FC = () => {
@@ -255,13 +255,13 @@ const CourseView: React.FC = () => {
   const allCompleted = approvedProjects === course.projects.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button 
             onClick={() => navigate('/dashboard/courses')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to Courses
@@ -275,8 +275,8 @@ const CourseView: React.FC = () => {
           {/* Main Content */}
           <div className="md:col-span-2">
             {/* YouTube Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 dark:text-white">
                 <Youtube className="w-6 h-6 text-red-500" />
                 Course Videos (FREE)
               </h2>
@@ -290,9 +290,9 @@ const CourseView: React.FC = () => {
             </div>
 
             {/* Projects Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
+                <h2 className="text-xl font-bold flex items-center gap-2 dark:text-white">
                   <Trophy className="w-6 h-6" style={{ color: '#00ADB5' }} />
                   5 Real-World Projects
                 </h2>
@@ -305,7 +305,7 @@ const CourseView: React.FC = () => {
 
               {isEnrolled && (
                 <div className="mb-6">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <div 
                       className="h-3 rounded-full transition-all"
                       style={{ 
@@ -335,8 +335,8 @@ const CourseView: React.FC = () => {
                             ? 'border-yellow-400 bg-yellow-50'
                             : isRejected
                             ? 'border-red-400 bg-red-50'
-                            : 'border-gray-200 hover:border-cyan-300'
-                          : 'border-gray-200 bg-gray-50'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300'
+                          : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                       }`}
                     >
                       <div className="flex items-start gap-4">
@@ -349,21 +349,21 @@ const CourseView: React.FC = () => {
                                 ? 'bg-yellow-500 border-yellow-500'
                                 : isRejected
                                 ? 'bg-red-500 border-red-500'
-                                : 'border-gray-300'
+                                : 'border-gray-300 dark:border-gray-600'
                             }`}>
                               {isApproved && <CheckCircle className="w-5 h-5 text-white" />}
                               {isPending && <Clock className="w-5 h-5 text-white" />}
                               {isRejected && <span className="text-white text-xs font-bold">✗</span>}
                             </div>
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                               <Lock className="w-4 h-4 text-gray-400" />
                             </div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg mb-1">{project.title}</h3>
-                          <p className="text-gray-600 text-sm mb-2">{project.description}</p>
+                          <h3 className="font-bold text-lg mb-1 dark:text-white">{project.title}</h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{project.description}</p>
                           <div className="flex items-center gap-4 text-sm mb-3">
                             <span className={`px-2 py-1 rounded ${
                               project.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
@@ -440,12 +440,12 @@ const CourseView: React.FC = () => {
           <div>
             {!isEnrolled ? (
               /* Enrollment Card */
-              <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-4">
                 <div className="text-center mb-6">
                   <div className="text-4xl font-black mb-2" style={{ color: '#00ADB5' }}>
                     ₹{course.price}
                   </div>
-                  <p className="text-gray-600 text-sm">One-time payment</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">One-time payment</p>
                 </div>
 
                 <div className="space-y-3 mb-6">
@@ -484,12 +484,12 @@ const CourseView: React.FC = () => {
             ) : (
               /* Enrolled - Mentor Contact Card */
               <div className="space-y-4">
-                <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                     <MessageCircle className="w-5 h-5" style={{ color: '#00ADB5' }} />
                     Contact Your Mentor
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                     Get personalized guidance and roadmap for completing all 5 projects.
                   </p>
                   <a
@@ -508,7 +508,7 @@ const CourseView: React.FC = () => {
                     <Trophy className="w-16 h-16 mx-auto mb-4" />
                     <h3 className="font-bold text-xl mb-2">Congratulations!</h3>
                     <p className="mb-4">All 5 projects approved by mentor!</p>
-                    <button className="w-full py-3 bg-white text-orange-600 rounded-lg font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2">
+                    <button className="w-full py-3 bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2">
                       <Download className="w-5 h-5" />
                       Download Certificate
                     </button>
@@ -523,15 +523,15 @@ const CourseView: React.FC = () => {
       {/* Submit Project Modal */}
       {showSubmitModal !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-4">Submit Project</h3>
-            <p className="text-gray-600 text-sm mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold mb-4 dark:text-white">Submit Project</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               Submit your completed project for mentor review. You'll receive feedback within 24-48 hours.
             </p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 dark:text-white">
                   GitHub Repository URL <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -539,12 +539,12 @@ const CourseView: React.FC = () => {
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/username/repo"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 dark:text-white">
                   Live Demo URL (Optional)
                 </label>
                 <input
@@ -552,13 +552,13 @@ const CourseView: React.FC = () => {
                   value={liveUrl}
                   onChange={(e) => setLiveUrl(e.target.value)}
                   placeholder="https://yourproject.vercel.app"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 text-sm">
-                <p className="font-medium text-cyan-900 mb-1">💡 Tips for approval:</p>
-                <ul className="text-cyan-800 space-y-1 ml-4 list-disc">
+              <div className="bg-cyan-50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-700 rounded-lg p-3 text-sm">
+                <p className="font-medium text-cyan-900 dark:text-cyan-100 mb-1">💡 Tips for approval:</p>
+                <ul className="text-cyan-800 dark:text-cyan-200 space-y-1 ml-4 list-disc">
                   <li>Include a README with setup instructions</li>
                   <li>Add comments to your code</li>
                   <li>Test all features before submitting</li>
@@ -574,7 +574,7 @@ const CourseView: React.FC = () => {
                   setGithubUrl('');
                   setLiveUrl('');
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white transition-all"
               >
                 Cancel
               </button>

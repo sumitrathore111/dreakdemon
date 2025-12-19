@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useDataContext } from "../Context/UserDataContext";
 import { Timestamp } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthContext";
+import { useDataContext } from "../Context/UserDataContext";
 
 interface Question {
   id: number;
@@ -61,28 +61,28 @@ export default function QueryScreen() {
 
   if (questions.length == 0 && isQuestiontoday == "") {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="text-gray-500">Loading Question</div>
+      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-500 dark:text-gray-400">Loading Question</div>
       </div>
     );
   }
   return (
-    <div className="flex flex-col h-full bg-gray-50 p-6 overflow-y-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Query & Discussion</h1>
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Query & Discussion</h1>
 
       {/* Question List */}
       <div className="space-y-4">
         {questions.map((q) => (
-          <div key={q.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-            <h2 className="font-semibold text-lg text-gray-900">{q.question}</h2>
-            <p className="text-gray-700 mt-2">{q.answer}</p>
+          <div key={q.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+            <h2 className="font-semibold text-lg text-gray-900 dark:text-white">{q.question}</h2>
+            <p className="text-gray-700 dark:text-gray-300 mt-2">{q.answer}</p>
 
 
             <div className="mt-2 space-x-2">
 
               <span
 
-                className="text-blue-600 text-sm font-medium bg-blue-100 px-2 py-1 rounded"
+                className="text-blue-600 dark:text-blue-400 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded"
               >
                 {q.ans_user}
               </span>
@@ -94,12 +94,12 @@ export default function QueryScreen() {
       </div>
 
       {/* Add Question */}
-      <div className="mt-6 bg-white p-4 rounded-lg shadow border border-gray-200">
+      <div className="mt-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <textarea
           value={newQuestion}
           onChange={(e) => setNewQuestion(e.target.value)}
           placeholder="Type your question..."
-          className="w-full border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleAddQuestion}

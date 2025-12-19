@@ -15,11 +15,11 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900";
   const variants: Record<string, string> = {
     default:
       "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:opacity-50",
-    ghost: "hover:bg-gray-100 text-gray-700",
+    ghost: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300",
     primary:
       "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:opacity-50",
   };
@@ -47,7 +47,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         ref={ref}
-        className={`border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${className}`}
+        className={`border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${className}`}
         {...props}
       />
     );
@@ -62,7 +62,7 @@ export interface LabelProps
 export const Label: React.FC<LabelProps> = ({ className = "", ...props }) => {
   return (
     <label
-      className={`block text-sm font-medium text-gray-700 ${className}`}
+      className={`block text-sm font-medium text-gray-700 dark:text-gray-300 ${className}`}
       {...props}
     />
   );
@@ -81,8 +81,8 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const variants: Record<string, string> = {
-    primary: "bg-blue-100 text-blue-800",
-    secondary: "bg-gray-100 text-gray-800",
+    primary: "bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-400",
+    secondary: "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300",
   };
   return (
     <span
@@ -103,7 +103,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <textarea
         ref={ref}
-        className={`border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${className}`}
+        className={`border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${className}`}
         {...props}
       />
     );
@@ -117,7 +117,7 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => (
   <div
-    className={`rounded-xl shadow-sm p-4 bg-white ${className}`}
+    className={`rounded-xl shadow-sm p-4 bg-white dark:bg-gray-800 ${className}`}
     {...props}
   />
 );
@@ -131,7 +131,7 @@ export const CardHeader: React.FC<
 export const CardTitle: React.FC<
   React.HTMLAttributes<HTMLHeadingElement>
 > = ({ className = "", ...props }) => (
-  <h3 className={`text-lg font-semibold ${className}`} {...props} />
+  <h3 className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`} {...props} />
 );
 
 export const CardContent: React.FC<

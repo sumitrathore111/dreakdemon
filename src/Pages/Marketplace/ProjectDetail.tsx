@@ -1,36 +1,36 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft,
-  Github,
-  ExternalLink,
-  FileText,
-  Play,
-  ShoppingCart,
-  MessageCircle,
-  Star,
-  Eye,
-  Package,
-  Shield,
+    ArrowLeft,
+    ExternalLink,
+    Eye,
+    FileText,
+    Github,
+    MessageCircle,
+    Package,
+    Play,
+    Shield,
+    ShoppingCart,
+    Star,
 } from 'lucide-react';
-import type { MarketplaceProject, MarketplaceReview } from '../../types/marketplace';
-import {
-  getProjectById,
-  incrementProjectViews,
-  checkUserPurchased,
-  createPurchase,
-  getProjectReviews,
-  createReview,
-} from '../../service/marketplaceService';
-import { createOrGetChat } from '../../service/marketplaceChatService';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import ImageGallery from './components/ImageGallery';
-import ReviewSection from './components/ReviewSection';
-import PurchaseModal from './components/PurchaseModal';
-import ChatWindow from './components/ChatWindow';
-import { toast } from 'react-hot-toast';
+import { createOrGetChat } from '../../service/marketplaceChatService';
+import {
+    checkUserPurchased,
+    createPurchase,
+    createReview,
+    getProjectById,
+    getProjectReviews,
+    incrementProjectViews,
+} from '../../service/marketplaceService';
+import type { MarketplaceProject, MarketplaceReview } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS } from '../../types/marketplace';
+import ChatWindow from './components/ChatWindow';
+import ImageGallery from './components/ImageGallery';
+import PurchaseModal from './components/PurchaseModal';
+import ReviewSection from './components/ReviewSection';
 
 export default function ProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -179,7 +179,7 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -190,12 +190,12 @@ export default function ProjectDetail() {
   const isOwnProject = user?.uid === project.sellerId;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard/marketplace')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-teal-500 transition-colors"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Marketplace
@@ -208,13 +208,13 @@ export default function ProjectDetail() {
             <ImageGallery images={project.images} alt={project.title} />
 
             {/* Project Info */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     {project.title}
                   </h1>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                       <span className="font-semibold">{project.rating}</span>
@@ -234,24 +234,24 @@ export default function ProjectDetail() {
 
               {/* Description */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   Description
                 </h3>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                   {project.description}
                 </p>
               </div>
 
               {/* Tech Stack */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   Tech Stack
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {project.techStack.map((tech, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-teal-100 text-teal-600 rounded-lg text-sm font-medium"
+                      className="px-3 py-1.5 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-sm font-medium"
                     >
                       {tech}
                     </span>
@@ -262,7 +262,7 @@ export default function ProjectDetail() {
               {/* Project Links */}
               {(project.links.github || project.links.liveDemo || project.links.documentation || project.links.video) && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                     Project Links
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -336,16 +336,16 @@ export default function ProjectDetail() {
               )}
 
               {/* Project Details */}
-              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Category</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Category</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
                     {CATEGORY_LABELS[project.category]}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">License</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">License</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
                     {LICENSE_LABELS[project.licenseType]}
                   </p>
                 </div>
@@ -361,7 +361,7 @@ export default function ProjectDetail() {
 
             {/* Add Review */}
             {hasPurchased && !isOwnProject && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                 {!showReviewForm ? (
                   <button
                     onClick={() => setShowReviewForm(true)}
@@ -371,13 +371,13 @@ export default function ProjectDetail() {
                   </button>
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Write Your Review
                     </h3>
                     
                     {/* Rating */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Rating
                       </label>
                       <div className="flex gap-2">
@@ -391,7 +391,7 @@ export default function ProjectDetail() {
                               className={`w-8 h-8 ${
                                 rating <= reviewRating
                                   ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-gray-300'
+                                  : 'text-gray-300 dark:text-gray-600'
                               }`}
                             />
                           </button>
@@ -401,14 +401,14 @@ export default function ProjectDetail() {
 
                     {/* Comment */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Review
                       </label>
                       <textarea
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                         placeholder="Share your experience with this project..."
                       />
                     </div>
@@ -417,7 +417,7 @@ export default function ProjectDetail() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setShowReviewForm(false)}
-                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         Cancel
                       </button>
@@ -438,12 +438,12 @@ export default function ProjectDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Price & Purchase */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 sticky top-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-6">
               <div className="text-center mb-6">
-                <p className="text-4xl font-bold text-teal-500 mb-2">
+                <p className="text-4xl font-bold text-teal-500 dark:text-teal-400 mb-2">
                   {project.isFree ? 'FREE' : `$${project.price}`}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {LICENSE_LABELS[project.licenseType]}
                 </p>
               </div>
@@ -456,7 +456,7 @@ export default function ProjectDetail() {
                   View in My Listings
                 </Link>
               ) : hasPurchased ? (
-                <div className="text-center py-3 bg-green-100 text-green-700 rounded-lg font-semibold mb-3">
+                <div className="text-center py-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg font-semibold mb-3">
                   ✓ Already Purchased
                 </div>
               ) : (
@@ -472,7 +472,7 @@ export default function ProjectDetail() {
               {!isOwnProject && (
                 <button
                   onClick={handleContactSeller}
-                  className="w-full px-4 py-3 border-2 border-teal-500 text-teal-500 rounded-lg font-semibold hover:bg-teal-50/20 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 border-2 border-teal-500 text-teal-500 dark:text-teal-400 rounded-lg font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
                   Contact Seller
@@ -480,11 +480,11 @@ export default function ProjectDetail() {
               )}
 
               {/* Seller Info */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-600 mb-3">Sold by</p>
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Sold by</p>
                 <Link
                   to={`/dashboard/marketplace/seller/${project.sellerId}`}
-                  className="flex items-center gap-3 hover:bg-gray-50/50 p-2 rounded-lg transition-colors"
+                  className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
                 >
                   <img
                     src={project.sellerAvatar || 'https://via.placeholder.com/40'}
@@ -492,21 +492,21 @@ export default function ProjectDetail() {
                     className="w-12 h-12 rounded-full border-2 border-teal-400"
                   />
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-gray-900 dark:text-white">
                       {project.sellerName}
                     </p>
-                    <p className="text-sm text-gray-600">View Profile</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">View Profile</p>
                   </div>
                 </Link>
               </div>
             </div>
 
             {/* What's Included */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 What's Included
               </h3>
-              <ul className="space-y-3 text-sm text-gray-700">
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                 <li className="flex items-start gap-2">
                   <Package className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <span>Full source code</span>

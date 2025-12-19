@@ -153,24 +153,24 @@ const HeroSection = memo(() => {
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Enhanced Animated Background with Morphing Shapes */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
         <div className="absolute inset-0">
           {/* Morphing Blob Shapes */}
           <div 
-            className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/20 animate-blob animate-morph"
+            className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/20 dark:from-blue-500/20 dark:to-cyan-500/10 animate-blob animate-morph"
             style={{ transform: `translateY(${scrollY * 0.1}px)` }}
           />
           <div 
-            className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/25 to-blue-400/15 animate-blob animate-morph"
+            className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/25 to-blue-400/15 dark:from-cyan-500/15 dark:to-blue-500/10 animate-blob animate-morph"
             style={{ animationDelay: '2s', transform: `translateY(${scrollY * -0.15}px)` }}
           />
           <div 
-            className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/15 animate-blob animate-morph"
+            className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/15 dark:from-purple-500/15 dark:to-pink-500/10 animate-blob animate-morph"
             style={{ animationDelay: '4s', transform: `translate(-50%, -50%) translateY(${scrollY * 0.08}px)` }}
           />
           {/* Animated Gradient Ring */}
-          <div className="absolute top-1/4 right-1/3 w-40 h-40 border-4 border-[#00ADB5]/20 rounded-full animate-spin-slow" />
-          <div className="absolute bottom-1/4 left-1/4 w-32 h-32 border-2 border-cyan-400/30 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+          <div className="absolute top-1/4 right-1/3 w-40 h-40 border-4 border-[#00ADB5]/20 dark:border-[#00ADB5]/30 rounded-full animate-spin-slow" />
+          <div className="absolute bottom-1/4 left-1/4 w-32 h-32 border-2 border-cyan-400/30 dark:border-cyan-400/20 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }} />
         </div>
       </div>
 
@@ -184,14 +184,14 @@ const HeroSection = memo(() => {
             }`}
           >
             {/* Animated Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-white/50 shadow-lg animate-magnetic spotlight">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/50 dark:border-gray-700 shadow-lg animate-magnetic spotlight">
               <Sparkles className="w-4 h-4 text-[#00ADB5] animate-pulse" />
-              <span className="text-sm font-semibold text-gray-800">🚀 Connect. Learn. Showcase. Succeed.</span>
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🚀 Connect. Learn. Showcase. Succeed.</span>
             </div>
 
             {/* Main Heading with Neon Effect */}
             <div className="space-y-5">
-              <h1 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+              <h1 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white leading-tight">
                 <span className="animate-fade-in inline-block">Learn by Doing</span>
                 <br />
                 <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] animate-fade-in-delay-1 inline-block">
@@ -199,7 +199,7 @@ const HeroSection = memo(() => {
                 </span>
               </h1>
               
-              <p className="text-base lg:text-lg text-gray-600 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
+              <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
                 NextStep is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
               </p>
 
@@ -212,7 +212,7 @@ const HeroSection = memo(() => {
                 ].map((item, idx) => (
                   <div 
                     key={idx}
-                    className="flex items-center gap-3 text-sm text-gray-700 group hover:translate-x-2 transition-all duration-300 opacity-0 animate-slide-left"
+                    className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 group hover:translate-x-2 transition-all duration-300 opacity-0 animate-slide-left"
                     style={{ animationDelay: item.delay, animationFillMode: 'forwards' }}
                   >
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#00ADB5] to-cyan-500 group-hover:scale-150 transition-transform"></div>
@@ -232,7 +232,7 @@ const HeroSection = memo(() => {
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
               
-              <button className="group flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-sm border-2 border-[#00ADB5]/20 hover:border-[#00ADB5] rounded-xl font-semibold text-sm lg:text-base text-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ripple-effect">
+              <button className="group flex items-center gap-2 px-6 py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2 border-[#00ADB5]/20 hover:border-[#00ADB5] rounded-xl font-semibold text-sm lg:text-base text-gray-900 dark:text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ripple-effect">
                 <div className="w-9 h-9 rounded-full bg-[#00ADB5]/10 flex items-center justify-center group-hover:bg-[#00ADB5] group-hover:scale-110 transition-all duration-300">
                   <Play className="w-3 h-3 text-[#00ADB5] group-hover:text-white ml-0.5 transition-colors" />
                 </div>
@@ -241,26 +241,26 @@ const HeroSection = memo(() => {
             </div>
 
             {/* Success Stats with Counter Animation */}
-            <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-200 animate-fade-in-delay-4">
+            <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fade-in-delay-4">
               <div className="text-center hover:scale-110 transition-transform duration-300 group">
                 <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
                   <AnimatedCounter target={3000} suffix="+" />
                 </div>
-                <div className="text-xs text-gray-600 font-medium">DSA Problems</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">DSA Problems</div>
               </div>
-              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
+              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
               <div className="text-center hover:scale-110 transition-transform duration-300 group">
                 <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
                   <AnimatedCounter target={500} suffix="+" />
                 </div>
-                <div className="text-xs text-gray-600 font-medium">Live Projects</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Live Projects</div>
               </div>
-              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
+              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
               <div className="text-center hover:scale-110 transition-transform duration-300 group">
                 <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
                   <AnimatedCounter target={12} suffix="K+" />
                 </div>
-                <div className="text-xs text-gray-600 font-medium">Active Developers</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Active Developers</div>
               </div>
             </div>
           </div>
@@ -278,7 +278,7 @@ const HeroSection = memo(() => {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/30 to-cyan-600/20 rounded-3xl blur-3xl animate-magnetic" />
                 
-                <div className="relative w-full h-[400px] rounded-3xl shadow-2xl overflow-hidden border-2 border-white/40 backdrop-blur-sm group">
+                <div className="relative w-full h-[400px] rounded-3xl shadow-2xl overflow-hidden border-2 border-white/40 dark:border-gray-700/40 backdrop-blur-sm group">
                   <img
                     src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80"
                     alt="Developers collaborating on a project"
@@ -295,23 +295,23 @@ const HeroSection = memo(() => {
                 </div>
                 
                 {/* Floating Success Card with Animation */}
-                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-xl border border-white/80 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 group animate-float">
+                <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 group animate-float">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg group-hover:animate-bounce">
                       <span className="text-lg">🎉</span>
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-gray-900">Success!</div>
-                      <div className="text-xs text-gray-600 font-medium">200+ projects completed</div>
+                      <div className="text-sm font-bold text-gray-900 dark:text-white">Success!</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">200+ projects completed</div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Floating Stats Card */}
-                <div className="absolute -top-4 -right-4 bg-gradient-to-br from-white to-cyan-50/50 rounded-xl p-4 shadow-xl border border-white/80 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 animate-float-delayed">
+                <div className="absolute -top-4 -right-4 bg-gradient-to-br from-white to-cyan-50/50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 animate-float-delayed">
                   <div className="text-center">
                     <div className="text-3xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent mb-1">500+</div>
-                    <div className="text-xs font-bold text-gray-800">Live Projects</div>
+                    <div className="text-xs font-bold text-gray-800 dark:text-white">Live Projects</div>
                     <div className="text-xs text-[#00ADB5] font-semibold">Real experience</div>
                   </div>
                 </div>
@@ -333,22 +333,22 @@ HeroSection.displayName = 'HeroSection';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <HeroSection />
 
       {/* Services Section */}
-      <section className="py-20 px-6 lg:px-8 bg-white overflow-hidden">
+      <section className="py-20 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/10 border border-[#00ADB5]/20 mb-4 animate-magnetic">
               <Sparkles className="w-4 h-4 text-[#00ADB5] animate-pulse" />
               <span className="text-xs font-semibold text-[#00ADB5]">How NextStep Works</span>
             </div>
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
               Your Path to Success
             </h2>
-            <p className="text-sm lg:text-base text-gray-600 max-w-3xl mx-auto">
+            <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Everything you need to transform from student to professional developer
             </p>
           </div>
@@ -577,20 +577,20 @@ export default function HomePage() {
       </section>
 
       {/* Collaboration & Teams Section */}
-      <section className="py-20 px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-cyan-50/30 to-transparent">
+      <section className="py-20 px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-cyan-50/30 to-transparent dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 border border-blue-300">
-                <span className="text-sm font-bold text-blue-700">👥 COLLABORATE</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700">
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">👥 COLLABORATE</span>
               </div>
               
-              <h2 className="text-3xl lg:text-4xl font-black text-gray-900">
+              <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
                 Form Teams & <span className="text-[#00ADB5]">Collaborate on Projects</span>
               </h2>
               
-              <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                 NextStep enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
               </p>
 
@@ -604,7 +604,7 @@ export default function HomePage() {
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 group hover:translate-x-1 transition-transform">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#00ADB5] mt-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{item}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -739,14 +739,14 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20">
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Why Choose
               <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> NextStep?</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Unlock your potential with our comprehensive platform designed for career success
             </p>
           </div>
@@ -760,13 +760,13 @@ export default function HomePage() {
       </section>
 
       {/* Gallery Section with Unique Animations */}
-      <section className="py-16 px-6 lg:px-8 bg-white overflow-hidden">
+      <section className="py-16 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
               Our Community in Action
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               See how our students are building their future, one project at a time
             </p>
           </div>
@@ -841,14 +841,14 @@ export default function HomePage() {
       </section>
 
       {/* Benefits Section with Hover Lift */}
-      <section className="py-24 px-6 lg:px-8 bg-white overflow-hidden">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Why NextStep is
               <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]"> Your Best Choice</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Everything you need to become a professional developer, all in one platform
             </p>
           </div>
@@ -894,19 +894,19 @@ export default function HomePage() {
             ].map((benefit, idx) => (
               <div 
                 key={idx} 
-                className="group relative p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 border-2 border-gray-100 hover:border-transparent shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 overflow-hidden spotlight"
+                className="group relative p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-100 dark:border-gray-700 hover:border-transparent shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 overflow-hidden spotlight"
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
                 {/* Gradient Border on Hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
-                <div className="absolute inset-[2px] bg-white rounded-2xl z-0 group-hover:bg-gradient-to-br group-hover:from-white group-hover:to-gray-50" />
+                <div className="absolute inset-[2px] bg-white dark:bg-gray-800 rounded-2xl z-0 group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-gray-800 group-hover:to-gray-50 dark:group-hover:to-gray-900" />
                 
                 <div className="relative z-10">
                   <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-3xl mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
                     {benefit.icon}
                   </div>
-                  <h3 className="text-xl font-black text-gray-900 mb-3 group-hover:text-[#00ADB5] transition-colors">{benefit.title}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{benefit.description}</p>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#00ADB5] transition-colors">{benefit.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{benefit.description}</p>
                 </div>
               </div>
             ))}
@@ -915,13 +915,13 @@ export default function HomePage() {
       </section>
 
       {/* Getting Started Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20">
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/10 border border-[#00ADB5]/30 mb-6">
               <span className="text-sm font-semibold text-[#00ADB5]">🚀 QUICK START</span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Get Started in
               <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> 5 Minutes</span>
             </h2>
@@ -936,11 +936,11 @@ export default function HomePage() {
               { num: "5", icon: "🏅", title: "Get Certified", desc: "Earn credentials" }
             ].map((step, idx) => (
               <div key={idx} className="relative">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-100 hover:border-[#00ADB5]/50 transition-all text-center group hover:shadow-2xl hover:-translate-y-1">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50 transition-all text-center group hover:shadow-2xl hover:-translate-y-1">
                   <div className="text-4xl mb-3">{step.icon}</div>
                   <div className="text-2xl font-black text-[#00ADB5] mb-2">{step.num}</div>
-                  <h3 className="font-black text-gray-900 mb-1">{step.title}</h3>
-                  <p className="text-xs text-gray-600">{step.desc}</p>
+                  <h3 className="font-black text-gray-900 dark:text-white mb-1">{step.title}</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{step.desc}</p>
                 </div>
                 {idx < 4 && (
                   <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2">
@@ -964,15 +964,15 @@ export default function HomePage() {
       <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-[#00ADB5]/5 via-cyan-50/30 to-blue-50/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-white/50 backdrop-blur-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 border border-white/50 dark:border-gray-700 backdrop-blur-sm mb-6">
               <span className="text-2xl">🌟</span>
-              <span className="text-sm font-semibold text-gray-800">Success Stories</span>
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Success Stories</span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               From Students to
               <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> Industry Leaders</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Hear from developers who landed their dream jobs after completing NextStep
             </p>
           </div>
@@ -986,17 +986,17 @@ export default function HomePage() {
       </section>
 
       {/* Achievement Milestones Section - Interactive Cards */}
-      <section className="py-24 px-6 lg:px-8 bg-white overflow-hidden">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 mb-6 animate-magnetic">
               <span className="text-2xl">🏅</span>
-              <span className="text-sm font-bold text-orange-600">GAMIFIED LEARNING</span>
+              <span className="text-sm font-bold text-orange-600 dark:text-orange-400">GAMIFIED LEARNING</span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Unlock Your Achievements
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Track your progress and celebrate milestones as you grow
             </p>
           </div>
@@ -1040,13 +1040,13 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-cyan-50">
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Frequently Asked Questions
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 dark:text-gray-400">
               Everything you need to know about NextStep
             </p>
           </div>
@@ -1078,13 +1078,13 @@ export default function HomePage() {
                 a: "It varies based on your dedication. With consistent learning and project completion (3-6 months), you'll have a strong portfolio to land tech jobs."
               }
             ].map((faq, idx) => (
-              <details key={idx} className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-[#00ADB5]/50">
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-black text-gray-900 group-open:text-[#00ADB5]">
+              <details key={idx} className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50">
+                <summary className="flex items-center justify-between p-6 cursor-pointer font-black text-gray-900 dark:text-white group-open:text-[#00ADB5]">
                   <span className="text-sm md:text-base">{faq.q}</span>
                   <span className="text-2xl group-open:rotate-180 transition-transform">+</span>
                 </summary>
-                <div className="px-6 pb-6 border-t border-gray-100 pt-6">
-                  <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+                <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-6">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{faq.a}</p>
                 </div>
               </details>
             ))}
@@ -1093,7 +1093,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA Section - Immersive Design */}
-      <section className="py-24 px-6 lg:px-8 bg-white overflow-hidden">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-5xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl">
             {/* Animated Dark background with multiple layers */}

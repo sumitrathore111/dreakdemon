@@ -1,35 +1,35 @@
-import { Phone, Mail, MapPin, Send, Clock, MessageCircle } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 
 export function ContactUs() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-50">
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Text Content */}
             <div className="space-y-6">
-              <div className="inline-block px-4 py-2 bg-gray-100 rounded-full">
-                <span className="text-sm font-semibold text-gray-700">We're Here to Help</span>
+              <div className="inline-block px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">We're Here to Help</span>
               </div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
                 Let's Start a
                 <span style={{ color: "#00ADB5" }}> Conversation</span>
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
+              <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
                 Have questions about NextStep? Want to learn more about how we can help you grow? 
                 We'd love to hear from you. Reach out and let's make something amazing together.
               </p>
               
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-6 pt-6">
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
                   <div className="text-3xl font-bold" style={{ color: "#00ADB5" }}>24/7</div>
-                  <div className="text-sm text-gray-600 mt-1">Available Support</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Available Support</div>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
                   <div className="text-3xl font-bold" style={{ color: "#00ADB5" }}>&lt;1hr</div>
-                  <div className="text-sm text-gray-600 mt-1">Response Time</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Response Time</div>
                 </div>
               </div>
             </div>
@@ -43,14 +43,14 @@ export function ContactUs() {
                   className="w-full h-[500px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-sm p-6 rounded-xl">
+                <div className="absolute bottom-8 left-8 right-8 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm p-6 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "#00ADB5" }}>
                       <MessageCircle className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900">Always Connected</div>
-                      <div className="text-sm text-gray-600">We're just a message away</div>
+                      <div className="font-bold text-gray-900 dark:text-white">Always Connected</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">We're just a message away</div>
                     </div>
                   </div>
                 </div>
@@ -61,23 +61,23 @@ export function ContactUs() {
       </section>
 
       {/* Contact Methods Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">Get In Touch</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">Get In Touch</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Choose the way that works best for you
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {/* Phone */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 group">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 group">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ backgroundColor: "#00ADB5" }}>
                 <Phone className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Call Us</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Call Us</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Speak directly with our team
               </p>
               <a 
@@ -90,12 +90,12 @@ export function ContactUs() {
             </div>
 
             {/* Email */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 group">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 group">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ backgroundColor: "#00ADB5" }}>
                 <Mail className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Email Us</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Email Us</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Send us a detailed message
               </p>
               <a 
@@ -108,12 +108,12 @@ export function ContactUs() {
             </div>
 
             {/* Location */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 group">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700 group">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ backgroundColor: "#00ADB5" }}>
                 <MapPin className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Visit Us</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Visit Us</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Come say hello at our office
               </p>
               <p className="font-semibold" style={{ color: "#00ADB5" }}>
@@ -154,21 +154,21 @@ export function ContactUs() {
       </section>
 
       {/* Office Hours Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-12 border border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-12 border border-gray-100 dark:border-gray-700">
             <div className="flex items-start gap-6">
-              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center flex-shrink-0">
                 <Clock className="w-8 h-8" style={{ color: "#00ADB5" }} />
               </div>
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Office Hours</h2>
-                <div className="space-y-3 text-lg text-gray-600">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Office Hours</h2>
+                <div className="space-y-3 text-lg text-gray-600 dark:text-gray-300">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                     <span className="font-semibold">Monday - Friday</span>
                     <span>9:00 AM - 6:00 PM IST</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                     <span className="font-semibold">Saturday</span>
                     <span>10:00 AM - 4:00 PM IST</span>
                   </div>
@@ -177,8 +177,8 @@ export function ContactUs() {
                     <span style={{ color: "#00ADB5" }}>Closed</span>
                   </div>
                 </div>
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700">
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     <strong style={{ color: "#00ADB5" }}>Note:</strong> WhatsApp support is available 24/7 
                     for urgent queries. We'll respond as quickly as possible!
                   </p>
@@ -190,12 +190,12 @@ export function ContactUs() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Don't wait! Join NextStep today and start building your future
           </p>
           <a

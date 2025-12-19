@@ -1,18 +1,18 @@
 import { Timestamp } from 'firebase/firestore';
 import {
-  Activity,
-  Bell,
-  CheckCircle, Circle, Clock,
-  FileText,
-  MessageSquare,
-  Send,
-  Shield,
-  Trash2,
-  Upload,
-  User,
-  UserCheck,
-  UserPlus,
-  UserX
+    Activity,
+    Bell,
+    CheckCircle, Circle, Clock,
+    FileText,
+    MessageSquare,
+    Send,
+    Shield,
+    Trash2,
+    Upload,
+    User,
+    UserCheck,
+    UserPlus,
+    UserX
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -435,26 +435,26 @@ export default function ProjectWorkspace() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-16 h-16 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 font-semibold">Loading project...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400 font-semibold">Loading project...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-black text-gray-900">{project?.title}</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">{project?.title}</h1>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  userRole === 'creator' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                  userRole === 'creator' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                 }`}>
                   {userRole === 'creator' ? (
                     <><Shield className="w-3 h-3 inline mr-1" />CREATOR</>
@@ -463,9 +463,9 @@ export default function ProjectWorkspace() {
                   )}
                 </span>
               </div>
-              <p className="text-gray-600 mb-4">{project?.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{project?.description}</p>
               
-              <div className="flex items-center gap-6 text-sm text-gray-500">
+              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4" />
                   <span>{members.length} members</span>
@@ -478,13 +478,13 @@ export default function ProjectWorkspace() {
             </div>
             
             <div className="text-right">
-              <div className="text-sm text-gray-600 mb-2">Progress</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Progress</div>
               <div className="text-3xl font-black text-[#00ADB5]">{calculateProgress()}%</div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${calculateProgress()}%`, backgroundColor: '#00ADB5' }}
@@ -494,14 +494,14 @@ export default function ProjectWorkspace() {
 
         {/* Join Requests Alert */}
         {userRole === 'creator' && joinRequests.length > 0 && (
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-xl p-4 mb-6">
             <div className="flex items-center gap-3">
-              <Bell className="w-6 h-6 text-yellow-600" />
+              <Bell className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
               <div className="flex-1">
-                <h3 className="font-bold text-yellow-900">
+                <h3 className="font-bold text-yellow-900 dark:text-yellow-200">
                   {joinRequests.length} Pending Join Request{joinRequests.length > 1 ? 's' : ''}
                 </h3>
-                <p className="text-sm text-yellow-700">Review requests in the Members tab</p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">Review requests in the Members tab</p>
               </div>
               <button
                 onClick={() => setActiveTab('members')}
@@ -514,13 +514,13 @@ export default function ProjectWorkspace() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 bg-white rounded-xl p-2 shadow-lg mb-6">
+        <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg mb-6">
           <button
             onClick={() => setActiveTab('tasks')}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'tasks'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <CheckCircle className="w-5 h-5 inline mr-2" />
@@ -531,7 +531,7 @@ export default function ProjectWorkspace() {
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'chat'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <MessageSquare className="w-5 h-5 inline mr-2" />
@@ -542,7 +542,7 @@ export default function ProjectWorkspace() {
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'files'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <Upload className="w-5 h-5 inline mr-2" />
@@ -553,7 +553,7 @@ export default function ProjectWorkspace() {
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'members'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <UserPlus className="w-5 h-5 inline mr-2" />
@@ -569,7 +569,7 @@ export default function ProjectWorkspace() {
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               activeTab === 'activity'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <Activity className="w-5 h-5 inline mr-2" />
@@ -581,7 +581,7 @@ export default function ProjectWorkspace() {
         {activeTab === 'tasks' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900">Tasks</h2>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Tasks</h2>
               {userRole === 'creator' ? (
                 <button
                   onClick={() => setShowTaskForm(!showTaskForm)}
@@ -601,28 +601,28 @@ export default function ProjectWorkspace() {
             </div>
 
             {showTaskForm && userRole === 'creator' && (
-              <div className="bg-white rounded-xl shadow-lg p-6 mb-4">
-                <h3 className="text-lg font-bold mb-4">New Task</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4">
+                <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">New Task</h3>
                 <div className="space-y-4">
                   <input
                     type="text"
                     placeholder="Task title"
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                   <textarea
                     placeholder="Task description"
                     value={newTask.description}
                     onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     rows={3}
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <select
                       value={newTask.priority}
                       onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
-                      className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     >
                       <option value="low">Low Priority</option>
                       <option value="medium">Medium Priority</option>
@@ -631,7 +631,7 @@ export default function ProjectWorkspace() {
                     <select
                       value={newTask.assignedTo}
                       onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                      className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                       disabled={userRole !== 'creator'}
                     >
                       <option value="">Assign to...</option>
@@ -643,7 +643,7 @@ export default function ProjectWorkspace() {
                       type="date"
                       value={newTask.dueDate}
                       onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                      className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -655,7 +655,7 @@ export default function ProjectWorkspace() {
                     </button>
                     <button
                       onClick={() => setShowTaskForm(false)}
-                      className="px-4 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors"
+                      className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       Cancel
                     </button>
@@ -665,15 +665,15 @@ export default function ProjectWorkspace() {
             )}
 
             {tasks.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No tasks yet</h3>
-                <p className="text-gray-600">Create your first task to get started</p>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+                <p className="text-gray-600 dark:text-gray-400">Create your first task to get started</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {tasks.map(task => (
-                  <div key={task.id} className="bg-white rounded-xl shadow-lg p-6">
+                  <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                     <div className="flex items-start gap-4">
                       <button
                         onClick={() => {
@@ -689,9 +689,9 @@ export default function ProjectWorkspace() {
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <h3 className="text-lg font-bold text-gray-900">{task.title}</h3>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{task.title}</h3>
                             {task.description && (
-                              <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{task.description}</p>
                             )}
                           </div>
                           <div className="flex items-center gap-2">
@@ -701,7 +701,7 @@ export default function ProjectWorkspace() {
                             {userRole === 'creator' && (
                               <button
                                 onClick={() => deleteTask(task.id)}
-                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -709,7 +709,7 @@ export default function ProjectWorkspace() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                           {task.assignedTo && (
                             <div className="flex items-center gap-1">
                               <User className="w-4 h-4" />
@@ -726,14 +726,14 @@ export default function ProjectWorkspace() {
                         {/* Completion / Verification actions */}
                         <div className="mt-3">
                           {task.pendingVerification && userRole === 'creator' && (
-                            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
-                              <p className="text-sm text-yellow-800 font-semibold">Completion pending verification</p>
-                              <p className="text-xs text-gray-600">Marked completed by: {task.completedByName || 'Member'}</p>
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
+                              <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">Completion pending verification</p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Marked completed by: {task.completedByName || 'Member'}</p>
                               <textarea
                                 placeholder="Add verification feedback (optional)"
                                 value={verificationFeedbacks[task.id] || ''}
                                 onChange={(e) => setVerificationFeedbacks(prev => ({ ...prev, [task.id]: e.target.value }))}
-                                className="w-full mt-2 p-2 border rounded-md"
+                                className="w-full mt-2 p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                               />
                               <div className="flex gap-2 mt-2">
                                 <button onClick={() => approveTaskVerification(task.id)} className="px-3 py-2 bg-green-500 text-white rounded-lg">Approve</button>
@@ -749,9 +749,9 @@ export default function ProjectWorkspace() {
                           )}
 
                           {task.verified && (
-                            <div className="mt-2 bg-green-50 border-l-4 border-green-400 p-2 rounded">
-                              <p className="text-sm text-green-800 font-semibold">Verified completed</p>
-                              {task.verificationFeedback && <p className="text-xs text-gray-600">Feedback: {task.verificationFeedback}</p>}
+                            <div className="mt-2 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 p-2 rounded">
+                              <p className="text-sm text-green-800 dark:text-green-300 font-semibold">Verified completed</p>
+                              {task.verificationFeedback && <p className="text-xs text-gray-600 dark:text-gray-400">Feedback: {task.verificationFeedback}</p>}
                             </div>
                           )}
                         </div>
@@ -766,26 +766,26 @@ export default function ProjectWorkspace() {
 
         {/* Chat Tab */}
         {activeTab === 'chat' && (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-black text-gray-900 mb-4">Team Chat</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Team Chat</h2>
             
-            <div className="h-96 overflow-y-auto mb-4 p-4 bg-gray-50 rounded-lg">
+            <div className="h-96 overflow-y-auto mb-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
               {messages.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <div className="text-center text-gray-500 dark:text-gray-400 py-12">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                   <p>No messages yet. Start the conversation!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {messages.map(msg => (
-                    <div key={msg.id} className="bg-white rounded-lg p-3 shadow">
+                    <div key={msg.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm text-gray-900">{msg.userName}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="font-semibold text-sm text-gray-900 dark:text-white">{msg.userName}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(msg.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <p className="text-gray-700">{msg.message}</p>
+                      <p className="text-gray-700 dark:text-gray-300">{msg.message}</p>
                     </div>
                   ))}
                 </div>
@@ -799,7 +799,7 @@ export default function ProjectWorkspace() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Type your message..."
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               />
               <button
                 onClick={sendMessage}
@@ -813,9 +813,9 @@ export default function ProjectWorkspace() {
 
         {/* Files Tab */}
         {activeTab === 'files' && (
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900">Project Files</h2>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Project Files</h2>
               <label className="px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors cursor-pointer flex items-center gap-2">
                 <Upload className="w-5 h-5" />
                 Upload File
@@ -849,20 +849,20 @@ export default function ProjectWorkspace() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {files.length === 0 ? (
-                <div className="col-span-2 text-center py-12 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <div className="col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">
+                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                   <p>No files uploaded yet</p>
                 </div>
               ) : (
                 files.map(file => (
-                  <div key={file.id} className="border-2 border-gray-200 rounded-xl p-4 hover:border-[#00ADB5] transition-colors">
+                  <div key={file.id} className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-[#00ADB5] transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-5 h-5 text-gray-500" />
-                          <h3 className="font-semibold text-gray-900">{file.fileName}</h3>
+                          <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                          <h3 className="font-semibold text-gray-900 dark:text-white">{file.fileName}</h3>
                         </div>
-                        <p className="text-xs text-gray-500 mb-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                           Uploaded by {file.uploaderName}
                         </p>
                         <p className="text-xs text-gray-400">
@@ -891,7 +891,7 @@ export default function ProjectWorkspace() {
               )}
             </div>
             
-            <p className="text-xs text-gray-500 mt-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
               Note: Full file upload/download requires Firebase Storage setup. Currently storing metadata only.
             </p>
           </div>
@@ -903,24 +903,24 @@ export default function ProjectWorkspace() {
             {/* Pending Join Requests */}
             {userRole === 'creator' && (
               <div>
-                <h2 className="text-2xl font-black text-gray-900 mb-4">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
                   Pending Join Requests {joinRequests.length > 0 && `(${joinRequests.length})`}
                 </h2>
                 
                 {joinRequests.length === 0 ? (
-                  <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-8 text-center">
-                    <UserPlus className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-gray-600 font-semibold">No Pending Requests</p>
-                    <p className="text-sm text-gray-500 mt-2">When someone requests to join your project, they will appear here</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
+                    <UserPlus className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+                    <p className="text-gray-600 dark:text-gray-400 font-semibold">No Pending Requests</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">When someone requests to join your project, they will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-4">{joinRequests.map(request => (
-                    <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+                    <div key={request.id} className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-xl p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 text-lg">{request.userName}</h3>
-                          <p className="text-sm text-gray-600">{request.userEmail}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <h3 className="font-bold text-gray-900 dark:text-white text-lg">{request.userName}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{request.userEmail}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                             Applied {new Date(request.requestedAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -943,28 +943,28 @@ export default function ProjectWorkspace() {
                       </div>
                       
                       {/* Application Details */}
-                      <div className="bg-white rounded-lg p-4 space-y-3">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
                         <div>
-                          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Skills</p>
-                          <p className="text-sm text-gray-900">{request.skills || 'Not provided'}</p>
+                          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Skills</p>
+                          <p className="text-sm text-gray-900 dark:text-white">{request.skills || 'Not provided'}</p>
                         </div>
                         
                         {request.experience && (
                           <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Experience</p>
-                            <p className="text-sm text-gray-900">{request.experience}</p>
+                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Experience</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{request.experience}</p>
                           </div>
                         )}
                         
                         <div>
-                          <p className="text-xs font-bold text-gray-500 uppercase mb-1">Why they want to join</p>
-                          <p className="text-sm text-gray-900">{request.motivation || 'Not provided'}</p>
+                          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Why they want to join</p>
+                          <p className="text-sm text-gray-900 dark:text-white">{request.motivation || 'Not provided'}</p>
                         </div>
                         
                         {request.availability && (
                           <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Availability</p>
-                            <p className="text-sm text-gray-900">{request.availability}</p>
+                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Availability</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{request.availability}</p>
                           </div>
                         )}
                       </div>
@@ -977,10 +977,10 @@ export default function ProjectWorkspace() {
 
             {/* Current Members */}
             <div>
-              <h2 className="text-2xl font-black text-gray-900 mb-4">Team Members</h2>
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Team Members</h2>
               <div className="space-y-3">
                 {members.map(member => (
-                  <div key={member.id} className="bg-white rounded-xl shadow-lg p-4">
+                  <div key={member.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center">
@@ -989,16 +989,16 @@ export default function ProjectWorkspace() {
                           </span>
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900">{member.userName}</h3>
-                          <p className="text-sm text-gray-600">
+                          <h3 className="font-bold text-gray-900 dark:text-white">{member.userName}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Joined {new Date(member.joinedAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         member.role === 'creator' 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : 'bg-blue-100 text-blue-700'
+                          ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400' 
+                          : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
                       }`}>
                         {member.role === 'creator' ? (
                           <><Shield className="w-3 h-3 inline mr-1" />CREATOR</>
@@ -1016,11 +1016,11 @@ export default function ProjectWorkspace() {
 
         {/* Activity Tab */}
         {activeTab === 'activity' && (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Activity Timeline</h3>
-            <p className="text-gray-600">Track all project activities</p>
-            <p className="text-sm text-gray-500 mt-4">Coming soon...</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+            <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Activity Timeline</h3>
+            <p className="text-gray-600 dark:text-gray-400">Track all project activities</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-4">Coming soon...</p>
           </div>
         )}
       </div>

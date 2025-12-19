@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Package, Eye, ShoppingCart, DollarSign, Plus, Trash2 } from 'lucide-react';
-import type { MarketplaceProject, MarketplacePurchase } from '../../types/marketplace';
-import { getSellerProjects, deleteProject } from '../../service/marketplaceService';
-import { getSellerSales } from '../../service/marketplaceService';
-import { useAuth } from '../../Context/AuthContext';
+import { DollarSign, Eye, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
+import { deleteProject, getSellerProjects, getSellerSales } from '../../service/marketplaceService';
+import type { MarketplaceProject, MarketplacePurchase } from '../../types/marketplace';
 
 export default function MyListings() {
   const { user } = useAuth();
@@ -62,17 +61,17 @@ export default function MyListings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-gray-600 font-medium">Loading your listings...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading your listings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -80,13 +79,13 @@ export default function MyListings() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent mb-2">
               My Listings
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Manage your projects and track sales
             </p>
           </div>
           <Link
             to="/dashboard/marketplace/create"
-            className="px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-600 transition-all flex items-center gap-2 font-semibold w-fit shadow-lg shadow-teal-200"
+            className="px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-600 transition-all flex items-center gap-2 font-semibold w-fit shadow-lg shadow-teal-200 dark:shadow-teal-900/30"
           >
             <Plus className="w-5 h-5" />
             New Listing
@@ -95,7 +94,7 @@ export default function MyListings() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 shadow-lg shadow-teal-200 hover:shadow-xl transition-shadow">
+          <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 shadow-lg shadow-teal-200 dark:shadow-teal-900/30 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Package className="w-6 h-6 text-white" />
@@ -108,7 +107,7 @@ export default function MyListings() {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-lg shadow-emerald-200 hover:shadow-xl transition-shadow">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Eye className="w-6 h-6 text-white" />
@@ -121,7 +120,7 @@ export default function MyListings() {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-6 shadow-lg shadow-violet-200 hover:shadow-xl transition-shadow">
+          <div className="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-6 shadow-lg shadow-violet-200 dark:shadow-violet-900/30 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                 <ShoppingCart className="w-6 h-6 text-white" />
@@ -134,7 +133,7 @@ export default function MyListings() {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-6 shadow-lg shadow-amber-200 hover:shadow-xl transition-shadow">
+          <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-6 shadow-lg shadow-amber-200 dark:shadow-amber-900/30 hover:shadow-xl transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                 <DollarSign className="w-6 h-6 text-white" />
@@ -150,13 +149,13 @@ export default function MyListings() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-gray-200">
+        <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('projects')}
             className={`pb-4 px-4 font-semibold transition-colors relative ${
               activeTab === 'projects'
-                ? 'text-teal-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-teal-600 dark:text-teal-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
             My Projects
@@ -171,8 +170,8 @@ export default function MyListings() {
             onClick={() => setActiveTab('sales')}
             className={`pb-4 px-4 font-semibold transition-colors relative ${
               activeTab === 'sales'
-                ? 'text-teal-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-teal-600 dark:text-teal-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
             Sales History
@@ -188,14 +187,14 @@ export default function MyListings() {
         {/* Content */}
         {activeTab === 'projects' ? (
           projects.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg mb-4">
+              <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
                 You haven't listed any projects yet
               </p>
               <Link
                 to="/dashboard/marketplace/create"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-600 transition-colors font-semibold shadow-lg shadow-teal-200"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-600 transition-colors font-semibold shadow-lg shadow-teal-200 dark:shadow-teal-900/30"
               >
                 <Plus className="w-5 h-5" />
                 Create Your First Listing
@@ -209,7 +208,7 @@ export default function MyListings() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg hover:border-teal-200 transition-all"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-teal-200 dark:hover:border-teal-700 transition-all"
                 >
                   <div className="flex gap-6">
                     {/* Image */}
@@ -218,7 +217,7 @@ export default function MyListings() {
                         <img
                           src={project.images[0]}
                           alt={project.title}
-                          className="w-40 h-28 object-cover rounded-lg ring-2 ring-gray-100"
+                          className="w-40 h-28 object-cover rounded-lg ring-2 ring-gray-100 dark:ring-gray-700"
                         />
                       ) : (
                         <div className="w-40 h-28 bg-gradient-to-br from-teal-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-4xl font-bold shadow-lg">
@@ -231,14 +230,14 @@ export default function MyListings() {
                     <div className="flex-1">
                       <Link
                         to={`/dashboard/marketplace/project/${project.id}`}
-                        className="text-xl font-bold text-gray-900 hover:text-teal-600 transition-colors mb-2 block"
+                        className="text-xl font-bold text-gray-900 dark:text-white hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 block"
                       >
                         {project.title}
                       </Link>
-                      <p className="text-gray-600 mb-3 line-clamp-2">
+                      <p className="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                         {project.description}
                       </p>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <Eye className="w-4 h-4 text-emerald-500" />
                           <span>{project.views} views</span>
@@ -247,7 +246,7 @@ export default function MyListings() {
                           <ShoppingCart className="w-4 h-4 text-violet-500" />
                           <span>{project.purchases} sales</span>
                         </div>
-                        <span className="px-3 py-1 bg-gradient-to-r from-teal-100 to-teal-100 text-sky-700 rounded-full font-semibold">
+                        <span className="px-3 py-1 bg-gradient-to-r from-teal-100 to-teal-100 dark:from-teal-900/30 dark:to-teal-900/30 text-sky-700 dark:text-teal-400 rounded-full font-semibold">
                           {project.isFree ? 'FREE' : `$${project.price}`}
                         </span>
                         <span
@@ -287,17 +286,17 @@ export default function MyListings() {
         ) : (
           // Sales History
           sales.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
                 No sales yet. Keep promoting your projects!
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Project
@@ -313,16 +312,16 @@ export default function MyListings() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {sales.map((sale) => (
-                      <tr key={sale.id} className="hover:bg-teal-50/50 transition-colors">
+                      <tr key={sale.id} className="hover:bg-teal-50/50 dark:hover:bg-teal-900/30 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {sale.projectTitle}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-gray-900 dark:text-gray-100">
                             {sale.buyerName}
                           </div>
                         </td>

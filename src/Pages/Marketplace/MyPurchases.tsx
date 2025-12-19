@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, ExternalLink, Github, FileText, Calendar } from 'lucide-react';
-import type { MarketplacePurchase } from '../../types/marketplace';
-import { getUserPurchases } from '../../service/marketplaceService';
-import { useAuth } from '../../Context/AuthContext';
+import { Calendar, ExternalLink, FileText, Github, ShoppingBag } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
+import { getUserPurchases } from '../../service/marketplaceService';
+import type { MarketplacePurchase } from '../../types/marketplace';
 
 export default function MyPurchases() {
   const { user } = useAuth();
@@ -37,53 +37,53 @@ export default function MyPurchases() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-gray-600 font-medium">Loading your purchases...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading your purchases...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent mb-2">
             My Purchases
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Access all your purchased projects
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-teal-100 rounded-lg">
-                <ShoppingBag className="w-6 h-6 text-teal-500" />
+              <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                <ShoppingBag className="w-6 h-6 text-teal-500 dark:text-teal-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {purchases.length}
                 </p>
-                <p className="text-sm text-gray-600">Total Purchases</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchases</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-100 rounded-lg">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                 <span className="text-2xl">💰</span>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   ${totalSpent}
                 </p>
-                <p className="text-sm text-gray-600">Total Spent</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Spent</p>
               </div>
             </div>
           </div>
@@ -91,14 +91,14 @@ export default function MyPurchases() {
 
         {/* Purchases List */}
         {purchases.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 text-center border border-gray-200 shadow-sm">
-            <div className="p-4 bg-teal-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <ShoppingBag className="w-12 h-12 text-teal-500" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="p-4 bg-teal-100 dark:bg-teal-900/30 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <ShoppingBag className="w-12 h-12 text-teal-500 dark:text-teal-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               No purchases yet
             </h2>
-            <p className="text-gray-600 text-lg mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">
               Start building your project collection today!
             </p>
             <Link
@@ -117,7 +117,7 @@ export default function MyPurchases() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
               >
                 <div className="flex gap-6">
                   {/* Image */}
@@ -139,12 +139,12 @@ export default function MyPurchases() {
                   <div className="flex-1">
                     <Link
                       to={`/dashboard/marketplace/project/${purchase.projectId}`}
-                      className="text-2xl font-bold text-gray-900 hover:text-teal-500 transition-colors mb-2 block"
+                      className="text-2xl font-bold text-gray-900 dark:text-white hover:text-teal-500 dark:hover:text-teal-400 transition-colors mb-2 block"
                     >
                       {purchase.projectTitle}
                     </Link>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         <span>
@@ -156,14 +156,14 @@ export default function MyPurchases() {
                           })}
                         </span>
                       </div>
-                      <span className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full font-semibold">
+                      <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-full font-semibold">
                         {purchase.price === 0 ? 'FREE' : `$${purchase.price}`}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
                       <span>Seller:</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-gray-900 dark:text-white">
                         {purchase.sellerName}
                       </span>
                     </div>

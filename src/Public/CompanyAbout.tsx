@@ -1,5 +1,5 @@
-import { Lightbulb, Users, Zap, BookOpen, Shield, Globe } from "lucide-react";
-import {useState } from "react";
+import { BookOpen, Globe, Lightbulb, Shield, Users, Zap } from "lucide-react";
+import { useState } from "react";
 
 export function AboutPage() {
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
@@ -66,7 +66,7 @@ export function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Story Section */}
       <div
         ref={(el) => observe("story", el)}
@@ -80,14 +80,14 @@ export function AboutPage() {
           <h2 className="text-3xl font-semibold mb-6 text-[#00ADB5]">
             Our Story
           </h2>
-          <p className="text-gray-700 mb-4">
+<p className="text-gray-700 dark:text-gray-300 mb-4">
             It all started when we noticed a common struggle among students —
             they were eager to learn but unsure where to begin. Many had great
             ideas and ambition but lacked real-world experience, guidance, and a
             way to showcase their skills.
           </p>
-          <p className="text-gray-700 mb-4">We’ve been there too.</p>
-          <p className="text-gray-700">
+          <p className="text-gray-700 dark:text-gray-300 mb-4">We've been there too.</p>
+          <p className="text-gray-700 dark:text-gray-300">
             As students ourselves, we wanted to learn, build projects, and grow
             — but we didn’t always have the right support or structure. That’s
             why we created NextStep — a place where learning isn’t just about
@@ -116,16 +116,16 @@ export function AboutPage() {
           <h2 className="text-3xl font-bold mb-6 text-[#00ADB5]">
             Our Mission is Simple:
           </h2>
-          <p className="text-gray-700 mb-4">
+<p className="text-gray-700 dark:text-gray-300 mb-4">
             Empower students to learn, contribute, and showcase their talents —
             so they can build the careers they dream of.
           </p>
-          <p className="text-gray-700 mb-4">
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
             With expert mentorship, hands-on projects, and a community that
-            lifts each other up, we’re helping students turn ambition into
+            lifts each other up, we're helping students turn ambition into
             achievement.
           </p>
-          <ul className="list-disc list-inside text-gray-700 space-y-2">
+          <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
             <li>Live coding sessions & workshops</li>
             <li>Open Projects with mentor guidance</li>
             <li>Weekly quizzes and feedback</li>
@@ -161,11 +161,11 @@ export function AboutPage() {
           <h2 className="text-3xl font-bold mb-6 text-[#00ADB5]">
             Student Working
           </h2>
-          <p className="text-gray-700 mb-4">
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
             Beyond learning, our students work on real industry projects to
             apply their skills and build professional portfolios.
           </p>
-          <ul className="list-disc list-inside text-gray-700 space-y-2">
+          <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
             <li>Internship with live projects</li>
             <li>Building full-stack applications</li>
             <li>Working on AI/ML use cases</li>
@@ -175,7 +175,7 @@ export function AboutPage() {
       </div>
 
       {/* Values Section */}
-      <div className="bg-gray-50 py-16 px-8 lg:px-16">
+      <div className="bg-gray-50 dark:bg-gray-800 py-16 px-8 lg:px-16">
         <h2 className="text-3xl font-semibold text-center mb-10 text-[#00ADB5]">
           Our Core Values
         </h2>
@@ -186,7 +186,7 @@ export function AboutPage() {
               <div
                 key={value.id}
                 ref={(el) => observe(`value-${value.id}`, el)}
-                className={`p-8 bg-white rounded-2xl text-center shadow-md hover:shadow-xl transition-all duration-700 transform ${
+                className={`p-8 bg-white dark:bg-gray-900 rounded-2xl text-center shadow-md hover:shadow-xl transition-all duration-700 transform ${
                   visibleSections.includes(`value-${value.id}`)
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
@@ -198,7 +198,7 @@ export function AboutPage() {
                 <h3 className="text-lg font-semibold mb-2 text-[#00ADB5]">
                   {value.title}
                 </h3>
-                <p className="text-gray-600 text-sm">{value.description}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{value.description}</p>
               </div>
             );
           })}

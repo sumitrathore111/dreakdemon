@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
-import type { CreateProjectData, ProjectCategory, LicenseType } from '../../types/marketplace';
-import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
-import { createProject } from '../../service/marketplaceService';
+import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { toast } from 'react-hot-toast';
+import { createProject } from '../../service/marketplaceService';
+import type { CreateProjectData, LicenseType, ProjectCategory } from '../../types/marketplace';
+import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
 
 export default function CreateListing() {
   const { user } = useAuth();
@@ -115,11 +115,11 @@ export default function CreateListing() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/marketplace')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-teal-500 transition-colors font-medium"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Marketplace
@@ -128,26 +128,26 @@ export default function CreateListing() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-50 rounded-xl p-8 border border-gray-200 shadow-sm"
+          className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm"
         >
           <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent mb-2">
             List Your Project
           </h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
             Share your amazing project with the community
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Project Title *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
                 placeholder="e.g., E-commerce Platform with React & Node.js"
                 required
               />
@@ -155,14 +155,14 @@ export default function CreateListing() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Description *
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
                 placeholder="Describe your project, its features, and what makes it special..."
                 required
               />
@@ -171,13 +171,13 @@ export default function CreateListing() {
             {/* Category & License */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                   Category *
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as ProjectCategory })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                 >
                   {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -188,13 +188,13 @@ export default function CreateListing() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                   License Type *
                 </label>
                 <select
                   value={formData.licenseType}
                   onChange={(e) => setFormData({ ...formData, licenseType: e.target.value as LicenseType })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                 >
                   {Object.entries(LICENSE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -207,7 +207,7 @@ export default function CreateListing() {
 
             {/* Tech Stack */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Tech Stack *
               </label>
               <div className="flex gap-2 mb-3">
@@ -222,7 +222,7 @@ export default function CreateListing() {
                     }
                   }}
                   list="tech-options"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   placeholder="Type or select technology..."
                 />
                 <datalist id="tech-options">
@@ -243,7 +243,7 @@ export default function CreateListing() {
                 {formData.techStack.map((tech) => (
                   <span
                     key={tech}
-                    className="px-3 py-1.5 bg-teal-100 text-teal-600 rounded-lg text-sm font-medium flex items-center gap-2"
+                    className="px-3 py-1.5 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-sm font-medium flex items-center gap-2"
                   >
                     {tech}
                     <button
@@ -260,7 +260,7 @@ export default function CreateListing() {
 
             {/* Price */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Pricing
               </label>
               <div className="flex items-center gap-4 mb-3">
@@ -271,7 +271,7 @@ export default function CreateListing() {
                     onChange={() => setFormData({ ...formData, isFree: true, price: 0 })}
                     className="w-4 h-4 text-teal-500"
                   />
-                  <span className="text-gray-900">Free</span>
+                  <span className="text-gray-900 dark:text-white">Free</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -280,18 +280,18 @@ export default function CreateListing() {
                     onChange={() => setFormData({ ...formData, isFree: false })}
                     className="w-4 h-4 text-teal-500"
                   />
-                  <span className="text-gray-900">Paid</span>
+                  <span className="text-gray-900 dark:text-white">Paid</span>
                 </label>
               </div>
               {!formData.isFree && (
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
                   <input
                     type="number"
                     min="1"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white transition-all"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-600 transition-all"
                     placeholder="0.00"
                   />
                 </div>
@@ -300,7 +300,7 @@ export default function CreateListing() {
 
             {/* Images */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Project Images (URLs)
               </label>
               <div className="flex gap-2 mb-3">
@@ -314,7 +314,7 @@ export default function CreateListing() {
                       handleAddImage();
                     }
                   }}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-600 transition-all"
                   placeholder="https://example.com/image.jpg"
                 />
                 <button
@@ -349,50 +349,50 @@ export default function CreateListing() {
             {/* Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   GitHub Repository
                 </label>
                 <input
                   type="url"
                   value={formData.links.github}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, github: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                   placeholder="https://github.com/..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Live Demo
                 </label>
                 <input
                   type="url"
                   value={formData.links.liveDemo}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, liveDemo: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                   placeholder="https://demo.example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Documentation
                 </label>
                 <input
                   type="url"
                   value={formData.links.documentation}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, documentation: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                   placeholder="https://docs.example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Video Demo (YouTube, etc.)
                 </label>
                 <input
                   type="url"
                   value={formData.links.video}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, video: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                   placeholder="https://youtube.com/..."
                 />
               </div>
@@ -403,7 +403,7 @@ export default function CreateListing() {
               <button
                 type="button"
                 onClick={() => navigate('/dashboard/marketplace')}
-                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>

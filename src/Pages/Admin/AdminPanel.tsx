@@ -1,12 +1,24 @@
-import { useState, useEffect } from 'react';
+import {
+    Calendar,
+    CheckCircle,
+    Clock,
+    Eye,
+    FolderOpen,
+    Lightbulb,
+    Mail,
+    MessageSquare,
+    Search,
+    Shield,
+    Trash2,
+    TrendingUp,
+    User,
+    Users,
+    XCircle
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { useNavigate } from 'react-router-dom';
-import { 
-  CheckCircle, XCircle, Clock, Users, FolderOpen, 
-  Lightbulb, TrendingUp, Mail, Shield, Eye, Search,
-  Calendar, User, MessageSquare, Trash2
-} from 'lucide-react';
 
 interface SubmittedIdea {
   id: string;
@@ -274,25 +286,25 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/30 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-10 h-10 text-[#00ADB5]" />
-            <h1 className="text-4xl font-black text-gray-900">Admin Panel</h1>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white">Admin Panel</h1>
           </div>
-          <p className="text-gray-600">Manage ideas, projects, and users</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage ideas, projects, and users</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 bg-white rounded-xl p-2 shadow-lg mb-8">
+        <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg mb-8">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
               activeTab === 'overview'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -305,7 +317,7 @@ export default function AdminPanel() {
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
               activeTab === 'ideas'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -323,7 +335,7 @@ export default function AdminPanel() {
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
               activeTab === 'projects'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -336,7 +348,7 @@ export default function AdminPanel() {
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
               activeTab === 'users'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -350,57 +362,57 @@ export default function AdminPanel() {
         {activeTab === 'overview' && (
           <div>
             {loading ? (
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <Users className="w-12 h-12 text-blue-500" />
-                    <span className="text-3xl font-black text-gray-900">{stats.totalUsers}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalUsers}</span>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-600">Total Users</h3>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total Users</h3>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <Lightbulb className="w-12 h-12 text-yellow-500" />
-                    <span className="text-3xl font-black text-gray-900">{stats.totalIdeas}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalIdeas}</span>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-600">Total Ideas</h3>
-                  <div className="mt-2 text-xs text-gray-500">
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total Ideas</h3>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
                     {stats.pendingIdeas} pending • {stats.approvedIdeas} approved
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <FolderOpen className="w-12 h-12 text-[#00ADB5]" />
-                    <span className="text-3xl font-black text-gray-900">{stats.activeProjects}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.activeProjects}</span>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-600">Active Projects</h3>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Active Projects</h3>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <Users className="w-12 h-12 text-green-500" />
-                    <span className="text-3xl font-black text-gray-900">{stats.totalContributors}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalContributors}</span>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-600">Contributors</h3>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Contributors</h3>
                 </div>
 
                 {/* Pending Ideas Alert */}
                 {stats.pendingIdeas > 0 && (
-                  <div className="lg:col-span-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
+                  <div className="lg:col-span-4 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-2xl p-6">
                     <div className="flex items-center gap-4">
-                      <Clock className="w-8 h-8 text-yellow-600" />
+                      <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-yellow-900 mb-1">
+                        <h3 className="text-lg font-bold text-yellow-900 dark:text-yellow-100 mb-1">
                           {stats.pendingIdeas} Ideas Awaiting Review
                         </h3>
-                        <p className="text-sm text-yellow-700">
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
                           Review pending project ideas to help users get started
                         </p>
                       </div>
@@ -415,16 +427,16 @@ export default function AdminPanel() {
                 )}
 
                 {/* Recent Activity */}
-                <div className="lg:col-span-4 bg-white rounded-2xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+                <div className="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
                   <div className="space-y-3">
                     {ideas.slice(0, 5).map((idea) => (
-                      <div key={idea.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={idea.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div className="flex items-center gap-3">
                           <Lightbulb className="w-5 h-5 text-yellow-500" />
                           <div>
-                            <p className="font-semibold text-gray-900">{idea.title}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-semibold text-gray-900 dark:text-white">{idea.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               by {idea.userName} • {new Date(idea.submittedAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -445,7 +457,7 @@ export default function AdminPanel() {
         {activeTab === 'ideas' && (
           <div>
             {/* Search and Filter */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
               <div className="flex gap-4">
                 <div className="flex-1 relative">
                   <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -454,13 +466,13 @@ export default function AdminPanel() {
                     placeholder="Search ideas by title, user, or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:border-[#00ADB5] focus:outline-none"
                   />
                 </div>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="px-6 py-3 border-2 border-gray-200 rounded-xl focus:border-[#00ADB5] focus:outline-none font-semibold"
+                  className="px-6 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:border-[#00ADB5] focus:outline-none font-semibold"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -473,26 +485,26 @@ export default function AdminPanel() {
             {/* Ideas List */}
             <div className="space-y-4">
               {filteredIdeas.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                   <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No ideas found</h3>
-                  <p className="text-gray-600">Try adjusting your search or filter</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No ideas found</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filter</p>
                 </div>
               ) : (
                 filteredIdeas.map((idea) => (
-                  <div key={idea.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                  <div key={idea.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-black text-gray-900">{idea.title}</h3>
+                          <h3 className="text-xl font-black text-gray-900 dark:text-white">{idea.title}</h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${getStatusColor(idea.status)}`}>
                             {getStatusIcon(idea.status)}
                             {idea.status.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-gray-600 mb-3">{idea.description}</p>
+                        <p className="text-gray-600 dark:text-gray-400 mb-3">{idea.description}</p>
                         
-                        <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
                             <span>{idea.userName}</span>
@@ -567,26 +579,26 @@ export default function AdminPanel() {
         {activeTab === 'projects' && (
           <div>
             {loading ? (
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-600">Loading projects...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading projects...</p>
               </div>
             ) : projects.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                 <FolderOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Projects</h3>
-                <p className="text-gray-600">Approved project ideas will appear here</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Active Projects</h3>
+                <p className="text-gray-600 dark:text-gray-400">Approved project ideas will appear here</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {projects.map((project) => (
-                  <div key={project.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                  <div key={project.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-black text-gray-900 mb-2">{project.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3">{project.description}</p>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{project.title}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{project.description}</p>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
                             <span>{project.userName}</span>
@@ -602,10 +614,10 @@ export default function AdminPanel() {
                         </div>
 
                         <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg">
+                          <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-lg">
                             {project.category}
                           </span>
-                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg flex items-center gap-1">
+                          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs font-semibold rounded-lg flex items-center gap-1">
                             <CheckCircle className="w-3 h-3" />
                             Active
                           </span>

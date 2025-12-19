@@ -1,22 +1,22 @@
-﻿import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+﻿import type { DocumentData } from "firebase/firestore";
 import {
-  doc,
-  onSnapshot,
-  collection,
-  query,
-  orderBy,
-  addDoc,
-  updateDoc,
-  serverTimestamp,
-  getDocs,
-  where,
+    addDoc,
+    collection,
+    doc,
+    getDocs,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    where,
 } from "firebase/firestore";
-import type { DocumentData } from "firebase/firestore";
-import { ArrowLeft, ExternalLink, Check, X } from "lucide-react";
-import { db } from "../../service/Firebase";
-import { useAuth } from "../../Context/AuthContext";
 import { motion } from "framer-motion";
+import { ArrowLeft, Check, ExternalLink, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../Context/AuthContext";
+import { db } from "../../service/Firebase";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -219,7 +219,7 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="p-6 min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading project...</p>
+        <p className="text-gray-600 dark:text-gray-400">Loading project...</p>
       </div>
     );
   }
@@ -227,30 +227,30 @@ export default function ProjectDetail() {
   const isCreator = project.creatorId === user?.uid;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard/openproject')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-cyan-600 transition"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
         >
           <ArrowLeft size={20} />
           Back to Projects
         </button>
 
         {/* Project Header */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{project.title}</h1>
-              <p className="text-gray-600 mb-4">{project.description}</p>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{project.title}</h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{project.description}</p>
               
               {/* Tech Stack */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {project.techStack?.map((tech: string, idx: number) => (
                   <span
                     key={idx}
-                    className="px-3 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 rounded-full text-sm font-medium"
+                    className="px-3 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
                   >
                     {tech}
                   </span>
@@ -258,9 +258,9 @@ export default function ProjectDetail() {
               </div>
 
               {/* Creator Info */}
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
                 <span className="font-medium">Created by:</span>
-                <span className="text-cyan-600 font-semibold">
+                <span className="text-cyan-600 dark:text-cyan-400 font-semibold">
                   {isCreator ? 'You' : project.creatorName}
                 </span>
               </div>
@@ -306,12 +306,12 @@ export default function ProjectDetail() {
               )}
 
               {hasJoined && (
-                <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center">
-                  <p className="text-green-700 font-bold mb-2">✅ You're a Contributor!</p>
+                <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg p-4 text-center">
+                  <p className="text-green-700 dark:text-green-400 font-bold mb-2">✅ You're a Contributor!</p>
                   <div className="flex items-center justify-center gap-4 text-sm">
                     <div>
-                      <div className="text-2xl font-black text-green-600">{userContributions.issuesResolved}</div>
-                      <div className="text-xs text-gray-600">Issues Fixed</div>
+                      <div className="text-2xl font-black text-green-600 dark:text-green-400">{userContributions.issuesResolved}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Issues Fixed</div>
                     </div>
                   </div>
                   {userContributions.issuesResolved > 0 && (
@@ -326,8 +326,8 @@ export default function ProjectDetail() {
               )}
 
               {isCreator && (
-                <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-4 text-center">
-                  <p className="text-yellow-700 font-bold">👑 You're the Creator</p>
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-500 dark:border-yellow-600 rounded-lg p-4 text-center">
+                  <p className="text-yellow-700 dark:text-yellow-400 font-bold">👑 You're the Creator</p>
                 </div>
               )}
             </div>
@@ -335,9 +335,9 @@ export default function ProjectDetail() {
         </div>
 
         {/* Issues Section */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">📋 Tasks & Issues</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📋 Tasks & Issues</h2>
             {(hasJoined || isCreator) && (
               <button
                 onClick={() => setShowNewIssue(!showNewIssue)}
@@ -354,20 +354,20 @@ export default function ProjectDetail() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="mb-6 bg-gray-50 rounded-xl p-6 border-2 border-gray-200"
+              className="mb-6 bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-600"
             >
               <input
                 type="text"
                 placeholder="Issue title..."
                 value={newIssue.title}
                 onChange={(e) => setNewIssue({ ...newIssue, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 focus:border-cyan-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
               <textarea
                 placeholder="Issue description..."
                 value={newIssue.description}
                 onChange={(e) => setNewIssue({ ...newIssue, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-3 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 focus:border-cyan-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 rows={3}
               />
               <button
@@ -382,7 +382,7 @@ export default function ProjectDetail() {
 
           {/* Issues List */}
           {issues.length === 0 ? (
-            <p className="text-center text-gray-500 py-10">No issues yet. Add the first one!</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-10">No issues yet. Add the first one!</p>
           ) : (
             <div className="space-y-3">
               {issues.map((issue, idx) => (
@@ -390,15 +390,15 @@ export default function ProjectDetail() {
                   key={issue.id}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     issue.status === "Open" 
-                      ? "bg-red-50 border-red-200" 
-                      : "bg-green-50 border-green-200"
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" 
+                      : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold text-gray-500">#{idx + 1}</span>
-                        <h3 className="font-bold text-gray-900">{issue.title}</h3>
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">#{idx + 1}</span>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{issue.title}</h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-bold ${
                             issue.status === "Open"
@@ -410,9 +410,9 @@ export default function ProjectDetail() {
                         </span>
                       </div>
                       {issue.description && (
-                        <p className="text-sm text-gray-600 mb-2">{issue.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{issue.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Created by: {issue.createdBy === user?.uid ? "You" : issue.creatorName}
                       </p>
                     </div>
@@ -449,27 +449,27 @@ export default function ProjectDetail() {
 
         {/* How to Contribute Guide */}
         {!hasJoined && !isCreator && (
-          <div className="mt-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-cyan-700 mb-4">🚀 How to Contribute</h3>
-            <ol className="space-y-3 text-gray-700">
+          <div className="mt-6 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-2 border-cyan-200 dark:border-cyan-700 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-cyan-700 dark:text-cyan-400 mb-4">🚀 How to Contribute</h3>
+            <ol className="space-y-3 text-gray-700 dark:text-gray-300">
               <li className="flex gap-3">
-                <span className="font-bold text-cyan-600">1.</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400">1.</span>
                 <span>Click "Join Project" button to become a contributor</span>
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-cyan-600">2.</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400">2.</span>
                 <span>Clone the GitHub repository using the command above</span>
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-cyan-600">3.</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400">3.</span>
                 <span>Pick an open issue and start working on it</span>
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-cyan-600">4.</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400">4.</span>
                 <span>When done, mark the issue as "Resolved" to earn points!</span>
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-cyan-600">5.</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400">5.</span>
                 <span>Download your contribution certificate and add to your resume</span>
               </li>
             </ol>

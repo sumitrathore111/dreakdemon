@@ -1,8 +1,8 @@
+import { AlertCircle, ArrowLeft, CheckCircle, RefreshCw, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { AlertCircle, CheckCircle, XCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 
 export default function ProjectAccessDiagnostic() {
   const [searchParams] = useSearchParams();
@@ -52,27 +52,27 @@ export default function ProjectAccessDiagnostic() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/projects')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-cyan-600 transition"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
         >
           <ArrowLeft size={20} />
           Back to Projects
         </button>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
           <div className="mb-6">
-            <h1 className="text-3xl font-black text-gray-900 mb-2">Project Access Diagnostic</h1>
-            <p className="text-gray-600">Troubleshoot and fix access issues</p>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Project Access Diagnostic</h1>
+            <p className="text-gray-600 dark:text-gray-400">Troubleshoot and fix access issues</p>
           </div>
 
           {!diagnostics ? (
             <div className="text-center py-12">
               <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Run Diagnostic Check</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Run Diagnostic Check</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Click the button below to analyze your access to this project
               </p>
               <button
@@ -87,8 +87,8 @@ export default function ProjectAccessDiagnostic() {
           ) : (
             <div className="space-y-6">
               {/* Diagnostic Results */}
-              <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Diagnostic Results</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 space-y-4">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Diagnostic Results</h3>
                 
                 {/* Project Exists */}
                 <div className="flex items-start gap-3">
@@ -98,8 +98,8 @@ export default function ProjectAccessDiagnostic() {
                     <XCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Project Exists</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-900 dark:text-white">Project Exists</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.projectExists ? 'Project found in database' : 'Project not found'}
                     </p>
                   </div>
@@ -113,12 +113,12 @@ export default function ProjectAccessDiagnostic() {
                     <XCircle className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Creator Status</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-900 dark:text-white">Creator Status</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.isCreator ? 'You are the project creator' : 'You are not the creator'}
                     </p>
                     {diagnostics.projectCreatorId && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                         Creator ID: {diagnostics.projectCreatorId}
                       </p>
                     )}
@@ -133,11 +133,11 @@ export default function ProjectAccessDiagnostic() {
                     <XCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Member Status</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-900 dark:text-white">Member Status</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.isMember ? 'You are in Project_Members collection' : 'You are NOT in Project_Members collection'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       Total project members: {diagnostics.totalMembers}
                     </p>
                   </div>
@@ -151,27 +151,27 @@ export default function ProjectAccessDiagnostic() {
                     <XCircle className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Join Requests</p>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">Join Requests</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       You have {diagnostics.userRequests.length} join request(s) on record
                     </p>
                     {diagnostics.userRequests.length > 0 && (
                       <div className="space-y-2">
                         {diagnostics.userRequests.map((req: any) => (
-                          <div key={req.id} className="bg-white rounded p-3 text-xs">
+                          <div key={req.id} className="bg-white dark:bg-gray-800 rounded p-3 text-xs">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-semibold">Request ID: {req.id}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">Request ID: {req.id}</span>
                               <span className={`px-2 py-1 rounded ${
-                                req.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                'bg-yellow-100 text-yellow-700'
+                                req.status === 'approved' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400' :
+                                req.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400' :
+                                'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400'
                               }`}>
                                 {req.status}
                               </span>
                             </div>
-                            <p className="text-gray-600">Project ID: {req.projectId}</p>
+                            <p className="text-gray-600 dark:text-gray-400">Project ID: {req.projectId}</p>
                             {req.approvedAt && (
-                              <p className="text-green-600 mt-1">
+                              <p className="text-green-600 dark:text-green-400 mt-1">
                                 Approved: {new Date(req.approvedAt.seconds * 1000).toLocaleString()}
                               </p>
                             )}
@@ -186,13 +186,13 @@ export default function ProjectAccessDiagnostic() {
               {/* Problem Summary */}
               <div className={`rounded-xl p-6 ${
                 diagnostics.isMember || diagnostics.isCreator
-                  ? 'bg-green-50 border-2 border-green-200'
-                  : 'bg-red-50 border-2 border-red-200'
+                  ? 'bg-green-50 dark:bg-green-900/30 border-2 border-green-200 dark:border-green-700'
+                  : 'bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-700'
               }`}>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
                   {diagnostics.isMember || diagnostics.isCreator ? '✅ Access OK' : '❌ Access Issue Detected'}
                 </h3>
-                <p className="text-gray-700 mb-4">
+                <p className="text-gray-700 dark:text-gray-300 mb-4">
                   {diagnostics.isMember || diagnostics.isCreator
                     ? 'You have proper access to this project. You can navigate to the project workspace.'
                     : diagnostics.userRequests.some((r: any) => r.status === 'approved')
@@ -228,7 +228,7 @@ export default function ProjectAccessDiagnostic() {
                 <button
                   onClick={runDiagnostics}
                   disabled={loading}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50 flex items-center gap-2 mx-auto"
+                  className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50 flex items-center gap-2 mx-auto"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                   Refresh Diagnostics

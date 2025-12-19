@@ -116,7 +116,7 @@ export default function IdeaSubmission() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -125,14 +125,14 @@ export default function IdeaSubmission() {
               <Lightbulb className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-gray-900">Submit Your Idea</h1>
-              <p className="text-gray-600">Share your project idea and get it approved</p>
+              <h1 className="text-3xl font-black text-gray-900 dark:text-white">Submit Your Idea</h1>
+              <p className="text-gray-600 dark:text-gray-400">Share your project idea and get it approved</p>
             </div>
           </div>
         </div>
 
         {submitted && (
-          <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,19 +140,19 @@ export default function IdeaSubmission() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-green-900">Idea Submitted Successfully!</h3>
-                <p className="text-sm text-green-700">Your idea is pending admin review. You'll receive an email notification once it's reviewed.</p>
+                <h3 className="font-bold text-green-900 dark:text-green-400">Idea Submitted Successfully!</h3>
+                <p className="text-sm text-green-700 dark:text-green-300">Your idea is pending admin review. You'll receive an email notification once it's reviewed.</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="space-y-6">
             {/* Title */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                 <FileText className="w-4 h-4" />
                 Project Title *
               </label>
@@ -162,23 +162,23 @@ export default function IdeaSubmission() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="E.g., E-Learning Platform for Students"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
               />
             </div>
 
             {/* Description with Rich Text Editor */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                 <FileText className="w-4 h-4" />
                 Description *
               </label>
               
               {/* Rich Text Toolbar */}
-              <div className="flex items-center gap-1 p-2 bg-gray-50 border-2 border-gray-200 rounded-t-xl border-b-0">
+              <div className="flex items-center gap-1 p-2 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-t-xl border-b-0">
                 <button
                   type="button"
                   onClick={() => execCommand('bold')}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Bold"
                 >
                   <Bold className="w-4 h-4" />
@@ -186,7 +186,7 @@ export default function IdeaSubmission() {
                 <button
                   type="button"
                   onClick={() => execCommand('italic')}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Italic"
                 >
                   <Italic className="w-4 h-4" />
@@ -194,16 +194,16 @@ export default function IdeaSubmission() {
                 <button
                   type="button"
                   onClick={() => execCommand('underline')}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Underline"
                 >
                   <span className="text-sm font-bold underline">U</span>
                 </button>
-                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
                 <button
                   type="button"
                   onClick={() => execCommand('insertUnorderedList')}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Bullet List"
                 >
                   <List className="w-4 h-4" />
@@ -211,23 +211,23 @@ export default function IdeaSubmission() {
                 <button
                   type="button"
                   onClick={() => execCommand('insertOrderedList')}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Numbered List"
                 >
                   <ListOrdered className="w-4 h-4" />
                 </button>
-                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
                 <button
                   type="button"
                   onClick={insertLink}
-                  className="p-2 hover:bg-gray-200 rounded transition-colors"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
                   title="Insert Link"
                 >
                   <Link2 className="w-4 h-4" />
                 </button>
                 <select
                   onChange={(e) => execCommand('formatBlock', e.target.value)}
-                  className="ml-2 px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="ml-2 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   defaultValue="p"
                 >
                   <option value="p">Paragraph</option>
@@ -242,7 +242,7 @@ export default function IdeaSubmission() {
                 ref={editorRef}
                 contentEditable
                 onInput={handleEditorInput}
-                className="w-full min-h-[200px] px-4 py-3 border-2 border-gray-200 rounded-b-xl focus:border-cyan-500 focus:outline-none transition-colors overflow-auto"
+                className="w-full min-h-[200px] px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-b-xl focus:border-cyan-500 focus:outline-none transition-colors overflow-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                 data-placeholder="Describe your project idea, its goals, target audience, and key features..."
               />
               <style>{`
@@ -280,7 +280,7 @@ export default function IdeaSubmission() {
 
             {/* Category */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                 <Tag className="w-4 h-4" />
                 Category *
               </label>
@@ -288,7 +288,7 @@ export default function IdeaSubmission() {
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -299,7 +299,7 @@ export default function IdeaSubmission() {
 
             {/* Timeline */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                 <Clock className="w-4 h-4" />
                 Expected Timeline *
               </label>
@@ -309,7 +309,7 @@ export default function IdeaSubmission() {
                 value={formData.expectedTimeline}
                 onChange={(e) => setFormData({ ...formData, expectedTimeline: e.target.value })}
                 placeholder="E.g., 3 months, 6 weeks, etc."
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
               />
             </div>
 
@@ -327,23 +327,23 @@ export default function IdeaSubmission() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 p-6 bg-blue-50 rounded-xl border border-blue-200">
-          <h3 className="font-bold text-blue-900 mb-2">What happens next?</h3>
-          <ul className="space-y-2 text-sm text-blue-800">
+        <div className="mt-6 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
+          <h3 className="font-bold text-blue-900 dark:text-blue-300 mb-2">What happens next?</h3>
+          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-400">
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">1.</span>
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5">1.</span>
               <span>Your idea will be reviewed by our admin team within 2-3 business days</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">2.</span>
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5">2.</span>
               <span>You'll receive an email notification about the approval status</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">3.</span>
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5">3.</span>
               <span>If approved, you'll become a Creator and can start your project!</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">4.</span>
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5">4.</span>
               <span>You can manage tasks, team members, and track progress</span>
             </li>
           </ul>

@@ -1,19 +1,19 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    ChevronRight,
-    Code2,
-    Coins,
-    Crown,
-    History,
-    Loader2,
-    Star,
-    Swords,
-    Target,
-    TrendingUp,
-    Trophy,
-    Users
+  AlertTriangle,
+  ChevronRight,
+  Code2,
+  Coins,
+  Crown,
+  History,
+  Loader2,
+  Star,
+  Swords,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
@@ -41,15 +41,15 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-red-200 p-8 max-w-md w-full text-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-800 p-8 max-w-md w-full text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               There was an error loading CodeArena. Please refresh the page or try again later.
             </p>
-            <div className="bg-red-50 p-3 rounded-lg mb-4 text-left">
-              <pre className="text-xs text-red-700 whitespace-pre-wrap">
+            <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg mb-4 text-left">
+              <pre className="text-xs text-red-700 dark:text-red-400 whitespace-pre-wrap">
                 {this.state.error?.message || 'Unknown error'}
               </pre>
             </div>
@@ -254,10 +254,10 @@ const CodeArenaContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading CodeArena...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading CodeArena...</p>
         </div>
       </div>
     );
@@ -265,11 +265,11 @@ const CodeArenaContent = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl border border-red-200 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-8 max-w-md w-full text-center">
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading CodeArena</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading CodeArena</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
             onClick={() => {
               setError(null);
@@ -287,11 +287,11 @@ const CodeArenaContent = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 max-w-md w-full text-center">
           <Code2 className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Login Required</h2>
-          <p className="text-gray-600 mb-4">Please log in to access CodeArena.</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Login Required</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please log in to access CodeArena.</p>
           <button
             onClick={() => navigate('/login')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -304,9 +304,9 @@ const CodeArenaContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
@@ -315,8 +315,8 @@ const CodeArenaContent = () => {
                 <Code2 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">CodeArena</h1>
-                <p className="text-xs text-gray-500">Battle. Code. Win.</p>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">CodeArena</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Battle. Code. Win.</p>
               </div>
             </div>
 
@@ -334,8 +334,8 @@ const CodeArenaContent = () => {
                   onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                     activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -347,10 +347,10 @@ const CodeArenaContent = () => {
             {/* Wallet */}
             <button
               onClick={() => setShowWallet(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all"
             >
-              <Coins className="w-4 h-4 text-amber-600" />
-              <span className="text-amber-700 font-semibold">{wallet?.coins?.toLocaleString() || 0}</span>
+              <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-amber-700 dark:text-amber-300 font-semibold">{wallet?.coins?.toLocaleString() || 0}</span>
             </button>
           </div>
         </div>
@@ -389,7 +389,7 @@ const CodeArenaContent = () => {
       </AnimatePresence>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
         <div className="flex justify-around">
           {[
             { id: 'home', label: 'Home', icon: Code2, path: '' },
@@ -470,9 +470,9 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
       className="space-y-6 pb-20 md:pb-6"
     >
       {/* Hero */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back! 👋</h2>
-        <p className="text-gray-600 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back! 👋</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Ready to test your coding skills? Battle other developers or practice with Codeforces problems.
         </p>
 
@@ -486,7 +486,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
           </button>
           <button
             onClick={() => navigate('/dashboard/codearena/practice')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             <Target className="w-4 h-4" />
             Practice
@@ -502,13 +502,13 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white rounded-xl border border-gray-200 p-4"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
           >
             <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3`}>
               <stat.icon className="w-4 h-4" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-sm text-gray-500">{stat.label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -522,16 +522,16 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.05 }}
             onClick={() => navigate(`/dashboard/codearena/${action.path}`)}
-            className="bg-white rounded-xl border border-gray-200 p-5 text-left hover:border-gray-300 hover:shadow-sm transition-all group"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 text-left hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all group"
           >
             <div className={`inline-flex p-3 rounded-lg ${action.color} mb-4`}>
               <action.icon className="w-5 h-5 text-white" />
             </div>
             
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{action.title}</h3>
-            <p className="text-sm text-gray-500 mb-4">{action.description}</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{action.description}</p>
             
-            <div className="flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:gap-2 transition-all">
+            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-sm font-medium group-hover:gap-2 transition-all">
               <span>Get Started</span>
               <ChevronRight className="w-4 h-4" />
             </div>
@@ -542,13 +542,13 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
       {/* Activity Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Live Battles */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Users className="w-4 h-4 text-green-600" />
               Live Battles
             </h3>
-            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
               Live
             </span>
@@ -559,7 +559,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
             </div>
           ) : liveBattles.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">No active battles</p>
               <button
@@ -572,13 +572,13 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
           ) : (
             <div className="space-y-3">
               {liveBattles.map((battle, i) => (
-                <div key={battle.id || i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                <div key={battle.id || i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="flex -space-x-2">
                       {battle.participants?.slice(0, 2).map((participant: any, idx: number) => (
                         <div 
                           key={idx}
-                          className={`w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white ${
+                          className={`w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-white ${
                             idx === 0 ? 'bg-blue-500' : 'bg-purple-500'
                           }`}
                         >
@@ -587,16 +587,16 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                       ))}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {battle.participants?.[0]?.userName || 'Player'} vs {battle.participants?.[1]?.userName || 'Waiting...'}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">{battle.difficulty || 'Medium'}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{battle.difficulty || 'Medium'}</p>
                     </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     battle.status === 'waiting' 
-                      ? 'text-blue-600 bg-blue-50' 
-                      : 'text-orange-600 bg-orange-50'
+                      ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' 
+                      : 'text-orange-600 bg-orange-50 dark:bg-orange-900/30'
                   }`}>
                     {battle.status === 'waiting' ? 'Waiting' : 'In Progress'}
                   </span>
@@ -607,15 +607,15 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
         </div>
 
         {/* Top Players */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Crown className="w-4 h-4 text-amber-500" />
               Top Players
             </h3>
             <button 
               onClick={() => navigate('/dashboard/codearena/leaderboard')}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               View All
             </button>
@@ -626,7 +626,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
             </div>
           ) : topPlayers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">No rankings yet</p>
               <button
@@ -640,22 +640,22 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             <div className="space-y-3">
               {topPlayers.map((player) => {
                 const rankColors = [
-                  'text-amber-500 bg-amber-50',
-                  'text-gray-400 bg-gray-100',
-                  'text-orange-500 bg-orange-50'
+                  'text-amber-500 bg-amber-50 dark:bg-amber-900/30',
+                  'text-gray-400 bg-gray-100 dark:bg-gray-700',
+                  'text-orange-500 bg-orange-50 dark:bg-orange-900/30'
                 ];
                 return (
-                  <div key={player.odId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div key={player.odId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rankColors[player.rank - 1] || 'text-gray-600 bg-gray-50'}`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rankColors[player.rank - 1] || 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700'}`}>
                         {player.rank}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{player.odName}</p>
-                        <p className="text-xs text-gray-500">{player.problemsSolved} solved</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{player.odName}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{player.problemsSolved} solved</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-blue-600">
+                    <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                       <TrendingUp className="w-3 h-3" />
                       <span className="text-sm font-medium">{player.rating}</span>
                     </div>

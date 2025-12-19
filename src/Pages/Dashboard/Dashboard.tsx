@@ -1,7 +1,7 @@
+import { Activity, BarChart3, BookOpen, Briefcase, Calendar, Clock, Code, Code2, Flame, FolderOpen, Sparkles, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Briefcase, Code2, Flame, Clock, Zap, TrendingUp, Trophy, Target, BookOpen, BarChart3, Activity, Sparkles, Calendar, FolderOpen, Code } from 'lucide-react';
-import { useDataContext } from '../../Context/UserDataContext';
 import { useAuth } from '../../Context/AuthContext';
+import { useDataContext } from '../../Context/UserDataContext';
 
 export default function DashboardComingSoon() {
   // Real analytics state
@@ -336,8 +336,8 @@ export default function DashboardComingSoon() {
           </div>
         </div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-gray-700">{label}</div>
-          <div className="text-xs text-gray-500">{percentage.toFixed(1)}%</div>
+          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{percentage.toFixed(1)}%</div>
         </div>
       </div>
     );
@@ -351,13 +351,13 @@ export default function DashboardComingSoon() {
         {skills.map((skill, index) => (
           <div key={index} className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold text-gray-700">{skill.name}</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{skill.name}</span>
               <div className="flex items-center gap-4">
-                <span className="text-xs text-gray-500">Current: {skill.current}%</span>
-                <span className="text-xs text-gray-600">Target: {skill.target}%</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Current: {skill.current}%</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Target: {skill.target}%</span>
               </div>
             </div>
-            <div className="relative h-8 bg-gray-100 rounded-full overflow-hidden">
+            <div className="relative h-8 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div 
                 className="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 opacity-30"
                 style={{ 
@@ -409,18 +409,18 @@ export default function DashboardComingSoon() {
                   title={`Submissions: ${item.submissions}`}
                 />
               </div>
-              <span className="text-xs font-medium text-gray-600 rotate-45 origin-center">{item.month}</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400 rotate-45 origin-center">{item.month}</span>
             </div>
           ))}
         </div>
         <div className="flex justify-center gap-6 mt-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-gradient-to-r from-blue-400 to-blue-600 rounded" />
-            <span className="text-xs font-medium text-gray-600">Performance Score</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Performance Score</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-600 rounded" />
-            <span className="text-xs font-medium text-gray-600">Submissions</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Submissions</span>
           </div>
         </div>
       </div>
@@ -441,9 +441,9 @@ export default function DashboardComingSoon() {
     return (
       <div className="space-y-4">
         {achievements.map((achievement, index) => (
-          <div key={index} className="flex items-center gap-4 p-3 bg-gradient-to-r from-gray-50 to-white rounded-xl hover:shadow-md transition-all duration-300">
+          <div key={index} className="flex items-center gap-4 p-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-xl hover:shadow-md transition-all duration-300">
             <div className="flex-shrink-0">
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center`}>
+              <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center`}>
                 {achievement.type === 'challenge' && <Code className={`w-5 h-5 ${getIconColor(achievement.type)}`} />}
                 {achievement.type === 'project' && <FolderOpen className={`w-5 h-5 ${getIconColor(achievement.type)}`} />}
                 {achievement.type === 'course' && <BookOpen className={`w-5 h-5 ${getIconColor(achievement.type)}`} />}
@@ -451,8 +451,8 @@ export default function DashboardComingSoon() {
               </div>
             </div>
             <div className="flex-1">
-              <div className="font-semibold text-sm text-gray-900">{achievement.title}</div>
-              <div className="text-xs text-gray-500">{achievement.date}</div>
+              <div className="font-semibold text-sm text-gray-900 dark:text-white">{achievement.title}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{achievement.date}</div>
             </div>
             <div className="text-right">
               <div className={`text-lg font-black ${getIconColor(achievement.type)}`}>+{achievement.value}</div>
@@ -466,7 +466,7 @@ export default function DashboardComingSoon() {
 
   const ActivityHeatmap = ({ data }: { data: Array<Array<{date: string, value: number, day: string}>> }) => {
     const getIntensity = (value: number) => {
-      if (value === 0) return 'bg-gray-100';
+      if (value === 0) return 'bg-gray-100 dark:bg-gray-700';
       if (value <= 2) return 'bg-green-200';
       if (value <= 4) return 'bg-green-300';
       if (value <= 6) return 'bg-green-400';
@@ -494,7 +494,7 @@ export default function DashboardComingSoon() {
         <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
           <span>Less active</span>
           <div className="flex gap-1">
-            <div className="w-3 h-3 rounded bg-gray-100"></div>
+            <div className="w-3 h-3 rounded bg-gray-100 dark:bg-gray-700"></div>
             <div className="w-3 h-3 rounded bg-green-200"></div>
             <div className="w-3 h-3 rounded bg-green-300"></div>
             <div className="w-3 h-3 rounded bg-green-400"></div>
@@ -529,7 +529,7 @@ export default function DashboardComingSoon() {
                 title={`${day.projects} project activities`}
               />
             </div>
-            <span className="text-xs font-medium text-gray-600">{day.day}</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{day.day}</span>
           </div>
         ))}
       </div>
@@ -580,8 +580,8 @@ export default function DashboardComingSoon() {
     // Handle undefined or empty data
     if (!data || !Array.isArray(data) || data.length === 0) {
       return (
-        <div className="flex items-center justify-center w-48 h-48 bg-gray-100 rounded-full">
-          <span className="text-gray-500 text-sm font-medium">No data available</span>
+        <div className="flex items-center justify-center w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-full">
+          <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">No data available</span>
         </div>
       );
     }
@@ -617,8 +617,8 @@ export default function DashboardComingSoon() {
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">{total}</div>
-              <div className="text-xs text-gray-500">Total Activities</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{total}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Total Activities</div>
             </div>
           </div>
         </div>
@@ -631,8 +631,8 @@ export default function DashboardComingSoon() {
                 style={{ backgroundColor: item.color }}
               />
               <div>
-                <div className="font-medium text-gray-900">{item.name}</div>
-                <div className="text-sm text-gray-500">{item.value} ({item.percentage}%)</div>
+                <div className="font-medium text-gray-900 dark:text-white">{item.name}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{item.value} ({item.percentage}%)</div>
               </div>
             </div>
           ))}
@@ -649,17 +649,17 @@ export default function DashboardComingSoon() {
 
   // Course Advertisement Component
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 sm:p-6 lg:p-8 overflow-x-hidden"
-      style={{ backgroundColor: '#c2f7fa' }}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4 sm:p-6 lg:p-8 overflow-x-hidden"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
     >
       <div className="max-w-7xl mx-auto w-full">
         <div className="mb-8 sm:mb-12 text-center px-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2"
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2"
             style={{ color: '#00ADB5' }}
           >
             Your Dashboard
           </h1>
-          <p className="text-gray-600 text-sm font-medium">Track your progress and performance</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">Track your progress and performance</p>
         </div>
 
         {/* Enhanced Stats Cards */}
@@ -807,11 +807,11 @@ export default function DashboardComingSoon() {
 
         {/* Weekly Progress Chart */}
         <div className="mb-8">
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-lg border border-indigo-100">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-lg border border-indigo-100 dark:border-indigo-800">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <BarChart3 className="w-6 h-6 text-indigo-600" />
               Weekly Progress Overview
-              {loading && <span className="text-sm text-gray-500 font-normal">(Loading...)</span>}
+              {loading && <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">(Loading...)</span>}
             </h2>
             
             {!loading && weeklyProgress.length > 0 ? (
@@ -820,21 +820,21 @@ export default function DashboardComingSoon() {
                 <div className="flex justify-center gap-6 mt-4">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-blue-500 rounded" />
-                    <span className="text-sm font-medium text-gray-600">Challenges</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Challenges</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-500 rounded" />
-                    <span className="text-sm font-medium text-gray-600">Courses</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Courses</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-yellow-500 rounded" />
-                    <span className="text-sm font-medium text-gray-600">Projects</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Projects</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-500">
-                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>No activity data available</p>
               </div>
             )}
@@ -843,8 +843,8 @@ export default function DashboardComingSoon() {
 
         {/* Activity Breakdown with Pie Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8">
-          <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-6 sm:p-8 shadow-xl border border-pink-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-2xl p-6 sm:p-8 shadow-xl border border-pink-100 dark:border-pink-800">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <BarChart3 className="w-6 h-6 text-pink-600" />
               Activity Distribution
             </h2>
@@ -852,21 +852,21 @@ export default function DashboardComingSoon() {
             {!loading && monthlyStats.length > 0 && monthlyStats.some(s => s.value > 0) ? (
               <PieChart data={(monthlyStats || []).filter(s => s.value > 0)} />
             ) : (
-              <div className="text-center py-12 text-gray-500">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                  <BarChart3 className="w-8 h-8 text-gray-400" />
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <BarChart3 className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
                 <p>No activity data available</p>
                 {/* Debug info */}
-                <div className="text-xs mt-2 text-gray-400">
+                <div className="text-xs mt-2 text-gray-400 dark:text-gray-500">
                   Companies: {companyMatches.length}, Tech: {techStack.length}, Skills: {skillDemand.length}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-6 sm:p-8 shadow-xl border border-cyan-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 rounded-2xl p-6 sm:p-8 shadow-xl border border-cyan-100 dark:border-cyan-800">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Trophy className="w-6 h-6 text-cyan-600" />
               Performance Metrics
             </h2>
@@ -878,7 +878,7 @@ export default function DashboardComingSoon() {
                   color="#06b6d4" 
                   size={100}
                 />
-                <p className="text-sm font-medium text-gray-600 mt-2">Success Rate</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">Success Rate</p>
               </div>
               
               <div className="text-center">
@@ -887,7 +887,7 @@ export default function DashboardComingSoon() {
                   color="#10b981" 
                   size={100}
                 />
-                <p className="text-sm font-medium text-gray-600 mt-2">Course Progress</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">Course Progress</p>
               </div>
               
               <div className="text-center">
@@ -896,7 +896,7 @@ export default function DashboardComingSoon() {
                   color="#f59e0b" 
                   size={100}
                 />
-                <p className="text-sm font-medium text-gray-600 mt-2">Project Success</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">Project Success</p>
               </div>
               
               <div className="text-center">
@@ -905,7 +905,7 @@ export default function DashboardComingSoon() {
                   color="#8b5cf6" 
                   size={100}
                 />
-                <p className="text-sm font-medium text-gray-600 mt-2">Consistency</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">Consistency</p>
               </div>
             </div>
           </div>
@@ -914,8 +914,8 @@ export default function DashboardComingSoon() {
         {/* Comprehensive Analytics Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8">
           {/* Skills Proficiency Bar Chart */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-600" />
               Skills Proficiency
             </h3>
@@ -929,10 +929,10 @@ export default function DashboardComingSoon() {
               ].map((item, idx) => (
                 <div key={idx} className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm sm:text-base font-semibold text-gray-700">{item.skill}</span>
-                    <span className="text-sm sm:text-base font-bold text-gray-900">{item.level}%</span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300">{item.skill}</span>
+                    <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{item.level}%</span>
                   </div>
-                  <div className="w-full h-3 sm:h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-1000 ease-out"
                       style={{ 
@@ -947,8 +947,8 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Learning Path Progress */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-green-600" />
               Learning Paths
             </h3>
@@ -985,18 +985,18 @@ export default function DashboardComingSoon() {
               ].map((item, idx) => (
                 <div key={idx} className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm sm:text-base font-semibold text-gray-700">{item.path}</span>
-                    <span className="text-xs sm:text-sm text-gray-500">{item.completed}/{item.total} modules</span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300">{item.path}</span>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{item.completed}/{item.total} modules</span>
                   </div>
-                  <div className="w-full h-3 sm:h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div 
                       className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all duration-1000 ease-out`}
                       style={{ width: `${item.progress}%` }}
                     />
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-gray-500">Progress</span>
-                    <span className="text-xs font-bold text-gray-700">{item.progress}%</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Progress</span>
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{item.progress}%</span>
                   </div>
                 </div>
               ))}
@@ -1086,8 +1086,8 @@ export default function DashboardComingSoon() {
         {/* Additional Performance Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
           {/* Monthly Trends Line Chart */}
-          <div className="lg:col-span-2 bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
               Performance & Submission Trends
             </h3>
@@ -1095,40 +1095,40 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Quick Stats Summary */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-600" />
               Quick Stats
             </h3>
             <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl">
                 <div>
-                  <p className="text-sm text-gray-600">Total Problems</p>
-                  <p className="text-2xl font-bold text-gray-900">{codeArenaStats?.challengesSolved || 0}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Problems</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{codeArenaStats?.challengesSolved || 0}</p>
                 </div>
                 <Code className="w-8 h-8 text-yellow-600" />
               </div>
               
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl">
                 <div>
-                  <p className="text-sm text-gray-600">Active Projects</p>
-                  <p className="text-2xl font-bold text-gray-900">{projectStats?.total || 0}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{projectStats?.total || 0}</p>
                 </div>
                 <FolderOpen className="w-8 h-8 text-green-600" />
               </div>
               
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
                 <div>
-                  <p className="text-sm text-gray-600">Courses Enrolled</p>
-                  <p className="text-2xl font-bold text-gray-900">{courseStats?.enrolled || 0}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Courses Enrolled</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{courseStats?.enrolled || 0}</p>
                 </div>
                 <BookOpen className="w-8 h-8 text-blue-600" />
               </div>
               
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl">
                 <div>
-                  <p className="text-sm text-gray-600">Current Streak</p>
-                  <p className="text-2xl font-bold text-gray-900">{userprofile?.streakCount || 0}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Current Streak</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{userprofile?.streakCount || 0}</p>
                 </div>
                 <Flame className="w-8 h-8 text-purple-600" />
               </div>
@@ -1139,12 +1139,12 @@ export default function DashboardComingSoon() {
         {/* Advanced Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8">
           {/* Skill Comparison Chart */}
-          <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-indigo-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 dark:from-indigo-900/30 dark:via-blue-900/30 dark:to-cyan-900/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-indigo-100 dark:border-indigo-800 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Target className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-600" />
               Skill Progress vs Goals
               <div className="ml-auto">
-                <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full">
+                <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full">
                   {chartData.skills.filter(s => s.current >= s.target).length}/{chartData.skills.length} Achieved
                 </span>
               </div>
@@ -1153,8 +1153,8 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Radial Progress Overview */}
-          <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-purple-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-900/30 dark:via-pink-900/30 dark:to-rose-900/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-purple-100 dark:border-purple-800 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Activity className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600" />
               Achievement Overview
             </h3>
@@ -1194,36 +1194,36 @@ export default function DashboardComingSoon() {
         {/* Activity & Achievement Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
           {/* Activity Heatmap */}
-          <div className="lg:col-span-2 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-green-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="lg:col-span-2 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-green-100 dark:border-green-800 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-green-600" />
               Activity Heatmap
               <div className="ml-auto">
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                <span className="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs font-semibold rounded-full">
                   Last 4 weeks
                 </span>
               </div>
             </h3>
             <ActivityHeatmap data={chartData.activityData} />
             <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-              <div className="p-3 bg-white/50 rounded-lg">
+              <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
                 <div className="text-lg font-bold text-green-600">{chartData.activityData.flat().reduce((sum, day) => sum + day.value, 0)}</div>
-                <div className="text-xs text-gray-600">Total Activities</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Total Activities</div>
               </div>
-              <div className="p-3 bg-white/50 rounded-lg">
+              <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
                 <div className="text-lg font-bold text-green-600">{chartData.activityData.flat().filter(day => day.value > 0).length}</div>
-                <div className="text-xs text-gray-600">Active Days</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Active Days</div>
               </div>
-              <div className="p-3 bg-white/50 rounded-lg">
+              <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
                 <div className="text-lg font-bold text-green-600">{Math.round((chartData.activityData.flat().filter(day => day.value > 0).length / 28) * 100)}%</div>
-                <div className="text-xs text-gray-600">Consistency</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">Consistency</div>
               </div>
             </div>
           </div>
 
           {/* Achievement Timeline */}
-          <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-orange-100 hover:shadow-2xl transition-all">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/30 dark:via-amber-900/30 dark:to-yellow-900/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl border border-orange-100 dark:border-orange-800 hover:shadow-2xl transition-all">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
               <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600" />
               Recent Wins
             </h3>
