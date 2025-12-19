@@ -29,7 +29,7 @@ export default function DashboardLayout() {
     { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
     { name: "Courses", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
-    { name: "ProjectBazar", path: "/dashboard/company_req", icon: <Store size={20} /> },
+    { name: "Project Bazaar", path: "/dashboard/marketplace", icon: <Store size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];

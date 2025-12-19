@@ -36,6 +36,13 @@ const Courses = lazy(() => import("./Pages/Courses"));
 const CourseView = lazy(() => import("./Pages/CourseView"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
 
+// Marketplace pages
+const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
+const ProjectDetailMarketplace = lazy(() => import("./Pages/Marketplace/ProjectDetail"));
+const CreateListing = lazy(() => import("./Pages/Marketplace/CreateListing"));
+const MyListings = lazy(() => import("./Pages/Marketplace/MyListings"));
+const MyPurchases = lazy(() => import("./Pages/Marketplace/MyPurchases"));
+
 function PublicLayout() {
 
   const location = useLocation();
@@ -173,6 +180,13 @@ const App: React.FC = () => {
                 <Route path="profile" element={<ProfileInfo />} />
                 <Route path="codearena/*" element={<CodeArena />} />
                 <Route path="company_req" element={<Company_Req />} />
+                
+                {/* Marketplace Routes */}
+                <Route path="marketplace" element={<MarketplaceBazaar />} />
+                <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
+                <Route path="marketplace/create" element={<CreateListing />} />
+                <Route path="marketplace/my-listings" element={<MyListings />} />
+                <Route path="marketplace/my-purchases" element={<MyPurchases />} />
               </Route>
             </Routes>
           </AnimatePresence>
