@@ -72,7 +72,7 @@ export default function DashboardLayout() {
     <div className="flex h-screen overflow-hidden">
       {/* Left Sidebar */}
       <div
-        className={`fixed lg:static top-0 left-0 h-full bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 z-50 shadow-lg lg:shadow-none border-r border-gray-200 dark:border-gray-700 overflow-visible
+        className={`fixed lg:static top-0 left-0 h-full bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 z-[60] shadow-lg lg:shadow-none border-r border-gray-200 dark:border-gray-700 overflow-visible
           ${isMinimized ? "w-20" : "w-64"} 
           ${isDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -269,7 +269,7 @@ export default function DashboardLayout() {
       {/* Dark overlay for mobile drawer */}
       {isDrawerOpen && (
         <div
-          className="fixed inset-0 bg-black/50 lg:hidden z-40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 lg:hidden z-[55] backdrop-blur-sm"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
