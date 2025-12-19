@@ -339,7 +339,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Battle Arena</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-xs">Compete against other coders in real-time</p>
+            <p className="text-gray-500 dark:text-white text-xs">Compete against other coders in real-time</p>
           </div>
         </div>
 
@@ -371,22 +371,22 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-800 border-t-blue-600"
+                  className="absolute inset-0 rounded-full border-4 border-[#00ADB5]/30 dark:border-[#00ADB5]/40 border-t-blue-600"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Search className="w-8 h-8 text-blue-600" />
+                  <Search className="w-8 h-8 text-[#00ADB5]" />
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-[#00ADB5] to-purple-600 bg-clip-text text-transparent mb-2">
                 🔍 Finding Opponent...
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
-                Searching for a <span className="font-bold text-blue-600">{selectedDifficulty}</span> battle 🎯
+              <p className="text-gray-600 dark:text-white mb-6 text-lg">
+                Searching for a <span className="font-bold text-[#00ADB5]">{selectedDifficulty}</span> battle 🎯
               </p>
 
-              <div className="flex items-center justify-center gap-3 text-3xl font-mono bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6 font-bold">
-                <Clock className="w-6 h-6 text-blue-500" />
+              <div className="flex items-center justify-center gap-3 text-3xl font-mono bg-gradient-to-r from-[#00ADB5] to-purple-600 bg-clip-text text-transparent mb-6 font-bold">
+                <Clock className="w-6 h-6 text-[#00ADB5]" />
                 {formatSearchTime(searchTime)}
               </div>
 
@@ -432,7 +432,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               onClick={() => setSelectedDifficulty(diff.id)}
               className={`p-3 rounded-xl border-2 transition-all relative overflow-hidden ${
                 selectedDifficulty === diff.id
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 shadow-md'
+                  ? 'border-[#00ADB5] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 shadow-md'
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700'
               }`}
             >
@@ -441,8 +441,8 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               )}
               <div className={`w-3 h-3 rounded-full ${diff.color} mb-2 mx-auto shadow-sm`} />
               <p className="font-medium text-gray-900 dark:text-white text-sm">{diff.label}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{diff.rating}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-white">{diff.rating}</p>
+              <p className="text-xs text-gray-400 dark:text-white mt-0.5">
                 <Clock className="w-3 h-3 inline mr-0.5" />
                 {diff.time}m
               </p>
@@ -493,7 +493,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
           disabled={!wallet || wallet.coins < selectedEntry.fee || isSearching || isCreating}
           className={`w-full py-3 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all shadow-md ${
             wallet?.coins >= selectedEntry.fee && !isCreating
-              ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700'
+              ? 'bg-gradient-to-r from-[#00ADB5] via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700'
               : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
@@ -564,7 +564,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                   />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">{battle.creatorName}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-white">
                       {battle.creatorRating} • {battle.difficulty}
                     </p>
                   </div>
@@ -591,7 +591,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                     disabled={wallet?.coins < battle.entryFee}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       wallet?.coins >= battle.entryFee
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-[#00ADB5] text-white hover:bg-[#00ADB5]/80'
                         : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                     }`}
                   >
@@ -627,12 +627,12 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
             }
           ].map((step, index) => (
             <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <step.icon className="w-4 h-4 text-blue-600" />
+              <div className="p-1.5 bg-[#00ADB5]/20 dark:bg-[#00ADB5]/20 rounded-lg">
+                <step.icon className="w-4 h-4 text-[#00ADB5]" />
               </div>
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white text-sm">{step.title}</h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{step.description}</p>
+                <p className="text-xs text-gray-500 dark:text-white">{step.description}</p>
               </div>
             </div>
           ))}

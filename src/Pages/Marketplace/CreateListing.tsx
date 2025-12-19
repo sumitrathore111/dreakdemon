@@ -1,10 +1,12 @@
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Upload, X } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { storage } from '../../service/Firebase';
 import { createProject } from '../../service/marketplaceService';
 import type { CreateProjectData, LicenseType, ProjectCategory } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
@@ -35,6 +37,8 @@ export default function CreateListing() {
   const [techInput, setTechInput] = useState('');
   const [imageInput, setImageInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTech = (tech: string) => {
     if (tech && !formData.techStack.includes(tech)) {
@@ -68,6 +72,70 @@ export default function CreateListing() {
       ...formData,
       images: formData.images.filter((img) => img !== image),
     });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!user) {
+      toast.error('You must be logged in to upload images');
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name} is not an image file`);
+          continue;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name} is too large. Max size is 5MB`);
+          continue;
+        }
+
+        // Create unique filename
+        const timestamp = Date.now();
+        const fileName = `marketplace/${user.uid}/${timestamp}_${file.name}`;
+        const storageRef = ref(storage, fileName);
+
+        // Upload file
+        await uploadBytes(storageRef, file);
+        
+        // Get download URL
+        const downloadURL = await getDownloadURL(storageRef);
+        uploadedUrls.push(downloadURL);
+      }
+
+      if (uploadedUrls.length > 0) {
+        setFormData({
+          ...formData,
+          images: [...formData.images, ...uploadedUrls],
+        });
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
+      }
+    } catch (error: any) {
+      console.error('Error uploading images:', error);
+      if (error?.code === 'storage/unauthorized') {
+        toast.error('Permission denied. Please check Firebase Storage rules.');
+      } else {
+        toast.error('Failed to upload images. Please try again.');
+      }
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,7 +187,10 @@ export default function CreateListing() {
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/marketplace')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors font-medium"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-white transition-colors font-medium"
+          style={{ '--hover-color': '#00ADB5' } as React.CSSProperties}
+          onMouseEnter={(e) => e.currentTarget.style.color = '#00ADB5'}
+          onMouseLeave={(e) => e.currentTarget.style.color = ''}
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Marketplace
@@ -130,10 +201,10 @@ export default function CreateListing() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: '#00ADB5' }}>
             List Your Project
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
+          <p className="text-gray-600 dark:text-white mb-8">
             Share your amazing project with the community
           </p>
 
@@ -147,7 +218,7 @@ export default function CreateListing() {
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-800 transition-all"
                 placeholder="e.g., E-commerce Platform with React & Node.js"
                 required
               />
@@ -162,7 +233,7 @@ export default function CreateListing() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={6}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-800 transition-all"
                 placeholder="Describe your project, its features, and what makes it special..."
                 required
               />
@@ -177,7 +248,7 @@ export default function CreateListing() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value as ProjectCategory })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                 >
                   {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -194,7 +265,7 @@ export default function CreateListing() {
                 <select
                   value={formData.licenseType}
                   onChange={(e) => setFormData({ ...formData, licenseType: e.target.value as LicenseType })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                 >
                   {Object.entries(LICENSE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -222,7 +293,7 @@ export default function CreateListing() {
                     }
                   }}
                   list="tech-options"
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-800 transition-all"
                   placeholder="Type or select technology..."
                 />
                 <datalist id="tech-options">
@@ -233,7 +304,8 @@ export default function CreateListing() {
                 <button
                   type="button"
                   onClick={() => handleAddTech(techInput)}
-                  className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 hover:opacity-90"
+                  style={{ backgroundColor: '#00ADB5' }}
                 >
                   <Plus className="w-5 h-5" />
                   Add
@@ -243,7 +315,8 @@ export default function CreateListing() {
                 {formData.techStack.map((tech) => (
                   <span
                     key={tech}
-                    className="px-3 py-1.5 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-sm font-medium flex items-center gap-2"
+                    className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2"
+                    style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
                   >
                     {tech}
                     <button
@@ -269,7 +342,7 @@ export default function CreateListing() {
                     type="radio"
                     checked={formData.isFree}
                     onChange={() => setFormData({ ...formData, isFree: true, price: 0 })}
-                    className="w-4 h-4 text-teal-500"
+                    className="w-4 h-4 accent-[#00ADB5]"
                   />
                   <span className="text-gray-900 dark:text-white">Free</span>
                 </label>
@@ -278,20 +351,20 @@ export default function CreateListing() {
                     type="radio"
                     checked={!formData.isFree}
                     onChange={() => setFormData({ ...formData, isFree: false })}
-                    className="w-4 h-4 text-teal-500"
+                    className="w-4 h-4 accent-[#00ADB5]"
                   />
                   <span className="text-gray-900 dark:text-white">Paid</span>
                 </label>
               </div>
               {!formData.isFree && (
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-white font-medium">$</span>
                   <input
                     type="number"
                     min="1"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-600 transition-all"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
                     placeholder="0.00"
                   />
                 </div>
@@ -301,31 +374,68 @@ export default function CreateListing() {
             {/* Images */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Project Images (URLs)
+                Project Images
               </label>
-              <div className="flex gap-2 mb-3">
+              
+              {/* File Upload Section */}
+              <div className="mb-4">
                 <input
-                  type="url"
-                  value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddImage();
-                    }
-                  }}
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-600 transition-all"
-                  placeholder="https://example.com/image.jpg"
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  id="image-upload"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddImage}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                <label
+                  htmlFor="image-upload"
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Upload className="w-5 h-5" />
-                  Add
-                </button>
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin mb-2" />
+                      <span className="text-sm text-gray-500 dark:text-white">Uploading...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <ImageIcon className="w-8 h-8 text-[#00ADB5] mb-2" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-white">Click to upload images</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, GIF up to 5MB each</span>
+                    </div>
+                  )}
+                </label>
               </div>
+
+              {/* URL Input Section (Alternative) */}
+              <div className="mb-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Or add image by URL:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={imageInput}
+                    onChange={(e) => setImageInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddImage();
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all text-sm"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddImage}
+                    className="px-3 py-2 bg-[#00ADB5] text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Image Preview Grid */}
               <div className="grid grid-cols-3 gap-3">
                 {formData.images.map((image, index) => (
                   <div key={index} className="relative group">
@@ -356,7 +466,7 @@ export default function CreateListing() {
                   type="url"
                   value={formData.links.github}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, github: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://github.com/..."
                 />
               </div>
@@ -368,7 +478,7 @@ export default function CreateListing() {
                   type="url"
                   value={formData.links.liveDemo}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, liveDemo: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://demo.example.com"
                 />
               </div>
@@ -380,7 +490,7 @@ export default function CreateListing() {
                   type="url"
                   value={formData.links.documentation}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, documentation: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://docs.example.com"
                 />
               </div>
@@ -392,7 +502,7 @@ export default function CreateListing() {
                   type="url"
                   value={formData.links.video}
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, video: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://youtube.com/..."
                 />
               </div>
@@ -410,7 +520,8 @@ export default function CreateListing() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 {isSubmitting ? (
                   <>

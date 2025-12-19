@@ -1,15 +1,15 @@
 import {
-    ArrowLeft,
-    ExternalLink,
-    Eye,
-    FileText,
-    Github,
-    MessageCircle,
-    Package,
-    Play,
-    Shield,
-    ShoppingCart,
-    Star,
+  ArrowLeft,
+  ExternalLink,
+  Eye,
+  FileText,
+  Github,
+  MessageCircle,
+  Package,
+  Play,
+  Shield,
+  ShoppingCart,
+  Star,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -18,12 +18,12 @@ import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { createOrGetChat } from '../../service/marketplaceChatService';
 import {
-    checkUserPurchased,
-    createPurchase,
-    createReview,
-    getProjectById,
-    getProjectReviews,
-    incrementProjectViews,
+  checkUserPurchased,
+  createPurchase,
+  createReview,
+  getProjectById,
+  getProjectReviews,
+  incrementProjectViews,
 } from '../../service/marketplaceService';
 import type { MarketplaceProject, MarketplaceReview } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS } from '../../types/marketplace';
@@ -116,7 +116,7 @@ export default function ProjectDetail() {
     if (!user || !project) return;
 
     try {
-      const chatId = await createOrGetChat(
+      const result = await createOrGetChat(
         user.uid,
         userprofile?.name || 'User',
         avatrUrl || '',
@@ -127,8 +127,25 @@ export default function ProjectDetail() {
         project.title
       );
 
+      if (result.status === 'pending') {
+        if (result.isNew) {
+          toast.success('Chat request sent! Waiting for seller to accept.');
+        } else {
+          toast('Your chat request is pending. Waiting for seller to accept.', {
+            icon: '⏳',
+          });
+        }
+        return;
+      }
+
+      if (result.status === 'rejected') {
+        toast.error('Your chat request was declined by the seller.');
+        return;
+      }
+
+      // Chat is accepted, open the chat window
       setActiveChat({
-        id: chatId,
+        id: result.chatId,
         participants: [user.uid, project.sellerId],
         participantNames: {
           [user.uid]: userprofile?.name || 'User',
@@ -140,6 +157,12 @@ export default function ProjectDetail() {
         },
         projectId: project.id,
         projectTitle: project.title,
+        status: result.status,
+        requesterId: user.uid,
+        sellerId: project.sellerId,
+        lastMessage: '',
+        lastMessageTime: new Date(),
+        unreadCount: { [user.uid]: 0, [project.sellerId]: 0 },
       });
       setShowChat(true);
     } catch (error) {
@@ -180,7 +203,7 @@ export default function ProjectDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -195,7 +218,9 @@ export default function ProjectDetail() {
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard/marketplace')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-white transition-colors"
+          onMouseEnter={(e) => e.currentTarget.style.color = '#00ADB5'}
+          onMouseLeave={(e) => e.currentTarget.style.color = ''}
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Marketplace
@@ -214,7 +239,7 @@ export default function ProjectDetail() {
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     {project.title}
                   </h1>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-white">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                       <span className="font-semibold">{project.rating}</span>
@@ -237,7 +262,7 @@ export default function ProjectDetail() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   Description
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                <p className="text-gray-700 dark:text-white leading-relaxed whitespace-pre-wrap">
                   {project.description}
                 </p>
               </div>
@@ -251,7 +276,8 @@ export default function ProjectDetail() {
                   {project.techStack.map((tech, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-lg text-sm font-medium"
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                      style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
                     >
                       {tech}
                     </span>
@@ -338,13 +364,13 @@ export default function ProjectDetail() {
               {/* Project Details */}
               <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Category</p>
+                  <p className="text-sm text-gray-600 dark:text-white mb-1">Category</p>
                   <p className="font-semibold text-gray-900 dark:text-white">
                     {CATEGORY_LABELS[project.category]}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">License</p>
+                  <p className="text-sm text-gray-600 dark:text-white mb-1">License</p>
                   <p className="font-semibold text-gray-900 dark:text-white">
                     {LICENSE_LABELS[project.licenseType]}
                   </p>
@@ -365,7 +391,8 @@ export default function ProjectDetail() {
                 {!showReviewForm ? (
                   <button
                     onClick={() => setShowReviewForm(true)}
-                    className="w-full px-4 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-semibold"
+                    className="w-full px-4 py-3 text-white rounded-lg transition-colors font-semibold hover:opacity-90"
+                    style={{ backgroundColor: '#00ADB5' }}
                   >
                     Write a Review
                   </button>
@@ -377,7 +404,7 @@ export default function ProjectDetail() {
                     
                     {/* Rating */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                         Rating
                       </label>
                       <div className="flex gap-2">
@@ -401,14 +428,14 @@ export default function ProjectDetail() {
 
                     {/* Comment */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                         Review
                       </label>
                       <textarea
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                         placeholder="Share your experience with this project..."
                       />
                     </div>
@@ -417,14 +444,15 @@ export default function ProjectDetail() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setShowReviewForm(false)}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSubmitReview}
                         disabled={isSubmittingReview || !reviewComment.trim()}
-                        className="flex-1 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                        style={{ backgroundColor: '#00ADB5' }}
                       >
                         {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                       </button>
@@ -440,10 +468,10 @@ export default function ProjectDetail() {
             {/* Price & Purchase */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-6">
               <div className="text-center mb-6">
-                <p className="text-4xl font-bold text-teal-500 dark:text-teal-400 mb-2">
+                <p className="text-4xl font-bold mb-2" style={{ color: '#00ADB5' }}>
                   {project.isFree ? 'FREE' : `$${project.price}`}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-white">
                   {LICENSE_LABELS[project.licenseType]}
                 </p>
               </div>
@@ -462,7 +490,8 @@ export default function ProjectDetail() {
               ) : (
                 <button
                   onClick={() => setShowPurchaseModal(true)}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 transition-all flex items-center justify-center gap-2 mb-3"
+                  className="w-full px-4 py-3 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 mb-3 hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
                 >
                   <ShoppingCart className="w-5 h-5" />
                   {project.isFree ? 'Get for Free' : 'Buy Now'}
@@ -472,7 +501,8 @@ export default function ProjectDetail() {
               {!isOwnProject && (
                 <button
                   onClick={handleContactSeller}
-                  className="w-full px-4 py-3 border-2 border-teal-500 text-teal-500 dark:text-teal-400 rounded-lg font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 border-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 hover:bg-[#00ADB5]/10"
+                  style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
                 >
                   <MessageCircle className="w-5 h-5" />
                   Contact Seller
@@ -481,7 +511,7 @@ export default function ProjectDetail() {
 
               {/* Seller Info */}
               <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Sold by</p>
+                <p className="text-sm text-gray-600 dark:text-white mb-3">Sold by</p>
                 <Link
                   to={`/dashboard/marketplace/seller/${project.sellerId}`}
                   className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
@@ -489,13 +519,14 @@ export default function ProjectDetail() {
                   <img
                     src={project.sellerAvatar || 'https://via.placeholder.com/40'}
                     alt={project.sellerName}
-                    className="w-12 h-12 rounded-full border-2 border-teal-400"
+                    className="w-12 h-12 rounded-full border-2"
+                    style={{ borderColor: '#00ADB5' }}
                   />
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {project.sellerName}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">View Profile</p>
+                    <p className="text-sm text-gray-600 dark:text-white">View Profile</p>
                   </div>
                 </Link>
               </div>
@@ -506,7 +537,7 @@ export default function ProjectDetail() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 What's Included
               </h3>
-              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-white">
                 <li className="flex items-start gap-2">
                   <Package className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <span>Full source code</span>

@@ -1,15 +1,18 @@
 import { motion } from 'framer-motion';
 import {
-    Plus,
-    Search,
-    ShoppingBag,
-    TrendingUp
+  Plus,
+  Search,
+  ShoppingBag,
+  TrendingUp
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import CustomSelect from '../../Component/Global/CustomSelect';
 import { getAllProjects } from '../../service/marketplaceService';
 import type { MarketplaceProject } from '../../types/marketplace';
 import { CATEGORY_LABELS } from '../../types/marketplace';
+import ChatRequests from './components/ChatRequests';
+import MessagesPanel from './components/MessagesPanel';
 import ProjectCard from './components/ProjectCard';
 
 export default function MarketplaceBazaar() {
@@ -104,31 +107,38 @@ export default function MarketplaceBazaar() {
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold mb-2" style={{ color: '#00ADB5' }}>
                 Project Bazaar 🛒
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-white">
                 Buy and sell amazing projects from talented developers
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-3 flex-nowrap">
+              {/* Chat Requests & Messages */}
+              <ChatRequests />
+              <MessagesPanel />
+              
               <Link
                 to="/dashboard/marketplace/my-purchases"
-                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-teal-500 text-teal-500 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors flex items-center gap-2 font-semibold"
+                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-2 font-semibold whitespace-nowrap"
+                style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
               >
                 <ShoppingBag className="w-5 h-5" />
                 My Purchases
               </Link>
               <Link
                 to="/dashboard/marketplace/my-listings"
-                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-teal-500 text-teal-600 dark:text-teal-400 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors flex items-center gap-2 font-semibold"
+                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-2 font-semibold whitespace-nowrap"
+                style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
               >
                 <TrendingUp className="w-5 h-5" />
                 My Listings
               </Link>
               <Link
                 to="/dashboard/marketplace/create"
-                className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-700 transition-all flex items-center gap-2 font-semibold shadow-lg"
+                className="px-6 py-2 text-white rounded-lg transition-all flex items-center gap-2 font-semibold shadow-lg hover:opacity-90 whitespace-nowrap"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 <Plus className="w-5 h-5" />
                 Sell Project
@@ -140,27 +150,27 @@ export default function MarketplaceBazaar() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
-                  <ShoppingBag className="w-6 h-6 text-teal-500" />
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
+                  <ShoppingBag className="w-6 h-6" style={{ color: '#00ADB5' }} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.totalProjects}
                   </p>
-                  <p className="text-sm text-gray-600">Projects Listed</p>
+                  <p className="text-sm text-gray-600 dark:text-white">Projects Listed</p>
                 </div>
               </div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
+                  <TrendingUp className="w-6 h-6" style={{ color: '#00ADB5' }} />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.totalSales}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Sales</p>
+                  <p className="text-sm text-gray-600 dark:text-white">Total Sales</p>
                 </div>
               </div>
             </div>
@@ -173,7 +183,7 @@ export default function MarketplaceBazaar() {
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.avgRating.toFixed(1)}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Average Rating</p>
+                  <p className="text-sm text-gray-600 dark:text-white">Average Rating</p>
                 </div>
               </div>
             </div>
@@ -191,42 +201,43 @@ export default function MarketplaceBazaar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search projects, tech stack..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:bg-white dark:focus:bg-gray-600 transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
               />
             </div>
 
             {/* Category Filter */}
-            <select
+            <CustomSelect
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400 font-medium cursor-pointer"
-            >
-              <option value="all">All Categories</option>
-              {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSelectedCategory(value)}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+                  value,
+                  label
+                }))
+              ]}
+              className="min-w-[180px]"
+            />
 
             {/* Sort */}
-            <select
+            <CustomSelect
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400 font-medium cursor-pointer"
-            >
-              <option value="newest">Newest First</option>
-              <option value="popular">Most Popular</option>
-              <option value="rating">Highest Rated</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
+              onChange={(value) => setSortBy(value)}
+              options={[
+                { value: 'newest', label: 'Newest First' },
+                { value: 'popular', label: 'Most Popular' },
+                { value: 'rating', label: 'Highest Rated' },
+                { value: 'price-low', label: 'Price: Low to High' },
+                { value: 'price-high', label: 'Price: High to Low' }
+              ]}
+              className="min-w-[180px]"
+            />
           </div>
         </div>
 
         {/* Results Count */}
         <div className="mb-4">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-white">
             Showing {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -234,18 +245,18 @@ export default function MarketplaceBazaar() {
         {/* Projects Grid */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-gray-600 dark:text-gray-400 font-medium">Loading amazing projects...</p>
+            <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
+            <p className="text-gray-600 dark:text-white font-medium">Loading amazing projects...</p>
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="p-4 bg-teal-100 dark:bg-teal-900/50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <ShoppingBag className="w-12 h-12 text-teal-500" />
+            <div className="p-4 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
+              <ShoppingBag className="w-12 h-12" style={{ color: '#00ADB5' }} />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               No projects found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">
+            <p className="text-gray-600 dark:text-white text-lg mb-6">
               No projects match your search criteria
             </p>
             <button
@@ -253,7 +264,8 @@ export default function MarketplaceBazaar() {
                 setSearchQuery('');
                 setSelectedCategory('all');
               }}
-              className="px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-semibold"
+              className="px-6 py-3 text-white rounded-lg transition-colors font-semibold hover:opacity-90"
+              style={{ backgroundColor: '#00ADB5' }}
             >
               Clear All Filters
             </button>

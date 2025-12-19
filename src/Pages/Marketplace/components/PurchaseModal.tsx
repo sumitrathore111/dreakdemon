@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingCart, Check } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, ShoppingCart, X } from 'lucide-react';
 import type { MarketplaceProject } from '../../../types/marketplace';
 
 interface PurchaseModalProps {
@@ -44,7 +44,7 @@ export default function PurchaseModal({
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 dark:text-white dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -60,7 +60,7 @@ export default function PurchaseModal({
                     className="w-24 h-24 rounded-lg object-cover"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white text-3xl font-bold">
+                  <div className="w-24 h-24 rounded-lg flex items-center justify-center text-white text-3xl font-bold" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
                     {project.title.charAt(0)}
                   </div>
                 )}
@@ -68,14 +68,14 @@ export default function PurchaseModal({
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
                     {project.title}
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  <p className="text-sm text-gray-600 dark:text-white mb-2">
                     by {project.sellerName}
                   </p>
                   <div className="flex items-center gap-2">
                     {project.techStack.slice(0, 2).map((tech, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded text-xs"
                       >
                         {tech}
                       </span>
@@ -91,29 +91,29 @@ export default function PurchaseModal({
                 What you'll get:
               </h4>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-white">
                   <Check className="w-5 h-5 text-green-500" />
                   <span>Full source code access</span>
                 </div>
                 {project.links.github && (
-                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-white">
                     <Check className="w-5 h-5 text-green-500" />
                     <span>GitHub repository</span>
                   </div>
                 )}
                 {project.links.liveDemo && (
-                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-white">
                     <Check className="w-5 h-5 text-green-500" />
                     <span>Live demo access</span>
                   </div>
                 )}
                 {project.links.documentation && (
-                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-white">
                     <Check className="w-5 h-5 text-green-500" />
                     <span>Documentation</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-white">
                   <Check className="w-5 h-5 text-green-500" />
                   <span>{project.licenseType} license</span>
                 </div>
@@ -123,8 +123,8 @@ export default function PurchaseModal({
             {/* Price */}
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">Total Price:</span>
-                <span className="text-3xl font-bold text-teal-500 dark:text-purple-400">
+                <span className="text-gray-700 dark:text-white">Total Price:</span>
+                <span className="text-3xl font-bold" style={{ color: '#00ADB5' }}>
                   {project.isFree ? 'FREE' : `$${project.price}`}
                 </span>
               </div>
@@ -134,7 +134,7 @@ export default function PurchaseModal({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 disabled={isPurchasing}
               >
                 Cancel
@@ -142,7 +142,8 @@ export default function PurchaseModal({
               <button
                 onClick={onConfirm}
                 disabled={isPurchasing}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 {isPurchasing ? (
                   <>
@@ -159,7 +160,7 @@ export default function PurchaseModal({
             </div>
 
             {/* Note */}
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
+            <p className="text-xs text-gray-500 dark:text-white text-center mt-4">
               By purchasing, you agree to our Terms of Service
             </p>
           </motion.div>

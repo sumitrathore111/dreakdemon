@@ -45,9 +45,10 @@ const PublicNavBar = () => {
                         <span className="font-semibold text-lg dark:text-white">NextStep</span>
                     </Link>
 
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-6">
-                        {allItems.map((item, idx) => (
+                    {/* Desktop Menu - Centered */}
+                    <div className="hidden md:flex items-center justify-center flex-1">
+                        <div className="flex items-center space-x-6">
+                            {allItems.map((item, idx) => (
                             <MotionLink
                                 key={item.id}
                                 to={item.path}
@@ -65,8 +66,11 @@ const PublicNavBar = () => {
                                 <span>{item.label}</span>
                             </MotionLink>
                         ))}
+                        </div>
+                    </div>
                         
-                        {/* Theme Toggle Button */}
+                    {/* Theme Toggle Button */}
+                    <div className="hidden md:flex items-center">
                         <motion.button
                             onClick={toggleTheme}
                             className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"

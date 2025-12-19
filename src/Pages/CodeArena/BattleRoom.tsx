@@ -736,7 +736,7 @@ rl.on('close', () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center relative overflow-hidden">
         {/* Background animation */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10"
+          className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-[#00d4ff]/10"
           animate={{
             scale: [1, 1.1, 1],
             opacity: [0.3, 0.6, 0.3]
@@ -763,7 +763,7 @@ rl.on('close', () => {
           {/* Players info */}
           <div className="flex items-center justify-center gap-8 mb-8">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mb-2">
+              <div className="w-16 h-16 rounded-full bg-[#00ADB5] flex items-center justify-center mb-2">
                 <span className="text-white font-bold text-lg">
                   {battle.participants[0]?.odName?.charAt(0) || ''}
                 </span>

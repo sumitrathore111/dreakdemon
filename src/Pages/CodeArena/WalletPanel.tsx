@@ -331,7 +331,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                   <p className="text-sm text-gray-400">Problems Solved</p>
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Swords className="w-5 h-5 text-blue-400 mb-2" />
+                  <Swords className="w-5 h-5 text-[#00ADB5] mb-2" />
                   <p className="text-2xl font-bold text-white">
                     {realStats.battlesWon}
                   </p>

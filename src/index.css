@@ -4,6 +4,26 @@
 /* Enable class-based dark mode for Tailwind v4 */
 @variant dark (&:where(.dark, .dark *));
 
+/* Custom selection/highlight color */
+::selection {
+  background-color: #00ADB5;
+  color: white;
+}
+
+/* Custom select dropdown styling */
+select option:checked,
+select option:hover {
+  background: linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%);
+  color: white;
+}
+
+/* For webkit browsers - custom accent color */
+select,
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #00ADB5;
+}
+
 /* Theme Variables */
 :root {
   --bg-primary: #ffffff;
@@ -146,6 +166,65 @@ html.dark body {
 
 .animate-blob {
   animation: blob 15s ease-in-out infinite;
+}
+
+/* Scanning Line Effect */
+@keyframes scan-line {
+  0% {
+    top: 0%;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    top: 100%;
+    opacity: 1;
+  }
+}
+
+.animate-scan-line {
+  animation: scan-line 3s linear infinite;
+}
+
+/* Floating Particles */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-40px) translateX(-5px) scale(0.8);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-20px) translateX(15px) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.animate-float-particle {
+  animation: float-particle 4s ease-in-out infinite;
+}
+
+/* Fade In Line for Code Animation */
+@keyframes fade-in-line {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-line {
+  animation: fade-in-line 0.5s ease-out forwards;
 }
 
 /* Magnetic Pull Effect */

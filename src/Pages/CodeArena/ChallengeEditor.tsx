@@ -508,7 +508,7 @@ rl.on('close', () => {
                           >
                             <div className="grid grid-cols-2 divide-x divide-gray-700">
                               <div className="p-4 bg-gradient-to-br from-blue-900/20 to-transparent">
-                                <p className="text-xs text-blue-400 mb-2 font-semibold flex items-center gap-1">
+                                <p className="text-xs text-[#00ADB5] mb-2 font-semibold flex items-center gap-1">
                                   📝 Input
                                 </p>
                                 <pre className="text-sm text-white font-mono whitespace-pre-wrap bg-gray-900/50 p-2 rounded">{tc.input}</pre>
@@ -764,7 +764,7 @@ rl.on('close', () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleRun}
                 disabled={isRunning || isSubmitting}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg relative overflow-hidden"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg relative overflow-hidden"
               >
                 {isRunning && (
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20"></div>

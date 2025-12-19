@@ -1,6 +1,6 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageGalleryProps {
   images: string[];
@@ -13,7 +13,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="w-full h-96 bg-gradient-to-br from-teal-400 to-teal-500 rounded-xl flex items-center justify-center">
+      <div className="w-full h-96 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
         <div className="text-white text-6xl font-bold">{alt.charAt(0)}</div>
       </div>
     );
@@ -83,9 +83,10 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
               onClick={() => setSelectedIndex(index)}
               className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                 selectedIndex === index
-                  ? 'border-teal-400 scale-105'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-purple-300'
+                  ? 'scale-105'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-[#00ADB5]/50'
               }`}
+              style={selectedIndex === index ? { borderColor: '#00ADB5' } : {}}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

@@ -96,7 +96,7 @@ const Leaderboard = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">🏆 Leaderboard</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Compete with the best coders</p>
+              <p className="text-gray-500 dark:text-white text-sm">Compete with the best coders</p>
             </div>
           </div>
 
@@ -114,8 +114,8 @@ const Leaderboard = () => {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-[#00ADB5] text-white'
+                    : 'text-gray-600 dark:text-white hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -155,10 +155,10 @@ const Leaderboard = () => {
               <p className="text-gray-900 dark:text-white font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[1]?.odName}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[1]?.level}</p>
+              <p className="text-gray-600 dark:text-white text-xs">Level {rankings[1]?.level}</p>
               <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">{rankings[1]?.rating}</span>
-                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[1]?.problemsSolved} solved</span>
+                <span className="text-[#00ADB5] font-bold text-lg">{rankings[1]?.rating}</span>
+                <span className="text-gray-600 dark:text-white text-xs">{rankings[1]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -181,10 +181,10 @@ const Leaderboard = () => {
               <p className="text-gray-900 dark:text-white font-bold text-base md:text-lg text-center truncate max-w-[100px] md:max-w-[120px]">
                 {rankings[0]?.odName}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[0]?.level}</p>
+              <p className="text-gray-600 dark:text-white text-xs">Level {rankings[0]?.level}</p>
               <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 shadow-md flex flex-col items-center justify-center">
-                <span className="text-blue-600 font-bold text-xl">{rankings[0]?.rating}</span>
-                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[0]?.problemsSolved} solved</span>
+                <span className="text-[#00ADB5] font-bold text-xl">{rankings[0]?.rating}</span>
+                <span className="text-gray-600 dark:text-white text-xs">{rankings[0]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -208,10 +208,10 @@ const Leaderboard = () => {
               <p className="text-gray-900 dark:text-white font-semibold text-sm md:text-base text-center truncate max-w-[80px] md:max-w-[100px]">
                 {rankings[2]?.odName}
               </p>
-              <p className="text-gray-600 dark:text-gray-400 text-xs">Level {rankings[2]?.level}</p>
+              <p className="text-gray-600 dark:text-white text-xs">Level {rankings[2]?.level}</p>
               <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 flex flex-col items-center justify-center">
-                <span className="text-blue-600 font-bold text-lg">{rankings[2]?.rating}</span>
-                <span className="text-gray-600 dark:text-gray-400 text-xs">{rankings[2]?.problemsSolved} solved</span>
+                <span className="text-[#00ADB5] font-bold text-lg">{rankings[2]?.rating}</span>
+                <span className="text-gray-600 dark:text-white text-xs">{rankings[2]?.problemsSolved} solved</span>
               </div>
             </motion.div>
           )}
@@ -223,7 +223,7 @@ const Leaderboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-5"
+          className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-[#00ADB5]/30 dark:border-blue-700 rounded-xl p-5"
         >
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -231,29 +231,29 @@ const Leaderboard = () => {
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xl font-bold text-white shadow-lg">
                   {wallet?.userName?.[0] || 'Y'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white dark:border-gray-800">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#00ADB5] rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white dark:border-gray-800">
                   {myRank?.rank || '?'}
                 </div>
               </div>
               
               <div>
                 <p className="text-gray-900 dark:text-white font-semibold text-lg">{wallet?.userName || 'You'}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Your Current Rank</p>
+                <p className="text-sm text-gray-500 dark:text-white">Your Current Rank</p>
               </div>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <p className="text-blue-600 font-bold text-xl">{myRank?.rating || wallet?.coins || 1000}</p>
+                <p className="text-[#00ADB5] font-bold text-xl">{myRank?.rating || wallet?.coins || 1000}</p>
                 <p className="text-xs text-gray-500">Rating</p>
               </div>
               <div className="text-center">
                 <p className="text-emerald-600 font-bold text-xl">{myRank?.problemsSolved || 0}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Solved</p>
+                <p className="text-xs text-gray-500 dark:text-white">Solved</p>
               </div>
               <div className="text-center">
                 <p className="text-purple-600 font-bold text-xl">{myRank?.battlesWon || 0}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Wins</p>
+                <p className="text-xs text-gray-500 dark:text-white">Wins</p>
               </div>
             </div>
           </div>
@@ -278,10 +278,10 @@ const Leaderboard = () => {
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin" />
           </div>
         ) : rankings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-white">
             <Trophy className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-lg font-medium">No rankings yet</p>
             <p className="text-sm">Start solving challenges to appear on the leaderboard!</p>
@@ -295,7 +295,7 @@ const Leaderboard = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
                 className={`grid grid-cols-12 gap-2 px-4 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                  player.odId === user?.uid ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : ''
+                  player.odId === user?.uid ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border-l-4 border-[#00ADB5]' : ''
                 }`}
               >
                 {/* Rank */}
@@ -309,7 +309,7 @@ const Leaderboard = () => {
                       {getRankIcon(player.rank)}
                     </div>
                   ) : (
-                    <span className="text-gray-500 dark:text-gray-400 font-medium">{player.rank}</span>
+                    <span className="text-gray-500 dark:text-white font-medium">{player.rank}</span>
                   )}
                 </div>
 
@@ -327,10 +327,10 @@ const Leaderboard = () => {
                     <p className="text-gray-900 dark:text-white font-medium truncate flex items-center gap-2">
                       {player.odName}
                       {player.odId === user?.uid && (
-                        <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">You</span>
+                        <span className="text-xs bg-[#00ADB5]/20 dark:bg-blue-900/50 text-[#00ADB5] dark:text-[#00ADB5] px-2 py-0.5 rounded-full font-medium">You</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    <p className="text-xs text-gray-600 dark:text-white flex items-center gap-1">
                       <Star className="w-3 h-3 text-amber-500" />
                       Level {player.level}
                     </p>
@@ -340,8 +340,8 @@ const Leaderboard = () => {
                 {/* Rating */}
                 <div className="col-span-2 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-blue-600" />
-                    <span className="text-blue-600 font-bold">{player.rating}</span>
+                    <TrendingUp className="w-4 h-4 text-[#00ADB5]" />
+                    <span className="text-[#00ADB5] font-bold">{player.rating}</span>
                   </div>
                 </div>
 

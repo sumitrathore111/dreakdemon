@@ -95,7 +95,12 @@ export interface MarketplaceChat {
   lastMessage: string;
   lastMessageTime: Date;
   unreadCount: { [userId: string]: number };
+  status: ChatStatus;
+  requesterId: string;
+  sellerId: string;
 }
+
+export type ChatStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface MarketplaceMessage {
   id: string;

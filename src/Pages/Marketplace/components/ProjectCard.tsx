@@ -22,7 +22,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     >
       <Link to={`/dashboard/marketplace/project/${project.id}`}>
         {/* Image */}
-        <div className="relative h-48 bg-gradient-to-br from-teal-400 to-teal-500 overflow-hidden">
+        <div className="relative h-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
           {project.images && project.images.length > 0 ? (
             <img
               src={project.images[0]}
@@ -40,8 +40,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-lg ${
               project.isFree
                 ? 'bg-green-500 text-white'
-                : 'bg-white dark:bg-gray-800 text-teal-500 dark:text-teal-400'
-            }`}>
+                : 'bg-white dark:bg-gray-800'
+            }`} style={!project.isFree ? { color: '#00ADB5' } : {}}>
               {formatPrice(project.price)}
             </span>
           </div>
@@ -58,12 +58,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         {/* Content */}
         <div className="p-5">
           {/* Title */}
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 hover:text-teal-500 dark:hover:text-teal-400 transition-colors">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 transition-colors" style={{ '--hover-color': '#00ADB5' } as React.CSSProperties}
+          >
             {project.title}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-white mb-3 line-clamp-2">
             {project.description}
           </p>
 
@@ -72,13 +73,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             {project.techStack.slice(0, 3).map((tech, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-400 rounded text-xs font-medium"
+                className="px-2 py-1 rounded text-xs font-medium"
+                style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
               >
                 {tech}
               </span>
             ))}
             {project.techStack.length > 3 && (
-              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-medium">
+              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded text-xs font-medium">
                 +{project.techStack.length - 3}
               </span>
             )}
@@ -89,7 +91,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <img
               src={project.sellerAvatar || 'https://via.placeholder.com/40'}
               alt={project.sellerName}
-              className="w-8 h-8 rounded-full border-2 border-teal-400"
+              className="w-8 h-8 rounded-full border-2"
+              style={{ borderColor: '#00ADB5' }}
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -99,7 +102,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-3">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-white border-t border-gray-200 dark:border-gray-700 pt-3">
             <div className="flex items-center gap-1">
               <Eye className="w-4 h-4" />
               <span>{project.views || 0}</span>
@@ -120,13 +123,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {(project.links.github || project.links.liveDemo) && (
             <div className="flex gap-3 mt-3">
               {project.links.github && (
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-1 text-gray-600 dark:text-white">
                   <Github className="w-4 h-4" />
                   <span className="text-xs">Code</span>
                 </div>
               )}
               {project.links.liveDemo && (
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-1 text-gray-600 dark:text-white">
                   <ExternalLink className="w-4 h-4" />
                   <span className="text-xs">Demo</span>
                 </div>

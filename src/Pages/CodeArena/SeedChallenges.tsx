@@ -117,21 +117,21 @@ const SeedChallenges = () => {
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-8 max-w-md w-full"
       >
         <div className="text-center mb-6">
-          <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-4">
-            <Database className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <div className="inline-flex p-3 bg-[#00ADB5]/20 dark:bg-blue-900/50 rounded-full mb-4">
+            <Database className="w-8 h-8 text-[#00ADB5] dark:text-[#00ADB5]" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">CodeArena Seed Tool</h1>
-          <p className="text-gray-500 dark:text-gray-400">Add sample challenges to your Firebase database</p>
+          <p className="text-gray-500 dark:text-white">Add sample challenges to your Firebase database</p>
         </div>
 
         {/* Stats */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Challenges to add:</span>
+            <span className="text-gray-600 dark:text-white">Challenges to add:</span>
             <span className="font-semibold text-gray-900 dark:text-white">{defaultChallenges.length}</span>
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-gray-600 dark:text-gray-400">Existing in Firebase:</span>
+            <span className="text-gray-600 dark:text-white">Existing in Firebase:</span>
             <span className="font-semibold text-gray-900 dark:text-white">
               {existingCount !== null ? existingCount : (
                 <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />
@@ -150,7 +150,7 @@ const SeedChallenges = () => {
                 ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700' 
                 : message.type === 'error'
                 ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'
-                : 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
+                : 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border border-[#00ADB5]/30 dark:border-blue-700'
             }`}
           >
             {message.type === 'success' ? (
@@ -158,14 +158,14 @@ const SeedChallenges = () => {
             ) : message.type === 'error' ? (
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#00ADB5] dark:text-[#00ADB5] flex-shrink-0 mt-0.5" />
             )}
             <p className={`text-sm ${
               message.type === 'success' 
                 ? 'text-green-700 dark:text-green-400' 
                 : message.type === 'error'
                 ? 'text-red-700 dark:text-red-400'
-                : 'text-blue-700 dark:text-blue-400'
+                : 'text-blue-700 dark:text-[#00ADB5]'
             }`}>
               {message.text}
             </p>
@@ -177,7 +177,7 @@ const SeedChallenges = () => {
           <button
             onClick={seedChallenges}
             disabled={loading || deleting}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#00ADB5] text-white font-medium rounded-lg hover:bg-[#00ADB5]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

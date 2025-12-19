@@ -45,7 +45,7 @@ class ErrorBoundary extends Component<
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-800 p-8 max-w-md w-full text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-gray-600 dark:text-white mb-4">
               There was an error loading CodeArena. Please refresh the page or try again later.
             </p>
             <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg mb-4 text-left">
@@ -55,7 +55,7 @@ class ErrorBoundary extends Component<
             </div>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
             >
               Refresh Page
             </button>
@@ -223,7 +223,7 @@ const CodeArenaContent = () => {
 
   const stats = [
     { label: 'Problems Solved', value: userStats.problemsSolved, icon: Code2, color: 'text-emerald-600 bg-emerald-50' },
-    { label: 'Battles Won', value: userStats.battlesWon, icon: Swords, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Battles Won', value: userStats.battlesWon, icon: Swords, color: 'text-[#00ADB5] bg-[#00ADB5]/10' },
     { label: 'Current Streak', value: userStats.currentStreak, icon: Star, color: 'text-orange-600 bg-orange-50' },
     { label: 'Global Rank', value: userStats.globalRank, icon: Trophy, color: 'text-amber-600 bg-amber-50' },
   ];
@@ -240,7 +240,7 @@ const CodeArenaContent = () => {
       title: 'Practice Mode',
       description: 'Solve problems from Codeforces',
       icon: Target,
-      color: 'bg-blue-500',
+      color: 'bg-[#00ADB5]',
       path: 'practice'
     },
     {
@@ -256,8 +256,8 @@ const CodeArenaContent = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading CodeArena...</p>
+          <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-white">Loading CodeArena...</p>
         </div>
       </div>
     );
@@ -269,14 +269,14 @@ const CodeArenaContent = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-8 max-w-md w-full text-center">
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading CodeArena</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <p className="text-gray-600 dark:text-white mb-4">{error}</p>
           <button
             onClick={() => {
               setError(null);
               setLoading(true);
               window.location.reload();
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
           >
             Try Again
           </button>
@@ -289,12 +289,12 @@ const CodeArenaContent = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 max-w-md w-full text-center">
-          <Code2 className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+          <Code2 className="w-12 h-12 text-[#00ADB5] mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Login Required</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Please log in to access CodeArena.</p>
+          <p className="text-gray-600 dark:text-white mb-4">Please log in to access CodeArena.</p>
           <button
             onClick={() => navigate('/login')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
           >
             Go to Login
           </button>
@@ -311,12 +311,12 @@ const CodeArenaContent = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-blue-600 rounded-lg">
+              <div className="p-2 bg-[#00ADB5] rounded-lg">
                 <Code2 className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">CodeArena</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Battle. Code. Win.</p>
+                <p className="text-xs text-gray-500 dark:text-white">Battle. Code. Win.</p>
               </div>
             </div>
 
@@ -334,8 +334,8 @@ const CodeArenaContent = () => {
                   onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                     activeTab === tab.id
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 text-[#00ADB5] dark:text-[#00ADB5]'
+                      : 'text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -401,7 +401,7 @@ const CodeArenaContent = () => {
               key={tab.id}
               onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
               className={`flex flex-col items-center gap-1 p-2 ${
-                activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'
+                activeTab === tab.id ? 'text-[#00ADB5]' : 'text-gray-400'
               }`}
             >
               <tab.icon className="w-5 h-5" />
@@ -472,14 +472,14 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
       {/* Hero */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back! 👋</h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-gray-600 dark:text-white mb-6">
           Ready to test your coding skills? Battle other developers or practice with Codeforces problems.
         </p>
 
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => navigate('/dashboard/codearena/battle')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#00ADB5] text-white font-medium rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
           >
             <Swords className="w-4 h-4" />
             Find Match
@@ -508,7 +508,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <stat.icon className="w-4 h-4" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+            <p className="text-sm text-gray-500 dark:text-white">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -529,9 +529,9 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             </div>
             
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{action.description}</p>
+            <p className="text-sm text-gray-500 dark:text-white mb-4">{action.description}</p>
             
-            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-sm font-medium group-hover:gap-2 transition-all">
+            <div className="flex items-center gap-1 text-[#00ADB5] dark:text-[#00ADB5] text-sm font-medium group-hover:gap-2 transition-all">
               <span>Get Started</span>
               <ChevronRight className="w-4 h-4" />
             </div>
@@ -559,12 +559,12 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
             </div>
           ) : liveBattles.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-gray-500 dark:text-white">
               <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">No active battles</p>
               <button
                 onClick={() => navigate('/dashboard/codearena/battle')}
-                className="mt-2 text-xs text-blue-600 hover:underline"
+                className="mt-2 text-xs text-[#00ADB5] hover:underline"
               >
                 Start a battle
               </button>
@@ -579,7 +579,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                         <div 
                           key={idx}
                           className={`w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-white ${
-                            idx === 0 ? 'bg-blue-500' : 'bg-purple-500'
+                            idx === 0 ? 'bg-[#00ADB5]' : 'bg-purple-500'
                           }`}
                         >
                           {participant.userName?.[0] || '?'}
@@ -590,12 +590,12 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {battle.participants?.[0]?.userName || 'Player'} vs {battle.participants?.[1]?.userName || 'Waiting...'}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{battle.difficulty || 'Medium'}</p>
+                      <p className="text-xs text-gray-500 dark:text-white capitalize">{battle.difficulty || 'Medium'}</p>
                     </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     battle.status === 'waiting' 
-                      ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' 
+                      ? 'text-[#00ADB5] bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20' 
                       : 'text-orange-600 bg-orange-50 dark:bg-orange-900/30'
                   }`}>
                     {battle.status === 'waiting' ? 'Waiting' : 'In Progress'}
@@ -615,7 +615,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             </h3>
             <button 
               onClick={() => navigate('/dashboard/codearena/leaderboard')}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-sm text-[#00ADB5] dark:text-[#00ADB5] hover:underline"
             >
               View All
             </button>
@@ -626,12 +626,12 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
             </div>
           ) : topPlayers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-gray-500 dark:text-white">
               <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">No rankings yet</p>
               <button
                 onClick={() => navigate('/dashboard/codearena/practice')}
-                className="mt-2 text-xs text-blue-600 hover:underline"
+                className="mt-2 text-xs text-[#00ADB5] hover:underline"
               >
                 Start solving challenges
               </button>
@@ -647,15 +647,15 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                 return (
                   <div key={player.odId} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rankColors[player.rank - 1] || 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700'}`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${rankColors[player.rank - 1] || 'text-gray-600 dark:text-white bg-gray-50 dark:bg-gray-700'}`}>
                         {player.rank}
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{player.odName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{player.problemsSolved} solved</p>
+                        <p className="text-xs text-gray-500 dark:text-white">{player.problemsSolved} solved</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                    <div className="flex items-center gap-1 text-[#00ADB5] dark:text-[#00ADB5]">
                       <TrendingUp className="w-3 h-3" />
                       <span className="text-sm font-medium">{player.rating}</span>
                     </div>

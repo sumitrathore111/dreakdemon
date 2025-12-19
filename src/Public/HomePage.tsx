@@ -265,33 +265,150 @@ const HeroSection = memo(() => {
             </div>
           </div>
 
-          {/* Right Visual with Floating Elements */}
+          {/* Right Visual with Animated Tech Elements */}
           <div
-            className={`relative transition-all duration-1000 delay-300 ${
+            className={`relative -mt-8 transition-all duration-1000 delay-300 ${
               isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
             }`}
           >
-            {/* Decorative Animated Frame */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[#00ADB5]/10 via-transparent to-purple-600/10 rounded-3xl blur-2xl animate-pulse-slow" />
+            {/* Decorative Animated Frame with Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-br from-[#00ADB5]/20 via-purple-500/10 to-cyan-500/20 rounded-3xl blur-2xl animate-pulse-slow" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-[#00ADB5]/30 via-transparent to-purple-500/30 rounded-3xl blur-xl animate-magnetic" />
             
             <FloatingElement intensity={40}>
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/30 to-cyan-600/20 rounded-3xl blur-3xl animate-magnetic" />
+              <div className="relative group" style={{ perspective: '1000px' }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/40 to-cyan-600/30 rounded-3xl blur-3xl animate-magnetic" />
                 
-                <div className="relative w-full h-[400px] rounded-3xl shadow-2xl overflow-hidden border-2 border-white/40 dark:border-gray-700/40 backdrop-blur-sm group">
-                  <img
-                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80"
-                    alt="Developers collaborating on a project"
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                {/* Animated Border Glow */}
+                <div className="absolute -inset-[2px] bg-gradient-to-r from-[#00ADB5] via-purple-500 to-[#00ADB5] rounded-3xl opacity-75 blur-sm animate-gradient" style={{ backgroundSize: '200% 200%' }} />
+                
+                {/* Main Animated Container with 3D effect */}
+                <div className="relative w-full h-[420px] rounded-3xl shadow-2xl overflow-hidden border border-white/20 dark:border-gray-700/40 backdrop-blur-sm bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 group-hover:scale-[1.02] transition-transform duration-700">
                   
-                  {/* Animated Code Lines Overlay */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-8 left-4 w-32 h-1 bg-[#00ADB5] rounded animate-pulse" />
-                    <div className="absolute top-12 left-4 w-48 h-1 bg-cyan-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }} />
-                    <div className="absolute top-16 left-4 w-24 h-1 bg-blue-400 rounded animate-pulse" style={{ animationDelay: '0.4s' }} />
+                  {/* Animated Grid Background */}
+                  <div className="absolute inset-0 opacity-30">
+                    <div className="absolute inset-0" style={{
+                      backgroundImage: `linear-gradient(rgba(0, 173, 181, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 173, 181, 0.4) 1px, transparent 1px)`,
+                      backgroundSize: '30px 30px'
+                    }} />
                   </div>
+                  
+                  {/* Scanning Line Effect */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent animate-scan-line" />
+                  </div>
+                  
+                  {/* Floating Particles */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    {[...Array(12)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-[#00ADB5] rounded-full animate-float-particle"
+                        style={{
+                          left: `${10 + (i * 8)}%`,
+                          top: `${20 + (i % 4) * 20}%`,
+                          animationDelay: `${i * 0.3}s`,
+                          opacity: 0.6 + (i % 3) * 0.2
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Floating Orbs - Enhanced */}
+                  <div className="absolute top-6 left-6 w-24 h-24 bg-gradient-to-br from-[#00ADB5] to-cyan-400 rounded-full blur-2xl opacity-70 animate-blob" />
+                  <div className="absolute bottom-10 right-10 w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-2xl opacity-50 animate-blob" style={{ animationDelay: '2s' }} />
+                  <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full blur-2xl opacity-60 animate-blob" style={{ animationDelay: '4s' }} />
+                  <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full blur-xl opacity-50 animate-blob" style={{ animationDelay: '3s' }} />
+                  
+                  {/* Code Terminal Animation - Enhanced */}
+                  <div className="absolute top-5 left-5 right-5 bg-gray-800/95 rounded-xl p-4 border border-[#00ADB5]/30 shadow-2xl shadow-[#00ADB5]/10 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-700/50">
+                      <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+                      <span className="ml-2 text-xs text-gray-400 font-mono flex items-center gap-1">
+                        <Code className="w-3 h-3" /> nextstep.tsx
+                      </span>
+                      <div className="ml-auto flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-[#00ADB5] animate-pulse" />
+                        <span className="text-[10px] text-[#00ADB5]">LIVE</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 font-mono text-sm">
+                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                        <span className="text-gray-500 text-xs w-4">1</span>
+                        <span className="text-purple-400">const</span>
+                        <span className="text-cyan-300">developer</span>
+                        <span className="text-white">=</span>
+                        <span className="text-yellow-300">"you"</span>
+                        <span className="text-gray-500">;</span>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+                        <span className="text-gray-500 text-xs w-4">2</span>
+                        <span className="text-purple-400">const</span>
+                        <span className="text-cyan-300">skills</span>
+                        <span className="text-white">=</span>
+                        <span className="text-green-400">[</span>
+                        <span className="text-yellow-300">"code"</span>
+                        <span className="text-gray-500">,</span>
+                        <span className="text-yellow-300">"create"</span>
+                        <span className="text-gray-500">,</span>
+                        <span className="text-yellow-300">"grow"</span>
+                        <span className="text-green-400">]</span>
+                        <span className="text-gray-500">;</span>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '1s', animationFillMode: 'forwards' }}>
+                        <span className="text-gray-500 text-xs w-4">3</span>
+                        <span className="text-blue-400">await</span>
+                        <span className="text-cyan-300">NextStep</span>
+                        <span className="text-white">.</span>
+                        <span className="text-yellow-400">transform</span>
+                        <span className="text-white">(</span>
+                        <span className="text-cyan-300">developer</span>
+                        <span className="text-white">)</span>
+                        <span className="text-gray-500">;</span>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '1.4s', animationFillMode: 'forwards' }}>
+                        <span className="text-gray-500 text-xs w-4">4</span>
+                        <span className="text-green-400">// </span>
+                        <span className="text-green-400/70">Output: 🚀 Ready to build amazing things!</span>
+                        <span className="inline-block w-2 h-4 bg-[#00ADB5] animate-pulse ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Tech Icons - More Icons with Glow */}
+                  <div className="absolute bottom-24 left-8 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 animate-float border border-blue-400/30">
+                    <Code className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="absolute bottom-10 left-28 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-xl shadow-green-500/30 animate-float-delayed border border-green-400/30">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="absolute bottom-20 right-6 w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/30 animate-float-slow border border-purple-400/30">
+                    <Rocket className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="absolute bottom-6 right-24 w-11 h-11 bg-gradient-to-br from-[#00ADB5] to-cyan-400 rounded-xl flex items-center justify-center shadow-xl shadow-[#00ADB5]/30 animate-float border border-[#00ADB5]/30">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-xl shadow-yellow-500/30 animate-float-delayed border border-yellow-400/30">
+                    <Award className="w-5 h-5 text-white" />
+                  </div>
+                  
+                  {/* Multiple Orbiting Rings */}
+                  <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-44 h-44">
+                    <div className="absolute inset-0 border-2 border-dashed border-[#00ADB5]/40 rounded-full animate-spin-slow" />
+                    <div className="absolute inset-4 border border-purple-500/30 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '25s' }} />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#00ADB5] rounded-full shadow-lg shadow-[#00ADB5]/50" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full shadow-lg shadow-purple-500/50" />
+                  </div>
+                  
+                  {/* Glowing Corner Accents */}
+                  <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#00ADB5]/30 to-transparent rounded-br-full" />
+                  <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-purple-500/30 to-transparent rounded-tl-full" />
+                  
+                  {/* Glowing Lines - Enhanced */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent opacity-80" />
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00ADB5]/50 to-transparent" />
                 </div>
                 
                 {/* Floating Success Card with Animation */}
@@ -316,7 +433,7 @@ const HeroSection = memo(() => {
                   </div>
                 </div>
                 
-                {/* New: Animated Trophy Card */}
+                {/* Animated Trophy Card */}
                 <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-3 shadow-xl animate-float-slow">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
@@ -362,7 +479,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== UNIQUE SPLIT-SCREEN PARALLAX SECTION ===== */}
-      <section className="relative min-h-[200vh] bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+      <section className="relative min-h-[200vh] bg-gradient-to-br from-gray-100 via-gray-50 to-white dark:from-slate-900 dark:via-gray-900 dark:to-slate-800">
         <div className="flex flex-col lg:flex-row">
           {/* LEFT SIDE - STICKY/FIXED */}
           <div className="lg:w-1/2 lg:sticky lg:top-0 lg:h-screen flex items-center justify-center p-8 lg:p-16">
@@ -379,7 +496,7 @@ export default function HomePage() {
                   <span className="text-sm font-bold text-[#00ADB5]">YOUR JOURNEY</span>
                 </div>
                 
-                <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 leading-tight">
+                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
                   Transform Your
                   <br />
                   <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
@@ -387,7 +504,7 @@ export default function HomePage() {
                   </span>
                 </h2>
                 
-                <p className="text-lg text-gray-400 mb-8 leading-relaxed">
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
                   Scroll down to discover how NextStep takes you from beginner to industry-ready developer through our unique approach.
                 </p>
                 
@@ -404,7 +521,7 @@ export default function HomePage() {
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                     <div className="text-white">
                       <div className="text-2xl font-black">100%</div>
-                      <div className="text-sm text-gray-300">Practical Learning</div>
+                      <div className="text-sm text-white/80">Practical Learning</div>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-[#00ADB5] flex items-center justify-center animate-bounce">
                       <ArrowRight className="w-5 h-5 text-white" />
@@ -420,7 +537,7 @@ export default function HomePage() {
             <div className="space-y-32">
               {/* Journey Step 1 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-                <div className="relative p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/10 hover:border-[#00ADB5]/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#00ADB5]/10">
+                <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-[#00ADB5]/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#00ADB5]/10 shadow-lg">
                   {/* Step Number */}
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     01
@@ -431,15 +548,15 @@ export default function HomePage() {
                       <BookOpen className="w-10 h-10 text-[#00ADB5]" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-3 group-hover:text-[#00ADB5] transition-colors">
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#00ADB5] transition-colors">
                         Learn Fundamentals
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4">
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
                         Start with structured courses covering DSA, web development, and core programming concepts. Learn at your own pace with interactive tutorials.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['JavaScript', 'React', 'Node.js', 'DSA'].map((tag) => (
-                          <span key={tag} className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-gray-300">
+                          <span key={tag} className="px-3 py-1 bg-gray-100 dark:bg-white/10 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300">
                             {tag}
                           </span>
                         ))}
@@ -460,7 +577,7 @@ export default function HomePage() {
               
               {/* Journey Step 2 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
-                <div className="relative p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/10 hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/10">
+                <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     02
                   </div>
@@ -470,15 +587,15 @@ export default function HomePage() {
                       <Code className="w-10 h-10 text-purple-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-3 group-hover:text-purple-400 transition-colors">
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-purple-400 transition-colors">
                         Practice & Battle
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4">
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
                         Sharpen your skills in CodeArena! Compete in real-time coding battles, solve 3000+ DSA problems, and climb the global leaderboard.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['1v1 Battles', 'Tournaments', 'DSA', 'Algorithms'].map((tag) => (
-                          <span key={tag} className="px-3 py-1 bg-purple-500/20 rounded-full text-xs font-medium text-purple-300">
+                          <span key={tag} className="px-3 py-1 bg-purple-100 dark:bg-purple-500/20 rounded-full text-xs font-medium text-purple-600 dark:text-purple-300">
                             {tag}
                           </span>
                         ))}
@@ -498,7 +615,7 @@ export default function HomePage() {
               
               {/* Journey Step 3 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                <div className="relative p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/10 hover:border-orange-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/10">
+                <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-orange-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     03
                   </div>
@@ -508,15 +625,15 @@ export default function HomePage() {
                       <Users className="w-10 h-10 text-orange-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-3 group-hover:text-orange-400 transition-colors">
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-orange-400 transition-colors">
                         Collaborate & Build
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4">
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
                         Join teams, contribute to 500+ real open-source projects, and build applications that go live. Get hands-on experience that matters.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['Teamwork', 'Open Source', 'Git', 'Deployment'].map((tag) => (
-                          <span key={tag} className="px-3 py-1 bg-orange-500/20 rounded-full text-xs font-medium text-orange-300">
+                          <span key={tag} className="px-3 py-1 bg-orange-100 dark:bg-orange-500/20 rounded-full text-xs font-medium text-orange-600 dark:text-orange-300">
                             {tag}
                           </span>
                         ))}
@@ -536,7 +653,7 @@ export default function HomePage() {
               
               {/* Journey Step 4 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
-                <div className="relative p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-3xl border border-white/10 hover:border-green-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10">
+                <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-green-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     04
                   </div>
@@ -546,15 +663,15 @@ export default function HomePage() {
                       <Award className="w-10 h-10 text-green-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black text-white mb-3 group-hover:text-green-400 transition-colors">
+                      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-green-400 transition-colors">
                         Get Certified & Hired
                       </h3>
-                      <p className="text-gray-400 leading-relaxed mb-4">
+                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
                         Earn industry-recognized certificates, build an impressive portfolio, and land your dream tech job with real project experience.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['Certificates', 'Portfolio', 'Jobs', 'Career'].map((tag) => (
-                          <span key={tag} className="px-3 py-1 bg-green-500/20 rounded-full text-xs font-medium text-green-300">
+                          <span key={tag} className="px-3 py-1 bg-green-100 dark:bg-green-500/20 rounded-full text-xs font-medium text-green-600 dark:text-green-300">
                             {tag}
                           </span>
                         ))}

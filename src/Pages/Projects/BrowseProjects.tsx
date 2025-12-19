@@ -1,15 +1,15 @@
 import jsPDF from 'jspdf';
 import {
-    Calendar,
-    CheckCircle,
-    Clock,
-    Code2,
-    Filter,
-    Lightbulb,
-    Search,
-    Star,
-    TrendingUp,
-    Users
+  Calendar,
+  CheckCircle,
+  Clock,
+  Code2,
+  Filter,
+  Lightbulb,
+  Search,
+  Star,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -538,7 +538,7 @@ export default function BrowseProjects() {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 leading-tight">
                 Project Collaboration Hub
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Join exciting projects or submit your own idea</p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-white">Join exciting projects or submit your own idea</p>
             </div>
             <button
               onClick={() => navigate('/dashboard/projects/submit-idea')}
@@ -556,7 +556,7 @@ export default function BrowseProjects() {
               className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'browse'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-1 sm:gap-2">
@@ -570,7 +570,7 @@ export default function BrowseProjects() {
               className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'myideas'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-1 sm:gap-2">
@@ -589,7 +589,7 @@ export default function BrowseProjects() {
               className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
                 activeTab === 'myprojects'
                   ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               <div className="flex items-center justify-center gap-1 sm:gap-2">
@@ -610,7 +610,7 @@ export default function BrowseProjects() {
         {activeTab === 'browse' && (
           <div>
             {/* Search and Filter - Enhanced */}
-            <div className="mb-4 sm:mb-6 bg-gradient-to-r from-white to-cyan-50 dark:from-gray-800 dark:to-cyan-900/30 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 border-2 border-cyan-100 dark:border-cyan-800">
+            <div className="mb-4 sm:mb-6 bg-gradient-to-r from-white to-cyan-50 dark:from-gray-900 dark:to-gray-900 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 border-2 border-cyan-100 dark:border-cyan-800">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <div className="flex-1 relative">
                   <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-cyan-600" />
@@ -625,7 +625,7 @@ export default function BrowseProjects() {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 border-2 border-cyan-200 dark:border-cyan-700 rounded-xl focus:border-cyan-500 focus:outline-none text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 cursor-pointer hover:bg-cyan-50 dark:hover:bg-gray-700 transition-all"
+                  className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 border-2 border-cyan-200 dark:border-cyan-700 rounded-xl focus:border-cyan-500 focus:outline-none text-sm sm:text-base font-bold text-gray-700 dark:text-white bg-white dark:bg-gray-800 cursor-pointer hover:bg-cyan-50 dark:hover:bg-gray-700 transition-all"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat.toLowerCase()}>{cat}</option>
@@ -636,7 +636,7 @@ export default function BrowseProjects() {
               {/* Stats Bar */}
               <div className="flex items-center justify-between text-xs sm:text-sm">
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                  <span className="flex items-center gap-1 text-gray-600 dark:text-white">
                     <Filter className="w-4 h-4" />
                     <strong className="text-cyan-600">{filteredProjects.length}</strong> projects available
                   </span>
@@ -647,13 +647,13 @@ export default function BrowseProjects() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
                     <TrendingUp className="w-3 h-3" /> Trending
                   </button>
-                  <button className="px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
                     <Star className="w-3 h-3" /> Popular
                   </button>
-                  <button className="px-3 py-1 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
                     <Calendar className="w-3 h-3" /> Recent
                   </button>
                 </div>
@@ -664,13 +664,13 @@ export default function BrowseProjects() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading projects...</p>
+                <p className="mt-4 text-gray-600 dark:text-white">Loading projects...</p>
               </div>
             ) : filteredProjects.length === 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                 <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No projects found</h3>
-                <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or submit a new idea!</p>
+                <p className="text-gray-600 dark:text-white">Try adjusting your search or submit a new idea!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -679,7 +679,7 @@ export default function BrowseProjects() {
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 truncate">{project.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{project.description}</p>
+                      <p className="text-gray-600 dark:text-white text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{project.description}</p>
                     </div>
                     <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap ml-2">
                       {project.status}
@@ -689,7 +689,7 @@ export default function BrowseProjects() {
                   {/* Progress */}
                   <div className="mb-3 sm:mb-4">
                     <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400">Progress</span>
+                      <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-white">Progress</span>
                       <span className="text-xs sm:text-sm font-black text-[#00ADB5]">{project.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 sm:h-2">
@@ -711,7 +711,7 @@ export default function BrowseProjects() {
 
                   {/* Footer */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-white">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{project.members}</span>
@@ -771,12 +771,12 @@ export default function BrowseProjects() {
               <div className="flex-1">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
                   <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-2">✅ Tasks You've Completed</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">Showcasing your verified achievements across projects</p>
+                  <p className="text-gray-600 dark:text-white mb-4">Showcasing your verified achievements across projects</p>
                   {completedTasks.length === 0 ? (
                     <div className="text-center py-12">
                       <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No completed tasks yet</h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-6">Complete tasks in project workspaces to earn verification.</p>
+                      <p className="text-gray-600 dark:text-white mb-6">Complete tasks in project workspaces to earn verification.</p>
                       <button
                         onClick={() => setActiveTab('browse')}
                         className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
@@ -787,7 +787,7 @@ export default function BrowseProjects() {
                   ) : (
                     <div className="space-y-8">
                       {Object.keys(completedByProject).map((projectTitle) => (
-                        <div key={projectTitle} className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border border-cyan-100 dark:border-cyan-800">
+                        <div key={projectTitle} className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border border-cyan-100 dark:border-cyan-800">
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <div className="flex items-center gap-3 mb-2">
@@ -843,7 +843,7 @@ export default function BrowseProjects() {
               </div>
               {/* Certificate Progress (Right) */}
               <div className="w-full md:w-64 flex-shrink-0">
-                <div className="mb-6 bg-gradient-to-r from-cyan-50 via-blue-50 to-cyan-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 border-2 border-cyan-200 dark:border-cyan-800 rounded-2xl p-6 sm:p-8 shadow-lg">
+                <div className="mb-6 bg-gradient-to-r from-cyan-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 border-2 border-cyan-200 dark:border-cyan-800 rounded-2xl p-6 sm:p-8 shadow-lg">
                   <div className="flex flex-col items-start justify-between gap-6">
                     <div className="flex items-center gap-3 mb-3">
                       
@@ -852,7 +852,7 @@ export default function BrowseProjects() {
                     {completedCount >= TASKS_REQUIRED ? (
                       <div>
                         <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-400 mb-2">🎉 Congratulations!</p>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">You've completed <span className="font-black text-green-600 dark:text-green-400">{completedCount}</span> verified tasks and earned your <span className="font-bold">Verified Certificate</span>! Visit your profile to download it.</p>
+                        <p className="text-gray-700 dark:text-white text-sm sm:text-base">You've completed <span className="font-black text-green-600 dark:text-green-400">{completedCount}</span> verified tasks and earned your <span className="font-bold">Verified Certificate</span>! Visit your profile to download it.</p>
                         <button
                           className="mt-4 px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                           onClick={handleDownloadCertificate}
@@ -864,7 +864,7 @@ export default function BrowseProjects() {
                       <div>
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-700 dark:text-gray-300 font-semibold">{completedCount} of {TASKS_REQUIRED} tasks completed</span>
+                            <span className="text-gray-700 dark:text-white font-semibold">{completedCount} of {TASKS_REQUIRED} tasks completed</span>
                             <span className="text-[#00ADB5] font-bold text-lg">{Math.round((completedCount / TASKS_REQUIRED) * 100)}%</span>
                           </div>
                           <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
@@ -874,7 +874,7 @@ export default function BrowseProjects() {
                             />
                           </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">
+                        <p className="text-gray-700 dark:text-white text-sm sm:text-base">
                           Complete <span className="font-bold">{TASKS_REQUIRED - completedCount}</span> more tasks to earn your <span className="font-semibold text-[#00ADB5]">Verified Certificate</span> and showcase your expertise!
                         </p>
                         <button
@@ -889,7 +889,7 @@ export default function BrowseProjects() {
                 
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-cyan-200 dark:border-cyan-800 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <div className="mt-4 pt-4 border-t border-cyan-200 dark:border-cyan-800 text-sm text-gray-600 dark:text-white flex items-center gap-2">
                     <span>💡</span>
                     <span>Keep contributing to projects to unlock your certification and boost your profile credibility.</span>
                   </div>
@@ -909,7 +909,7 @@ export default function BrowseProjects() {
                 className={`px-6 py-3 rounded-xl font-bold transition-all ${
                   myProjectsView === 'projects'
                     ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white shadow-lg'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -922,7 +922,7 @@ export default function BrowseProjects() {
                 className={`px-6 py-3 rounded-xl font-bold transition-all ${
                   myProjectsView === 'ideas'
                     ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white shadow-lg'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -938,11 +938,11 @@ export default function BrowseProjects() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                   <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No projects yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">Join existing projects or create your own once your idea is approved</p>
+                  <p className="text-gray-600 dark:text-white mb-6">Join existing projects or create your own once your idea is approved</p>
                   <div className="flex gap-4 justify-center">
                     <button
                       onClick={() => setActiveTab('browse')}
-                      className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                      className="px-6 py-3 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-white font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
                     >
                       Browse Projects
                     </button>
@@ -970,13 +970,13 @@ export default function BrowseProjects() {
                               CREATOR
                             </span>
                           </div>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm">{project.description}</p>
+                          <p className="text-gray-600 dark:text-white text-sm">{project.description}</p>
                         </div>
                       </div>
 
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Progress</span>
+                          <span className="text-xs font-semibold text-gray-600 dark:text-white">Progress</span>
                           <span className="text-sm font-black text-[#00ADB5]">{project.progress}%</span>
                         </div>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -988,7 +988,7 @@ export default function BrowseProjects() {
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-white">
                           <div className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
                             <span>{project.members} members</span>
@@ -1008,7 +1008,7 @@ export default function BrowseProjects() {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
                   <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No ideas submitted yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">Submit your project idea and get it approved by our team</p>
+                  <p className="text-gray-600 dark:text-white mb-6">Submit your project idea and get it approved by our team</p>
                   <button
                     onClick={() => navigate('/dashboard/projects/submit-idea')}
                     className="px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
@@ -1023,8 +1023,8 @@ export default function BrowseProjects() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{idea.title}</h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{idea.description}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                          <p className="text-sm text-gray-600 dark:text-white mb-3">{idea.description}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-300">
                             📅 Submitted on {new Date(idea.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
                         </div>
@@ -1050,7 +1050,7 @@ export default function BrowseProjects() {
                                   e.stopPropagation();
                                   navigate('/dashboard/projects/submit-idea', { state: { ideaToEdit: idea } });
                                 }}
-                                className="px-4 py-2 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-600"
+                                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-600"
                               >
                                 Edit
                               </button>
@@ -1090,9 +1090,9 @@ export default function BrowseProjects() {
       {showApplicationModal && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white">Apply to Join Project</h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">{selectedProject.title}</p>
+              <p className="text-gray-600 dark:text-white mt-1">{selectedProject.title}</p>
             </div>
             
             <div className="p-6 space-y-6">
@@ -1105,7 +1105,7 @@ export default function BrowseProjects() {
                   value={application.skills}
                   onChange={(e) => setApplication({ ...application, skills: e.target.value })}
                   placeholder="e.g., React, Node.js, Python, UI/UX Design..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   rows={3}
                 />
               </div>
@@ -1119,7 +1119,7 @@ export default function BrowseProjects() {
                   value={application.experience}
                   onChange={(e) => setApplication({ ...application, experience: e.target.value })}
                   placeholder="Share your previous projects or work experience..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   rows={3}
                 />
               </div>
@@ -1133,7 +1133,7 @@ export default function BrowseProjects() {
                   value={application.motivation}
                   onChange={(e) => setApplication({ ...application, motivation: e.target.value })}
                   placeholder="Explain what interests you about this project and how you can contribute..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   rows={4}
                 />
               </div>
@@ -1146,7 +1146,7 @@ export default function BrowseProjects() {
                 <select
                   value={application.availability}
                   onChange={(e) => setApplication({ ...application, availability: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
                   <option value="">Select your availability</option>
                   <option value="5-10 hours">5-10 hours per week</option>
@@ -1164,7 +1164,7 @@ export default function BrowseProjects() {
                   setApplication({ skills: '', experience: '', motivation: '', availability: '' });
                   setSelectedProject(null);
                 }}
-                className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-white font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
               >
                 Cancel
               </button>
@@ -1183,11 +1183,11 @@ export default function BrowseProjects() {
       {showDetailsModal && selectedProjectForDetails && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white">{selectedProjectForDetails.title}</h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">Project Details</p>
+                  <p className="text-gray-600 dark:text-white mt-1">Project Details</p>
                 </div>
                 <button
                   onClick={() => {
@@ -1196,7 +1196,7 @@ export default function BrowseProjects() {
                   }}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <span className="text-2xl text-gray-500 dark:text-gray-400">×</span>
+                  <span className="text-2xl text-gray-500 dark:text-white">×</span>
                 </button>
               </div>
             </div>
@@ -1216,44 +1216,44 @@ export default function BrowseProjects() {
               {/* Project Description */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Description</h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                <p className="text-gray-700 dark:text-white leading-relaxed bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
                   {selectedProjectForDetails.description}
                 </p>
               </div>
               
               {/* Project Info Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <Users className="w-5 h-5 text-[#00ADB5]" />
                     Team Information
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Creator:</span>
+                      <span className="text-gray-600 dark:text-white">Creator:</span>
                       <span className="font-semibold dark:text-white">{selectedProjectForDetails.creator}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Team Size:</span>
+                      <span className="text-gray-600 dark:text-white">Team Size:</span>
                       <span className="font-semibold dark:text-white">{selectedProjectForDetails.members} members</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-[#00ADB5]" />
                     Timeline
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Created:</span>
+                      <span className="text-gray-600 dark:text-white">Created:</span>
                       <span className="font-semibold dark:text-white">
                         {new Date(selectedProjectForDetails.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Progress:</span>
+                      <span className="text-gray-600 dark:text-white">Progress:</span>
                       <span className="font-semibold dark:text-white">{selectedProjectForDetails.progress}%</span>
                     </div>
                   </div>
@@ -1263,9 +1263,9 @@ export default function BrowseProjects() {
               {/* Progress Bar */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Progress</h3>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Overall Progress</span>
+                    <span className="text-sm font-semibold text-gray-600 dark:text-white">Overall Progress</span>
                     <span className="text-lg font-black text-[#00ADB5]">{selectedProjectForDetails.progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
@@ -1283,15 +1283,15 @@ export default function BrowseProjects() {
               {/* Category & Tags */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Category & Tags</h3>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
                   <div className="mb-3">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Category:</span>
+                    <span className="text-sm text-gray-600 dark:text-white">Category:</span>
                     <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-bold rounded-lg">
                       {selectedProjectForDetails.category}
                     </span>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Tags:</span>
+                    <span className="text-sm text-gray-600 dark:text-white block mb-2">Tags:</span>
                     <div className="flex flex-wrap gap-2">
                       {selectedProjectForDetails.tags.map((tag, index) => (
                         <span key={index} className="px-3 py-1 bg-cyan-100 text-cyan-700 text-sm font-semibold rounded-lg">

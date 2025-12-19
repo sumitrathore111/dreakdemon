@@ -144,7 +144,7 @@ const PracticeChallenges = () => {
   };
 
   const stats = [
-    { label: 'Total', value: challenges.length.toLocaleString(), icon: Code2, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Total', value: challenges.length.toLocaleString(), icon: Code2, color: 'text-[#00ADB5] bg-[#00ADB5]/10' },
     { label: 'Easy', value: challenges.filter((c: any) => c.difficulty === 'easy').length, icon: Zap, color: 'text-green-600 bg-green-50' },
     { label: 'Medium', value: challenges.filter((c: any) => c.difficulty === 'medium').length, icon: Target, color: 'text-yellow-600 bg-yellow-50' },
     { label: 'Hard', value: challenges.filter((c: any) => c.difficulty === 'hard').length, icon: Star, color: 'text-red-600 bg-red-50' },
@@ -166,7 +166,7 @@ const PracticeChallenges = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">⚡ Practice Challenges</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">Solve coding challenges from 3000+ questions and earn coins</p>
+              <p className="text-gray-500 dark:text-white text-sm">Solve coding challenges from 3000+ questions and earn coins</p>
             </div>
           </div>
           
@@ -175,7 +175,7 @@ const PracticeChallenges = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-[#00ADB5] hover:bg-[#00ADB5]/80 text-white font-medium rounded-lg transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -198,7 +198,7 @@ const PracticeChallenges = () => {
               <stat.icon className="w-4 h-4" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+            <p className="text-sm text-gray-500 dark:text-white">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -221,7 +221,7 @@ const PracticeChallenges = () => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-[#00ADB5] transition-all"
           />
         </div>
 
@@ -239,7 +239,7 @@ const PracticeChallenges = () => {
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                 selectedDifficulty === diff.id
                   ? diff.color
-                  : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {diff.label}
@@ -256,8 +256,8 @@ const PracticeChallenges = () => {
               onClick={() => { setSelectedTopic('all'); setPage(1); }}
               className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                 selectedTopic === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'bg-[#00ADB5] text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               All Topics
@@ -270,15 +270,15 @@ const PracticeChallenges = () => {
                 onClick={() => { setSelectedTopic(topic); setPage(1); }}
                 className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
                   selectedTopic === topic
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'bg-[#00ADB5] text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {topic}
               </motion.button>
             ))}
             {availableTopics.length > 10 && (
-              <span className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">+{availableTopics.length - 10} more</span>
+              <span className="px-4 py-2 text-xs text-gray-500 dark:text-white">+{availableTopics.length - 10} more</span>
             )}
           </div>
         )}
@@ -295,9 +295,9 @@ const PracticeChallenges = () => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+              className="w-8 h-8 border-2 border-[#00ADB5] border-t-transparent rounded-full mx-auto mb-4"
             />
-            <p className="text-gray-600 dark:text-gray-400">Loading 3000+ questions from GitHub...</p>
+            <p className="text-gray-600 dark:text-white">Loading 3000+ questions from GitHub...</p>
           </motion.div>
         </div>
       ) : filteredChallenges.length === 0 ? (
@@ -308,7 +308,7 @@ const PracticeChallenges = () => {
         >
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-700 dark:text-gray-300 text-lg">No challenges found</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Try adjusting your filters</p>
+          <p className="text-gray-500 dark:text-white text-sm mt-2">Try adjusting your filters</p>
         </motion.div>
       ) : (
         <div className="space-y-3">
@@ -324,12 +324,12 @@ const PracticeChallenges = () => {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-[#00ADB5] dark:group-hover:text-[#00ADB5] transition-colors">
                       {challenge.title}
                     </h3>
                   </div>
                   
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{challenge.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-white mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{challenge.description}</p>
                   
                   <div className="flex flex-wrap items-center gap-3 text-sm mb-3">
                     <motion.span 
@@ -346,7 +346,7 @@ const PracticeChallenges = () => {
                       }
                     </motion.span>
                     
-                    <span className="text-gray-600 dark:text-gray-400 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                    <span className="text-gray-600 dark:text-white text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                       {challenge.category}
                     </span>
                     
@@ -362,7 +362,7 @@ const PracticeChallenges = () => {
                     whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)" }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleSolve(challenge)}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#00ADB5] hover:bg-[#00ADB5]/80 text-white text-sm font-semibold rounded-lg transition-all"
                   >
                     <span className="relative">Solve</span>
                     <ChevronRight className="w-4 h-4 relative" />
@@ -400,7 +400,7 @@ const PracticeChallenges = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => setPage(p => p + 1)}
             disabled={filteredChallenges.length < PROBLEMS_PER_PAGE}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
+            className="px-6 py-3 bg-[#00ADB5] hover:bg-[#00ADB5]/80 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
           >
             Next
           </motion.button>

@@ -1,6 +1,6 @@
+import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import type { MarketplaceReview } from '../../../types/marketplace';
-import { motion } from 'framer-motion';
 
 interface ReviewSectionProps {
   reviews: MarketplaceReview[];
@@ -57,7 +57,7 @@ export default function ReviewSection({
                 />
               ))}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600 dark:text-white">
               {totalReviews} review{totalReviews !== 1 ? 's' : ''}
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function ReviewSection({
 
               return (
                 <div key={rating} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-8">
+                  <span className="text-sm font-medium text-gray-700 dark:text-white w-8">
                     {rating}★
                   </span>
                   <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -79,7 +79,7 @@ export default function ReviewSection({
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-right">
+                  <span className="text-sm text-gray-600 dark:text-white w-12 text-right">
                     {count}
                   </span>
                 </div>
@@ -93,7 +93,7 @@ export default function ReviewSection({
       <div className="space-y-4">
         {reviews.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-white">
               No reviews yet. Be the first to review!
             </p>
           </div>
@@ -111,7 +111,8 @@ export default function ReviewSection({
                 <img
                   src={review.buyerAvatar || 'https://via.placeholder.com/40'}
                   alt={review.buyerName}
-                  className="w-12 h-12 rounded-full border-2 border-teal-400"
+                  className="w-12 h-12 rounded-full border-2"
+                  style={{ borderColor: '#00ADB5' }}
                 />
 
                 {/* Review Content */}
@@ -121,7 +122,7 @@ export default function ReviewSection({
                       <h4 className="font-semibold text-gray-900 dark:text-white">
                         {review.buyerName}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-white">
                         {formatDate(review.createdAt)}
                       </p>
                     </div>
@@ -142,7 +143,7 @@ export default function ReviewSection({
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <p className="text-gray-700 dark:text-white leading-relaxed">
                     {review.comment}
                   </p>
                 </div>
