@@ -30,7 +30,7 @@ export default function DashboardLayout() {
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
-    { name: "Courses", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
+    { name: "Developer Connect", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
     { name: "Project Bazaar", path: "/dashboard/marketplace", icon: <Store size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },

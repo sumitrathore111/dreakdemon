@@ -33,8 +33,7 @@ const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
 const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
-const Courses = lazy(() => import("./Pages/Courses"));
-const CourseView = lazy(() => import("./Pages/CourseView"));
+const DeveloperConnect = lazy(() => import("./Pages/DeveloperConnect/DeveloperConnect"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
 
 // Marketplace pages
@@ -176,8 +175,7 @@ const App: React.FC = () => {
                   <Route path="projects/submit-idea" element={<IdeaSubmission />} />
                   <Route path="projects/access-diagnostic" element={<ProjectAccessDiagnostic />} />
                   <Route path="projects/workspace/:projectId" element={<ProjectWorkspace />} />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="courses/:courseId" element={<CourseView />} />
+                  <Route path="courses" element={<DeveloperConnect />} />
                   <Route path="query" element={<QueryScreen />} />
                   <Route path="profile" element={<ProfileInfo />} />
                   <Route path="codearena/*" element={<CodeArena />} />
