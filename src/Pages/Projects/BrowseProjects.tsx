@@ -1,15 +1,15 @@
 import jsPDF from 'jspdf';
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Code2,
-  Filter,
-  Lightbulb,
-  Search,
-  Star,
-  TrendingUp,
-  Users
+    Calendar,
+    CheckCircle,
+    Clock,
+    Code2,
+    Filter,
+    Lightbulb,
+    Search,
+    Star,
+    TrendingUp,
+    Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -532,8 +532,8 @@ export default function BrowseProjects() {
     <div className="min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
             <div className="w-full sm:w-auto">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 leading-tight">
                 Project Collaboration Hub
@@ -634,27 +634,27 @@ export default function BrowseProjects() {
               </div>
               
               {/* Stats Bar */}
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                   <span className="flex items-center gap-1 text-gray-600 dark:text-white">
-                    <Filter className="w-4 h-4" />
+                    <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
                     <strong className="text-cyan-600">{filteredProjects.length}</strong> projects available
                   </span>
                   {searchQuery && (
-                    <span className="px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs font-bold">
+                    <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-cyan-100 text-cyan-700 rounded-full text-[10px] sm:text-xs font-bold">
                       Filtered by: "{searchQuery}"
                     </span>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
-                    <TrendingUp className="w-3 h-3" /> Trending
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full sm:w-auto">
+                  <button className="px-2 sm:px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-[10px] sm:text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
+                    <TrendingUp className="w-3 h-3" /> <span className="hidden sm:inline">Trending</span>
                   </button>
-                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
-                    <Star className="w-3 h-3" /> Popular
+                  <button className="px-2 sm:px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-[10px] sm:text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
+                    <Star className="w-3 h-3" /> <span className="hidden sm:inline">Popular</span>
                   </button>
-                  <button className="px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
-                    <Calendar className="w-3 h-3" /> Recent
+                  <button className="px-2 sm:px-3 py-1 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-[10px] sm:text-xs font-medium hover:border-cyan-400 transition-all flex items-center gap-1 text-gray-700 dark:text-white">
+                    <Calendar className="w-3 h-3" /> <span className="hidden sm:inline">Recent</span>
                   </button>
                 </div>
               </div>

@@ -52,73 +52,74 @@ export default function ProjectAccessDiagnostic() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/dashboard/projects')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
+          className="mb-4 sm:mb-6 flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} className="sm:hidden" />
+          <ArrowLeft size={20} className="hidden sm:block" />
           Back to Projects
         </button>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Project Access Diagnostic</h1>
-            <p className="text-gray-600 dark:text-gray-400">Troubleshoot and fix access issues</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-2">Project Access Diagnostic</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Troubleshoot and fix access issues</p>
           </div>
 
           {!diagnostics ? (
-            <div className="text-center py-12">
-              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Run Diagnostic Check</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <div className="text-center py-8 sm:py-12">
+              <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-yellow-500" />
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Run Diagnostic Check</h2>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 px-4">
                 Click the button below to analyze your access to this project
               </p>
               <button
                 onClick={runDiagnostics}
                 disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2 mx-auto"
+                className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg sm:rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2 mx-auto"
               >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Running Diagnostics...' : 'Run Diagnostics'}
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Diagnostic Results */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 space-y-4">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Diagnostic Results</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg sm:rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Diagnostic Results</h3>
                 
                 {/* Project Exists */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   {diagnostics.projectExists ? (
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white">Project Exists</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Project Exists</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.projectExists ? 'Project found in database' : 'Project not found'}
                     </p>
                   </div>
                 </div>
 
                 {/* Is Creator */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   {diagnostics.isCreator ? (
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white">Creator Status</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Creator Status</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.isCreator ? 'You are the project creator' : 'You are not the creator'}
                     </p>
                     {diagnostics.projectCreatorId && (
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-500 mt-1 break-all">
                         Creator ID: {diagnostics.projectCreatorId}
                       </p>
                     )}
@@ -126,18 +127,18 @@ export default function ProjectAccessDiagnostic() {
                 </div>
 
                 {/* Is Member */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   {diagnostics.isMember ? (
-                    <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white">Member Status</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Member Status</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {diagnostics.isMember ? 'You are in Project_Members collection' : 'You are NOT in Project_Members collection'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-500 mt-1">
                       Total project members: {diagnostics.totalMembers}
                     </p>
                   </div>

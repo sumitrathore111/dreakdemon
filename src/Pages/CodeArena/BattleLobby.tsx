@@ -127,14 +127,14 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
   // Auto-matchmaking - automatically try to join battles
   useEffect(() => {
-    if (!isSearching || !myBattleId) return;
+    if (!isSearching || !myBattleId || !user) return;
     
     // Every 2 seconds, check if there's a battle we can join
     const autoMatchInterval = setInterval(async () => {
       const matchingBattle = waitingBattles.find(
         (b) => b.difficulty === selectedDifficulty && 
                b.entryFee === selectedEntry.fee &&
-               b.creatorId !== user?.uid
+               b.creatorId !== user.uid
       );
 
       if (matchingBattle) {
@@ -154,8 +154,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     }, 2000);
 
     return () => clearInterval(autoMatchInterval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSearching, myBattleId, waitingBattles, selectedDifficulty, selectedEntry.fee]);
+  }, [isSearching, myBattleId, waitingBattles, selectedDifficulty, selectedEntry.fee, user]);
 
   // Watch for match when searching
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { DollarSign, Eye, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { DollarSign, Edit, Eye, Package, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
@@ -281,12 +281,12 @@ export default function MyListings() {
                     {/* Actions */}
                     <div className="flex flex-col gap-2">
                       <Link
-                        to={`/dashboard/marketplace/project/${project.id}`}
+                        to={`/dashboard/marketplace/edit/${project.id}`}
                         className="px-4 py-2 text-white rounded-lg transition-colors text-center flex items-center gap-2 shadow-md hover:opacity-90"
                         style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
                       >
-                        <Eye className="w-4 h-4" />
-                        View
+                        <Edit className="w-4 h-4" />
+                        Edit
                       </Link>
                       <button
                         onClick={() => handleDeleteProject(project.id)}

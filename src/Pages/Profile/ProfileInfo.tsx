@@ -1,31 +1,31 @@
 import {
-    Award,
-    Briefcase,
-    Building,
-    Edit3,
-    FileText,
-    Globe,
-    GraduationCap,
-    Mail,
-    MapPin,
-    Phone,
-    Plus,
-    Save,
-    User,
-    X,
+  Award,
+  Briefcase,
+  Building,
+  Edit3,
+  FileText,
+  Globe,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  Save,
+  User,
+  X,
 } from "lucide-react";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useEffect, useState } from "react";
 import {
-    Badge,
-    Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    Input,
-    Label,
-    Textarea,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  Textarea,
 } from "../../Component/Global/ui";
 import { useDataContext } from "../../Context/UserDataContext";
 
@@ -63,7 +63,7 @@ interface ProfileData {
   links: Link[];
   profileCompletion: number,
   languages: Array<String>,
-  yearOfStudy: number,
+  yearOfStudy: string,
   githubUsername?: string;
 
 }
@@ -87,7 +87,7 @@ export default function Profile() {
     links: [],
     profileCompletion: 0,
     languages: [],
-    yearOfStudy: 0,
+    yearOfStudy: "",
     createdAt:"",
     isprofileComplete:false,
     role :'student'
@@ -349,7 +349,25 @@ export default function Profile() {
                     placeholder="e.g. johndoe"
                   />
                 </div>
-                
+                <div>
+                  <Label htmlFor="yearOfStudy">Year of Study</Label>
+                  <select
+                    id="yearOfStudy"
+                    value={profile?.yearOfStudy || ""}
+                    onChange={(e) => setProfile(prev => ({...prev, yearOfStudy: e.target.value}))}
+                    disabled={!isEditing}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select Year</option>
+                    <option value="Year 1">Year 1</option>
+                    <option value="Year 2">Year 2</option>
+                    <option value="Year 3">Year 3</option>
+                    <option value="Year 4">Year 4</option>
+                    <option value="Passout 2023">Passout 2023</option>
+                    <option value="Passout 2024">Passout 2024</option>
+                    <option value="Passout 2025">Passout 2025</option>
+                  </select>
+                </div>
               </div>
 
               <div>

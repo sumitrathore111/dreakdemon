@@ -97,58 +97,58 @@ export default function MarketplaceBazaar() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 sm:mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2" style={{ color: '#00ADB5' }}>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style={{ color: '#00ADB5' }}>
                 Project Bazaar 🛒
               </h1>
-              <p className="text-gray-600 dark:text-white">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-white">
                 Buy and sell amazing projects from talented developers
               </p>
             </div>
-            <div className="flex items-center gap-3 flex-nowrap">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               {/* Chat Requests & Messages */}
               <ChatRequests />
               <MessagesPanel />
               
               <Link
                 to="/dashboard/marketplace/my-purchases"
-                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-2 font-semibold whitespace-nowrap"
+                className="px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base whitespace-nowrap"
                 style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
               >
-                <ShoppingBag className="w-5 h-5" />
-                My Purchases
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">My </span>Purchases
               </Link>
               <Link
                 to="/dashboard/marketplace/my-listings"
-                className="px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-2 font-semibold whitespace-nowrap"
+                className="px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base whitespace-nowrap"
                 style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
               >
-                <TrendingUp className="w-5 h-5" />
-                My Listings
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">My </span>Listings
               </Link>
               <Link
                 to="/dashboard/marketplace/create"
-                className="px-6 py-2 text-white rounded-lg transition-all flex items-center gap-2 font-semibold shadow-lg hover:opacity-90 whitespace-nowrap"
+                className="px-4 sm:px-6 py-2 text-white rounded-lg transition-all flex items-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base shadow-lg hover:opacity-90 whitespace-nowrap"
                 style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                 Sell Project
               </Link>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
                   <ShoppingBag className="w-6 h-6" style={{ color: '#00ADB5' }} />
@@ -161,7 +161,7 @@ export default function MarketplaceBazaar() {
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
                   <TrendingUp className="w-6 h-6" style={{ color: '#00ADB5' }} />
@@ -174,7 +174,7 @@ export default function MarketplaceBazaar() {
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow sm:col-span-2 md:col-span-1">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
                   <span className="text-2xl">⭐</span>
@@ -191,17 +191,17 @@ export default function MarketplaceBazaar() {
         </motion.div>
 
         {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search projects, tech stack..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
+                placeholder="Search projects..."
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
               />
             </div>
 
@@ -216,7 +216,7 @@ export default function MarketplaceBazaar() {
                   label
                 }))
               ]}
-              className="min-w-[180px]"
+              className="w-full sm:min-w-[180px] sm:w-auto"
             />
 
             {/* Sort */}
@@ -230,14 +230,14 @@ export default function MarketplaceBazaar() {
                 { value: 'price-low', label: 'Price: Low to High' },
                 { value: 'price-high', label: 'Price: High to Low' }
               ]}
-              className="min-w-[180px]"
+              className="w-full sm:min-w-[180px] sm:w-auto"
             />
           </div>
         </div>
 
         {/* Results Count */}
-        <div className="mb-4">
-          <p className="text-gray-600 dark:text-white">
+        <div className="mb-3 sm:mb-4">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-white">
             Showing {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -271,7 +271,7 @@ export default function MarketplaceBazaar() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}

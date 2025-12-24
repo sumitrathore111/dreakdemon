@@ -45,24 +45,24 @@ export default function Issues() {
   };
 
   return (
-    <div className="mt-6 border rounded p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-      <h2 className="font-semibold mb-2 text-gray-900 dark:text-white">Issues</h2>
+    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+      <h2 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 dark:text-white">Issues</h2>
       <ul>
         {issues.map((iss) => (
           <li key={iss.id} className="mb-2 border-b dark:border-gray-700 pb-2">
-            <p className="font-bold text-gray-900 dark:text-white">{iss.title}</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">{iss.description}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Status: {iss.status}</p>
-            <div className="flex gap-2 mt-1">
+            <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">{iss.title}</p>
+            <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">{iss.description}</p>
+            <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Status: {iss.status}</p>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1">
               <button
                 onClick={() => updateStatus(iss.id, "In Progress")}
-                className="px-2 py-1 bg-yellow-400 text-white rounded"
+                className="px-2 py-1 text-xs sm:text-sm bg-yellow-400 text-white rounded"
               >
                 In Progress
               </button>
               <button
                 onClick={() => updateStatus(iss.id, "Resolved")}
-                className="px-2 py-1 bg-green-500 text-white rounded"
+                className="px-2 py-1 text-xs sm:text-sm bg-green-500 text-white rounded"
               >
                 Resolved
               </button>
@@ -73,20 +73,20 @@ export default function Issues() {
 
       <div className="mt-4">
         <input
-          className="border rounded px-2 py-1 mb-2 w-full bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
+          className="border rounded px-2 py-1 mb-2 w-full text-sm sm:text-base bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
           placeholder="Issue Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <textarea
-          className="border rounded px-2 py-1 mb-2 w-full bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
+          className="border rounded px-2 py-1 mb-2 w-full text-sm sm:text-base bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
           placeholder="Description"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
         />
         <button
           onClick={addIssue}
-          className="bg-red-500 text-white px-3 py-1 rounded"
+          className="bg-red-500 text-white px-3 py-1.5 text-sm sm:text-base rounded"
         >
           Add Issue
         </button>

@@ -38,25 +38,25 @@ export default function Messages() {
   };
 
   return (
-    <div className="mt-6 border rounded p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-      <h2 className="font-semibold mb-2 text-gray-900 dark:text-white">Messages</h2>
-      <div className="h-40 overflow-y-auto border dark:border-gray-700 p-2 bg-white dark:bg-gray-900 mb-2">
+    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+      <h2 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 dark:text-white">Messages</h2>
+      <div className="h-32 sm:h-40 overflow-y-auto border dark:border-gray-700 p-2 bg-white dark:bg-gray-900 mb-2 rounded">
         {messages.map((m) => (
-          <p key={m.id} className="mb-1 text-gray-900 dark:text-gray-100">
+          <p key={m.id} className="mb-1 text-xs sm:text-sm text-gray-900 dark:text-gray-100">
             <span className="font-bold text-cyan-600 dark:text-cyan-400">{m.sender}: </span>{m.text}
           </p>
         ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-1.5 sm:gap-2">
         <input
-          className="flex-1 border rounded px-2 py-1 bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
+          className="flex-1 border rounded px-2 py-1 text-sm sm:text-base bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-900 dark:text-white"
           value={newMsg}
           onChange={(e) => setNewMsg(e.target.value)}
           placeholder="Type message..."
         />
         <button
           onClick={sendMessage}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
+          className="bg-blue-500 text-white px-3 py-1 text-sm sm:text-base rounded"
         >
           Send
         </button>

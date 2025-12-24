@@ -1,15 +1,15 @@
 ﻿import type { DocumentData } from "firebase/firestore";
 import {
-    addDoc,
-    collection,
-    doc,
-    getDocs,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp,
-    updateDoc,
-    where,
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, ExternalLink, X } from "lucide-react";
@@ -227,23 +227,24 @@ export default function ProjectDetail() {
   const isCreator = project.creatorId === user?.uid;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <button
           onClick={() => navigate('/dashboard/openproject')}
-          className="mb-6 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
+          className="mb-4 sm:mb-6 flex items-center gap-2 text-sm sm:text-base text-gray-600 dark:text-gray-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} className="sm:hidden" />
+          <ArrowLeft size={20} className="hidden sm:block" />
           Back to Projects
         </button>
 
         {/* Project Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{project.title}</h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">{project.description}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg mb-4 sm:mb-6">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-4 mb-4">
+            <div className="flex-1 w-full lg:w-auto">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">{project.title}</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4">{project.description}</p>
               
               {/* Tech Stack */}
               <div className="flex flex-wrap gap-2 mb-4">
@@ -267,15 +268,15 @@ export default function ProjectDetail() {
 
               {/* GitHub Link */}
               {project.githubRepo && (
-                <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-3 rounded-lg">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 bg-gray-900 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
                   </svg>
                   <a 
                     href={project.githubRepo} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex-1 hover:underline font-mono text-sm"
+                    className="flex-1 hover:underline font-mono text-xs sm:text-sm break-all"
                   >
                     {project.githubRepo}
                   </a>
@@ -284,40 +285,42 @@ export default function ProjectDetail() {
                       navigator.clipboard.writeText(`git clone ${project.githubRepo}`);
                       alert('📋 Clone command copied!');
                     }}
-                    className="bg-white text-gray-900 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100 flex items-center gap-1"
+                    className="bg-white text-gray-900 px-2 sm:px-3 py-1 rounded text-[10px] sm:text-xs font-semibold hover:bg-gray-100 flex items-center gap-1 whitespace-nowrap"
                   >
-                    <ExternalLink size={14} />
-                    Copy Clone
+                    <ExternalLink size={12} className="sm:hidden" />
+                    <ExternalLink size={14} className="hidden sm:block" />
+                    <span className="hidden sm:inline">Copy Clone</span>
+                    <span className="sm:hidden">Copy</span>
                   </button>
                 </div>
               )}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row lg:flex-col gap-2 sm:gap-3 w-full lg:w-auto">
               {!isCreator && !hasJoined && (
                 <button
                   onClick={handleJoinProject}
                   disabled={loading || !user}
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-bold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg disabled:opacity-50"
+                  className="flex-1 lg:flex-none px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-bold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg disabled:opacity-50"
                 >
                   {loading ? "Joining..." : "🚀 Join Project"}
                 </button>
               )}
 
               {hasJoined && (
-                <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg p-4 text-center">
-                  <p className="text-green-700 dark:text-green-400 font-bold mb-2">✅ You're a Contributor!</p>
-                  <div className="flex items-center justify-center gap-4 text-sm">
+                <div className="flex-1 lg:flex-none bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-sm sm:text-base text-green-700 dark:text-green-400 font-bold mb-2">✅ You're a Contributor!</p>
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div>
-                      <div className="text-2xl font-black text-green-600 dark:text-green-400">{userContributions.issuesResolved}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Issues Fixed</div>
+                      <div className="text-xl sm:text-2xl font-black text-green-600 dark:text-green-400">{userContributions.issuesResolved}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Issues Fixed</div>
                     </div>
                   </div>
                   {userContributions.issuesResolved > 0 && (
                     <button
                       onClick={downloadCertificate}
-                      className="mt-3 w-full px-4 py-2 bg-cyan-500 text-white rounded-lg text-sm font-semibold hover:bg-cyan-600"
+                      className="mt-2 sm:mt-3 w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-cyan-500 text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-cyan-600"
                     >
                       📜 Download Certificate
                     </button>
@@ -326,8 +329,8 @@ export default function ProjectDetail() {
               )}
 
               {isCreator && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-500 dark:border-yellow-600 rounded-lg p-4 text-center">
-                  <p className="text-yellow-700 dark:text-yellow-400 font-bold">👑 You're the Creator</p>
+                <div className="flex-1 lg:flex-none bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-500 dark:border-yellow-600 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-sm sm:text-base text-yellow-700 dark:text-yellow-400 font-bold">👑 You're the Creator</p>
                 </div>
               )}
             </div>
@@ -335,13 +338,13 @@ export default function ProjectDetail() {
         </div>
 
         {/* Issues Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📋 Tasks & Issues</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">📋 Tasks & Issues</h2>
             {(hasJoined || isCreator) && (
               <button
                 onClick={() => setShowNewIssue(!showNewIssue)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
+                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition"
               >
                 {showNewIssue ? "Cancel" : "+ Add Issue"}
               </button>
@@ -384,23 +387,23 @@ export default function ProjectDetail() {
           {issues.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400 py-10">No issues yet. Add the first one!</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {issues.map((issue, idx) => (
                 <div
                   key={issue.id}
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                     issue.status === "Open" 
                       ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" 
                       : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">#{idx + 1}</span>
-                        <h3 className="font-bold text-gray-900 dark:text-white">{issue.title}</h3>
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 w-full">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400">#{idx + 1}</span>
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white break-words">{issue.title}</h3>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-bold ${
+                          className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${
                             issue.status === "Open"
                               ? "bg-red-200 text-red-800"
                               : "bg-green-200 text-green-800"
@@ -410,9 +413,9 @@ export default function ProjectDetail() {
                         </span>
                       </div>
                       {issue.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{issue.description}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">{issue.description}</p>
                       )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                         Created by: {issue.createdBy === user?.uid ? "You" : issue.creatorName}
                       </p>
                     </div>
@@ -421,7 +424,7 @@ export default function ProjectDetail() {
                       <button
                         onClick={() => handleToggleIssue(issue.id, issue.status)}
                         disabled={loading}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm disabled:opacity-50 ${
+                        className={`w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm disabled:opacity-50 whitespace-nowrap ${
                           issue.status === "Open"
                             ? "bg-green-600 hover:bg-green-700 text-white"
                             : "bg-gray-600 hover:bg-gray-700 text-white"
@@ -429,12 +432,15 @@ export default function ProjectDetail() {
                       >
                         {issue.status === "Open" ? (
                           <>
-                            <Check size={16} className="inline mr-1" />
-                            Mark Resolved
+                            <Check size={14} className="inline mr-1 sm:hidden" />
+                            <Check size={16} className="hidden sm:inline mr-1" />
+                            <span className="hidden sm:inline">Mark Resolved</span>
+                            <span className="sm:hidden">Resolve</span>
                           </>
                         ) : (
                           <>
-                            <X size={16} className="inline mr-1" />
+                            <X size={14} className="inline mr-1 sm:hidden" />
+                            <X size={16} className="hidden sm:inline mr-1" />
                             Reopen
                           </>
                         )}

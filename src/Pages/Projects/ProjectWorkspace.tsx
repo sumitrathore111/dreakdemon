@@ -445,46 +445,46 @@ export default function ProjectWorkspace() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-black text-gray-900 dark:text-white">{project?.title}</h1>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-3 sm:gap-4 mb-4">
+            <div className="flex-1 w-full lg:w-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-2">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white">{project?.title}</h1>
+                <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap ${
                   userRole === 'creator' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                 }`}>
                   {userRole === 'creator' ? (
-                    <><Shield className="w-3 h-3 inline mr-1" />CREATOR</>
+                    <><Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 inline mr-1" />CREATOR</>
                   ) : (
-                    <><UserCheck className="w-3 h-3 inline mr-1" />CONTRIBUTOR</>
+                    <><UserCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3 inline mr-1" />CONTRIBUTOR</>
                   )}
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">{project?.description}</p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">{project?.description}</p>
               
-              <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{members.length} members</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>{tasks.length} tasks</span>
                 </div>
               </div>
             </div>
             
-            <div className="text-right">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Progress</div>
-              <div className="text-3xl font-black text-[#00ADB5]">{calculateProgress()}%</div>
+            <div className="text-left sm:text-right w-full sm:w-auto">
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">Progress</div>
+              <div className="text-2xl sm:text-3xl font-black text-[#00ADB5]">{calculateProgress()}%</div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3">
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${calculateProgress()}%`, backgroundColor: '#00ADB5' }}
@@ -494,18 +494,18 @@ export default function ProjectWorkspace() {
 
         {/* Join Requests Alert */}
         {userRole === 'creator' && joinRequests.length > 0 && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <Bell className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="font-bold text-yellow-900 dark:text-yellow-200">
+                <h3 className="text-sm sm:text-base font-bold text-yellow-900 dark:text-yellow-200">
                   {joinRequests.length} Pending Join Request{joinRequests.length > 1 ? 's' : ''}
                 </h3>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">Review requests in the Members tab</p>
+                <p className="text-xs sm:text-sm text-yellow-700 dark:text-yellow-300">Review requests in the Members tab</p>
               </div>
               <button
                 onClick={() => setActiveTab('members')}
-                className="px-4 py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors"
+                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors"
               >
                 Review
               </button>
@@ -514,78 +514,83 @@ export default function ProjectWorkspace() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg mb-6">
+        <div className="flex gap-1 sm:gap-2 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-lg mb-4 sm:mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('tasks')}
-            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+            className={`flex-1 min-w-[80px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === 'tasks'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <CheckCircle className="w-5 h-5 inline mr-2" />
-            Tasks
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Tasks</span>
+            <span className="sm:hidden">Tasks</span>
           </button>
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+            className={`flex-1 min-w-[80px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === 'chat'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <MessageSquare className="w-5 h-5 inline mr-2" />
-            Chat
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Chat</span>
+            <span className="sm:hidden">Chat</span>
           </button>
           <button
             onClick={() => setActiveTab('files')}
-            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+            className={`flex-1 min-w-[80px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === 'files'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <Upload className="w-5 h-5 inline mr-2" />
-            Files
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Files</span>
+            <span className="sm:hidden">Files</span>
           </button>
           <button
             onClick={() => setActiveTab('members')}
-            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+            className={`flex-1 min-w-[100px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === 'members'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <UserPlus className="w-5 h-5 inline mr-2" />
-            Members
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Members</span>
+            <span className="sm:hidden">Team</span>
             {joinRequests.length > 0 && (
-              <span className="ml-2 px-2 py-1 bg-white text-[#00ADB5] rounded-full text-xs font-bold">
+              <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-white text-[#00ADB5] rounded-full text-[10px] sm:text-xs font-bold">
                 {joinRequests.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setActiveTab('activity')}
-            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+            className={`flex-1 min-w-[90px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
               activeTab === 'activity'
                 ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            <Activity className="w-5 h-5 inline mr-2" />
-            Activity
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 inline mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Activity</span>
+            <span className="sm:hidden">Log</span>
           </button>
         </div>
 
         {/* Tasks Tab */}
         {activeTab === 'tasks' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Tasks</h2>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">Tasks</h2>
               {userRole === 'creator' ? (
                 <button
                   onClick={() => setShowTaskForm(!showTaskForm)}
-                  className="px-4 py-2 bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#00ADB5] text-white font-semibold rounded-lg hover:bg-cyan-600 transition-colors"
                 >
                   + Add Task
                 </button>
@@ -593,7 +598,7 @@ export default function ProjectWorkspace() {
                 <button
                   disabled
                   title="Only the project creator can add tasks"
-                  className="px-4 py-2 bg-gray-200 text-gray-500 font-semibold rounded-lg cursor-not-allowed"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-gray-200 text-gray-500 font-semibold rounded-lg cursor-not-allowed"
                 >
                   + Add Task
                 </button>
@@ -601,28 +606,28 @@ export default function ProjectWorkspace() {
             </div>
 
             {showTaskForm && userRole === 'creator' && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-4">
-                <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">New Task</h3>
-                <div className="space-y-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 mb-4">
+                <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 dark:text-white">New Task</h3>
+                <div className="space-y-3 sm:space-y-4">
                   <input
                     type="text"
                     placeholder="Task title"
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                   />
                   <textarea
                     placeholder="Task description"
                     value={newTask.description}
                     onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     rows={3}
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                     <select
                       value={newTask.priority}
                       onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })}
-                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     >
                       <option value="low">Low Priority</option>
                       <option value="medium">Medium Priority</option>
@@ -631,7 +636,7 @@ export default function ProjectWorkspace() {
                     <select
                       value={newTask.assignedTo}
                       onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                       disabled={userRole !== 'creator'}
                     >
                       <option value="">Assign to...</option>
@@ -643,19 +648,19 @@ export default function ProjectWorkspace() {
                       type="date"
                       value={newTask.dueDate}
                       onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                      className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={addTask}
-                      className="flex-1 px-4 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors"
+                      className="flex-1 px-4 py-2 sm:py-3 text-sm sm:text-base bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors"
                     >
                       Create Task
                     </button>
                     <button
                       onClick={() => setShowTaskForm(false)}
-                      className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       Cancel
                     </button>
@@ -665,37 +670,37 @@ export default function ProjectWorkspace() {
             )}
 
             {tasks.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
-                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
-                <p className="text-gray-600 dark:text-gray-400">Create your first task to get started</p>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 sm:p-12 text-center">
+                <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Create your first task to get started</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {tasks.map(task => (
-                  <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <div className="flex items-start gap-4">
+                  <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       <button
                         onClick={() => {
                           if (task.status === 'completed') updateTaskStatus(task.id, 'todo');
                           else if (task.status === 'todo') updateTaskStatus(task.id, 'inprogress');
                           else updateTaskStatus(task.id, 'completed');
                         }}
-                        className="mt-1"
+                        className="mt-1 flex-shrink-0"
                       >
                         {getStatusIcon(task.status)}
                       </button>
                       
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{task.title}</h3>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white break-words">{task.title}</h3>
                             {task.description && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{task.description}</p>
+                              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{task.description}</p>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(task.priority)}`}>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold ${getPriorityColor(task.priority)}`}>
                               {task.priority.toUpperCase()}
                             </span>
                             {userRole === 'creator' && (
@@ -709,49 +714,50 @@ export default function ProjectWorkspace() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                           {task.assignedTo && (
                             <div className="flex items-center gap-1">
-                              <User className="w-4 h-4" />
-                              <span>{task.assignedTo}</span>
+                              <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="truncate">{task.assignedTo}</span>
                             </div>
                           )}
                           {task.dueDate && (
                             <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span className="hidden sm:inline">{new Date(task.dueDate).toLocaleDateString()}</span>
+                              <span className="sm:hidden">{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                             </div>
                           )}
                         </div>
                         {/* Completion / Verification actions */}
                         <div className="mt-3">
                           {task.pendingVerification && userRole === 'creator' && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
-                              <p className="text-sm text-yellow-800 dark:text-yellow-300 font-semibold">Completion pending verification</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">Marked completed by: {task.completedByName || 'Member'}</p>
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-2 sm:p-3">
+                              <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-300 font-semibold">Completion pending verification</p>
+                              <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Marked completed by: {task.completedByName || 'Member'}</p>
                               <textarea
                                 placeholder="Add verification feedback (optional)"
                                 value={verificationFeedbacks[task.id] || ''}
                                 onChange={(e) => setVerificationFeedbacks(prev => ({ ...prev, [task.id]: e.target.value }))}
-                                className="w-full mt-2 p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                                className="w-full mt-2 p-2 text-sm border dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                               />
                               <div className="flex gap-2 mt-2">
-                                <button onClick={() => approveTaskVerification(task.id)} className="px-3 py-2 bg-green-500 text-white rounded-lg">Approve</button>
-                                <button onClick={() => rejectTaskVerification(task.id)} className="px-3 py-2 bg-red-500 text-white rounded-lg">Reject</button>
+                                <button onClick={() => approveTaskVerification(task.id)} className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-green-500 text-white rounded-lg">Approve</button>
+                                <button onClick={() => rejectTaskVerification(task.id)} className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-red-500 text-white rounded-lg">Reject</button>
                               </div>
                             </div>
                           )}
 
                           {!task.pendingVerification && !task.verified && task.assignedTo === (user?.displayName || user?.email?.split('@')[0]) && (
                             <div className="mt-2">
-                              <button onClick={() => markTaskCompletedByMember(task.id)} className="px-3 py-2 bg-[#00ADB5] text-white rounded-lg">Mark Completed</button>
+                              <button onClick={() => markTaskCompletedByMember(task.id)} className="w-full sm:w-auto px-3 py-2 text-xs sm:text-sm bg-[#00ADB5] text-white rounded-lg">Mark Completed</button>
                             </div>
                           )}
 
                           {task.verified && (
                             <div className="mt-2 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 p-2 rounded">
-                              <p className="text-sm text-green-800 dark:text-green-300 font-semibold">Verified completed</p>
-                              {task.verificationFeedback && <p className="text-xs text-gray-600 dark:text-gray-400">Feedback: {task.verificationFeedback}</p>}
+                              <p className="text-xs sm:text-sm text-green-800 dark:text-green-300 font-semibold">Verified completed</p>
+                              {task.verificationFeedback && <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Feedback: {task.verificationFeedback}</p>}
                             </div>
                           )}
                         </div>
@@ -766,26 +772,26 @@ export default function ProjectWorkspace() {
 
         {/* Chat Tab */}
         {activeTab === 'chat' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Team Chat</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 sm:mb-4">Team Chat</h2>
             
-            <div className="h-96 overflow-y-auto mb-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="h-64 sm:h-80 md:h-96 overflow-y-auto mb-3 sm:mb-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
               {messages.length === 0 ? (
-                <div className="text-center text-gray-500 dark:text-gray-400 py-12">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-                  <p>No messages yet. Start the conversation!</p>
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8 sm:py-12">
+                  <MessageSquare className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                  <p className="text-sm sm:text-base">No messages yet. Start the conversation!</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {messages.map(msg => (
-                    <div key={msg.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow">
+                    <div key={msg.id} className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 shadow">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm text-gray-900 dark:text-white">{msg.userName}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white truncate">{msg.userName}</span>
+                        <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300">{msg.message}</p>
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">{msg.message}</p>
                     </div>
                   ))}
                 </div>
@@ -799,13 +805,13 @@ export default function ProjectWorkspace() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Type your message..."
-                className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-[#00ADB5] focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               />
               <button
                 onClick={sendMessage}
-                className="px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors"
+                className="px-3 sm:px-6 py-2 sm:py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors flex-shrink-0"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
@@ -813,11 +819,11 @@ export default function ProjectWorkspace() {
 
         {/* Files Tab */}
         {activeTab === 'files' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Project Files</h2>
-              <label className="px-6 py-3 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors cursor-pointer flex items-center gap-2">
-                <Upload className="w-5 h-5" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 sm:mb-4">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">Project Files</h2>
+              <label className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors cursor-pointer flex items-center justify-center gap-2">
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                 Upload File
                 <input
                   type="file"
@@ -847,26 +853,26 @@ export default function ProjectWorkspace() {
               </label>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {files.length === 0 ? (
-                <div className="col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">
-                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-                  <p>No files uploaded yet</p>
+                <div className="col-span-2 text-center py-8 sm:py-12 text-gray-500 dark:text-gray-400">
+                  <FileText className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                  <p className="text-sm sm:text-base">No files uploaded yet</p>
                 </div>
               ) : (
                 files.map(file => (
-                  <div key={file.id} className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-[#00ADB5] transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                  <div key={file.id} className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-3 sm:p-4 hover:border-[#00ADB5] transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                          <h3 className="font-semibold text-gray-900 dark:text-white">{file.fileName}</h3>
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                          <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">{file.fileName}</h3>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">
                           Uploaded by {file.uploaderName}
                         </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(file.uploadedAt).toLocaleDateString()} • {(file.fileSize / 1024).toFixed(2)} KB
+                        <p className="text-[10px] sm:text-xs text-gray-400">
+                          {new Date(file.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {(file.fileSize / 1024).toFixed(2)} KB
                         </p>
                       </div>
                       {userRole === 'creator' && (

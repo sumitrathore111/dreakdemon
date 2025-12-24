@@ -283,21 +283,21 @@ export default function ProjectList() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6 flex items-start justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6 flex items-start justify-center">
       <div className="w-full max-w-7xl">
         {/* Hero Header */}
-        <header className="mb-8 text-center">
-          <h1 className="text-5xl font-black bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-3">
+        <header className="mb-4 sm:mb-6 md:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-2 sm:mb-3">
             Open Source Projects 🚀
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-4">
             Join exciting real-world projects, contribute code, earn points, and build your portfolio!
           </p>
         </header>
 
         {/* Controls Bar */}
-        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={() => setShowGuide(!showGuide)}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-cyan-500 text-cyan-600 dark:text-cyan-400 font-semibold text-sm hover:bg-cyan-50 dark:hover:bg-cyan-900/30 transition-all hover:scale-105"

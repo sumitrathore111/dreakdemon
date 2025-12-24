@@ -116,44 +116,44 @@ export default function IdeaSubmission() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
-              <Lightbulb className="w-6 h-6 text-white" />
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3 mb-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0">
+              <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white">Submit Your Idea</h1>
-              <p className="text-gray-600 dark:text-gray-400">Share your project idea and get it approved</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 dark:text-white">Submit Your Idea</h1>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">Share your project idea and get it approved</p>
             </div>
           </div>
         </div>
 
         {submitted && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 rounded-lg">
+            <div className="flex items-start sm:items-center gap-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-green-900 dark:text-green-400">Idea Submitted Successfully!</h3>
-                <p className="text-sm text-green-700 dark:text-green-300">Your idea is pending admin review. You'll receive an email notification once it's reviewed.</p>
+                <h3 className="text-sm sm:text-base font-bold text-green-900 dark:text-green-400">Idea Submitted Successfully!</h3>
+                <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">Your idea is pending admin review. You'll receive an email notification once it's reviewed.</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
+          <div className="space-y-4 sm:space-y-6">
             {/* Title */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                <FileText className="w-4 h-4" />
+              <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                 Project Title *
               </label>
               <input
@@ -162,72 +162,72 @@ export default function IdeaSubmission() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="E.g., E-Learning Platform for Students"
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
               />
             </div>
 
             {/* Description with Rich Text Editor */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                <FileText className="w-4 h-4" />
+              <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                 Description *
               </label>
               
               {/* Rich Text Toolbar */}
-              <div className="flex items-center gap-1 p-2 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-t-xl border-b-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 p-1.5 sm:p-2 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-t-lg sm:rounded-t-xl border-b-0 overflow-x-auto">
                 <button
                   type="button"
                   onClick={() => execCommand('bold')}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Bold"
                 >
-                  <Bold className="w-4 h-4" />
+                  <Bold className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => execCommand('italic')}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Italic"
                 >
-                  <Italic className="w-4 h-4" />
+                  <Italic className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => execCommand('underline')}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Underline"
                 >
-                  <span className="text-sm font-bold underline">U</span>
+                  <span className="text-xs sm:text-sm font-bold underline">U</span>
                 </button>
-                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+                <div className="w-px h-4 sm:h-6 bg-gray-300 dark:bg-gray-600 mx-0.5 sm:mx-1" />
                 <button
                   type="button"
                   onClick={() => execCommand('insertUnorderedList')}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Bullet List"
                 >
-                  <List className="w-4 h-4" />
+                  <List className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => execCommand('insertOrderedList')}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Numbered List"
                 >
-                  <ListOrdered className="w-4 h-4" />
+                  <ListOrdered className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
-                <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+                <div className="w-px h-4 sm:h-6 bg-gray-300 dark:bg-gray-600 mx-0.5 sm:mx-1" />
                 <button
                   type="button"
                   onClick={insertLink}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300"
+                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-700 dark:text-gray-300 flex-shrink-0"
                   title="Insert Link"
                 >
-                  <Link2 className="w-4 h-4" />
+                  <Link2 className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
                 <select
                   onChange={(e) => execCommand('formatBlock', e.target.value)}
-                  className="ml-2 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 border border-gray-300 dark:border-gray-600 rounded text-xs sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   defaultValue="p"
                 >
                   <option value="p">Paragraph</option>
@@ -242,7 +242,7 @@ export default function IdeaSubmission() {
                 ref={editorRef}
                 contentEditable
                 onInput={handleEditorInput}
-                className="w-full min-h-[200px] px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-b-xl focus:border-cyan-500 focus:outline-none transition-colors overflow-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                className="w-full min-h-[150px] sm:min-h-[200px] px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-b-lg sm:rounded-b-xl focus:border-cyan-500 focus:outline-none transition-colors overflow-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                 data-placeholder="Describe your project idea, its goals, target audience, and key features..."
               />
               <style>{`
@@ -275,20 +275,20 @@ export default function IdeaSubmission() {
                   text-decoration: underline;
                 }
               `}</style>
-              <p className="text-xs text-gray-500 mt-1">Minimum 100 characters</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Minimum 100 characters</p>
             </div>
 
             {/* Category */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                <Tag className="w-4 h-4" />
+              <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
                 Category *
               </label>
               <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -299,8 +299,8 @@ export default function IdeaSubmission() {
 
             {/* Timeline */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                <Clock className="w-4 h-4" />
+              <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                 Expected Timeline *
               </label>
               <input
@@ -309,7 +309,7 @@ export default function IdeaSubmission() {
                 value={formData.expectedTimeline}
                 onChange={(e) => setFormData({ ...formData, expectedTimeline: e.target.value })}
                 placeholder="E.g., 3 months, 6 weeks, etc."
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:border-cyan-500 focus:outline-none transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
               />
             </div>
 
@@ -318,32 +318,32 @@ export default function IdeaSubmission() {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 sm:py-4 text-sm sm:text-base bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-lg sm:rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               {submitting ? 'Submitting...' : 'Submit Idea for Review'}
             </button>
           </div>
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
-          <h3 className="font-bold text-blue-900 dark:text-blue-300 mb-2">What happens next?</h3>
-          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-400">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">1.</span>
+        <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-blue-50 dark:bg-blue-900/30 rounded-lg sm:rounded-xl border border-blue-200 dark:border-blue-700">
+          <h3 className="text-sm sm:text-base font-bold text-blue-900 dark:text-blue-300 mb-2">What happens next?</h3>
+          <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-blue-800 dark:text-blue-400">
+            <li className="flex items-start gap-1.5 sm:gap-2">
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">1.</span>
               <span>Your idea will be reviewed by our admin team within 2-3 business days</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">2.</span>
+            <li className="flex items-start gap-1.5 sm:gap-2">
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">2.</span>
               <span>You'll receive an email notification about the approval status</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">3.</span>
+            <li className="flex items-start gap-1.5 sm:gap-2">
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">3.</span>
               <span>If approved, you'll become a Creator and can start your project!</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">4.</span>
+            <li className="flex items-start gap-1.5 sm:gap-2">
+              <span className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0">4.</span>
               <span>You can manage tasks, team members, and track progress</span>
             </li>
           </ul>

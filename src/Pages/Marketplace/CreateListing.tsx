@@ -1,13 +1,13 @@
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { storage } from '../../service/Firebase';
-import { createProject } from '../../service/marketplaceService';
+import { createProject, getProjectById, updateProject } from '../../service/marketplaceService';
 import type { CreateProjectData, LicenseType, ProjectCategory } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
 
@@ -15,6 +15,8 @@ export default function CreateListing() {
   const { user } = useAuth();
   const { userprofile, avatrUrl } = useDataContext();
   const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId: string }>();
+  const isEditMode = !!projectId;
 
   const [formData, setFormData] = useState<CreateProjectData>({
     title: '',
@@ -38,7 +40,52 @@ export default function CreateListing() {
   const [imageInput, setImageInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load existing project data when in edit mode
+  useEffect(() => {
+    const loadProject = async () => {
+      if (!isEditMode || !projectId) return;
+
+      setIsLoading(true);
+      try {
+        const project = await getProjectById(projectId);
+        if (project) {
+          // Check if user owns this project
+          if (project.sellerId !== user?.uid) {
+            toast.error('You can only edit your own projects');
+            navigate('/dashboard/marketplace/my-listings');
+            return;
+          }
+
+          setFormData({
+            title: project.title,
+            description: project.description,
+            category: project.category,
+            techStack: project.techStack,
+            price: project.price,
+            isFree: project.isFree,
+            images: project.images,
+            links: project.links,
+            licenseType: project.licenseType,
+            status: project.status,
+          });
+        } else {
+          toast.error('Project not found');
+          navigate('/dashboard/marketplace/my-listings');
+        }
+      } catch (error) {
+        console.error('Error loading project:', error);
+        toast.error('Failed to load project');
+        navigate('/dashboard/marketplace/my-listings');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProject();
+  }, [projectId, isEditMode, user, navigate]);
 
   const handleAddTech = (tech: string) => {
     if (tech && !formData.techStack.includes(tech)) {
@@ -158,42 +205,61 @@ export default function CreateListing() {
 
     setIsSubmitting(true);
     try {
-      const projectId = await createProject(
-        formData,
-        user.uid,
-        userprofile.name,
-        avatrUrl || ''
-      );
-      toast.success('Project listed successfully!');
-      navigate(`/dashboard/marketplace/project/${projectId}`);
+      if (isEditMode && projectId) {
+        // Update existing project
+        await updateProject(projectId, formData);
+        toast.success('Project updated successfully!');
+        navigate(`/dashboard/marketplace/project/${projectId}`);
+      } else {
+        // Create new project
+        const newProjectId = await createProject(
+          formData,
+          user.uid,
+          userprofile.name,
+          avatrUrl || ''
+        );
+        toast.success('Project listed successfully!');
+        navigate(`/dashboard/marketplace/project/${newProjectId}`);
+      }
     } catch (error: any) {
-      console.error('Error creating project:', error);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} project:`, error);
       
       // Provide specific error messages
       if (error?.code === 'permission-denied') {
         toast.error('Permission denied! Please deploy Firestore rules first.\n\nGo to Firebase Console → Firestore → Rules → Publish');
       } else if (error?.message) {
-        toast.error(`Failed to create listing: ${error.message}`);
+        toast.error(`Failed to ${isEditMode ? 'update' : 'create'} listing: ${error.message}`);
       } else {
-        toast.error('Failed to create listing. Check browser console for details.');
+        toast.error(`Failed to ${isEditMode ? 'update' : 'create'} listing. Check browser console for details.`);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
+          <p className="text-gray-600 dark:text-white font-medium">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-4xl mx-auto">
         <button
-          onClick={() => navigate('/dashboard/marketplace')}
+          onClick={() => navigate(isEditMode ? '/dashboard/marketplace/my-listings' : '/dashboard/marketplace')}
           className="mb-6 flex items-center gap-2 text-gray-600 dark:text-white transition-colors font-medium"
           style={{ '--hover-color': '#00ADB5' } as React.CSSProperties}
           onMouseEnter={(e) => e.currentTarget.style.color = '#00ADB5'}
           onMouseLeave={(e) => e.currentTarget.style.color = ''}
         >
           <ArrowLeft className="w-5 h-5" />
-          Back to Marketplace
+          {isEditMode ? 'Back to My Listings' : 'Back to Marketplace'}
         </button>
 
         <motion.div
@@ -202,10 +268,10 @@ export default function CreateListing() {
           className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm"
         >
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#00ADB5' }}>
-            List Your Project
+            {isEditMode ? 'Edit Your Project' : 'List Your Project'}
           </h1>
           <p className="text-gray-600 dark:text-white mb-8">
-            Share your amazing project with the community
+            {isEditMode ? 'Update your project details' : 'Share your amazing project with the community'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -512,7 +578,7 @@ export default function CreateListing() {
             <div className="flex gap-4 pt-6">
               <button
                 type="button"
-                onClick={() => navigate('/dashboard/marketplace')}
+                onClick={() => navigate(isEditMode ? '/dashboard/marketplace/my-listings' : '/dashboard/marketplace')}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
@@ -526,12 +592,12 @@ export default function CreateListing() {
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Publishing...</span>
+                    <span>{isEditMode ? 'Updating...' : 'Publishing...'}</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-5 h-5" />
-                    <span>Publish Project</span>
+                    <span>{isEditMode ? 'Update Project' : 'Publish Project'}</span>
                   </>
                 )}
               </button>

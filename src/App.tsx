@@ -185,6 +185,7 @@ const App: React.FC = () => {
                   <Route path="marketplace" element={<MarketplaceBazaar />} />
                   <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
                   <Route path="marketplace/create" element={<CreateListing />} />
+                  <Route path="marketplace/edit/:projectId" element={<CreateListing />} />
                   <Route path="marketplace/my-listings" element={<MyListings />} />
                   <Route path="marketplace/my-purchases" element={<MyPurchases />} />
                 </Route>

@@ -1,5 +1,7 @@
+import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
+  AlertCircle,
   Award,
   BookOpen,
   Code2,
@@ -8,18 +10,18 @@ import {
   MessageSquare,
   Plus,
   Search,
-  Star,
-  Zap,
-  AlertCircle,
   Send,
-  Trash2
+  Trash2,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { db } from '../../service/Firebase';
+import { createOrGetDeveloperChat, getConversationsWithMessages, sendMessage, subscribeToMessages } from '../../service/messagingService';
+import { createStudyGroup, deleteStudyGroup, getAllStudyGroups, joinStudyGroup } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
-import { sendMessage, subscribeToMessages, getConversationsWithMessages, createOrGetDeveloperChat } from '../../service/messagingService';
-import { createStudyGroup, getAllStudyGroups, joinStudyGroup, deleteStudyGroup } from '../../service/studyGroupsService';
 
 const avatarSeeds = [
   "Eliza", "Easton", "Brian", "Liam", "Jessica", "Destiny", "Luis", "Chase", "Ryan",
@@ -97,8 +99,8 @@ export default function DeveloperConnect() {
               email: user.email || '',
               avatar: avatarUrl, // Generated avatar
               bio: user.bio || 'Student on NextStep',
-              college: user.college || 'Not specified',
-              year: user.year || ('Other' as const),
+              college: user.institute || 'Not specified',
+              year: user.yearOfStudy || 'Other',
               codeArenaStats: {
                 problemsSolved: user.problemsSolved || 0,
                 rating: user.codeRating || 0,
@@ -141,6 +143,29 @@ export default function DeveloperConnect() {
 
     loadRealUsers();
   }, [fetchAllUsers]);
+
+  // Load endorsements from Firebase
+  useEffect(() => {
+    const loadEndorsements = async () => {
+      try {
+        const endorsementsRef = collection(db, 'endorsements');
+        
+        // Load ALL endorsements to show counts for all users
+        const snapshot = await getDocs(endorsementsRef);
+        
+        const allEndorsements = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setEndorsements(allEndorsements as any[]);
+      } catch (err) {
+        console.error('Error loading endorsements:', err);
+      }
+    };
+    
+    loadEndorsements();
+  }, [user?.uid]);
 
   // Load study groups from Firebase
   useEffect(() => {
@@ -309,8 +334,8 @@ export default function DeveloperConnect() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
           <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Developers Yet</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">Developers who complete their profiles will appear here. Invite your friends!</p>
-          <button className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <p className="text-gray-600 dark:text-white mb-6">Developers who complete their profiles will appear here. Invite your friends!</p>
+          <button className="px-6 py-2 text-white rounded-lg transition-all shadow-lg hover:opacity-90" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
             Invite Friends
           </button>
         </div>
@@ -342,7 +367,7 @@ export default function DeveloperConnect() {
 
         {/* Skills Filter */}
         <div className="mb-4">
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Skills</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
           <div className="flex flex-wrap gap-2">
             {allSkills.map(skill => (
               <button
@@ -356,9 +381,10 @@ export default function DeveloperConnect() {
                 }}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                   selectedSkills.includes(skill)
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                    ? 'text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white hover:bg-gray-300'
                 }`}
+                style={selectedSkills.includes(skill) ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}
               >
                 {skill}
               </button>
@@ -368,7 +394,7 @@ export default function DeveloperConnect() {
 
         {/* Looking For Filter */}
         <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Looking For</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Looking For</p>
           <select
             value={lookingForFilter}
             onChange={(e) => setLookingForFilter(e.target.value)}
@@ -383,7 +409,7 @@ export default function DeveloperConnect() {
       </div>
 
       {/* Results count */}
-      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-white">
         <p>Showing {displayedDevelopers.length} of {filteredDevelopers.length} developers</p>
         {filteredDevelopers.length !== developers.length && (
           <p>{developers.length} total in directory</p>
@@ -410,27 +436,33 @@ export default function DeveloperConnect() {
                 />
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{dev.college} • {dev.year}</p>
+                  <p className="text-xs text-gray-500 dark:text-white">
+                    {dev.college} • {
+                      dev.year.includes('Year') && !dev.year.includes('Passout') ? 
+                        (dev.year.includes('1') ? '1st Year' : dev.year.includes('2') ? '2nd Year' : dev.year.includes('3') ? '3rd Year' : '4th Year') 
+                        : dev.year
+                    }
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-yellow-500">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="text-sm font-semibold">{dev.averageRating}</span>
+              <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
+                <Award className="w-4 h-4" />
+                <span className="text-sm font-semibold">{endorsements.filter(e => e.recipientId === dev.userId).length}</span>
               </div>
             </div>
 
             {/* Bio */}
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{dev.bio}</p>
+            <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{dev.bio}</p>
 
             {/* CodeArena Stats */}
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-3 mb-4">
+            <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(0, 173, 181, 0.1)' }}>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Problems Solved</p>
+                  <p className="text-gray-600 dark:text-white">Problems Solved</p>
                   <p className="font-bold text-gray-900 dark:text-white">{dev.codeArenaStats.problemsSolved}</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400">Rank</p>
+                  <p className="text-gray-600 dark:text-white">Rank</p>
                   <p className="font-bold text-gray-900 dark:text-white">#{dev.codeArenaStats.rank}</p>
                 </div>
               </div>
@@ -438,18 +470,19 @@ export default function DeveloperConnect() {
 
             {/* Skills */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Skills</p>
+              <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
               <div className="flex flex-wrap gap-1">
                 {dev.skills.slice(0, 3).map(skill => (
                   <span
                     key={skill}
-                    className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full"
+                    className="text-xs px-2 py-1 rounded-full"
+                    style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
                   >
                     {skill}
                   </span>
                 ))}
                 {dev.skills.length > 3 && (
-                  <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                  <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
                     +{dev.skills.length - 3}
                   </span>
                 )}
@@ -465,13 +498,14 @@ export default function DeveloperConnect() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button 
                 onClick={() => {
                   setSelectedChat(dev.userId);
                   setActiveTab('messages');
                 }}
-                className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+                className="flex-1 px-3 py-2 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
                 <MessageSquare className="w-4 h-4" />
                 Message
               </button>
@@ -480,7 +514,7 @@ export default function DeveloperConnect() {
                   setSelectedUserToEndorse(dev);
                   setShowEndorseModal(true);
                 }}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
                 <Award className="w-4 h-4" />
                 Endorse
               </button>
@@ -494,7 +528,8 @@ export default function DeveloperConnect() {
         <div className="text-center mt-8">
           <button
             onClick={() => setDisplayLimit(prev => prev + 12)}
-            className="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+            className="px-8 py-3 text-white rounded-lg transition-all shadow-lg hover:opacity-90 font-semibold"
+            style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
           >
             Load More ({filteredDevelopers.length - displayLimit} remaining)
           </button>
@@ -505,7 +540,7 @@ export default function DeveloperConnect() {
         <div className="text-center py-12">
           <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No developers found</h3>
-          <p className="text-gray-600 dark:text-gray-400">Try adjusting your filters</p>
+          <p className="text-gray-600 dark:text-white">Try adjusting your filters</p>
         </div>
       )}
     </div>
@@ -521,7 +556,7 @@ export default function DeveloperConnect() {
           <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="font-semibold text-gray-900 dark:text-white">Messages</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{conversations.length} conversations</p>
+              <p className="text-xs text-gray-500 dark:text-white mt-1">{conversations.length} conversations</p>
             </div>
             
             <div className="flex-1 overflow-y-auto">
@@ -537,8 +572,9 @@ export default function DeveloperConnect() {
                     key={conv.participantId}
                     onClick={() => setSelectedChat(conv.participantId)}
                     className={`w-full p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left ${
-                      selectedChat === conv.participantId ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      selectedChat === conv.participantId ? '' : ''
                     }`}
+                    style={selectedChat === conv.participantId ? { backgroundColor: 'rgba(0, 173, 181, 0.1)', borderLeft: '3px solid #00ADB5' } : {}}
                   >
                     <div className="flex items-center gap-3">
                       <img
@@ -548,7 +584,7 @@ export default function DeveloperConnect() {
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 dark:text-white truncate text-sm">{conv.participantName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{conv.lastMessage || 'No messages yet'}</p>
+                        <p className="text-xs text-gray-500 dark:text-white truncate">{conv.lastMessage || 'No messages yet'}</p>
                       </div>
                     </div>
                   </button>
@@ -558,11 +594,11 @@ export default function DeveloperConnect() {
           </div>
 
           {/* Welcome Message */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-            <div className="text-center">
-              <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Select a Conversation</h3>
-              <p className="text-gray-600 dark:text-gray-400">Click on a conversation to view messages</p>
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center min-h-[300px] lg:min-h-0">
+            <div className="text-center p-4">
+              <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Select a Conversation</h3>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-white">Click on a conversation to view messages</p>
             </div>
           </div>
         </div>
@@ -600,21 +636,24 @@ export default function DeveloperConnect() {
     };
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[500px] lg:h-[600px]">
         {/* Chat List */}
-        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col max-h-[250px] lg:max-h-none">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
                 setSelectedChat(null);
                 setMessages([]);
               }}
-              className="text-blue-500 hover:text-blue-600 text-sm font-semibold mb-3"
+              className="text-sm font-semibold mb-3 transition-colors"
+              style={{ color: '#00ADB5' }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
               ← Back
             </button>
             <h3 className="font-semibold text-gray-900 dark:text-white">{selectedDev.name}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{selectedDev.college}</p>
+            <p className="text-xs text-gray-500 dark:text-white mt-1">{selectedDev.college}</p>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4">
@@ -624,10 +663,10 @@ export default function DeveloperConnect() {
               <p className="text-xs text-gray-500">{selectedDev.college} • {selectedDev.year}</p>
               {selectedDev.skills.length > 0 && (
                 <div className="mt-4 text-left">
-                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Skills</p>
+                  <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
                   <div className="flex flex-wrap gap-1">
                     {selectedDev.skills.slice(0, 4).map(skill => (
-                      <span key={skill} className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                      <span key={skill} className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                         {skill}
                       </span>
                     ))}
@@ -639,16 +678,16 @@ export default function DeveloperConnect() {
         </div>
 
         {/* Chat Messages */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col min-h-[400px]">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="font-semibold text-gray-900 dark:text-white">Chat with {selectedDev.name}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Direct messaging</p>
+            <p className="text-xs text-gray-500 dark:text-white">Direct messaging</p>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col">
             {loadingMessages ? (
               <div className="flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderColor: '#00ADB5' }}></div>
                 <div className="text-gray-500 text-sm">Loading messages...</div>
                 <div className="text-gray-400 text-xs mt-2">If this takes long, Firebase indexes may be building</div>
               </div>
@@ -668,11 +707,12 @@ export default function DeveloperConnect() {
                   )}
                   <div className={`max-w-xs px-4 py-2 rounded-lg ${
                     msg.senderId === user.uid
-                      ? 'bg-blue-500 text-white'
+                      ? 'text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                  }`}>
+                  }`}
+                  style={msg.senderId === user.uid ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}>
                     <p className="text-sm">{msg.message || msg.content}</p>
-                    <p className={`text-xs mt-1 ${msg.senderId === user.uid ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                    <p className={`text-xs mt-1 ${msg.senderId === user.uid ? 'text-blue-100' : 'text-gray-500 dark:text-white'}`}>
                       {msg.timestamp instanceof Date
                         ? msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -696,12 +736,14 @@ export default function DeveloperConnect() {
                     handleSendMessage();
                   }
                 }}
-                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': '#00ADB5' } as React.CSSProperties}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center gap-2"
+                className="px-4 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-2 shadow-md hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 <Send className="w-4 h-4" />
                 Send
@@ -722,7 +764,10 @@ export default function DeveloperConnect() {
         <div className="space-y-6">
           <button
             onClick={() => setSelectedGroup(null)}
-            className="text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-2"
+            className="font-semibold flex items-center gap-2 transition-colors"
+            style={{ color: '#00ADB5' }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
             ← Back to Groups
           </button>
@@ -731,7 +776,7 @@ export default function DeveloperConnect() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{selectedGroup.name}</h2>
-                <p className="text-gray-600 dark:text-gray-400">{selectedGroup.description}</p>
+                <p className="text-gray-600 dark:text-white">{selectedGroup.description}</p>
               </div>
               <span className={`text-xs px-3 py-1 rounded-full ${
                 selectedGroup.level === 'Beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
@@ -743,10 +788,10 @@ export default function DeveloperConnect() {
             </div>
             
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+              <span className="text-sm px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                 {selectedGroup.topic}
               </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-gray-600 dark:text-white">
                 {selectedGroup.members?.length || 0} / {selectedGroup.maxMembers} members
               </span>
             </div>
@@ -754,7 +799,7 @@ export default function DeveloperConnect() {
             {/* Members List */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Members</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {selectedGroup.members?.map((member: any) => (
                   <div key={member.userId} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                     <img
@@ -764,7 +809,7 @@ export default function DeveloperConnect() {
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 dark:text-white text-sm">{member.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500 dark:text-white">
                         {member.role === 'creator' ? '👑 Creator' : 'Member'}
                       </p>
                     </div>
@@ -795,7 +840,7 @@ export default function DeveloperConnect() {
                                 <span className="font-semibold text-sm text-gray-900 dark:text-white">{msg.name}</span>
                                 <span className="text-xs text-gray-400">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{msg.message}</p>
+                              <p className="text-sm text-gray-700 dark:text-white">{msg.message}</p>
                             </div>
                           </div>
                         ))}
@@ -836,7 +881,8 @@ export default function DeveloperConnect() {
                           setGroupMessage('');
                         }
                       }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      className="px-4 py-2 text-white rounded-lg transition-all shadow-md hover:opacity-90"
+                      style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
                     >
                       <Send className="w-4 h-4" />
                     </button>
@@ -846,16 +892,22 @@ export default function DeveloperConnect() {
                 {/* Quick Actions */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Resources & Schedule</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-500">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
                       <Plus className="w-6 h-6 mx-auto mb-2" />
                       <p className="text-sm font-semibold">Share Resource</p>
                     </button>
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-500">
+                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
                       <Plus className="w-6 h-6 mx-auto mb-2" />
                       <p className="text-sm font-semibold">Schedule Session</p>
                     </button>
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-gray-600 dark:text-gray-400 hover:text-blue-500">
+                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
                       <Plus className="w-6 h-6 mx-auto mb-2" />
                       <p className="text-sm font-semibold">Set Goal</p>
                     </button>
@@ -864,7 +916,7 @@ export default function DeveloperConnect() {
               </>
             ) : (
               <div className="text-center py-8 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">Join this group to access discussions and resources</p>
+                <p className="text-gray-600 dark:text-white mb-4">Join this group to access discussions and resources</p>
                 <button
                   onClick={async () => {
                     if (user) {
@@ -886,7 +938,8 @@ export default function DeveloperConnect() {
                     }
                   }}
                   disabled={selectedGroup.members?.length >= selectedGroup.maxMembers}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
                 >
                   Join Group
                 </button>
@@ -900,11 +953,12 @@ export default function DeveloperConnect() {
     // Group list view
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Study Groups</h3>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Study Groups</h3>
           <button 
             onClick={() => setShowCreateGroup(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2">
+            className="px-4 py-2 text-white rounded-lg transition-all shadow-lg hover:opacity-90 flex items-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
             <Plus className="w-5 h-5" />
             Create Group
           </button>
@@ -913,12 +967,12 @@ export default function DeveloperConnect() {
         {/* Create Group Modal */}
         {showCreateGroup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Group Name</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Group Name</label>
                 <input
                   type="text"
                   value={newGroupData.name}
@@ -929,7 +983,7 @@ export default function DeveloperConnect() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Description</label>
                 <textarea
                   value={newGroupData.description}
                   onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
@@ -940,7 +994,7 @@ export default function DeveloperConnect() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Topic</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Topic</label>
                 <select
                   value={newGroupData.topic}
                   onChange={(e) => setNewGroupData({...newGroupData, topic: e.target.value})}
@@ -957,7 +1011,7 @@ export default function DeveloperConnect() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Level</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Level</label>
                 <select
                   value={newGroupData.level}
                   onChange={(e) => setNewGroupData({...newGroupData, level: e.target.value as any})}
@@ -970,7 +1024,7 @@ export default function DeveloperConnect() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Max Members</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Max Members</label>
                 <input
                   type="number"
                   value={newGroupData.maxMembers}
@@ -1018,7 +1072,7 @@ export default function DeveloperConnect() {
               </button>
               <button
                 onClick={() => setShowCreateGroup(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -1032,21 +1086,22 @@ export default function DeveloperConnect() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Study Groups Yet</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Create or join a study group to learn together</p>
+            <p className="text-gray-600 dark:text-white mb-6">Create or join a study group to learn together</p>
             <button 
               onClick={() => setShowCreateGroup(true)}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+              className="px-6 py-2 text-white rounded-lg transition-all shadow-lg hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
               Create First Group
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {studyGroups.map((group) => (
             <div key={group.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-1">{group.name}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">by {group.creatorName}</p>
+                  <p className="text-xs text-gray-500 dark:text-white">by {group.creatorName}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-2 py-1 rounded-full ${
@@ -1079,17 +1134,17 @@ export default function DeveloperConnect() {
                 </div>
               </div>
               
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{group.description}</p>
+              <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{group.description}</p>
               
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                   {group.topic}
                 </span>
               </div>
               
               {/* Members Preview */}
               <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Members ({group.members?.length || 0})</p>
+                <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Members ({group.members?.length || 0})</p>
                 <div className="flex items-center gap-1">
                   {group.members?.slice(0, 5).map((member: any, idx: number) => (
                     <img
@@ -1102,7 +1157,7 @@ export default function DeveloperConnect() {
                     />
                   ))}
                   {(group.members?.length || 0) > 5 && (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300" style={{ marginLeft: '-8px' }}>
+                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-white" style={{ marginLeft: '-8px' }}>
                       +{(group.members?.length || 0) - 5}
                     </div>
                   )}
@@ -1112,14 +1167,15 @@ export default function DeveloperConnect() {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-4">
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-white mb-4">
                 <span>{group.members?.length || 0} / {group.maxMembers} members</span>
                 <span className="text-gray-400">Created {new Date(group.createdAt).toLocaleDateString()}</span>
               </div>
               
               <button
                 onClick={() => setSelectedGroup(group)}
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold"
+                className="w-full px-4 py-2 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 View Details
               </button>
@@ -1132,95 +1188,20 @@ export default function DeveloperConnect() {
   };
 
   const renderEndorsements = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Skill Endorsements</h3>
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Skill Endorsements</h3>
       </div>
-
-      {/* Endorse Modal */}
-      {showEndorseModal && selectedUserToEndorse && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Endorse {selectedUserToEndorse.name}
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Select Skill</label>
-                <select
-                  value={endorsementData.skill}
-                  onChange={(e) => setEndorsementData({...endorsementData, skill: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                >
-                  <option value="">Choose a skill</option>
-                  {selectedUserToEndorse.skills.map(skill => (
-                    <option key={skill} value={skill}>{skill}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Message (Optional)</label>
-                <textarea
-                  value={endorsementData.message}
-                  onChange={(e) => setEndorsementData({...endorsementData, message: e.target.value})}
-                  placeholder="Great team player with excellent React skills..."
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  if (endorsementData.skill && user) {
-                    const newEndorsement = {
-                      id: Date.now().toString(),
-                      endorserId: user.uid,
-                      endorserName: user.displayName || 'User',
-                      endorserAvatar: userprofile?.avatrUrl || '',
-                      recipientId: selectedUserToEndorse.userId,
-                      recipientName: selectedUserToEndorse.name,
-                      skill: endorsementData.skill,
-                      message: endorsementData.message,
-                      timestamp: new Date()
-                    };
-                    setEndorsements([...endorsements, newEndorsement]);
-                    setShowEndorseModal(false);
-                    setSelectedUserToEndorse(null);
-                    setEndorsementData({skill: '', message: ''});
-                  }
-                }}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Send Endorsement
-              </button>
-              <button
-                onClick={() => {
-                  setShowEndorseModal(false);
-                  setSelectedUserToEndorse(null);
-                  setEndorsementData({skill: '', message: ''});
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* My Endorsements Received */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Award className="w-5 h-5 text-blue-500" />
+          <Award className="w-5 h-5" style={{ color: '#00ADB5' }} />
           Endorsements Received ({endorsements.filter(e => e.recipientId === user?.uid).length})
         </h4>
         
         {endorsements.filter(e => e.recipientId === user?.uid).length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">No endorsements yet. Keep collaborating!</p>
+          <p className="text-gray-500 dark:text-white text-center py-8">No endorsements yet. Keep collaborating!</p>
         ) : (
           <div className="space-y-4">
             {endorsements.filter(e => e.recipientId === user?.uid).map(endorsement => (
@@ -1229,12 +1210,12 @@ export default function DeveloperConnect() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-gray-900 dark:text-white text-sm">{endorsement.endorserName}</p>
-                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                       {endorsement.skill}
                     </span>
                   </div>
                   {endorsement.message && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{endorsement.message}</p>
+                    <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
                     {new Date(endorsement.timestamp).toLocaleDateString()}
@@ -1254,7 +1235,7 @@ export default function DeveloperConnect() {
         </h4>
         
         {endorsements.filter(e => e.endorserId === user?.uid).length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+          <p className="text-gray-500 dark:text-white text-center py-8">
             You haven't endorsed anyone yet. Go to the directory to endorse developers!
           </p>
         ) : (
@@ -1264,12 +1245,12 @@ export default function DeveloperConnect() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-gray-900 dark:text-white text-sm">To: {endorsement.recipientName}</p>
-                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                       {endorsement.skill}
                     </span>
                   </div>
                   {endorsement.message && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{endorsement.message}</p>
+                    <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
                     {new Date(endorsement.timestamp).toLocaleDateString()}
@@ -1284,7 +1265,7 @@ export default function DeveloperConnect() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -1294,10 +1275,10 @@ export default function DeveloperConnect() {
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 Developer Connect 🤝
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-white">
                 Find teammates, build together, grow your network
               </p>
             </div>
@@ -1305,7 +1286,7 @@ export default function DeveloperConnect() {
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide">
           {[
             { id: 'directory', label: 'Developer Directory', icon: Code2 },
             { id: 'messages', label: 'Messages', icon: Mail },
@@ -1317,14 +1298,16 @@ export default function DeveloperConnect() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-3 font-semibold flex items-center gap-2 border-b-2 transition-colors ${
+                className={`px-2 sm:px-4 py-2 sm:py-3 font-semibold flex items-center gap-1 sm:gap-2 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-base ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-500'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'border-transparent'
+                    : 'border-transparent text-gray-600 dark:text-white hover:text-gray-900 dark:hover:text-white'
                 }`}
+                style={activeTab === tab.id ? { borderBottomColor: '#00ADB5', color: '#00ADB5' } : {}}
               >
-                <Icon className="w-5 h-5" />
-                {tab.label}
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.id === 'directory' ? 'Directory' : tab.id === 'messages' ? 'Messages' : tab.id === 'groups' ? 'Groups' : 'Endorsements'}</span>
               </button>
             );
           })}
@@ -1336,6 +1319,121 @@ export default function DeveloperConnect() {
         {activeTab === 'groups' && renderGroups()}
         {activeTab === 'endorsements' && renderEndorsements()}
       </div>
+
+      {/* Global Endorse Modal - Shows on any tab */}
+      {showEndorseModal && selectedUserToEndorse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Endorse {selectedUserToEndorse.name}
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Select Skill</label>
+                <select
+                  value={endorsementData.skill}
+                  onChange={(e) => setEndorsementData({...endorsementData, skill: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                >
+                  <option value="">Choose a skill</option>
+                  {selectedUserToEndorse.skills.map(skill => (
+                    <option key={skill} value={skill}>{skill}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Message (Optional)</label>
+                <textarea
+                  value={endorsementData.message}
+                  onChange={(e) => setEndorsementData({...endorsementData, message: e.target.value})}
+                  placeholder="Great team player with excellent React skills..."
+                  rows={3}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={async () => {
+                  if (!endorsementData.skill) {
+                    toast.error('Please select a skill to endorse');
+                    return;
+                  }
+                  
+                  if (!user) {
+                    toast.error('You must be logged in to endorse');
+                    return;
+                  }
+
+                  try {
+                    // Create endorsement with current timestamp for immediate display
+                    const currentTime = new Date();
+                    const newEndorsementLocal = {
+                      id: Date.now().toString(),
+                      endorserId: user.uid,
+                      endorserName: user.displayName || userprofile?.displayName || 'User',
+                      endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
+                      recipientId: selectedUserToEndorse.userId,
+                      recipientName: selectedUserToEndorse.name,
+                      skill: endorsementData.skill,
+                      message: endorsementData.message,
+                      timestamp: currentTime
+                    };
+                    
+                    // Update local state immediately for instant UI feedback
+                    setEndorsements(prev => [...prev, newEndorsementLocal]);
+                    
+                    // Close modal and reset immediately
+                    setShowEndorseModal(false);
+                    setSelectedUserToEndorse(null);
+                    setEndorsementData({skill: '', message: ''});
+                    
+                    // Show success toast
+                    toast.success(`✅ Successfully endorsed ${newEndorsementLocal.recipientName} for ${endorsementData.skill}!`, {
+                      duration: 4000,
+                      position: 'top-center',
+                    });
+
+                    // Save to Firebase in background
+                    const newEndorsementFirebase = {
+                      endorserId: user.uid,
+                      endorserName: user.displayName || userprofile?.displayName || 'User',
+                      endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
+                      recipientId: selectedUserToEndorse.userId,
+                      recipientName: selectedUserToEndorse.name,
+                      skill: endorsementData.skill,
+                      message: endorsementData.message,
+                      timestamp: serverTimestamp()
+                    };
+                    
+                    await addDoc(collection(db, 'endorsements'), newEndorsementFirebase);
+                  } catch (error) {
+                    console.error('Error saving endorsement:', error);
+                    toast.error('Failed to save endorsement. Please try again.');
+                  }
+                }}
+                disabled={!endorsementData.skill}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Endorsement
+              </button>
+              <button
+                onClick={() => {
+                  setShowEndorseModal(false);
+                  setSelectedUserToEndorse(null);
+                  setEndorsementData({skill: '', message: ''});
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

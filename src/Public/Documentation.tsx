@@ -1,9 +1,9 @@
-import { ArrowRight, Award, BookOpen, CheckCircle, ClipboardList, Code, Coins, Compass, FolderOpen, Gift, Globe, History, Lightbulb, MessageCircle, RefreshCw, Rocket, Search, ShoppingBag, Sparkles, Swords, Target, Trophy, Users, Zap } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, CheckCircle, ClipboardList, Code, Coins, Compass, FolderOpen, Gift, Globe, History, Lightbulb, Mail, MessageCircle, RefreshCw, Rocket, Search, ShoppingBag, Sparkles, Swords, Target, Trophy, UserPlus, Users, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const NextStepDocumentation = () => {
-  type DocSection = 'getting-started' | 'creator-corner' | 'codearena' | 'project-bazaar' | 'courses';
+  type DocSection = 'getting-started' | 'creator-corner' | 'codearena' | 'project-bazaar' | 'developer-connect';
   const [activeSection, setActiveSection] = useState<DocSection>('getting-started');
   const navigate = useNavigate();
 
@@ -12,7 +12,7 @@ const NextStepDocumentation = () => {
     { id: 'creator-corner', icon: Lightbulb, label: 'Creator Corner', gradient: 'from-purple-500 to-pink-500', description: 'Collaborate & build' },
     { id: 'codearena', icon: Swords, label: 'CodeArena', gradient: 'from-orange-500 to-red-500', description: 'Battle & earn coins' },
     { id: 'project-bazaar', icon: ShoppingBag, label: 'Project Bazaar', gradient: 'from-emerald-500 to-teal-500', description: 'Buy & sell projects' },
-    { id: 'courses', icon: BookOpen, label: 'Courses', gradient: 'from-indigo-500 to-purple-500', description: 'Learn & grow' },
+    { id: 'developer-connect', icon: Users, label: 'Developer Connect', gradient: 'from-indigo-500 to-purple-500', description: 'Network & connect' },
   ];
 
   const content = {
@@ -169,30 +169,45 @@ const NextStepDocumentation = () => {
         }
       ]
     },
-    'courses': {
-      title: 'Courses - Learn & Master New Skills',
-      icon: BookOpen,
+    'developer-connect': {
+      title: 'Developer Connect - Network & Grow Together',
+      icon: Users,
       gradient: 'from-indigo-500 to-purple-500',
       sections: [
         {
-          heading: 'Curated Learning Paths',
-          text: 'Access hand-picked courses, tutorials, and resources from top platforms. Each learning path is designed by industry experts to take you from beginner to professional.',
+          heading: '🌐 Global Developer Network',
+          text: 'Connect with thousands of developers from around the world! Developer Connect is your gateway to building meaningful professional relationships, finding collaborators, and growing your network.\n\n• Browse 12,000+ developer profiles\n• Filter by skills, location, and year of study\n• View detailed profiles with tech stacks\n• See endorsements and ratings\n• Connect with like-minded developers\n• Build your professional network',
+          image: '🌐'
+        },
+        {
+          heading: '⭐ Endorse Skills & Get Endorsed',
+          text: 'Build credibility through peer endorsements! Showcase your expertise by collecting endorsements from developers you\'ve worked with.\n\n💎 Endorsement System:\n• Endorse developers for specific skills\n• Add personalized messages\n• Receive endorsements on your profile\n• Display total endorsement count\n• Build trust and credibility\n• Stand out in the community\n\n🏆 Your endorsements are visible to everyone and help establish your reputation!',
+          image: '⭐'
+        },
+        {
+          heading: '💬 Direct Messaging',
+          text: 'Communicate seamlessly with other developers through our built-in messaging system. Start conversations, share ideas, and build relationships!\n\n• Send direct messages to any developer\n• Real-time chat interface\n• Share code snippets and resources\n• Discuss collaboration opportunities\n• Get help and mentorship\n• Keep all conversations organized\n• Notification system for new messages',
+          image: '💬'
+        },
+        {
+          heading: '📚 Study Groups',
+          text: 'Join or create study groups to learn together! Collaborate with peers who share your learning goals and interests.\n\n🎯 Study Group Features:\n• Browse existing study groups\n• Create your own study groups\n• Filter by technology and topics\n• Set group capacity limits\n• Track group members\n• Dedicated group chat\n• Share learning resources\n• Organize study sessions',
           image: '📚'
         },
         {
-          heading: 'Skill Development',
-          text: 'Build in-demand skills through:\n• Interactive coding challenges\n• Video tutorials and workshops\n• Live webinars with experts\n• Practice projects and assessments\n• Peer learning groups\n• Certificate programs',
-          image: '💪'
-        },
-        {
-          heading: 'Learning Tracks',
-          text: 'Choose from specialized tracks like Web Development, Data Science, UI/UX Design, Digital Marketing, Business Analytics, and more. Each track includes beginner to advanced content.',
+          heading: '🎓 Student Profiles',
+          text: 'Showcase your journey with detailed student profiles! Share your skills, education, projects, and achievements with the community.\n\n📋 Profile Information:\n• Name, college, and year of study\n• Skills and tech stack\n• Bio and interests\n• Total endorsements received\n• Projects and contributions\n• Contact information\n• Professional avatar\n• Social media links',
           image: '🎓'
         },
         {
-          heading: 'Resource Library',
-          text: 'Access our comprehensive library of articles, ebooks, cheat sheets, templates, and tools. Everything you need to accelerate your learning journey in one place.',
-          image: '📖'
+          heading: '🔍 Smart Search & Filters',
+          text: 'Find exactly who you\'re looking for with powerful search and filtering tools! Discover developers based on specific criteria.\n\n🎯 Filter Options:\n• Search by name or email\n• Filter by college\n• Filter by year of study\n• Filter by skills/tech stack\n• Sort by endorsement count\n• View developer statistics\n• Save favorite profiles\n• Quick connect options',
+          image: '🔍'
+        },
+        {
+          heading: '🤝 Collaboration Opportunities',
+          text: 'Developer Connect bridges you to Creator Corner and other platform features! Find collaborators for your projects and join exciting teams.\n\n💡 Networking Benefits:\n• Find project collaborators\n• Discover mentorship opportunities\n• Join coding communities\n• Participate in group learning\n• Build lasting relationships\n• Grow your professional circle\n• Access exclusive opportunities',
+          image: '🤝'
         }
       ]
     }
@@ -363,6 +378,38 @@ const NextStepDocumentation = () => {
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="font-bold text-sm sm:text-base">80% Revenue</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'developer-connect' && (
+            <div className="mb-8 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black">🌐 Connect with 12K+ Developers!</h3>
+                  <p className="text-white/90 font-medium">Build your network, get endorsed, join study groups, and grow together</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
+                  <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Network</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Endorse</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Message</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Study Groups</span>
                 </div>
               </div>
             </div>
@@ -549,6 +596,32 @@ const NextStepDocumentation = () => {
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
                   📥 Download and share on LinkedIn to showcase your skills!
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Features for Developer Connect */}
+          {activeSection === 'developer-connect' && (
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 border-2 border-indigo-200 dark:border-indigo-800 rounded-2xl p-4 text-center">
+                <Users className="w-10 h-10 text-indigo-500 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Developer Directory</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Browse 12K+ devs</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 border-2 border-purple-200 dark:border-purple-800 rounded-2xl p-4 text-center">
+                <Award className="w-10 h-10 text-purple-500 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Endorsements</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Give & receive</p>
+              </div>
+              <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 dark:from-pink-500/20 dark:to-rose-500/20 border-2 border-pink-200 dark:border-pink-800 rounded-2xl p-4 text-center">
+                <MessageCircle className="w-10 h-10 text-pink-500 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Messaging</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Real-time chat</p>
+              </div>
+              <div className="bg-gradient-to-br from-rose-500/10 to-orange-500/10 dark:from-rose-500/20 dark:to-orange-500/20 border-2 border-rose-200 dark:border-rose-800 rounded-2xl p-4 text-center">
+                <BookOpen className="w-10 h-10 text-rose-500 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Study Groups</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Learn together</p>
               </div>
             </div>
           )}
