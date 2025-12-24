@@ -48,7 +48,6 @@ export default function DeveloperConnect() {
   
   // Pagination
   const [displayLimit, setDisplayLimit] = useState(12);
-  const [hasMore, setHasMore] = useState(true);
   
   // Study Groups state
   const [studyGroups, setStudyGroups] = useState<any[]>([]);
@@ -279,7 +278,6 @@ export default function DeveloperConnect() {
   const canLoadMore = filteredDevelopers.length > displayLimit;
 
   const allSkills = ['React', 'Node.js', 'Python', 'Java', 'MongoDB', 'TypeScript', 'AWS', 'Machine Learning'];
-  const allColleges = ['IIT Delhi', 'IIT Mumbai', 'BITS Pilani', 'NIT Karnataka', 'DTU'];
 
   // Render functions for each tab
   const renderDirectory = () => {
@@ -1041,7 +1039,7 @@ export default function DeveloperConnect() {
                 onClick={async () => {
                   if (newGroupData.name && newGroupData.topic && user) {
                     try {
-                      const groupId = await createStudyGroup({
+                      await createStudyGroup({
                         ...newGroupData,
                         creatorId: user.uid,
                         creatorName: user.displayName || 'User',
