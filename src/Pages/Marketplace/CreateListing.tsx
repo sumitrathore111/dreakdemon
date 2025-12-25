@@ -203,6 +203,27 @@ export default function CreateListing() {
       return;
     }
 
+    if (!formData.links.github || !formData.links.github.trim()) {
+      toast.error('GitHub repository link is required');
+      return;
+    }
+
+    if (!formData.links.liveDemo || !formData.links.liveDemo.trim()) {
+      toast.error('Live Demo link is required');
+      return;
+    }
+
+    // Validate URL format
+    const urlPattern = /^https?:\/\/.+/;
+    if (!urlPattern.test(formData.links.github)) {
+      toast.error('Please enter a valid GitHub URL (must start with http:// or https://)');
+      return;
+    }
+    if (!urlPattern.test(formData.links.liveDemo)) {
+      toast.error('Please enter a valid Live Demo URL (must start with http:// or https://)');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       if (isEditMode && projectId) {
@@ -212,14 +233,17 @@ export default function CreateListing() {
         navigate(`/dashboard/marketplace/project/${projectId}`);
       } else {
         // Create new project
-        const newProjectId = await createProject(
+        await createProject(
           formData,
           user.uid,
           userprofile.name,
           avatrUrl || ''
         );
-        toast.success('Project listed successfully!');
-        navigate(`/dashboard/marketplace/project/${newProjectId}`);
+        toast.success('Project submitted for verification! It will be visible after admin approval.', {
+          duration: 5000,
+          icon: '🔍'
+        });
+        navigate('/dashboard/marketplace/my-listings');
       }
     } catch (error: any) {
       console.error(`Error ${isEditMode ? 'updating' : 'creating'} project:`, error);
@@ -526,7 +550,7 @@ export default function CreateListing() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  GitHub Repository
+                  GitHub Repository <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="url"
@@ -534,11 +558,12 @@ export default function CreateListing() {
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, github: e.target.value } })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://github.com/..."
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Live Demo
+                  Live Demo <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="url"
@@ -546,6 +571,7 @@ export default function CreateListing() {
                   onChange={(e) => setFormData({ ...formData, links: { ...formData.links, liveDemo: e.target.value } })}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                   placeholder="https://demo.example.com"
+                  required
                 />
               </div>
               <div>

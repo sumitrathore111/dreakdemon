@@ -270,12 +270,23 @@ export default function MyListings() {
                           className={`px-3 py-1 rounded-full font-semibold ${
                             project.status === 'published'
                               ? 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700'
+                              : project.status === 'pending_verification'
+                              ? 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-700'
+                              : project.status === 'rejected'
+                              ? 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700'
                               : 'bg-gray-100 text-gray-700'
                           }`}
                         >
-                          {project.status}
+                          {project.status === 'pending_verification' ? 'Pending Review' : project.status}
                         </span>
                       </div>
+                      {/* Show rejection reason if project was rejected */}
+                      {project.status === 'rejected' && project.rejectionReason && (
+                        <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">Rejection Reason:</p>
+                          <p className="text-sm text-red-600 dark:text-red-300">{project.rejectionReason}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}

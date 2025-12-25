@@ -1,27 +1,51 @@
 import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
-  AlertCircle,
-  Award,
-  BookOpen,
-  Code2,
-  Filter,
-  Mail,
-  MessageSquare,
-  Plus,
-  Search,
-  Send,
-  Trash2,
-  Zap
+    AlertCircle,
+    Award,
+    BookOpen,
+    Code2,
+    Mail,
+    MessageSquare,
+    Plus,
+    Search,
+    Send,
+    Trash2,
+    Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { db } from '../../service/Firebase';
 import { createOrGetDeveloperChat, getConversationsWithMessages, sendMessage, subscribeToMessages } from '../../service/messagingService';
 import { createStudyGroup, deleteStudyGroup, getAllStudyGroups, joinStudyGroup } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
+
+// Helper function to format Firestore timestamps
+const formatTimestamp = (timestamp: any): string => {
+  if (!timestamp) return 'Unknown date';
+  
+  try {
+    // Handle Firestore Timestamp object
+    if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().toLocaleDateString();
+    }
+    // Handle seconds/nanoseconds object
+    if (timestamp?.seconds) {
+      return new Date(timestamp.seconds * 1000).toLocaleDateString();
+    }
+    // Handle regular Date object or ISO string
+    const date = new Date(timestamp);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString();
+    }
+    return 'Unknown date';
+  } catch {
+    return 'Unknown date';
+  }
+};
 
 const avatarSeeds = [
   "Eliza", "Easton", "Brian", "Liam", "Jessica", "Destiny", "Luis", "Chase", "Ryan",
@@ -84,6 +108,37 @@ export default function DeveloperConnect() {
         
         console.log('All users from Firebase:', allUsers); // Debug
         
+        // Fetch user progress for problems solved
+        const userProgressMap: Record<string, number> = {};
+        try {
+          const progressRef = collection(db, 'CodeArena_UserProgress');
+          const progressSnap = await getDocs(progressRef);
+          console.log('User progress docs:', progressSnap.docs.length); // Debug
+          progressSnap.docs.forEach(doc => {
+            const data = doc.data();
+            const solved = data.solvedChallenges?.length || 0;
+            userProgressMap[doc.id] = solved;
+            console.log(`User ${doc.id} solved: ${solved}`); // Debug
+          });
+        } catch (e) {
+          console.log('Could not fetch user progress:', e);
+        }
+
+        // Fetch battles won from CodeArena_Battles
+        const battlesWonMap: Record<string, number> = {};
+        try {
+          const battlesRef = collection(db, 'CodeArena_Battles');
+          const battlesSnap = await getDocs(battlesRef);
+          battlesSnap.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.status === 'completed' && data.winner) {
+              battlesWonMap[data.winner] = (battlesWonMap[data.winner] || 0) + 1;
+            }
+          });
+        } catch (e) {
+          console.log('Could not fetch battles:', e);
+        }
+        
         // Show ALL users with generated avatars
         const realDevelopers: DeveloperProfile[] = allUsers
           .filter((user: any) => user && user.id) // Only valid users with ID
@@ -92,8 +147,12 @@ export default function DeveloperConnect() {
             const seedIndex = (index + (user.id?.charCodeAt(0) || 0)) % avatarSeeds.length;
             const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${avatarSeeds[seedIndex]}`;
             
+            const odName = user.id || user.uid;
+            const problemsSolved = userProgressMap[odName] || 0;
+            const battlesWon = battlesWonMap[odName] || 0;
+            
             return {
-              userId: user.id || user.uid,
+              userId: odName,
               name: user.displayName || user.odName || user.name || 'Developer',
               email: user.email || '',
               avatar: avatarUrl, // Generated avatar
@@ -101,10 +160,10 @@ export default function DeveloperConnect() {
               college: user.institute || 'Not specified',
               year: user.yearOfStudy || 'Other',
               codeArenaStats: {
-                problemsSolved: user.problemsSolved || 0,
+                problemsSolved: problemsSolved,
                 rating: user.codeRating || 0,
-                rank: user.rank || 0,
-                battlesWon: user.battlesWon || 0,
+                rank: 0, // Will be calculated below
+                battlesWon: battlesWon,
                 totalCoins: user.totalCoins || 0
               },
               skills: user.skills || [],
@@ -125,6 +184,17 @@ export default function DeveloperConnect() {
               updatedAt: user.updatedAt || new Date()
             };
           });
+        
+        // Calculate ranks based on problems solved
+        const sortedByProblems = [...realDevelopers].sort(
+          (a, b) => b.codeArenaStats.problemsSolved - a.codeArenaStats.problemsSolved
+        );
+        sortedByProblems.forEach((dev, index) => {
+          const originalDev = realDevelopers.find(d => d.userId === dev.userId);
+          if (originalDev) {
+            originalDev.codeArenaStats.rank = index + 1;
+          }
+        });
         
         console.log('Real developers mapped:', realDevelopers); // Debug
         setDevelopers(realDevelopers);
@@ -342,68 +412,82 @@ export default function DeveloperConnect() {
 
     return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <Filter className="w-5 h-5" />
-          Search & Filter
-        </h3>
-        
-        {/* Search */}
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+      {/* Search and Filters - Marketplace Style */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <input
               type="text"
-              placeholder="Search by name or skills..."
+              placeholder="Search developers by name or skills..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500"
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
             />
           </div>
+
+          {/* Skills Filter */}
+          <CustomSelect
+            value={selectedSkills.length > 0 ? selectedSkills[0] : ''}
+            onChange={(value) => {
+              if (value === '') {
+                setSelectedSkills([]);
+              } else {
+                setSelectedSkills(prev =>
+                  prev.includes(value)
+                    ? prev.filter(s => s !== value)
+                    : [value]
+                );
+              }
+            }}
+            options={[
+              { value: '', label: 'All Skills' },
+              ...allSkills.map(skill => ({ value: skill, label: skill }))
+            ]}
+            className="w-full sm:min-w-[180px] sm:w-auto"
+          />
+
+          {/* Looking For Filter */}
+          <CustomSelect
+            value={lookingForFilter}
+            onChange={(value) => setLookingForFilter(value)}
+            options={[
+              { value: '', label: 'Looking For' },
+              { value: 'Teammates', label: 'Teammates' },
+              { value: 'Mentoring', label: 'Mentoring' },
+              { value: 'Both', label: 'Both' }
+            ]}
+            className="w-full sm:min-w-[180px] sm:w-auto"
+          />
         </div>
 
-        {/* Skills Filter */}
-        <div className="mb-4">
-          <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
-          <div className="flex flex-wrap gap-2">
-            {allSkills.map(skill => (
-              <button
+        {/* Selected Skills Tags */}
+        {selectedSkills.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selectedSkills.map(skill => (
+              <span
                 key={skill}
-                onClick={() => {
-                  setSelectedSkills(prev =>
-                    prev.includes(skill)
-                      ? prev.filter(s => s !== skill)
-                      : [...prev, skill]
-                  );
-                }}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                  selectedSkills.includes(skill)
-                    ? 'text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white hover:bg-gray-300'
-                }`}
-                style={selectedSkills.includes(skill) ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
               >
                 {skill}
-              </button>
+                <button
+                  onClick={() => setSelectedSkills(prev => prev.filter(s => s !== skill))}
+                  className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </span>
             ))}
+            <button
+              onClick={() => setSelectedSkills([])}
+              className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+            >
+              Clear all
+            </button>
           </div>
-        </div>
-
-        {/* Looking For Filter */}
-        <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Looking For</p>
-          <select
-            value={lookingForFilter}
-            onChange={(e) => setLookingForFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-          >
-            <option value="">All</option>
-            <option value="Teammates">Teammates</option>
-            <option value="Mentoring">Mentoring</option>
-            <option value="Both">Both</option>
-          </select>
-        </div>
+        )}
       </div>
 
       {/* Results count */}
@@ -1167,7 +1251,7 @@ export default function DeveloperConnect() {
               
               <div className="flex items-center justify-between text-xs text-gray-600 dark:text-white mb-4">
                 <span>{group.members?.length || 0} / {group.maxMembers} members</span>
-                <span className="text-gray-400">Created {new Date(group.createdAt).toLocaleDateString()}</span>
+                <span className="text-gray-400">Created {formatTimestamp(group.createdAt)}</span>
               </div>
               
               <button
@@ -1216,7 +1300,7 @@ export default function DeveloperConnect() {
                     <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(endorsement.timestamp).toLocaleDateString()}
+                    {formatTimestamp(endorsement.timestamp)}
                   </p>
                 </div>
               </div>
@@ -1251,7 +1335,7 @@ export default function DeveloperConnect() {
                     <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(endorsement.timestamp).toLocaleDateString()}
+                    {formatTimestamp(endorsement.timestamp)}
                   </p>
                 </div>
               </div>

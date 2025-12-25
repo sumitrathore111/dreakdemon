@@ -86,9 +86,10 @@ function PublicLayout() {
                 <h4 className="font-semibold mb-3 dark:text-white">Features</h4>
                 <ul className="space-y-2 text-sm text-muted-foreground dark:text-gray-400">
                   <li>Open Project Contribution</li>
-                  <li>Resume Builder</li>
+                  <li>Creator corner</li>
                   <li>CodeArena</li>
-                  <li>Company Requirements</li>
+                  <li>Developer Connect</li>
+                   <li>Project Bazaar</li>
                 </ul>
               </div>
 

@@ -107,7 +107,7 @@ export const features: FeatureData[] = [
 
 export const testimonials: TestimonialData[] = [
   {
-    name: "Sarah Chen",
+    name: "Sarah sw",
     role: "Software Engineer",
     company: "Google",
     quote: "NextStep transformed my career. The real project experience I gained here directly led to my job at Google. The mentorship was invaluable.",

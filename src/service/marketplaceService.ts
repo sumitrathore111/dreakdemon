@@ -1,28 +1,28 @@
 import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit,
-  increment,
-  Timestamp,
-  onSnapshot,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    increment,
+    limit,
+    onSnapshot,
+    orderBy,
+    query,
+    Timestamp,
+    updateDoc,
+    where,
 } from 'firebase/firestore';
-import { db } from './Firebase';
 import type {
-  MarketplaceProject,
-  CreateProjectData,
-  FilterOptions,
-  SortOption,
-  MarketplacePurchase,
-  MarketplaceReview,
+    CreateProjectData,
+    FilterOptions,
+    MarketplaceProject,
+    MarketplacePurchase,
+    MarketplaceReview,
+    SortOption,
 } from '../types/marketplace';
+import { db } from './Firebase';
 
 const PROJECTS_COLLECTION = 'marketplace_projects';
 const PURCHASES_COLLECTION = 'marketplace_purchases';
@@ -44,6 +44,7 @@ export const createProject = async (
       sellerId,
       sellerName,
       sellerAvatar,
+      status: 'pending_verification', // Requires admin approval
       views: 0,
       purchases: 0,
       rating: 0,
@@ -412,6 +413,78 @@ export const getProjectReviews = async (projectId: string): Promise<MarketplaceR
     })) as MarketplaceReview[];
   } catch (error) {
     console.error('Error getting reviews:', error);
+    throw error;
+  }
+};
+
+// ============= ADMIN VERIFICATION FUNCTIONS =============
+
+export const getPendingMarketplaceProjects = async (): Promise<MarketplaceProject[]> => {
+  try {
+    const q = query(
+      collection(db, PROJECTS_COLLECTION),
+      where('status', '==', 'pending_verification'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as MarketplaceProject[];
+  } catch (error) {
+    console.error('Error getting pending marketplace projects:', error);
+    throw error;
+  }
+};
+
+export const approveMarketplaceProject = async (projectId: string): Promise<void> => {
+  try {
+    const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+    await updateDoc(projectRef, {
+      status: 'published',
+      verifiedAt: new Date(),
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error approving marketplace project:', error);
+    throw error;
+  }
+};
+
+export const rejectMarketplaceProject = async (projectId: string, rejectionReason: string): Promise<void> => {
+  try {
+    const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+    await updateDoc(projectRef, {
+      status: 'rejected',
+      rejectionReason,
+      rejectedAt: new Date(),
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error rejecting marketplace project:', error);
+    throw error;
+  }
+};
+
+export const getAllMarketplaceProjectsForAdmin = async (): Promise<MarketplaceProject[]> => {
+  try {
+    const q = query(
+      collection(db, PROJECTS_COLLECTION),
+      orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+    })) as MarketplaceProject[];
+  } catch (error) {
+    console.error('Error getting all marketplace projects:', error);
     throw error;
   }
 };

@@ -2,13 +2,19 @@ import {
     Calendar,
     CheckCircle,
     Clock,
+    DollarSign,
+    ExternalLink,
     Eye,
     FolderOpen,
+    Github,
+    Image,
     Lightbulb,
     Mail,
     MessageSquare,
+    Play,
     Search,
     Shield,
+    ShoppingBag,
     Trash2,
     TrendingUp,
     User,
@@ -19,6 +25,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import {
+    approveMarketplaceProject,
+    getAllMarketplaceProjectsForAdmin,
+    rejectMarketplaceProject
+} from '../../service/marketplaceService';
+import type { MarketplaceProject } from '../../types/marketplace';
 
 interface SubmittedIdea {
   id: string;
@@ -57,7 +69,7 @@ export default function AdminPanel() {
     getPlatformStats 
   } = useDataContext();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'ideas' | 'projects' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'ideas' | 'projects' | 'users' | 'marketplace'>('overview');
   const [ideas, setIdeas] = useState<SubmittedIdea[]>([]);
   const [filteredIdeas, setFilteredIdeas] = useState<SubmittedIdea[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,6 +91,14 @@ export default function AdminPanel() {
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  
+  // Marketplace verification state
+  const [marketplaceProjects, setMarketplaceProjects] = useState<MarketplaceProject[]>([]);
+  const [allMarketplaceProjects, setAllMarketplaceProjects] = useState<MarketplaceProject[]>([]);
+  const [marketplaceStatusFilter, setMarketplaceStatusFilter] = useState<'all' | 'pending_verification' | 'published' | 'rejected'>('pending_verification');
+  const [selectedMarketplaceProject, setSelectedMarketplaceProject] = useState<MarketplaceProject | null>(null);
+  const [marketplaceRejectionReason, setMarketplaceRejectionReason] = useState('');
+  const [processingMarketplaceId, setProcessingMarketplaceId] = useState<string | null>(null);
 
   console.log('AdminPanel rendered', { user, loading });
 
@@ -100,7 +120,8 @@ export default function AdminPanel() {
         loadIdeas().catch(e => console.error('Load ideas error:', e)),
         loadStats().catch(e => console.error('Load stats error:', e)),
         loadUsers().catch(e => console.error('Load users error:', e)),
-        loadProjects().catch(e => console.error('Load projects error:', e))
+        loadProjects().catch(e => console.error('Load projects error:', e)),
+        loadMarketplaceProjects().catch(e => console.error('Load marketplace error:', e))
       ]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -108,6 +129,32 @@ export default function AdminPanel() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMarketplaceProjects = async () => {
+    try {
+      console.log('Loading all marketplace projects...');
+      const allProjects = await getAllMarketplaceProjectsForAdmin();
+      console.log('All marketplace projects loaded:', allProjects.length);
+      setAllMarketplaceProjects(allProjects);
+      // Filter based on current status filter
+      filterMarketplaceProjects(allProjects, marketplaceStatusFilter);
+    } catch (error) {
+      console.error('Error loading marketplace projects:', error);
+    }
+  };
+
+  const filterMarketplaceProjects = (projects: MarketplaceProject[], status: string) => {
+    if (status === 'all') {
+      setMarketplaceProjects(projects);
+    } else {
+      setMarketplaceProjects(projects.filter(p => p.status === status));
+    }
+  };
+
+  const handleMarketplaceStatusFilterChange = (status: 'all' | 'pending_verification' | 'published' | 'rejected') => {
+    setMarketplaceStatusFilter(status);
+    filterMarketplaceProjects(allMarketplaceProjects, status);
   };
 
   const loadIdeas = async () => {
@@ -270,7 +317,9 @@ export default function AdminPanel() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'pending_verification': return 'bg-yellow-100 text-yellow-700';
       case 'approved': return 'bg-green-100 text-green-700';
+      case 'published': return 'bg-green-100 text-green-700';
       case 'rejected': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -279,9 +328,54 @@ export default function AdminPanel() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
+      case 'pending_verification': return <Clock className="w-4 h-4" />;
       case 'approved': return <CheckCircle className="w-4 h-4" />;
+      case 'published': return <CheckCircle className="w-4 h-4" />;
       case 'rejected': return <XCircle className="w-4 h-4" />;
       default: return null;
+    }
+  };
+
+  // Marketplace verification handlers
+  const handleApproveMarketplace = async (projectId: string) => {
+    try {
+      setProcessingMarketplaceId(projectId);
+      await approveMarketplaceProject(projectId);
+      
+      // Remove from pending list
+      setMarketplaceProjects(prev => prev.filter(p => p.id !== projectId));
+      
+      alert('Marketplace project approved and published successfully!');
+      setSelectedMarketplaceProject(null);
+    } catch (error) {
+      console.error('Error approving marketplace project:', error);
+      alert('Failed to approve project. Please try again.');
+    } finally {
+      setProcessingMarketplaceId(null);
+    }
+  };
+
+  const handleRejectMarketplace = async (projectId: string) => {
+    if (!marketplaceRejectionReason.trim()) {
+      alert('Please provide a reason for rejection');
+      return;
+    }
+
+    try {
+      setProcessingMarketplaceId(projectId);
+      await rejectMarketplaceProject(projectId, marketplaceRejectionReason);
+      
+      // Remove from pending list
+      setMarketplaceProjects(prev => prev.filter(p => p.id !== projectId));
+      
+      alert('Marketplace project rejected. The seller has been notified.');
+      setSelectedMarketplaceProject(null);
+      setMarketplaceRejectionReason('');
+    } catch (error) {
+      console.error('Error rejecting marketplace project:', error);
+      alert('Failed to reject project. Please try again.');
+    } finally {
+      setProcessingMarketplaceId(null);
     }
   };
 
@@ -354,6 +448,24 @@ export default function AdminPanel() {
             <div className="flex items-center justify-center gap-2">
               <Users className="w-5 h-5" />
               Users
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('marketplace')}
+            className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
+              activeTab === 'marketplace'
+                ? 'bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <ShoppingBag className="w-5 h-5" />
+              Marketplace
+              {marketplaceProjects.length > 0 && (
+                <span className="bg-white text-[#00ADB5] px-2 py-1 rounded-full text-xs font-bold">
+                  {marketplaceProjects.length}
+                </span>
+              )}
             </div>
           </button>
         </div>
@@ -754,6 +866,434 @@ export default function AdminPanel() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Marketplace Verification Tab */}
+        {activeTab === 'marketplace' && (
+          <div>
+            {/* Status Filter */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Filter by Status:</span>
+                <button
+                  onClick={() => handleMarketplaceStatusFilterChange('all')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    marketplaceStatusFilter === 'all'
+                      ? 'bg-[#00ADB5] text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  All ({allMarketplaceProjects.length})
+                </button>
+                <button
+                  onClick={() => handleMarketplaceStatusFilterChange('pending_verification')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    marketplaceStatusFilter === 'pending_verification'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Pending ({allMarketplaceProjects.filter(p => p.status === 'pending_verification').length})
+                </button>
+                <button
+                  onClick={() => handleMarketplaceStatusFilterChange('published')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    marketplaceStatusFilter === 'published'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Approved ({allMarketplaceProjects.filter(p => p.status === 'published').length})
+                </button>
+                <button
+                  onClick={() => handleMarketplaceStatusFilterChange('rejected')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    marketplaceStatusFilter === 'rejected'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Rejected ({allMarketplaceProjects.filter(p => p.status === 'rejected').length})
+                </button>
+                <button
+                  onClick={() => loadMarketplaceProjects()}
+                  className="ml-auto px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+                <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading marketplace listings...</p>
+              </div>
+            ) : marketplaceProjects.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+                <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  No {marketplaceStatusFilter === 'all' ? '' : marketplaceStatusFilter === 'pending_verification' ? 'Pending' : marketplaceStatusFilter === 'published' ? 'Approved' : 'Rejected'} Listings
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  {marketplaceStatusFilter === 'pending_verification' 
+                    ? 'All marketplace listings have been reviewed. New listings will appear here when users submit them for verification.'
+                    : `No ${marketplaceStatusFilter === 'published' ? 'approved' : marketplaceStatusFilter === 'rejected' ? 'rejected' : ''} listings found.`
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Info Banner */}
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-2xl p-6">
+                  <div className="flex items-center gap-4">
+                    <ShoppingBag className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+                    <div>
+                      <h3 className="text-lg font-bold mb-1 text-yellow-900 dark:text-yellow-100">
+                        {allMarketplaceProjects.filter(p => p.status === 'pending_verification').length} Pending Verification
+                      </h3>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        Review and verify marketplace projects before they go live
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Marketplace Listings */}
+                {marketplaceProjects.map((project) => (
+                  <div key={project.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                    <div className="flex gap-6">
+                      {/* Project Image */}
+                      <div className="w-48 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        {project.images && project.images.length > 0 ? (
+                          <img 
+                            src={project.images[0]} 
+                            alt={project.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Image className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Project Details */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-xl font-black text-gray-900 dark:text-white">{project.title}</h3>
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${getStatusColor(project.status)}`}>
+                                {getStatusIcon(project.status)}
+                                {project.status === 'pending_verification' ? 'PENDING' : project.status === 'published' ? 'APPROVED' : project.status.toUpperCase()}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{project.description}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-black text-[#00ADB5]">${project.price}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          <div className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            <span>{project.sellerName || 'Unknown'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+
+                        {/* Project Links */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {project.links?.github && (
+                            <a 
+                              href={project.links.github} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-gray-900 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors"
+                            >
+                              <Github className="w-3 h-3" />
+                              GitHub
+                            </a>
+                          )}
+                          {project.links?.liveDemo && (
+                            <a 
+                              href={project.links.liveDemo} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-green-600 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                              Live Demo
+                            </a>
+                          )}
+                          {project.links?.documentation && (
+                            <a 
+                              href={project.links.documentation} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-blue-600 transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Docs
+                            </a>
+                          )}
+                          {project.links?.video && (
+                            <a 
+                              href={project.links.video} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-red-600 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                              Video
+                            </a>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 mb-4">
+                          <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-lg">
+                            {project.category}
+                          </span>
+                          <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-lg">
+                            {project.licenseType}
+                          </span>
+                          {project.tags && project.tags.slice(0, 3).map((tag, idx) => (
+                            <span key={idx} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setSelectedMarketplaceProject(project)}
+                            className="px-6 py-2 bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors flex items-center gap-2"
+                          >
+                            <Eye className="w-5 h-5" />
+                            View Details
+                          </button>
+                          {project.status === 'pending_verification' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveMarketplace(project.id)}
+                                disabled={processingMarketplaceId === project.id}
+                                className="px-6 py-2 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors flex items-center gap-2 disabled:opacity-50"
+                              >
+                                <CheckCircle className="w-5 h-5" />
+                                {processingMarketplaceId === project.id ? 'Processing...' : 'Approve'}
+                              </button>
+                            </>
+                          )}
+                          {project.status === 'published' && (
+                            <span className="px-6 py-2 bg-green-100 text-green-700 font-semibold rounded-xl flex items-center gap-2">
+                              <CheckCircle className="w-5 h-5" />
+                              Live on Marketplace
+                            </span>
+                          )}
+                          {project.status === 'rejected' && (
+                            <span className="px-6 py-2 bg-red-100 text-red-700 font-semibold rounded-xl flex items-center gap-2">
+                              <XCircle className="w-5 h-5" />
+                              Rejected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Marketplace Review Modal */}
+        {selectedMarketplaceProject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-8">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Review Marketplace Listing</h2>
+                
+                {/* Project Images */}
+                {selectedMarketplaceProject.images && selectedMarketplaceProject.images.length > 0 && (
+                  <div className="mb-6">
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">Project Images</label>
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {selectedMarketplaceProject.images.map((img, idx) => (
+                        <img 
+                          key={idx}
+                          src={img} 
+                          alt={`Preview ${idx + 1}`} 
+                          className="w-40 h-28 object-cover rounded-lg flex-shrink-0"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Title</label>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{selectedMarketplaceProject.title}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Description</label>
+                    <p className="text-gray-700 dark:text-gray-300">{selectedMarketplaceProject.description}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Category</label>
+                      <p className="text-gray-900 dark:text-white">{selectedMarketplaceProject.category}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Price</label>
+                      <p className="text-gray-900 dark:text-white flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        ${selectedMarketplaceProject.price}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">License Type</label>
+                      <p className="text-gray-900 dark:text-white">{selectedMarketplaceProject.licenseType}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Features</label>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedMarketplaceProject.features?.map((feature, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-green-50 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs rounded">
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Project Links */}
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">Project Links</label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMarketplaceProject.links?.github && (
+                        <a 
+                          href={selectedMarketplaceProject.links.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
+                        >
+                          <Github className="w-4 h-4" />
+                          GitHub Repository
+                        </a>
+                      )}
+                      {selectedMarketplaceProject.links?.liveDemo && (
+                        <a 
+                          href={selectedMarketplaceProject.links.liveDemo} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
+                        >
+                          <Play className="w-4 h-4" />
+                          Live Demo
+                        </a>
+                      )}
+                      {selectedMarketplaceProject.links?.documentation && (
+                        <a 
+                          href={selectedMarketplaceProject.links.documentation} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-blue-600 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Documentation
+                        </a>
+                      )}
+                      {selectedMarketplaceProject.links?.video && (
+                        <a 
+                          href={selectedMarketplaceProject.links.video} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-600 transition-colors"
+                        >
+                          <Play className="w-4 h-4" />
+                          Video Preview
+                        </a>
+                      )}
+                      {!selectedMarketplaceProject.links?.github && !selectedMarketplaceProject.links?.liveDemo && !selectedMarketplaceProject.links?.documentation && !selectedMarketplaceProject.links?.video && (
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">No links provided</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedMarketplaceProject.techStack && (
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Tech Stack</label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedMarketplaceProject.techStack.map((tech, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs rounded">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Seller Information</label>
+                    <p className="text-gray-900 dark:text-white">{selectedMarketplaceProject.sellerName || 'Unknown'}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                      Rejection Reason (required if rejecting)
+                    </label>
+                    <textarea
+                      value={marketplaceRejectionReason}
+                      onChange={(e) => setMarketplaceRejectionReason(e.target.value)}
+                      placeholder="Explain why this listing is being rejected..."
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:border-[#00ADB5] focus:outline-none resize-none"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handleApproveMarketplace(selectedMarketplaceProject.id)}
+                    disabled={processingMarketplaceId === selectedMarketplaceProject.id}
+                    className="flex-1 px-6 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Approve & Publish
+                  </button>
+                  <button
+                    onClick={() => handleRejectMarketplace(selectedMarketplaceProject.id)}
+                    disabled={processingMarketplaceId === selectedMarketplaceProject.id}
+                    className="flex-1 px-6 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedMarketplaceProject(null);
+                      setMarketplaceRejectionReason('');
+                    }}
+                    className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

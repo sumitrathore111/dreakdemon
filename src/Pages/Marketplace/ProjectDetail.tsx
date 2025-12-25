@@ -1,15 +1,15 @@
 import {
-  ArrowLeft,
-  ExternalLink,
-  Eye,
-  FileText,
-  Github,
-  MessageCircle,
-  Package,
-  Play,
-  Shield,
-  ShoppingCart,
-  Star,
+    ArrowLeft,
+    ExternalLink,
+    Eye,
+    FileText,
+    Github,
+    MessageCircle,
+    Package,
+    Play,
+    Shield,
+    ShoppingCart,
+    Star,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -18,12 +18,12 @@ import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { createOrGetChat } from '../../service/marketplaceChatService';
 import {
-  checkUserPurchased,
-  createPurchase,
-  createReview,
-  getProjectById,
-  getProjectReviews,
-  incrementProjectViews,
+    checkUserPurchased,
+    createPurchase,
+    createReview,
+    getProjectById,
+    getProjectReviews,
+    incrementProjectViews,
 } from '../../service/marketplaceService';
 import type { MarketplaceProject, MarketplaceReview } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS } from '../../types/marketplace';
@@ -312,20 +312,13 @@ export default function ProjectDetail() {
                     )}
                     {project.links.liveDemo && (
                       <a
-                        href={hasPurchased || isOwnProject ? project.links.liveDemo : '#'}
-                        target={hasPurchased || isOwnProject ? '_blank' : undefined}
+                        href={project.links.liveDemo}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => {
-                          if (!hasPurchased && !isOwnProject) {
-                            e.preventDefault();
-                            toast.error('Purchase to access');
-                          }
-                        }}
                         className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
                         <ExternalLink className="w-5 h-5" />
                         <span>Live Demo</span>
-                        {!hasPurchased && !isOwnProject && <Shield className="w-4 h-4 ml-auto" />}
                       </a>
                     )}
                     {project.links.documentation && (

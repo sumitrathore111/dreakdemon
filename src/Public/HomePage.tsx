@@ -1031,52 +1031,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Getting Started Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/10 border border-[#00ADB5]/30 mb-6">
-              <span className="text-sm font-semibold text-[#00ADB5]">🚀 QUICK START</span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Get Started in
-              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> 5 Minutes</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-5 gap-6 mb-12">
-            {[
-              { num: "1", icon: "📝", title: "Sign Up", desc: "Create your free account" },
-              { num: "2", icon: "📚", title: "Choose Course", desc: "Pick a learning path" },
-              { num: "3", icon: "🎬", title: "Watch Videos", desc: "Learn from experts" },
-              { num: "4", icon: "💻", title: "Build Projects", desc: "Apply your skills" },
-              { num: "5", icon: "🏅", title: "Get Certified", desc: "Earn credentials" }
-            ].map((step, idx) => (
-              <div key={idx} className="relative">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50 transition-all text-center group hover:shadow-2xl hover:-translate-y-1">
-                  <div className="text-4xl mb-3">{step.icon}</div>
-                  <div className="text-2xl font-black text-[#00ADB5] mb-2">{step.num}</div>
-                  <h3 className="font-black text-gray-900 dark:text-white mb-1">{step.title}</h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">{step.desc}</p>
-                </div>
-                {idx < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                    <ArrowRight className="w-6 h-6 text-[#00ADB5]" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link to="/signup" className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-2xl font-black shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 hover:scale-105">
-              Start Learning Free Today
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
       <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-[#00ADB5]/5 via-cyan-50/30 to-blue-50/20">
         <div className="max-w-7xl mx-auto">
@@ -1087,7 +1041,7 @@ export default function HomePage() {
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               From Students to
-              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> Industry Leaders</span>
+              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> Successful Developers</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Hear from developers who landed their dream jobs after completing NextStep

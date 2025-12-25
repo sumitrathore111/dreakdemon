@@ -15,6 +15,7 @@ export interface MarketplaceProject {
   links: ProjectLinks;
   licenseType: LicenseType;
   status: ProjectStatus;
+  rejectionReason?: string;
   views: number;
   purchases: number;
   rating: number;
@@ -49,7 +50,9 @@ export type LicenseType =
 
 export type ProjectStatus = 
   | 'draft'
+  | 'pending_verification'
   | 'published'
+  | 'rejected'
   | 'sold-out'
   | 'archived';
 
