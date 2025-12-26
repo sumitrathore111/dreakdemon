@@ -10,10 +10,22 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
   try {
     const { status, difficulty } = req.query;
     
+    // Clean up stale waiting battles (older than 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await Battle.deleteMany({
+      status: 'waiting',
+      createdAt: { $lt: fiveMinutesAgo }
+    });
+    
     // Build query
     const query: any = {};
     if (status) query.status = status;
     if (difficulty) query.difficulty = difficulty;
+    
+    // If filtering for waiting battles, only show fresh ones
+    if (status === 'waiting') {
+      query.createdAt = { $gte: fiveMinutesAgo };
+    }
     
     const battles = await Battle.find(query)
       .sort({ createdAt: -1 })
@@ -55,6 +67,19 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
   try {
     const { difficulty, entryFee, userName, userAvatar, rating } = req.body;
     const userId = req.user!.id;
+    
+    // Cancel any existing waiting battles from this user (prevent duplicates)
+    await Battle.deleteMany({
+      'participants.userId': userId,
+      status: 'waiting'
+    });
+    
+    // Also clean up stale battles (older than 5 minutes and still waiting)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await Battle.deleteMany({
+      status: 'waiting',
+      createdAt: { $lt: fiveMinutesAgo }
+    });
     
     // Get random question (you'll need to load questions.json)
     const fs = await import('fs/promises');
@@ -116,12 +141,16 @@ router.get('/find', authenticate, async (req: AuthRequest, res: Response): Promi
   try {
     const { difficulty, entryFee } = req.query;
     
+    // Only find battles created within the last 5 minutes (not stale)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    
     const battle = await Battle.findOne({
       status: 'waiting',
       difficulty,
       entryFee: Number(entryFee),
-      'participants.userId': { $ne: req.user!.id }
-    });
+      'participants.userId': { $ne: req.user!.id },
+      createdAt: { $gte: fiveMinutesAgo } // Only fresh battles
+    }).sort({ createdAt: 1 }); // Oldest first (FIFO)
     
     res.json({ battle });
   } catch (error: any) {
@@ -247,6 +276,60 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
       return;
     }
     res.json({ battle });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancel/Delete a waiting battle (for when user leaves)
+router.delete('/:battleId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const battle = await Battle.findById(req.params.battleId);
+    if (!battle) {
+      res.status(404).json({ error: 'Battle not found' });
+      return;
+    }
+    
+    // Only allow deletion if user is the creator and battle is still waiting
+    if (battle.createdBy !== req.user!.id) {
+      res.status(403).json({ error: 'Not authorized to delete this battle' });
+      return;
+    }
+    
+    if (battle.status !== 'waiting') {
+      res.status(400).json({ error: 'Cannot delete battle that has already started' });
+      return;
+    }
+    
+    await Battle.findByIdAndDelete(req.params.battleId);
+    res.json({ success: true, message: 'Battle cancelled' });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancel battle via beacon (for page unload) - accepts POST with token in body
+router.post('/:battleId/cancel', async (req, res): Promise<void> => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      res.status(401).json({ error: 'No token provided' });
+      return;
+    }
+    
+    // Verify token manually
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key');
+    const userId = decoded.id;
+    
+    const battle = await Battle.findById(req.params.battleId);
+    if (!battle || battle.createdBy !== userId || battle.status !== 'waiting') {
+      res.status(400).json({ error: 'Cannot cancel' });
+      return;
+    }
+    
+    await Battle.findByIdAndDelete(req.params.battleId);
+    res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

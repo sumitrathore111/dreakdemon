@@ -232,11 +232,14 @@ export default function DeveloperConnect() {
 
 
   const filteredDevelopers = developers.filter(dev => {
-    const matchesSearch = dev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dev.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+    const devSkills = dev.skills || [];
+    const devLookingFor = dev.lookingFor || '';
+    
+    const matchesSearch = (dev.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         devSkills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesSkills = selectedSkills.length === 0 || 
-                         selectedSkills.some(s => dev.skills.includes(s));
-    const matchesLookingFor = !lookingForFilter || dev.lookingFor.includes(lookingForFilter);
+                         selectedSkills.some(s => devSkills.includes(s));
+    const matchesLookingFor = !lookingForFilter || devLookingFor.includes(lookingForFilter);
     
     return matchesSearch && matchesSkills && matchesLookingFor;
   });
@@ -410,17 +413,17 @@ export default function DeveloperConnect() {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3 flex-1">
                 <img
-                  src={dev.avatar}
-                  alt={dev.name}
+                  src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
+                  alt={dev.name || 'Developer'}
                   className="w-12 h-12 rounded-full"
                 />
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
                   <p className="text-xs text-gray-500 dark:text-white">
-                    {dev.college} • {
-                      dev.year.includes('Year') && !dev.year.includes('Passout') ? 
-                        (dev.year.includes('1') ? '1st Year' : dev.year.includes('2') ? '2nd Year' : dev.year.includes('3') ? '3rd Year' : '4th Year') 
-                        : dev.year
+                    {dev.college || dev.institute || 'Not specified'} • {
+                      (dev.year || '').includes('Year') && !(dev.year || '').includes('Passout') ? 
+                        ((dev.year || '').includes('1') ? '1st Year' : (dev.year || '').includes('2') ? '2nd Year' : (dev.year || '').includes('3') ? '3rd Year' : '4th Year') 
+                        : (dev.year || 'Student')
                     }
                   </p>
                 </div>
@@ -439,11 +442,11 @@ export default function DeveloperConnect() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <p className="text-gray-600 dark:text-white">Problems Solved</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.codeArenaStats.problemsSolved}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{dev.codeArenaStats?.problemsSolved || 0}</p>
                 </div>
                 <div>
                   <p className="text-gray-600 dark:text-white">Rank</p>
-                  <p className="font-bold text-gray-900 dark:text-white">#{dev.codeArenaStats.rank}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">#{dev.codeArenaStats?.rank || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -452,7 +455,7 @@ export default function DeveloperConnect() {
             <div className="mb-4">
               <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
               <div className="flex flex-wrap gap-1">
-                {dev.skills.slice(0, 3).map(skill => (
+                {(dev.skills || []).slice(0, 3).map(skill => (
                   <span
                     key={skill}
                     className="text-xs px-2 py-1 rounded-full"
@@ -461,9 +464,9 @@ export default function DeveloperConnect() {
                     {skill}
                   </span>
                 ))}
-                {dev.skills.length > 3 && (
+                {(dev.skills || []).length > 3 && (
                   <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
-                    +{dev.skills.length - 3}
+                    +{(dev.skills || []).length - 3}
                   </span>
                 )}
               </div>
@@ -472,9 +475,9 @@ export default function DeveloperConnect() {
             {/* Looking For */}
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">
-                {dev.lookingFor}
+                {dev.lookingFor || 'Open to opportunities'}
               </p>
-              <p className="text-xs text-green-600 dark:text-green-300 line-clamp-2">{dev.lookingForDetails}</p>
+              <p className="text-xs text-green-600 dark:text-green-300 line-clamp-2">{dev.lookingForDetails || 'Looking to connect with other developers'}</p>
             </div>
 
             {/* Actions */}

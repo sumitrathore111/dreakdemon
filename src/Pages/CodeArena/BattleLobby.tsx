@@ -89,12 +89,12 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     };
 
     fetchWaitingBattles();
-    const interval = setInterval(fetchWaitingBattles, 15000); // Poll every 15 seconds
+    const interval = setInterval(fetchWaitingBattles, 5000); // Poll every 5 seconds for faster matching
 
     return () => clearInterval(interval);
   }, [user, selectedDifficulty]);
 
-  // Poll for my battle status when searching
+  // Poll for my battle status when searching - FAST polling for real-time feel
   useEffect(() => {
     if (!myBattleId || !isSearching) return;
 
@@ -102,7 +102,13 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       try {
         const response = await apiRequest(`/battles/${myBattleId}`);
         const battle = response.battle;
-        if (battle && (battle.status === 'countdown' || battle.status === 'active')) {
+        // Check if opponent joined (status becomes 'active' or participants.length > 1)
+        if (battle && (
+          battle.status === 'countdown' || 
+          battle.status === 'active' ||
+          (battle.participants && battle.participants.length >= 2)
+        )) {
+          console.log('Opponent found! Navigating to battle...');
           navigate(`/dashboard/codearena/battle/${myBattleId}`);
         }
       } catch (error) {
@@ -111,10 +117,85 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       }
     };
 
-    const interval = setInterval(pollBattleStatus, 10000); // Poll every 10 seconds
+    // Poll immediately, then every 2 seconds for responsive matchmaking
+    pollBattleStatus();
+    const interval = setInterval(pollBattleStatus, 2000); // Poll every 2 seconds for fast response
 
     return () => clearInterval(interval);
   }, [myBattleId, isSearching, navigate]);
+
+  // Cancel battle when user leaves the page, switches tab, or closes browser
+  useEffect(() => {
+    if (!myBattleId || !isSearching) return;
+
+    const cancelBattle = async () => {
+      try {
+        // Use sendBeacon for reliable delivery on page unload
+        const token = localStorage.getItem('token');
+        navigator.sendBeacon(
+          `http://localhost:5000/api/battles/${myBattleId}/cancel`,
+          JSON.stringify({ token })
+        );
+      } catch (error) {
+        console.error('Error cancelling battle:', error);
+      }
+    };
+
+    const cancelBattleAsync = async () => {
+      try {
+        // Refund entry fee when auto-cancelling
+        if (user?.id) {
+          await apiRequest(`/wallet/${user.id}/add`, {
+            method: 'POST',
+            body: JSON.stringify({ 
+              amount: selectedEntry.fee, 
+              reason: 'Battle cancelled - refund' 
+            })
+          });
+        }
+        await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
+        setIsSearching(false);
+        setMyBattleId(null);
+        setSearchTime(0);
+      } catch (error) {
+        console.error('Error cancelling battle:', error);
+      }
+    };
+
+    // Handle tab visibility change (user switches to another tab)
+    const handleVisibilityChange = () => {
+      if (document.hidden && myBattleId && isSearching) {
+        console.log('Tab hidden - cancelling battle');
+        cancelBattleAsync();
+      }
+    };
+
+    // Handle window blur (user clicks outside browser or alt-tabs)
+    const handleWindowBlur = () => {
+      if (myBattleId && isSearching) {
+        console.log('Window lost focus - cancelling battle');
+        cancelBattleAsync();
+      }
+    };
+
+    // Handle tab close/refresh
+    window.addEventListener('beforeunload', cancelBattle);
+    // Handle tab switch
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Handle window blur (alt-tab, clicking outside)
+    window.addEventListener('blur', handleWindowBlur);
+    
+    // Handle navigation within app
+    return () => {
+      window.removeEventListener('beforeunload', cancelBattle);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      // Cancel battle if navigating away while searching
+      if (myBattleId && isSearching) {
+        apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' }).catch(() => {});
+      }
+    };
+  }, [myBattleId, isSearching]);
 
   // Search timer
   useEffect(() => {

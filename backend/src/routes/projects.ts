@@ -50,6 +50,31 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
+// Get all project members (for admin stats) - MUST BE BEFORE /:projectId
+router.get('/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projects = await Project.find({})
+      .select('members title')
+      .populate('members.userId', 'name email');
+    
+    const allMembers = projects.flatMap(p => 
+      p.members.map((m: any) => ({
+        userId: m.userId,
+        name: m.name,
+        email: m.email,
+        role: m.role,
+        joinedAt: m.joinedAt,
+        projectTitle: p.title,
+        projectId: p._id
+      }))
+    );
+    
+    res.json({ members: allMembers });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get single project by ID
 router.get('/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -447,46 +472,6 @@ router.put('/:projectId/issues/:issueId', authenticate, async (req: AuthRequest,
   }
 });
 
-// Delete an issue
-router.delete('/:projectId/issues/:issueId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can delete issues' });
-      return;
-    }
-    
-    const issueIndex = project.issues.findIndex((i: any) => i._id?.toString() === req.params.issueId);
-    if (issueIndex === -1) {
-      res.status(404).json({ error: 'Issue not found' });
-      return;
-    }
-    
-    // Remove issue from array
-    project.issues.splice(issueIndex, 1);
-    await project.save();
-    
-    // Emit real-time event for task deletion
-    const io = getIO(req);
-    if (io) {
-      io.to(`project:${req.params.projectId}`).emit('task-deleted', { taskId: req.params.issueId });
-    }
-    
-    res.json({ message: 'Issue deleted successfully' });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Get all project members (for admin stats)
 router.get('/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -507,232 +492,6 @@ router.get('/members', authenticate, async (req: AuthRequest, res: Response): Pr
     );
     
     res.json({ members: allMembers });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== PROJECT MESSAGES ====================
-
-import ProjectMessage from '../models/ProjectMessage';
-
-// Get messages for a project
-router.get('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can view messages' });
-      return;
-    }
-    
-    const messages = await ProjectMessage.find({ projectId: req.params.projectId })
-      .sort({ timestamp: 1 })
-      .limit(100);
-    
-    res.json({ 
-      messages: messages.map(msg => ({
-        id: msg._id,
-        userId: msg.userId,
-        userName: msg.userName,
-        message: msg.message,
-        timestamp: msg.timestamp
-      }))
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Send a message in a project
-router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { text } = req.body;
-    
-    if (!text || !text.trim()) {
-      res.status(400).json({ error: 'Message text is required' });
-      return;
-    }
-    
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can send messages' });
-      return;
-    }
-    
-    // Get user name
-    const User = (await import('../models/User')).default;
-    const user = await User.findById(req.user?.id);
-    const userName = user?.name || user?.email?.split('@')[0] || 'Unknown User';
-    
-    const message = new ProjectMessage({
-      projectId: req.params.projectId,
-      userId: req.user?.id,
-      userName,
-      message: text.trim(),
-      timestamp: new Date()
-    });
-    
-    await message.save();
-    
-    const messageData = {
-      id: message._id,
-      userId: message.userId,
-      userName: message.userName,
-      message: message.message,
-      timestamp: message.timestamp
-    };
-    
-    // Emit real-time event for new message
-    const io = getIO(req);
-    if (io) {
-      io.to(`project:${req.params.projectId}`).emit('new-message', messageData);
-    }
-    
-    res.status(201).json({ message: messageData });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ==================== PROJECT FILES ====================
-
-// Get files for a project
-router.get('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can view files' });
-      return;
-    }
-    
-    // Get uploader names from members
-    const memberMap = new Map(project.members.map(m => [m.userId.toString(), m.name]));
-    
-    res.json({ 
-      files: project.files.map((file: any) => ({
-        id: file._id,
-        fileName: file.name,
-        fileSize: file.size,
-        fileUrl: file.url,
-        uploadedBy: file.uploadedBy,
-        uploaderName: memberMap.get(file.uploadedBy?.toString()) || 'Unknown',
-        uploadedAt: file.uploadedAt
-      }))
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Upload a file to a project (metadata only)
-router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { name, size, url } = req.body;
-    
-    if (!name) {
-      res.status(400).json({ error: 'File name is required' });
-      return;
-    }
-    
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can upload files' });
-      return;
-    }
-    
-    const file = {
-      name,
-      url: url || '#',
-      type: name.split('.').pop() || 'unknown',
-      size: size || 0,
-      uploadedBy: req.user?.id,
-      uploadedAt: new Date()
-    };
-    
-    project.files.push(file as any);
-    await project.save();
-    
-    const savedFile = project.files[project.files.length - 1] as any;
-    
-    res.status(201).json({ 
-      file: {
-        id: savedFile._id,
-        fileName: savedFile.name,
-        fileSize: savedFile.size,
-        fileUrl: savedFile.url,
-        uploadedBy: savedFile.uploadedBy,
-        uploadedAt: savedFile.uploadedAt
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Delete a file from a project
-router.delete('/:projectId/files/:fileId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const project = await Project.findById(req.params.projectId);
-    
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
-    
-    // Check if user is a member or owner
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-    const isOwner = project.owner.toString() === req.user?.id;
-    if (!isMember && !isOwner && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Only project members can delete files' });
-      return;
-    }
-    
-    const fileIndex = project.files.findIndex((f: any) => f._id?.toString() === req.params.fileId);
-    if (fileIndex === -1) {
-      res.status(404).json({ error: 'File not found' });
-      return;
-    }
-    
-    project.files.splice(fileIndex, 1);
-    await project.save();
-    
-    res.json({ message: 'File deleted successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
