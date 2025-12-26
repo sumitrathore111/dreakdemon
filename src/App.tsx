@@ -6,6 +6,7 @@ import ToastProvider from "./Component/ToastProvider";
 
 
 import { AuthProvider, useAuth } from "./Context/AuthContext";
+import { BattleGuardProvider } from "./Context/BattleGuardContext";
 import { ThemeProvider } from "./Context/ThemeContext";
 import { DataProvider } from "./Context/UserDataContext";
 
@@ -149,14 +150,15 @@ const App: React.FC = () => {
     <ThemeProvider>
       <AuthProvider>
         <DataProvider>
-          <ToastProvider />
-          <ScrollToTop />
-          <Suspense fallback={<div className="dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
-            <AnimatePresence mode="wait" >
+          <BattleGuardProvider>
+            <ToastProvider />
+            <ScrollToTop />
+            <Suspense fallback={<div className="dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
+              <AnimatePresence mode="wait" >
 
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/*" element={<PublicLayout />} />
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/*" element={<PublicLayout />} />
 
                 {/* Private Routes */}
                 <Route 
@@ -193,6 +195,7 @@ const App: React.FC = () => {
               </Routes>
             </AnimatePresence>
           </Suspense>
+          </BattleGuardProvider>
         </DataProvider>
       </AuthProvider>
     </ThemeProvider>
