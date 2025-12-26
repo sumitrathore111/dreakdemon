@@ -17,6 +17,23 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import {
+  initializeSocket,
+  joinProjectRoom,
+  leaveProjectRoom,
+  offJoinRequestUpdated,
+  offMemberJoined,
+  offNewMessage,
+  offTaskCreated,
+  offTaskDeleted,
+  offTaskUpdated,
+  onJoinRequestUpdated,
+  onMemberJoined,
+  onNewMessage,
+  onTaskCreated,
+  onTaskDeleted,
+  onTaskUpdated
+} from '../../service/socketService';
 
 interface Task {
   id: string;
@@ -105,6 +122,131 @@ export default function ProjectWorkspace() {
     loadProjectData();
   }, [projectId, user]);
 
+  // Initialize socket and join project room
+  useEffect(() => {
+    if (!actualProjectId) return;
+    
+    // Initialize socket connection
+    initializeSocket();
+    
+    // Join the project room
+    joinProjectRoom(actualProjectId);
+    
+    // Cleanup on unmount or when project changes
+    return () => {
+      leaveProjectRoom(actualProjectId);
+    };
+  }, [actualProjectId]);
+
+  // Set up real-time event listeners
+  useEffect(() => {
+    if (!actualProjectId) return;
+
+    // Handle new messages in real-time
+    const handleNewMessage = (data: any) => {
+      console.log('📨 Real-time message received:', data);
+      setMessages(prev => {
+        // Avoid duplicates
+        if (prev.some(m => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    };
+
+    // Handle task creation in real-time
+    const handleTaskCreated = (data: any) => {
+      console.log('📝 Real-time task created:', data);
+      setTasks(prev => {
+        const newTask = {
+          id: data.task._id || data.task.id,
+          title: data.task.title,
+          description: data.task.description,
+          status: data.task.status === 'open' ? 'todo' : data.task.status === 'in-progress' ? 'inprogress' : 'completed',
+          priority: data.task.priority,
+          assignedTo: data.task.assignedTo,
+          createdBy: data.task.createdBy,
+          createdAt: data.task.createdAt
+        } as Task;
+        if (prev.some(t => t.id === newTask.id)) return prev;
+        return [...prev, newTask];
+      });
+    };
+
+    // Handle task updates in real-time
+    const handleTaskUpdated = (data: any) => {
+      console.log('📝 Real-time task updated:', data);
+      setTasks(prev => prev.map(task => {
+        if (task.id === data.taskId) {
+          const t = data.task;
+          return {
+            ...task,
+            title: t.title || task.title,
+            description: t.description ?? task.description,
+            status: t.status === 'open' ? 'todo' : t.status === 'in-progress' ? 'inprogress' : t.status === 'closed' ? 'completed' : task.status,
+            priority: t.priority || task.priority,
+            assignedTo: t.assignedTo ?? task.assignedTo,
+            completedBy: t.completedBy ?? task.completedBy,
+            completedByName: t.completedByName ?? task.completedByName,
+            completedAt: t.completedAt ?? task.completedAt,
+            pendingVerification: t.pendingVerification ?? task.pendingVerification,
+            verified: t.verified ?? task.verified,
+            verifiedBy: t.verifiedBy ?? task.verifiedBy,
+            verifiedByName: t.verifiedByName ?? task.verifiedByName,
+            verifiedAt: t.verifiedAt ?? task.verifiedAt,
+            verificationFeedback: t.verificationFeedback ?? task.verificationFeedback
+          };
+        }
+        return task;
+      }));
+    };
+
+    // Handle task deletion in real-time
+    const handleTaskDeleted = (data: any) => {
+      console.log('🗑️ Real-time task deleted:', data);
+      setTasks(prev => prev.filter(task => task.id !== data.taskId));
+    };
+
+    // Handle new member joined in real-time
+    const handleMemberJoined = (data: any) => {
+      console.log('👤 Real-time member joined:', data);
+      setMembers(prev => {
+        if (prev.some(m => m.userId === data.userId)) return prev;
+        return [...prev, {
+          id: data.userId,
+          userId: data.userId,
+          userName: data.userName,
+          role: 'contributor',
+          joinedAt: new Date().toISOString()
+        }];
+      });
+    };
+
+    // Handle join request status changes
+    const handleJoinRequestUpdated = (data: any) => {
+      console.log('📋 Real-time join request updated:', data);
+      if (data.status !== 'pending') {
+        setJoinRequests(prev => prev.filter(req => req.id !== data.requestId));
+      }
+    };
+
+    // Register event listeners
+    onNewMessage(handleNewMessage);
+    onTaskCreated(handleTaskCreated);
+    onTaskUpdated(handleTaskUpdated);
+    onTaskDeleted(handleTaskDeleted);
+    onMemberJoined(handleMemberJoined);
+    onJoinRequestUpdated(handleJoinRequestUpdated);
+
+    // Cleanup event listeners
+    return () => {
+      offNewMessage(handleNewMessage);
+      offTaskCreated(handleTaskCreated);
+      offTaskUpdated(handleTaskUpdated);
+      offTaskDeleted(handleTaskDeleted);
+      offMemberJoined(handleMemberJoined);
+      offJoinRequestUpdated(handleJoinRequestUpdated);
+    };
+  }, [actualProjectId]);
+
   useEffect(() => {
     if (activeTab === 'chat' && (actualProjectId || projectId)) {
       loadMessages();
@@ -113,19 +255,6 @@ export default function ProjectWorkspace() {
       loadFiles();
     }
   }, [activeTab, projectId, actualProjectId]);
-
-  // Auto-refresh chat messages every 5 seconds when chat tab is active
-  useEffect(() => {
-    if (activeTab !== 'chat') return;
-    
-    const interval = setInterval(() => {
-      if (actualProjectId || projectId) {
-        loadMessages();
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [activeTab, actualProjectId, projectId]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
