@@ -100,8 +100,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
     const pollBattleStatus = async () => {
       try {
-        const response = await apiRequest(`/battles/${myBattleId}`);
-        const battle = response.battle;
+        const battle = await apiRequest(`/battles/${myBattleId}`);
         // Check if opponent joined (status becomes 'active' or participants.length > 1)
         if (battle && (
           battle.status === 'countdown' || 
