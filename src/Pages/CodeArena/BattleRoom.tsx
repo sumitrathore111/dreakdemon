@@ -1,6 +1,7 @@
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  AlertTriangle,
   CheckCircle,
   ChevronDown,
   Clock,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useBattleGuard } from '../../Context/BattleGuardContext';
 import { apiRequest } from '../../service/api';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -77,6 +79,17 @@ const BattleRoom = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   useDataContext();
+  const { isBattleActive, setBattleActive } = useBattleGuard();
+  // Set battle guard context when battle is active
+  useEffect(() => {
+    if (battle?.status === 'active' && !hasSubmitted) {
+      setBattleActive(true);
+    } else {
+      setBattleActive(false);
+    }
+    // Clean up on unmount
+    return () => setBattleActive(false);
+  }, [battle?.status, hasSubmitted, setBattleActive]);
 
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,6 +111,8 @@ const BattleRoom = () => {
   const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const codeRef = useRef(code); // Keep track of latest code for auto-submit
@@ -105,6 +120,20 @@ const BattleRoom = () => {
   const isSubmittingRef = useRef(false); // Prevent duplicate submissions
   const audioCtxRef = useRef<AudioContext | null>(null);
   const languages = getPistonSupportedLanguages();
+
+  // Warn user before closing/refreshing page during active battle
+  useEffect(() => {
+    if (battle?.status !== 'active' || hasSubmitted) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'You are in an active battle! Leaving will cause you to lose. Are you sure?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [battle?.status, hasSubmitted]);
 
   // Gamer-style beep sound for countdown (3, 2, 1, GO!)
   const playBeep = useCallback((count: number) => {
@@ -145,8 +174,8 @@ const BattleRoom = () => {
         bass.start(now);
         bass.stop(now + 0.4);
       } else {
-        // 3, 2, 1 - Retro arcade blip with punch
-        const baseFreq = count === 3 ? 330 : count === 2 ? 440 : 587; // E4, A4, D5
+        // 5, 4, 3, 2, 1 - Retro arcade blip with increasing pitch
+        const baseFreq = count === 5 ? 262 : count === 4 ? 294 : count === 3 ? 330 : count === 2 ? 440 : 587; // C4, D4, E4, A4, D5
         
         // Main blip
         const osc1 = ctx.createOscillator();
@@ -272,6 +301,51 @@ rl.on('close', () => {
     }
   }, [hasSubmitted, battleId, getStorageKey, getLanguageStorageKey]);
 
+  // Tab switch / visibility change detection - warn and forfeit if they leave
+  useEffect(() => {
+    if (!battleId || !user || battle?.status !== 'active' || hasSubmitted) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // User switched tab or minimized window
+        setTabSwitchCount(prev => prev + 1);
+        setShowTabWarning(true);
+      }
+    };
+
+    const handleWindowBlur = () => {
+      // User clicked outside the window
+      if (battle?.status === 'active' && !hasSubmitted) {
+        setTabSwitchCount(prev => prev + 1);
+        setShowTabWarning(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [battleId, user, battle?.status, hasSubmitted]);
+
+  // Auto-forfeit after 3 tab switches
+  useEffect(() => {
+    if (tabSwitchCount >= 3 && battle?.status === 'active' && !hasSubmitted) {
+      // Forfeit the battle
+      const forfeitBattle = async () => {
+        try {
+          await apiRequest(`/battles/${battleId}/forfeit`, { method: 'POST' });
+          navigate(`/dashboard/codearena/battle/results/${battleId}`);
+        } catch (error) {
+          console.error('Error forfeiting battle:', error);
+        }
+      };
+      forfeitBattle();
+    }
+  }, [tabSwitchCount, battle?.status, hasSubmitted, battleId, navigate]);
+
   // Subscribe to battle updates
   useEffect(() => {
     if (!battleId || !user) return;
@@ -336,7 +410,7 @@ rl.on('close', () => {
     };
 
     fetchBattleData(); // Initial fetch
-    const intervalId = setInterval(fetchBattleData, 10000); // Poll every 10 seconds
+    const intervalId = setInterval(fetchBattleData, 3000); // Poll every 3 seconds for faster updates
 
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -394,16 +468,17 @@ rl.on('close', () => {
     if (battle?.status === 'countdown') {
       if (countdown > 0) {
         playBeep(countdown); // Play beep for 3, 2, 1
-        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+        // Medium speed countdown - 1.2 seconds per number
+        const timer = setTimeout(() => setCountdown(countdown - 1), 1200);
         return () => clearTimeout(timer);
       } else if (countdown === 0) {
         playBeep(0); // Play GO! beep
-        // Show "GO!" for 1 second, then start the battle
+        // Show "FIGHT!" for 1.5 seconds, then start the battle
         const timer = setTimeout(async () => {
           if (battleId) {
             await apiRequest(`/battles/${battleId}/start`, { method: 'POST' });
           }
-        }, 1000);
+        }, 1500);
         return () => clearTimeout(timer);
       }
     }
@@ -483,7 +558,17 @@ rl.on('close', () => {
 
     // Check if we have test cases
     if (!testCases || testCases.length === 0) {
-      alert('No test cases available. Please try again.');
+      // Set error in result instead of alert
+      setMyResult({
+        success: false,
+        passed: false,
+        status: 'Error',
+        error: 'No test cases available. Please try again.',
+        passedCount: 0,
+        totalCount: 0,
+        totalTime: 0,
+        executionTime: 0
+      });
       return;
     }
 
@@ -534,13 +619,12 @@ rl.on('close', () => {
         }
       }
 
-      alert(errorMessage);
-
-      // Set error result
+      // Set error result with message (no alert popup)
       setMyResult({
         success: false,
         passed: false,
         status: 'Error',
+        error: errorMessage,
         passedCount: 0,
         totalCount: testCases.length,
         totalTime: 0,
@@ -572,6 +656,9 @@ rl.on('close', () => {
     return battle?.participants.find(p => p.odId === user?.id);
   };
 
+  // Debug logging
+  console.log('Battle status:', battle?.status, 'Countdown:', countdown, 'Loading:', loading);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -585,14 +672,64 @@ rl.on('close', () => {
 
   // Countdown overlay
   if (battle?.status === 'countdown' && countdown >= 0) {
+    console.log('Showing countdown overlay!', countdown);
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center relative overflow-hidden">
-        {/* Background animation */}
+        {/* Animated background particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-cyan-400/30 rounded-full"
+              style={{ 
+                left: `${Math.random() * 100}%`, 
+                top: `${Math.random() * 100}%` 
+              }}
+              animate={{ 
+                y: [0, -200],
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: i * 0.1
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Pulsing rings background */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-[#00d4ff]/10"
+          className="absolute inset-0 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {[1, 2, 3].map((ring) => (
+            <motion.div
+              key={ring}
+              className="absolute border-2 border-cyan-500/20 rounded-full"
+              style={{ width: ring * 200, height: ring * 200 }}
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.1, 0.3]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                delay: ring * 0.3
+              }}
+            />
+          ))}
+        </motion.div>
+
+        {/* Background gradient animation */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-[#00d4ff]/10"
           animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3]
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3],
+            rotate: [0, 5, 0]
           }}
           transition={{
             duration: 2,
@@ -601,66 +738,157 @@ rl.on('close', () => {
           }}
         />
 
-        <motion.div
-          key={countdown}
-          initial={{ scale: 0.3, opacity: 0, rotateY: -180 }}
-          animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-          exit={{ scale: 2, opacity: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 20
-          }}
-          className="text-center z-10"
-        >
-          {/* Players info */}
-          <div className="flex items-center justify-center gap-8 mb-8">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-[#00ADB5] flex items-center justify-center mb-2">
-                <span className="text-white font-bold text-lg">
-                  {battle.participants[0]?.odName?.charAt(0) || ''}
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm">{battle.participants[0]?.odName}</p>
-            </div>
-
-            <div className="text-cyan-400 text-4xl font-bold">VS</div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
-                <span className="text-white font-bold text-lg">
-                  {battle.participants[1]?.odName?.charAt(0) || ''}
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm">{battle.participants[1]?.odName}</p>
-            </div>
-          </div>
-
-          <p className="text-gray-400 text-xl mb-6">Battle starts in</p>
-
+        <AnimatePresence mode="wait">
           <motion.div
-            animate={{
-              scale: countdown === 0 ? [1, 1.3, 1] : [1, 1.2, 1],
-              color: countdown <= 1 ? "#ef4444" : "#06b6d4"
+            key={countdown}
+            initial={{ scale: 0.3, opacity: 0, rotateY: -180 }}
+            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+            exit={{ scale: 2, opacity: 0, rotateY: 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20
             }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-9xl font-black mb-6"
-            style={{
-              textShadow: "0 0 50px currentColor",
-              filter: "drop-shadow(0 0 20px currentColor)"
-            }}
+            className="text-center z-10"
           >
-            {countdown === 0 ? 'GO!' : countdown}
-          </motion.div>
+            {/* Battle Arena Title */}
+            <motion.div
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="mb-6"
+            >
+              <motion.div
+                animate={{ 
+                  textShadow: [
+                    "0 0 20px rgba(0, 173, 181, 0.5)",
+                    "0 0 40px rgba(0, 173, 181, 0.8)",
+                    "0 0 20px rgba(0, 173, 181, 0.5)"
+                  ]
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-2xl font-bold text-cyan-400 tracking-widest"
+              >
+                ⚔️ BATTLE ARENA ⚔️
+              </motion.div>
+            </motion.div>
 
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1, repeat: Infinity }}
-            className="text-gray-400 text-lg"
-          >
-            {countdown === 0 ? '🚀 Battle begins now!' : '⚡ Get ready to code!'}
-          </motion.p>
-        </motion.div>
+            {/* Players info with VS animation */}
+            <div className="flex items-center justify-center gap-8 mb-8">
+              <motion.div 
+                className="text-center"
+                initial={{ x: -100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div 
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center mb-2 shadow-lg shadow-cyan-500/50"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 20px rgba(0, 173, 181, 0.5)",
+                      "0 0 40px rgba(0, 173, 181, 0.8)",
+                      "0 0 20px rgba(0, 173, 181, 0.5)"
+                    ]
+                  }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <span className="text-white font-bold text-2xl">
+                    {battle.participants[0]?.odName?.charAt(0) || ''}
+                  </span>
+                </motion.div>
+                <p className="text-cyan-400 font-semibold">{battle.participants[0]?.odName}</p>
+                <p className="text-gray-500 text-xs">Rating: {battle.participants[0]?.rating || 1000}</p>
+              </motion.div>
+
+              <motion.div 
+                className="text-cyan-400 text-5xl font-black"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 5, -5, 0],
+                  textShadow: [
+                    "0 0 30px rgba(255, 0, 0, 0.5)",
+                    "0 0 60px rgba(255, 0, 0, 0.8)",
+                    "0 0 30px rgba(255, 0, 0, 0.5)"
+                  ]
+                }}
+                transition={{ duration: 1, repeat: Infinity }}
+                style={{ 
+                  background: "linear-gradient(to right, #00ADB5, #ff4444, #00ADB5)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent"
+                }}
+              >
+                VS
+              </motion.div>
+
+              <motion.div 
+                className="text-center"
+                initial={{ x: 100, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div 
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-red-400 to-orange-500 flex items-center justify-center mb-2 shadow-lg shadow-red-500/50"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 20px rgba(239, 68, 68, 0.5)",
+                      "0 0 40px rgba(239, 68, 68, 0.8)",
+                      "0 0 20px rgba(239, 68, 68, 0.5)"
+                    ]
+                  }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <span className="text-white font-bold text-2xl">
+                    {battle.participants[1]?.odName?.charAt(0) || ''}
+                  </span>
+                </motion.div>
+                <p className="text-red-400 font-semibold">{battle.participants[1]?.odName}</p>
+                <p className="text-gray-500 text-xs">Rating: {battle.participants[1]?.rating || 1000}</p>
+              </motion.div>
+            </div>
+
+            <motion.p 
+              className="text-gray-400 text-xl mb-6"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              {countdown > 0 ? 'Battle starts in' : ''}
+            </motion.p>
+
+            <motion.div
+              animate={{
+                scale: countdown === 0 ? [1, 1.5, 1.2] : [1, 1.2, 1],
+                color: countdown === 0 ? "#22c55e" : countdown === 1 ? "#ef4444" : countdown === 2 ? "#f59e0b" : "#06b6d4"
+              }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-9xl font-black mb-6"
+              style={{
+                textShadow: "0 0 50px currentColor, 0 0 100px currentColor",
+                filter: "drop-shadow(0 0 30px currentColor)"
+              }}
+            >
+              {countdown === 0 ? '⚔️ FIGHT! ⚔️' : countdown}
+            </motion.div>
+
+            <motion.p
+              animate={{ opacity: [0.5, 1, 0.5], y: [0, -5, 0] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="text-gray-400 text-lg"
+            >
+              {countdown === 0 ? '🔥 Show your coding skills! 🔥' : '⚡ Get ready to code!'}
+            </motion.p>
+
+            {/* Prize pool display */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 flex items-center justify-center gap-2 text-yellow-400"
+            >
+              <Trophy className="w-5 h-5" />
+              <span className="font-bold">Prize: {battle.prize} coins</span>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     );
   }
@@ -1016,6 +1244,52 @@ rl.on('close', () => {
           border-radius: 4px;
         }
       `}</style>
+
+      {/* Tab Switch Warning Modal */}
+      <AnimatePresence>
+        {showTabWarning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-gray-800 border-2 border-red-500 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <Shield className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">⚠️ Warning!</h3>
+                <p className="text-gray-300 mb-4">
+                  You switched away from the battle! This is not allowed during an active battle.
+                </p>
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
+                  <p className="text-red-400 font-semibold">
+                    Tab switches: {tabSwitchCount}/3
+                  </p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {tabSwitchCount >= 3 
+                      ? 'You have been disqualified!' 
+                      : `${3 - tabSwitchCount} more switch(es) and you will automatically lose!`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowTabWarning(false)}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                >
+                  I Understand, Continue Battle
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

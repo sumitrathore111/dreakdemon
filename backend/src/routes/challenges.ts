@@ -1,7 +1,9 @@
 import { Router, Response } from 'express';
 import Challenge from '../models/Challenge';
 import UserProgress from '../models/UserProgress';
+import Wallet from '../models/Wallet';
 import { authenticate, AuthRequest, adminOnly } from '../middleware/auth';
+import axios from 'axios';
 
 const router = Router();
 
@@ -124,7 +126,392 @@ router.get('/meta/categories', async (_req: AuthRequest, res: Response): Promise
   }
 });
 
+// Submit challenge solution - Execute code and award/deduct coins
+router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { challengeId } = req.params;
+    const { code, language, source_code, language_id, testCases: requestTestCases, difficulty: requestDifficulty, title: requestTitle, coinReward: requestCoinReward } = req.body;
+    const userId = req.user!.id;
+    
+    console.log('=== CHALLENGE SUBMIT ===');
+    console.log('Challenge ID:', challengeId);
+    console.log('Language:', language);
+    console.log('Request test cases count:', requestTestCases?.length || 0);
+    if (requestTestCases && requestTestCases.length > 0) {
+      console.log('First test case:', JSON.stringify(requestTestCases[0]));
+    }
+    
+    // Support both formats (direct or secureCodeExecution format)
+    const actualCode = code || source_code;
+    const actualLanguage = language || getLanguageFromId(language_id);
+    
+    if (!actualCode) {
+      res.status(400).json({ error: 'Code is required', success: false });
+      return;
+    }
+    
+    // Try to find the challenge in database, but also support local challenges
+    let challenge: any = null;
+    let testCases: any[] = [];
+    let challengeTitle = requestTitle || 'Practice Challenge';
+    let coinReward = requestCoinReward || 10;
+    let difficulty = requestDifficulty || 'Easy';
+    
+    // Try MongoDB first (if challengeId looks like an ObjectId)
+    const mongoose = require('mongoose');
+    if (mongoose.Types.ObjectId.isValid(challengeId)) {
+      challenge = await Challenge.findById(challengeId);
+    }
+    
+    if (challenge) {
+      // Use challenge from database
+      testCases = challenge.testCases || [];
+      challengeTitle = challenge.title;
+      coinReward = challenge.coinReward || (challenge.difficulty === 'Easy' ? 10 : challenge.difficulty === 'Medium' ? 20 : 30);
+      difficulty = challenge.difficulty;
+    } else if (requestTestCases && requestTestCases.length > 0) {
+      // Use test cases from request (for local/questions.json challenges)
+      testCases = requestTestCases.map((tc: any) => ({
+        input: tc.input,
+        expectedOutput: tc.expected_output || tc.expectedOutput || tc.output || ''
+      }));
+      
+      // Calculate coin reward based on difficulty
+      if (requestDifficulty) {
+        coinReward = requestDifficulty.toLowerCase() === 'easy' ? 10 : 
+                     requestDifficulty.toLowerCase() === 'medium' ? 20 : 30;
+      }
+    } else {
+      // Try to load from questions.json file
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const questionsPath = path.join(__dirname, '../../../public/questions.json');
+        const questionsData = await fs.readFile(questionsPath, 'utf-8');
+        const questionsJson = JSON.parse(questionsData);
+        
+        // Handle different formats
+        let questions: any[] = [];
+        if (Array.isArray(questionsJson)) {
+          questions = questionsJson;
+        } else if (questionsJson.problems) {
+          questions = questionsJson.problems;
+        } else if (questionsJson.questions) {
+          questions = questionsJson.questions;
+        }
+        
+        const found = questions.find((q: any) => q.id === challengeId);
+        if (found) {
+          testCases = (found.test_cases || found.testCases || []).map((tc: any) => ({
+            input: tc.input,
+            expectedOutput: tc.expected_output || tc.expectedOutput || tc.output || ''
+          }));
+          challengeTitle = found.title;
+          coinReward = found.coins || found.coinReward || 10;
+          difficulty = found.difficulty;
+        }
+      } catch (err) {
+        console.error('Error loading questions.json:', err);
+      }
+    }
+    
+    if (testCases.length === 0) {
+      res.status(400).json({ error: 'No test cases available for this challenge', success: false });
+      return;
+    }
+    
+    // Check if user has already solved this challenge
+    const existingProgress = await UserProgress.findOne({ userId });
+    const alreadySolved = existingProgress?.solvedChallenges.some(
+      (sc: any) => sc.challengeId.toString() === challengeId
+    );
+    
+    // Execute code against test cases
+    const testResults = await executeCodeAgainstTests(actualCode, actualLanguage, testCases);
+    const passedCount = testResults.filter(r => r.passed).length;
+    const totalCount = testResults.length;
+    const allPassed = passedCount === totalCount;
+    
+    let coinsChanged = 0;
+    let message = '';
+    
+    if (allPassed) {
+      if (!alreadySolved) {
+        // Award coins for first-time solve
+        coinsChanged = coinReward;
+        message = `Congratulations! All test cases passed. You earned ${coinReward} coins!`;
+        
+        // Update wallet
+        await Wallet.findOneAndUpdate(
+          { userId },
+          {
+            $inc: { coins: coinReward, 'achievements.problemsSolved': 1 },
+            $push: {
+              transactions: {
+                type: 'credit',
+                amount: coinReward,
+                reason: `Solved: ${challengeTitle}`,
+                createdAt: new Date()
+              }
+            }
+          },
+          { upsert: true }
+        );
+        
+        // Calculate total execution time properly (ensure it's a valid number)
+        const totalExecutionTime = testResults.reduce((sum: number, r: any) => {
+          const timeValue = typeof r.time === 'string' ? parseFloat(r.time) : (r.time || 0);
+          return sum + (isNaN(timeValue) ? 0 : timeValue);
+        }, 0);
+        
+        // Update progress
+        await UserProgress.findOneAndUpdate(
+          { userId },
+          {
+            $push: {
+              solvedChallenges: {
+                challengeId: challengeId,
+                solvedAt: new Date(),
+                language: actualLanguage,
+                executionTime: Math.round(totalExecutionTime * 1000) / 1000 // Round to 3 decimal places
+              }
+            },
+            $inc: { totalPoints: coinReward }
+          },
+          { upsert: true }
+        );
+      } else {
+        message = 'All test cases passed! (Already solved - no additional coins)';
+      }
+    } else {
+      // Deduct coins for wrong answer (only if not already solved)
+      if (!alreadySolved) {
+        const penalty = Math.min(5, Math.floor(coinReward / 2)); // Deduct 5 coins or half of reward
+        coinsChanged = -penalty;
+        message = `Wrong answer. ${passedCount}/${totalCount} test cases passed. Lost ${penalty} coins.`;
+        
+        // Check if user has enough coins
+        const wallet = await Wallet.findOne({ userId });
+        if (wallet && wallet.coins >= penalty) {
+          await Wallet.findOneAndUpdate(
+            { userId },
+            {
+              $inc: { coins: -penalty },
+              $push: {
+                transactions: {
+                  type: 'debit',
+                  amount: penalty,
+                  reason: `Wrong answer: ${challengeTitle}`,
+                  createdAt: new Date()
+                }
+              }
+            }
+          );
+        } else {
+          // Not enough coins, no penalty applied
+          coinsChanged = 0;
+          message = `Wrong answer. ${passedCount}/${totalCount} test cases passed. (Not enough coins for penalty)`;
+        }
+      } else {
+        message = `Wrong answer. ${passedCount}/${totalCount} test cases passed.`;
+      }
+    }
+    
+    res.json({
+      success: allPassed,
+      passed: passedCount,
+      total: totalCount,
+      passedCount,
+      totalCount,
+      message,
+      coinsChanged,
+      testResults: testResults.map(r => ({
+        passed: r.passed,
+        input: r.input,
+        expected: r.expected,
+        output: r.output,
+        error: r.error
+      }))
+    });
+  } catch (error: any) {
+    console.error('Challenge submission error:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Judge0 language IDs
+const JUDGE0_LANGUAGE_IDS: Record<string, number> = {
+  'python': 71,      // Python 3.8.1
+  'python3': 71,
+  'javascript': 63,  // JavaScript (Node.js 12.14.0)
+  'java': 62,        // Java (OpenJDK 13.0.1)
+  'cpp': 54,         // C++ (GCC 9.2.0)
+  'c++': 54,
+  'c': 50,           // C (GCC 9.2.0)
+  'go': 60,          // Go (1.13.5)
+  'rust': 73,        // Rust (1.40.0)
+  'ruby': 72,        // Ruby (2.7.0)
+  'typescript': 74,  // TypeScript (3.7.4)
+};
+
+// Helper function to execute code against test cases using Judge0
+async function executeCodeAgainstTests(code: string, language: string, testCases: any[]): Promise<any[]> {
+  const results: any[] = [];
+  
+  const languageId = JUDGE0_LANGUAGE_IDS[language.toLowerCase()] || 71; // Default to Python
+  
+  console.log(`Executing ${testCases.length} test cases for language: ${language} (ID: ${languageId})`);
+  
+  for (const testCase of testCases) {
+    try {
+      console.log('Test case input:', JSON.stringify(testCase.input));
+      console.log('Expected output:', JSON.stringify(testCase.expectedOutput || testCase.output));
+      
+      // Step 1: Create submission
+      const submitResponse = await axios.post(
+        `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
+        {
+          source_code: code,
+          language_id: languageId,
+          stdin: testCase.input || '',
+          expected_output: (testCase.expectedOutput || testCase.output || '').trim()
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-RapidAPI-Key': process.env.JUDGE0_API_KEY,
+            'X-RapidAPI-Host': process.env.JUDGE0_API_HOST || 'judge0-ce.p.rapidapi.com'
+          },
+          timeout: 15000
+        }
+      );
+      
+      const result = submitResponse.data;
+      const output = (result.stdout || '').trim();
+      const stderr = result.stderr || result.compile_output || '';
+      const expected = (testCase.expectedOutput || testCase.output || testCase.expected || '').trim();
+      const status = result.status?.description || 'Unknown';
+      
+      // Parse time as a number (Judge0 may return it as a string)
+      const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
+      const memoryValue = typeof result.memory === 'string' ? parseInt(result.memory) : (result.memory || 0);
+      
+      console.log('Status:', status);
+      console.log('Actual output:', JSON.stringify(output));
+      console.log('Stderr:', stderr);
+      console.log('Match:', output === expected);
+      
+      results.push({
+        passed: output === expected && status === 'Accepted',
+        input: testCase.input,
+        expected,
+        output,
+        stderr,
+        status,
+        time: isNaN(timeValue) ? 0 : timeValue,
+        memory: isNaN(memoryValue) ? 0 : memoryValue
+      });
+    } catch (error: any) {
+      console.error('Code execution error:', error.response?.data || error.message);
+      results.push({
+        passed: false,
+        input: testCase.input,
+        expected: testCase.expectedOutput || testCase.output || '',
+        output: '',
+        error: error.response?.data?.message || error.message || 'Execution error',
+        time: 0
+      });
+    }
+  }
+  
+  return results;
+}
+
+// Helper function to get file extension
+function getFileExtension(language: string): string {
+  const extensions: Record<string, string> = {
+    python: 'py',
+    python3: 'py',
+    javascript: 'js',
+    java: 'java',
+    cpp: 'cpp',
+    'c++': 'cpp',
+    c: 'c',
+    go: 'go',
+    rust: 'rs',
+    ruby: 'rb',
+    typescript: 'ts'
+  };
+  return extensions[language.toLowerCase()] || 'txt';
+}
+
+// Helper function to convert language_id to language name
+function getLanguageFromId(languageId: number): string {
+  const languages: Record<number, string> = {
+    71: 'python',
+    70: 'python',
+    63: 'javascript',
+    62: 'java',
+    54: 'cpp',
+    50: 'c',
+    60: 'go',
+    73: 'rust',
+    72: 'ruby'
+  };
+  return languages[languageId] || 'python';
+}
+
 // ===== GENERIC /:challengeId ROUTE - MUST BE AFTER SPECIFIC ROUTES =====
+
+// Get test cases for a challenge
+router.get('/:challengeId/testcases', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const challenge = await Challenge.findById(req.params.challengeId);
+    
+    if (!challenge) {
+      res.status(404).json({ error: 'Challenge not found', testCases: [] });
+      return;
+    }
+    
+    // Return only visible test cases (not hidden ones)
+    const visibleTestCases = (challenge.testCases || []).filter((tc: any) => !tc.isHidden);
+    
+    // Format for frontend
+    const testCases = visibleTestCases.map((tc: any) => ({
+      input: tc.input,
+      output: tc.expectedOutput || tc.output || tc.expected,
+      expectedOutput: tc.expectedOutput || tc.output || tc.expected
+    }));
+    
+    res.json({ testCases });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message, testCases: [] });
+  }
+});
+
+// Get validation test cases (includes hidden ones - for submission validation only)
+router.get('/:challengeId/validation-testcases', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const challenge = await Challenge.findById(req.params.challengeId);
+    
+    if (!challenge) {
+      res.status(404).json({ error: 'Challenge not found', testCases: [] });
+      return;
+    }
+    
+    // Return all test cases for validation
+    const testCases = (challenge.testCases || []).map((tc: any) => ({
+      input: tc.input,
+      output: tc.expectedOutput || tc.output || tc.expected,
+      expectedOutput: tc.expectedOutput || tc.output || tc.expected,
+      isHidden: tc.isHidden || false
+    }));
+    
+    res.json({ testCases });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message, testCases: [] });
+  }
+});
 
 // Get challenge by ID
 router.get('/:challengeId', async (req: AuthRequest, res: Response): Promise<void> => {

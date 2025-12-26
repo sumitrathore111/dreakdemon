@@ -123,7 +123,8 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     return () => clearInterval(interval);
   }, [myBattleId, isSearching, navigate]);
 
-  // Cancel battle when user leaves the page, switches tab, or closes browser
+  // Cancel battle when user leaves the page or closes browser
+  // NOTE: Tab switching and window blur handlers removed to allow testing with multiple accounts
   useEffect(() => {
     if (!myBattleId || !isSearching) return;
 
@@ -140,55 +141,12 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       }
     };
 
-    const cancelBattleAsync = async () => {
-      try {
-        // Refund entry fee when auto-cancelling
-        if (user?.id) {
-          await apiRequest(`/wallet/${user.id}/add`, {
-            method: 'POST',
-            body: JSON.stringify({ 
-              amount: selectedEntry.fee, 
-              reason: 'Battle cancelled - refund' 
-            })
-          });
-        }
-        await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
-        setIsSearching(false);
-        setMyBattleId(null);
-        setSearchTime(0);
-      } catch (error) {
-        console.error('Error cancelling battle:', error);
-      }
-    };
-
-    // Handle tab visibility change (user switches to another tab)
-    const handleVisibilityChange = () => {
-      if (document.hidden && myBattleId && isSearching) {
-        console.log('Tab hidden - cancelling battle');
-        cancelBattleAsync();
-      }
-    };
-
-    // Handle window blur (user clicks outside browser or alt-tabs)
-    const handleWindowBlur = () => {
-      if (myBattleId && isSearching) {
-        console.log('Window lost focus - cancelling battle');
-        cancelBattleAsync();
-      }
-    };
-
-    // Handle tab close/refresh
+    // Handle tab close/refresh only
     window.addEventListener('beforeunload', cancelBattle);
-    // Handle tab switch
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    // Handle window blur (alt-tab, clicking outside)
-    window.addEventListener('blur', handleWindowBlur);
     
     // Handle navigation within app
     return () => {
       window.removeEventListener('beforeunload', cancelBattle);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
       // Cancel battle if navigating away while searching
       if (myBattleId && isSearching) {
         apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' }).catch(() => {});

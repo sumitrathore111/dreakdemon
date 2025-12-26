@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useBattleGuard } from '../Context/BattleGuardContext';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from "../Context/AuthContext";
 import { useTheme } from "../Context/ThemeContext";
 import { useDataContext } from "../Context/UserDataContext";
@@ -26,6 +28,8 @@ export default function DashboardLayout() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const location = useLocation();
   const navigation = useNavigate();
+  const { isBattleActive } = useBattleGuard();
+  const [showBattleBlockModal, setShowBattleBlockModal] = useState(false);
   
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
@@ -129,10 +133,19 @@ export default function DashboardLayout() {
               const isActive = location.pathname === item.path;
               return (
                 <div key={item.name} className="relative">
-                  <Link
-                    to={item.path}
-                    onClick={() => setIsDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={e => {
+                      if (isBattleActive) {
+                        e.preventDefault();
+                        setShowBattleBlockModal(true);
+                        return;
+                      }
+                      setIsDrawerOpen(false);
+                      navigation(item.path);
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer
                       ${
                         isActive
                           ? "text-white shadow-md"
@@ -144,20 +157,17 @@ export default function DashboardLayout() {
                     {!isMinimized && (
                       <span className="truncate text-sm font-medium">{item.name}</span>
                     )}
-                    
                     {/* Notification Badge for Projects */}
                     {item.path === '/dashboard/projects' && pendingRequestsCount > 0 && (
                       <span className="ml-auto flex-shrink-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
                       </span>
                     )}
-                    
                     {/* Tooltip - only when minimized on desktop */}
                     {isMinimized && (
                       <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
                         style={{
                           left: '80px', // 80px sidebar + 12px gap
-                          
                           transform: 'translateY(-50%)'
                         }}
                       >
@@ -165,10 +175,44 @@ export default function DashboardLayout() {
                         <div className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-gray-900"></div>
                       </div>
                     )}
-                  </Link>
+                  </span>
                 </div>
               );
             })}
+                {/* Battle Block Modal */}
+                <AnimatePresence>
+                  {showBattleBlockModal && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        className="bg-gray-800 border-2 border-orange-500 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+                      >
+                        <div className="text-center">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-orange-500/20 rounded-full flex items-center justify-center">
+                            <Trophy className="w-8 h-8 text-orange-500" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-2">Battle In Progress</h3>
+                          <p className="text-gray-300 mb-4">
+                            You cannot leave or switch pages while a battle is active. Please finish your battle first!
+                          </p>
+                          <button
+                            onClick={() => setShowBattleBlockModal(false)}
+                            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all mt-2"
+                          >
+                            Back to Battle
+                          </button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
           </nav>
         </div>
 

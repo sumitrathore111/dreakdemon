@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBattle extends Document {
-  status: 'waiting' | 'active' | 'completed' | 'cancelled';
+  status: 'waiting' | 'countdown' | 'active' | 'completed' | 'cancelled' | 'forfeited';
   difficulty: 'easy' | 'medium' | 'hard';
   entryFee: number;
   prize: number;
@@ -28,6 +28,7 @@ export interface IBattle extends Document {
     test_cases: any[];
   };
   winner?: string;
+  forfeitedBy?: string;
   startedAt?: Date;
   completedAt?: Date;
   createdBy: string;
@@ -39,7 +40,7 @@ export interface IBattle extends Document {
 const BattleSchema: Schema = new Schema({
   status: { 
     type: String, 
-    enum: ['waiting', 'active', 'completed', 'cancelled'], 
+    enum: ['waiting', 'countdown', 'active', 'completed', 'cancelled', 'forfeited'], 
     default: 'waiting' 
   },
   difficulty: { 
@@ -72,6 +73,7 @@ const BattleSchema: Schema = new Schema({
     test_cases: [{ type: Schema.Types.Mixed }]
   },
   winner: { type: String },
+  forfeitedBy: { type: String },
   startedAt: { type: Date },
   completedAt: { type: Date },
   createdBy: { type: String, required: true },

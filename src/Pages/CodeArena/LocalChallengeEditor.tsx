@@ -26,7 +26,8 @@ import {
     getValidationTestCases,
     type Challenge
 } from '../../service/challenges';
-import { getPistonSupportedLanguages, quickRunPiston, runTestCasesPiston } from '../../service/codeExecution';
+import { getPistonSupportedLanguages, quickRunPiston } from '../../service/codeExecution';
+import { secureCodeExecutionService } from '../../service/secureCodeExecution_new';
 
 /**
  * Map test cases from Question format to Challenge format
@@ -48,7 +49,7 @@ const LocalChallengeEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { addCoins, getUserProgress, markChallengeAsSolved } = useDataContext();
+  const { getUserProgress } = useDataContext();
 
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -284,36 +285,49 @@ rl.on('close', () => {
         return;
       }
       
-      // Transform test cases to match runTestCasesPiston format: { input, output }
-      // Handle both formats: { input, expectedOutput } and { input, expected_output }
+      // Transform test cases to format expected by backend
       const transformedTestCases = testCases.map(tc => ({
         input: tc.input || '',
-        output: tc.expectedOutput || (tc as any).expected_output || ''
+        expectedOutput: tc.expectedOutput || (tc as any).expected_output || ''
       }));
       
-      const result = await runTestCasesPiston(code, language, transformedTestCases);
-      setResults(result);
+      // Submit to backend - backend handles coin rewards/penalties
+      const submissionResult = await secureCodeExecutionService.submitChallenge(
+        challengeId, 
+        code, 
+        language,
+        transformedTestCases,
+        challenge.coinReward || 10,
+        challenge.title,
+        challenge.difficulty
+      );
+      
+      setResults({
+        success: submissionResult.success,
+        passedCount: submissionResult.passedCount,
+        totalCount: submissionResult.totalCount,
+        totalTime: 0,
+        totalMemory: 0,
+        results: submissionResult.testResults?.map((r, idx) => ({
+          testCase: idx + 1,
+          passed: r.passed,
+          input: r.input,
+          expected: r.expected,
+          output: r.output,
+          error: r.error
+        })) || []
+      });
 
-      // If all tests passed, check if already solved before awarding coins
-      if (result.success && user && challenge && challengeId) {
-        // Get user progress to check if challenge was already solved
-        const userProgress = await getUserProgress(user.id);
-        
-        // Check if this challenge was already solved
-        const alreadySolved = userProgress?.solvedChallenges?.some(
-          (sc: any) => sc.challengeId === challengeId
-        );
-
-        if (!alreadySolved) {
-          // Award coins only if solving for the first time
-          await addCoins(user.id, challenge.coinReward, `Solved: ${challenge.title}`, challengeId);
-          // Mark challenge as solved in user progress
-          await markChallengeAsSolved(user.id, challengeId, `local-${Date.now()}`);
-          setSolved(true);
-        } else {
-          // Already solved - no coins awarded
-          setSolved(true);
-          console.log('Challenge already solved previously - no coins awarded');
+      if (submissionResult.success) {
+        setSolved(true);
+        if (submissionResult.coinsChanged > 0) {
+          alert(`🎉 ${submissionResult.message}`);
+        }
+      } else {
+        if (submissionResult.coinsChanged < 0) {
+          alert(`❌ ${submissionResult.message}`);
+        } else if (submissionResult.message) {
+          alert(submissionResult.message);
         }
       }
     } catch (error: any) {

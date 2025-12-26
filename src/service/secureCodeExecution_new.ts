@@ -2,7 +2,7 @@
 // All Firebase authentication removed
 
 import { apiRequest } from './api';
-import { codeSubmissionLimiter, validateCodeSubmission } from '../middleware/inputValidator';
+import { validateCodeSubmission } from '../middleware/inputValidator';
 
 interface ExecutionResult {
   output: string;
@@ -11,6 +11,23 @@ interface ExecutionResult {
   memory: string;
   stderr: string | null;
   compile_output: string | null;
+}
+
+interface ChallengeSubmissionResult {
+  success: boolean;
+  passed: number;
+  total: number;
+  passedCount: number;
+  totalCount: number;
+  message: string;
+  coinsChanged: number;
+  testResults?: Array<{
+    passed: boolean;
+    input: string;
+    expected: string;
+    output: string;
+    error?: string;
+  }>;
 }
 
 interface BattleResult {
@@ -61,7 +78,15 @@ class SecureCodeExecutionService {
   }
 
   // Submit code for challenge with server-side validation
-  async submitChallenge(challengeId: string, code: string, language: string): Promise<boolean> {
+  async submitChallenge(
+    challengeId: string, 
+    code: string, 
+    language: string,
+    testCases?: Array<{ input: string; expected_output?: string; expectedOutput?: string; output?: string }>,
+    coinReward?: number,
+    title?: string,
+    difficulty?: string
+  ): Promise<ChallengeSubmissionResult> {
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
       throw new Error('Authentication required');
@@ -70,16 +95,28 @@ class SecureCodeExecutionService {
     const validatedSubmission = validateCodeSubmission({ code, language, challengeId });
 
     try {
-      const response = await apiRequest('/api/challenge/submit', {
+      const response = await apiRequest(`/challenges/${challengeId}/submit`, {
         method: 'POST',
         body: JSON.stringify({
-          challengeId,
-          source_code: validatedSubmission.code,
-          language_id: this.getLanguageId(language)
+          code: validatedSubmission.code,
+          language: language,
+          testCases: testCases,
+          coinReward: coinReward,
+          title: title,
+          difficulty: difficulty
         })
       });
 
-      return response.success || false;
+      return {
+        success: response.success || false,
+        passed: response.passed || response.passedCount || 0,
+        total: response.total || response.totalCount || 0,
+        passedCount: response.passedCount || response.passed || 0,
+        totalCount: response.totalCount || response.total || 0,
+        message: response.message || (response.success ? 'All test cases passed!' : 'Some test cases failed'),
+        coinsChanged: response.coinsChanged || 0,
+        testResults: response.testResults
+      };
     } catch (error) {
       console.error('Challenge submission error:', error);
       throw new Error('Failed to submit solution. Please try again.');

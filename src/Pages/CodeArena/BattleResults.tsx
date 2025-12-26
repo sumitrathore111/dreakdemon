@@ -14,7 +14,8 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
-  Trophy
+  Trophy,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -44,6 +45,7 @@ interface Battle {
   status: 'waiting' | 'countdown' | 'active' | 'completed' | 'forfeited';
   participants: Participant[];
   winnerId?: string;
+  winReason?: string;
   forfeitedBy?: string;
   prizePool?: number;
   prize?: number;
@@ -103,6 +105,7 @@ const BattleResults = () => {
   const [opponentData, setOpponentData] = useState<Participant | null>(null);
   const [ratingChange, setRatingChange] = useState(0);
   const [winByForfeit, setWinByForfeit] = useState(false);
+  const [winReason, setWinReason] = useState<string>('');
   const [isRequestingRematch, setIsRequestingRematch] = useState(false);
   const [rematchSent, setRematchSent] = useState(false);
 
@@ -112,9 +115,12 @@ const BattleResults = () => {
 
       try {
         const response = await apiRequest(`/battles/${battleId}`);
-        const battleData = response.battle as Battle;
+        // Backend returns battle directly, not wrapped in { battle }
+        const battleData = (response.battle || response) as Battle;
 
-        if (!battleData) {
+        console.log('Battle results data:', battleData);
+
+        if (!battleData || !battleData.participants) {
           navigate('/dashboard/codearena');
           return;
         }
@@ -136,6 +142,46 @@ const BattleResults = () => {
         if (battleData.status === 'forfeited' && battleData.forfeitedBy !== user?.id) {
           setWinByForfeit(true);
         }
+
+        // Determine win/lose reason
+        let reason = '';
+        if (battleData.winReason) {
+          reason = battleData.winReason;
+        } else if (battleData.status === 'forfeited') {
+          if (battleData.forfeitedBy === user?.id) {
+            reason = 'You left the battle';
+          } else {
+            reason = 'Opponent left the battle';
+          }
+        } else if (me && opp) {
+          const myPassed = me.submissionResult?.passedCount || 0;
+          const oppPassed = opp.submissionResult?.passedCount || 0;
+          const myTime = me.submissionResult?.totalTime || Infinity;
+          const oppTime = opp.submissionResult?.totalTime || Infinity;
+          
+          if (won) {
+            if (myPassed > oppPassed) {
+              reason = `You passed more test cases (${myPassed} vs ${oppPassed})`;
+            } else if (myPassed === oppPassed && myTime < oppTime) {
+              reason = `Same test cases passed, but you were faster!`;
+            } else if (!opp.hasSubmitted) {
+              reason = 'Opponent did not submit';
+            } else {
+              reason = 'You solved it better!';
+            }
+          } else {
+            if (oppPassed > myPassed) {
+              reason = `Opponent passed more test cases (${oppPassed} vs ${myPassed})`;
+            } else if (myPassed === oppPassed && oppTime < myTime) {
+              reason = `Same test cases passed, but opponent was faster`;
+            } else if (!me.hasSubmitted) {
+              reason = 'You did not submit in time';
+            } else {
+              reason = 'Opponent solved it better';
+            }
+          }
+        }
+        setWinReason(reason);
 
         // Calculate rating change (simplified ELO)
         if (won) {
@@ -250,6 +296,18 @@ const BattleResults = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8 px-4 relative overflow-hidden">
+      {/* Close Button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => navigate('/dashboard/codearena/battle')}
+        className="absolute top-4 right-4 z-50 w-12 h-12 bg-gray-800/80 hover:bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all shadow-lg"
+      >
+        <X className="w-6 h-6" />
+      </motion.button>
+
       {/* Background effects */}
       <div className="absolute inset-0">
         <div className="absolute top-10 left-10 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-3xl"></div>
@@ -308,12 +366,62 @@ const BattleResults = () => {
             </>
           ) : (
             <>
-              <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center shadow-xl">
-                <Medal className="w-16 h-16 text-gray-400" />
-              </div>
-              <h1 className="text-4xl font-bold text-gray-400 mb-2">Defeat</h1>
-              <p className="text-xl text-gray-300">Good effort! Keep practicing!</p>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 rounded-full flex items-center justify-center shadow-2xl shadow-gray-500/30 relative overflow-hidden"
+              >
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-gray-500/20 to-gray-400/20 rounded-full"
+                  animate={{ opacity: [0.3, 0.5, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <Medal className="w-18 h-18 text-gray-400 relative z-10" />
+              </motion.div>
+              <motion.h1 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-5xl font-bold bg-gradient-to-r from-gray-400 via-gray-500 to-gray-400 bg-clip-text text-transparent mb-4"
+              >
+                💔 Defeat
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-xl text-gray-300 mb-2"
+              >
+                Good effort! Keep practicing!
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="text-md text-cyan-400"
+              >
+                💪 Every defeat is a step towards victory!
+              </motion.p>
             </>
+          )}
+
+          {/* Win/Lose Reason */}
+          {winReason && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className={`mt-6 px-6 py-3 rounded-xl border ${
+                isWinner 
+                  ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                  : 'bg-red-500/10 border-red-500/30 text-red-400'
+              }`}
+            >
+              <p className="text-lg font-medium">
+                📋 {winReason}
+              </p>
+            </motion.div>
           )}
         </motion.div>
 
