@@ -1,7 +1,6 @@
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
   CheckCircle,
   ChevronDown,
   Clock,
@@ -15,11 +14,11 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBattleGuard } from '../../Context/BattleGuardContext';
-import { apiRequest } from '../../service/api';
 import { useAuth } from '../../Context/AuthContext';
+import { useBattleGuard } from '../../Context/BattleGuardContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
+import { apiRequest } from '../../service/api';
 import { type Challenge } from '../../service/challenges';
 import {
   getPistonSupportedLanguages,
@@ -79,17 +78,7 @@ const BattleRoom = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   useDataContext();
-  const { isBattleActive, setBattleActive } = useBattleGuard();
-  // Set battle guard context when battle is active
-  useEffect(() => {
-    if (battle?.status === 'active' && !hasSubmitted) {
-      setBattleActive(true);
-    } else {
-      setBattleActive(false);
-    }
-    // Clean up on unmount
-    return () => setBattleActive(false);
-  }, [battle?.status, hasSubmitted, setBattleActive]);
+  const { setBattleActive } = useBattleGuard();
 
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,6 +97,17 @@ const BattleRoom = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Set battle guard context when battle is active
+  useEffect(() => {
+    if (battle?.status === 'active' && !hasSubmitted) {
+      setBattleActive(true);
+    } else {
+      setBattleActive(false);
+    }
+    // Clean up on unmount
+    return () => setBattleActive(false);
+  }, [battle?.status, hasSubmitted, setBattleActive]);
   const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
