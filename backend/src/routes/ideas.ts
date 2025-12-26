@@ -1,7 +1,7 @@
-import { Router, Response } from 'express';
+import { Response, Router } from 'express';
+import { authenticate, AuthRequest } from '../middleware/auth';
 import Idea from '../models/Idea';
 import Project from '../models/Project';
-import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -21,7 +21,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit))
       .populate('submittedBy', 'name email')
-      .populate('reviewedBy', 'name email');
+      .populate('reviewedBy', 'name email')
+      .populate('projectId', '_id title');
     
     const total = await Idea.countDocuments(query);
     
@@ -42,7 +43,8 @@ router.get('/:ideaId', authenticate, async (req: AuthRequest, res: Response): Pr
   try {
     const idea = await Idea.findById(req.params.ideaId)
       .populate('submittedBy', 'name email')
-      .populate('reviewedBy', 'name email');
+      .populate('reviewedBy', 'name email')
+      .populate('projectId', '_id title');
     
     if (!idea) {
       res.status(404).json({ error: 'Idea not found' });

@@ -25,7 +25,7 @@ interface DataContextType {
   
   // Additional functions for components
   fetchAllIdeas: () => Promise<any[]>;
-  fetchJoinRequests: () => Promise<any[]>;
+  fetchJoinRequests: (projectId?: string) => Promise<any[]>;
   fetchAllJoinRequests: () => Promise<any[]>;
   submitIdea: (formData: { title: string; description: string; category: string; expectedTimeline: string }) => Promise<any>;
   triggerIdeasRefresh: () => void;
@@ -33,12 +33,25 @@ interface DataContextType {
   
   // Project functions
   sendJoinRequest: (projectId: string, message?: string) => Promise<any>;
+  approveJoinRequest: (requestId: string, projectId: string, userId: string, userName: string) => Promise<void>;
+  rejectJoinRequest: (requestId: string) => Promise<void>;
   checkUserRole: (projectId: string) => Promise<string>;
   getProjectMembers: (projectId: string) => Promise<any[]>;
   fetchTasks: (projectId: string) => Promise<any[]>;
+  addTask: (projectId: string, taskData: any) => Promise<any>;
+  updateTask: (projectId: string, taskId: string, updates: any) => Promise<void>;
+  deleteTask: (projectId: string, taskId: string) => Promise<void>;
   fetchCompletedTasksCount: (userId: string) => Promise<number>;
+  fetchCompletedTasksData: (userId: string) => Promise<{ count: number; completedTasks: any[] }>;
   fetchAllJoinRequestsDebug: () => Promise<any[]>;
   fixJoinRequestProjectId: (requestId: string, projectId: string) => Promise<void>;
+  
+  // Project Chat & Files functions
+  sendMessage: (projectId: string, messageData: { text: string }) => Promise<any>;
+  fetchMessages: (projectId: string) => Promise<any[]>;
+  uploadFile: (projectId: string, fileData: { name: string; size: number; url: string }) => Promise<any>;
+  fetchFiles: (projectId: string) => Promise<any[]>;
+  deleteFile: (projectId: string, fileId: string) => Promise<void>;
   
   // Dashboard functions
   fetchUserSubmissions: (userId: string) => Promise<any[]>;
@@ -170,7 +183,26 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const fetchAllIdeas = async (): Promise<any[]> => {
     try {
       const response = await apiRequest('/ideas');
-      return response.ideas || [];
+      const ideas = response.ideas || [];
+      // Map MongoDB _id to id for frontend compatibility
+      return ideas.map((idea: any) => {
+        // Extract the actual project ID from the populated projectId object
+        let actualProjectId = null;
+        if (idea.projectId) {
+          // If projectId is populated (object with _id), extract _id
+          actualProjectId = idea.projectId._id || idea.projectId;
+        }
+        
+        return {
+          ...idea,
+          id: idea._id || idea.id,
+          projectId: actualProjectId,  // Include actual project ID
+          userId: idea.submittedBy?._id || idea.submittedBy || idea.userId,
+          userName: idea.submittedByName || idea.submittedBy?.name || idea.userName,
+          userEmail: idea.submittedByEmail || idea.submittedBy?.email || idea.userEmail,
+          submittedAt: idea.createdAt || idea.submittedAt
+        };
+      });
     } catch (error) {
       console.error('Error fetching ideas:', error);
       return [];
@@ -196,11 +228,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setIdeasRefreshKey(prev => prev + 1);
   };
 
-  const fetchJoinRequests = async (): Promise<any[]> => {
+  const fetchJoinRequests = async (projectId?: string): Promise<any[]> => {
     try {
-      if (!user?.id) return [];
-      const response = await apiRequest(`/users/${user.id}/join-requests`);
-      return response.requests || [];
+      if (projectId) {
+        // Fetch join requests for a specific project (for project owner)
+        const response = await apiRequest(`/join-requests/project/${projectId}`);
+        const requests = response.requests || [];
+        // Map MongoDB _id to id for frontend compatibility
+        return requests.map((req: any) => ({
+          ...req,
+          id: req._id || req.id,
+          userId: req.userId?._id || req.userId,
+          userName: req.userId?.name || req.userName,
+          userEmail: req.userId?.email || req.userEmail,
+          requestedAt: req.createdAt
+        }));
+      } else {
+        // Fetch current user's join requests
+        if (!user?.id) return [];
+        const response = await apiRequest(`/users/${user.id}/join-requests`);
+        return response.requests || [];
+      }
     } catch (error) {
       console.error('Error fetching join requests:', error);
       return [];
@@ -252,6 +300,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const approveJoinRequest = async (requestId: string, projectId: string, userId: string, userName: string): Promise<void> => {
+    try {
+      await apiRequest(`/join-requests/${requestId}/respond`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'approved' })
+      });
+    } catch (error) {
+      console.error('Error approving join request:', error);
+      throw error;
+    }
+  };
+
+  const rejectJoinRequest = async (requestId: string): Promise<void> => {
+    try {
+      await apiRequest(`/join-requests/${requestId}/respond`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'rejected' })
+      });
+    } catch (error) {
+      console.error('Error rejecting join request:', error);
+      throw error;
+    }
+  };
+
   const checkUserRole = async (projectId: string): Promise<string> => {
     try {
       if (!user?.id) return 'guest';
@@ -266,7 +338,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const getProjectMembers = async (projectId: string): Promise<any[]> => {
     try {
       const response = await apiRequest(`/projects/${projectId}/members`);
-      return response.members || [];
+      const members = response.members || [];
+      // Map backend member format to frontend format
+      return members.map((member: any) => ({
+        id: member._id || member.id,
+        userId: member.userId?._id || member.userId,
+        userName: member.userId?.name || member.name || member.userName || 'Unknown',
+        userEmail: member.userId?.email || member.email || member.userEmail,
+        role: member.role === 'owner' ? 'creator' : 'contributor',
+        joinedAt: member.joinedAt
+      }));
     } catch (error) {
       console.error('Error fetching project members:', error);
       return [];
@@ -275,11 +356,174 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchTasks = async (projectId: string): Promise<any[]> => {
     try {
-      const response = await apiRequest(`/projects/${projectId}/tasks`);
-      return response.tasks || [];
+      const response = await apiRequest(`/projects/${projectId}`);
+      const project = response.project;
+      // Map issues to tasks format
+      return (project?.issues || []).map((issue: any) => ({
+        id: issue._id || issue.id,
+        title: issue.title,
+        description: issue.description,
+        status: issue.status === 'open' ? 'todo' : issue.status === 'in-progress' ? 'inprogress' : 'completed',
+        priority: issue.priority,
+        assignedTo: issue.assignedTo,
+        createdBy: issue.createdBy,
+        createdAt: issue.createdAt,
+        updatedAt: issue.updatedAt,
+        // Completion/Verification fields
+        completedBy: issue.completedBy,
+        completedByName: issue.completedByName,
+        completedAt: issue.completedAt,
+        pendingVerification: issue.pendingVerification || false,
+        verified: issue.verified || false,
+        verifiedBy: issue.verifiedBy,
+        verifiedByName: issue.verifiedByName,
+        verifiedAt: issue.verifiedAt,
+        verificationFeedback: issue.verificationFeedback
+      }));
     } catch (error) {
       console.error('Error fetching tasks:', error);
       return [];
+    }
+  };
+
+  const addTask = async (projectId: string, taskData: any): Promise<any> => {
+    try {
+      console.log('🔧 Adding task to project:', projectId);
+      console.log('🔧 Task data:', taskData);
+      
+      // Send assignedTo as username string (like Firebase)
+      const issueData: any = {
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority || 'medium',
+        assignedTo: taskData.assignedTo || undefined  // Store as username string
+      };
+      
+      const response = await apiRequest(`/projects/${projectId}/issues`, {
+        method: 'POST',
+        body: JSON.stringify(issueData)
+      });
+      
+      console.log('🔧 Task created response:', response);
+      const issue = response.issue;
+      return {
+        id: issue._id || issue.id,
+        title: issue.title,
+        description: issue.description,
+        status: 'todo',
+        priority: issue.priority,
+        assignedTo: issue.assignedTo,
+        createdBy: issue.createdBy,
+        createdAt: issue.createdAt
+      };
+    } catch (error: any) {
+      console.error('❌ Error adding task:', error);
+      console.error('❌ Error message:', error?.message);
+      throw error;
+    }
+  };
+
+  const updateTask = async (projectId: string, taskId: string, updates: any): Promise<void> => {
+    try {
+      const mappedUpdates: any = {};
+      if (updates.status) {
+        mappedUpdates.status = updates.status === 'todo' ? 'open' : updates.status === 'inprogress' ? 'in-progress' : 'closed';
+      }
+      if (updates.priority) mappedUpdates.priority = updates.priority;
+      if (updates.description) mappedUpdates.description = updates.description;
+      if (updates.title) mappedUpdates.title = updates.title;
+      if (updates.assignedTo !== undefined) mappedUpdates.assignedTo = updates.assignedTo;
+      
+      // Completion/Verification fields
+      if (updates.completedBy !== undefined) mappedUpdates.completedBy = updates.completedBy;
+      if (updates.completedByName !== undefined) mappedUpdates.completedByName = updates.completedByName;
+      if (updates.completedAt !== undefined) mappedUpdates.completedAt = updates.completedAt;
+      if (updates.pendingVerification !== undefined) mappedUpdates.pendingVerification = updates.pendingVerification;
+      if (updates.verified !== undefined) mappedUpdates.verified = updates.verified;
+      if (updates.verifiedBy !== undefined) mappedUpdates.verifiedBy = updates.verifiedBy;
+      if (updates.verifiedByName !== undefined) mappedUpdates.verifiedByName = updates.verifiedByName;
+      if (updates.verifiedAt !== undefined) mappedUpdates.verifiedAt = updates.verifiedAt;
+      if (updates.verificationFeedback !== undefined) mappedUpdates.verificationFeedback = updates.verificationFeedback;
+
+      await apiRequest(`/projects/${projectId}/issues/${taskId}`, {
+        method: 'PUT',
+        body: JSON.stringify(mappedUpdates)
+      });
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
+  };
+
+  const deleteTask = async (projectId: string, taskId: string): Promise<void> => {
+    try {
+      await apiRequest(`/projects/${projectId}/issues/${taskId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
+  };
+
+  // ==================== PROJECT CHAT FUNCTIONS ====================
+
+  const sendMessage = async (projectId: string, messageData: { text: string }): Promise<any> => {
+    try {
+      const response = await apiRequest(`/projects/${projectId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify(messageData)
+      });
+      return response.message;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+  };
+
+  const fetchMessages = async (projectId: string): Promise<any[]> => {
+    try {
+      const response = await apiRequest(`/projects/${projectId}/messages`);
+      return response.messages || [];
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      return [];
+    }
+  };
+
+  // ==================== PROJECT FILES FUNCTIONS ====================
+
+  const uploadFile = async (projectId: string, fileData: { name: string; size: number; url: string }): Promise<any> => {
+    try {
+      const response = await apiRequest(`/projects/${projectId}/files`, {
+        method: 'POST',
+        body: JSON.stringify(fileData)
+      });
+      return response.file;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  };
+
+  const fetchFiles = async (projectId: string): Promise<any[]> => {
+    try {
+      const response = await apiRequest(`/projects/${projectId}/files`);
+      return response.files || [];
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      return [];
+    }
+  };
+
+  const deleteFile = async (projectId: string, fileId: string): Promise<void> => {
+    try {
+      await apiRequest(`/projects/${projectId}/files/${fileId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw error;
     }
   };
 
@@ -290,6 +534,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error fetching completed tasks count:', error);
       return 0;
+    }
+  };
+
+  const fetchCompletedTasksData = async (userId: string): Promise<{ count: number; completedTasks: any[] }> => {
+    try {
+      const response = await apiRequest(`/users/${userId}/completed-tasks`);
+      return {
+        count: response.count || 0,
+        completedTasks: response.completedTasks || []
+      };
+    } catch (error) {
+      console.error('Error fetching completed tasks data:', error);
+      return { count: 0, completedTasks: [] };
     }
   };
 
@@ -573,10 +830,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     triggerIdeasRefresh,
     ideasRefreshSignal: ideasRefreshKey,
     sendJoinRequest,
+    approveJoinRequest,
+    rejectJoinRequest,
     checkUserRole,
     getProjectMembers,
     fetchTasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    sendMessage,
+    fetchMessages,
+    uploadFile,
+    fetchFiles,
+    deleteFile,
     fetchCompletedTasksCount,
+    fetchCompletedTasksData,
     fetchAllJoinRequestsDebug,
     fixJoinRequestProjectId,
     fetchUserSubmissions,

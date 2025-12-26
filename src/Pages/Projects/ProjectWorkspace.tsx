@@ -1,19 +1,19 @@
 import {
-    Activity,
-    Bell,
-    CheckCircle, Circle, Clock,
-    FileText,
-    MessageSquare,
-    Send,
-    Shield,
-    Trash2,
-    Upload,
-    User,
-    UserCheck,
-    UserPlus,
-    UserX
+  Activity,
+  Bell,
+  CheckCircle, Circle, Clock,
+  FileText,
+  MessageSquare,
+  Send,
+  Shield,
+  Trash2,
+  Upload,
+  User,
+  UserCheck,
+  UserPlus,
+  UserX
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -28,11 +28,13 @@ interface Task {
   dueDate?: string;
   completedBy?: string | null;
   completedByName?: string | null;
-  completedAt?: any;
+  completedAt?: string;
   pendingVerification?: boolean;
   verified?: boolean;
   verificationFeedback?: string | null;
   verifiedBy?: string | null;
+  verifiedByName?: string | null;
+  verifiedAt?: string;
 }
 
 interface Member {
@@ -71,6 +73,7 @@ export default function ProjectWorkspace() {
   const [userRole, setUserRole] = useState<'creator' | 'contributor' | null>(null);
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<any>(null);
+  const [actualProjectId, setActualProjectId] = useState<string | null>(null); // The real Project document ID
   const [members, setMembers] = useState<Member[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -89,6 +92,7 @@ export default function ProjectWorkspace() {
   // Chat
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
   
   // Files
   const [files, setFiles] = useState<any[]>([]);
@@ -102,10 +106,33 @@ export default function ProjectWorkspace() {
   }, [projectId, user]);
 
   useEffect(() => {
-    if (activeTab === 'chat' && projectId) {
+    if (activeTab === 'chat' && (actualProjectId || projectId)) {
       loadMessages();
     }
-  }, [activeTab, projectId]);
+    if (activeTab === 'files' && (actualProjectId || projectId)) {
+      loadFiles();
+    }
+  }, [activeTab, projectId, actualProjectId]);
+
+  // Auto-refresh chat messages every 5 seconds when chat tab is active
+  useEffect(() => {
+    if (activeTab !== 'chat') return;
+    
+    const interval = setInterval(() => {
+      if (actualProjectId || projectId) {
+        loadMessages();
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [activeTab, actualProjectId, projectId]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const loadProjectData = async () => {
     setLoading(true);
@@ -113,6 +140,9 @@ export default function ProjectWorkspace() {
       // Get project from ideas
       const allIdeas = await fetchAllIdeas();
       const projectData = allIdeas.find((idea: any) => idea.id === projectId);
+      
+      console.log('🔍 All ideas:', allIdeas);
+      console.log('🔍 Found project data:', projectData);
       
       if (!projectData) {
         alert('Project not found');
@@ -127,9 +157,16 @@ export default function ProjectWorkspace() {
       }
       
       setProject(projectData);
+      // Set the actual Project document ID (different from idea ID)
+      const realProjectId = projectData.projectId?._id || projectData.projectId || projectId;
+      setActualProjectId(realProjectId);
+      console.log('📋 Idea ID:', projectId);
+      console.log('📋 projectData.projectId:', projectData.projectId);
+      console.log('📋 Actual Project ID to use:', realProjectId);
       
-      // Check user role
-      const role = await checkUserRole(projectId!, user!.id);
+      // Check user role using actual project ID
+      const role = await checkUserRole(realProjectId);
+      console.log('👤 User role:', role);
       
       if (!role) {
         console.log('❌ NO ACCESS - Redirecting to diagnostics page');
@@ -139,8 +176,8 @@ export default function ProjectWorkspace() {
       
       setUserRole(role as 'creator' | 'contributor');
       
-      // Load members
-      const membersList = await getProjectMembers(projectId!);
+      // Load members using actual project ID
+      const membersList = await getProjectMembers(realProjectId);
       console.log('🔍 LOADED MEMBERS FROM BACKEND:', membersList);
       
       // Remove duplicates based on userId
@@ -164,13 +201,13 @@ export default function ProjectWorkspace() {
       console.log('👥 ALL MEMBERS (including creator):', allMembers);
       setMembers(allMembers);
       
-      // Load join requests (only for creator)
+      // Load join requests (only for creator) using actual project ID
       if (role === 'creator') {
-        console.log('📋 Loading join requests for project:', projectId);
+        console.log('📋 Loading join requests for project:', realProjectId);
         console.log('📋 Current user ID:', user!.id);
         console.log('📋 Project creator ID:', projectData.userId);
         
-        const requests = await fetchJoinRequests(projectId!);
+        const requests = await fetchJoinRequests(realProjectId);
         console.log('📋 Fetched join requests:', requests);
         setJoinRequests(requests);
         
@@ -180,21 +217,21 @@ export default function ProjectWorkspace() {
           const needFix = allRequests.filter((r: any) => 
             r.status === 'pending' && 
             r.creatorId === user!.id &&
-            r.projectId !== projectId
+            r.projectId !== realProjectId
           );
           
-          if (needFix.length > 0 && projectId) {
+          if (needFix.length > 0 && realProjectId) {
             for (const req of needFix) {
-              await fixJoinRequestProjectId(req.id, projectId);
+              await fixJoinRequestProjectId(req.id, realProjectId);
             }
-            const fixed = await fetchJoinRequests(projectId);
+            const fixed = await fetchJoinRequests(realProjectId);
             setJoinRequests(fixed);
           }
         }
       }
       
-      // Load tasks, messages, files from backend
-      loadTasks();
+      // Load tasks, messages, files from backend using actual project ID
+      loadTasks(realProjectId);
       loadMessages();
       loadFiles();
       
@@ -207,9 +244,10 @@ export default function ProjectWorkspace() {
     }
   };
 
-  const loadTasks = async () => {
+  const loadTasks = async (projId?: string) => {
     try {
-      const tasksList = await fetchTasksFromDb(projectId!);
+      const idToUse = projId || actualProjectId || projectId;
+      const tasksList = await fetchTasksFromDb(idToUse!);
       setTasks(tasksList.filter((t: any) => !t.deleted));
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -218,7 +256,8 @@ export default function ProjectWorkspace() {
 
   const loadMessages = async () => {
     try {
-      const messagesList = await fetchMessagesFromDb(projectId!);
+      const projectIdToUse = actualProjectId || projectId;
+      const messagesList = await fetchMessagesFromDb(projectIdToUse!);
       setMessages(messagesList);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -227,7 +266,8 @@ export default function ProjectWorkspace() {
   
   const loadFiles = async () => {
     try {
-      const filesList = await fetchFilesFromDb(projectId!);
+      const projectIdToUse = actualProjectId || projectId;
+      const filesList = await fetchFilesFromDb(projectIdToUse!);
       setFiles(filesList);
     } catch (error) {
       console.error('Error loading files:', error);
@@ -236,11 +276,12 @@ export default function ProjectWorkspace() {
 
   const handleApproveRequest = async (requestId: string, userId: string, userName: string) => {
     try {
-      await approveJoinRequest(requestId, projectId!, userId, userName);
+      const projectIdToUse = actualProjectId || projectId;
+      await approveJoinRequest(requestId, projectIdToUse!, userId, userName);
       setJoinRequests(joinRequests.filter(req => req.id !== requestId));
       
-      // Reload members
-      const membersList = await getProjectMembers(projectId!);
+      // Reload members using actual project ID
+      const membersList = await getProjectMembers(projectIdToUse!);
       const allMembers: Member[] = [
         {
           id: 'creator',
@@ -258,6 +299,27 @@ export default function ProjectWorkspace() {
       console.error('Error approving request:', error);
       alert('Failed to approve request');
     }
+  };
+
+  // Helper function to get member name from username or userId
+  const getMemberName = (assignedTo: string): string => {
+    // assignedTo is now stored as username (like Firebase), so return it directly
+    // But also check by userId for backward compatibility
+    if (!assignedTo) return 'Unassigned';
+    const memberByName = members.find(m => m.userName === assignedTo);
+    if (memberByName) return memberByName.userName;
+    const memberById = members.find(m => m.userId === assignedTo);
+    return memberById?.userName || assignedTo;
+  };
+
+  // Helper function to check if current user is assigned to a task
+  const isCurrentUserAssigned = (taskAssignedTo: string): boolean => {
+    if (!taskAssignedTo || !user) return false;
+    const currentUserName = user.name || user.email?.split('@')[0] || '';
+    // Check if assignedTo matches user's name or derived username
+    return taskAssignedTo === user.name || 
+           taskAssignedTo === user.email?.split('@')[0] ||
+           taskAssignedTo.toLowerCase() === currentUserName.toLowerCase();
   };
 
   const handleRejectRequest = async (requestId: string) => {
@@ -280,9 +342,17 @@ export default function ProjectWorkspace() {
       alert('Please enter a task title');
       return;
     }
+    if (!actualProjectId) {
+      console.error('❌ actualProjectId is not set. Project data:', project);
+      alert('Project not properly loaded. Please refresh the page.');
+      return;
+    }
+
+    console.log('📝 Creating task with actualProjectId:', actualProjectId);
+    console.log('📝 User role:', userRole);
 
     try {
-      await addTaskToDb(projectId!, {
+      await addTaskToDb(actualProjectId, {
         title: newTask.title,
         description: newTask.description,
         status: 'todo',
@@ -294,15 +364,15 @@ export default function ProjectWorkspace() {
       await loadTasks();
       setNewTask({ title: '', description: '', priority: 'medium', assignedTo: '', dueDate: '' });
       setShowTaskForm(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding task:', error);
-      alert('Failed to add task');
+      alert(`Failed to add task: ${error?.message || 'Unknown error'}`);
     }
   };
 
   const updateTaskStatus = async (taskId: string, newStatus: 'todo' | 'inprogress' | 'completed') => {
     try {
-      await updateTaskInDb(projectId!, taskId, { status: newStatus });
+      await updateTaskInDb(actualProjectId || projectId!, taskId, { status: newStatus });
       setTasks(tasks.map(task => 
         task.id === taskId ? { ...task, status: newStatus } : task
       ));
@@ -319,7 +389,7 @@ export default function ProjectWorkspace() {
     }
     
     try {
-      await deleteTaskFromDb(projectId!, taskId);
+      await deleteTaskFromDb(actualProjectId || projectId!, taskId);
       setTasks(tasks.filter(task => task.id !== taskId));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -330,14 +400,21 @@ export default function ProjectWorkspace() {
   const markTaskCompletedByMember = async (taskId: string) => {
     if (!user) return;
     try {
-      await updateTaskInDb(projectId!, taskId, {
+      const completerName = user.name || user.email?.split('@')[0] || 'User';
+      await updateTaskInDb(actualProjectId || projectId!, taskId, {
         completedBy: user.id,
-        completedByName: user.name || user.email?.split('@')[0] || 'User',
+        completedByName: completerName,
         completedAt: new Date().toISOString(),
         pendingVerification: true
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, completedBy: user.id, completedByName: user.name, completedAt: new Date().toISOString(), pendingVerification: true } as any : t));
+      setTasks(tasks.map(t => t.id === taskId ? { 
+        ...t, 
+        completedBy: user.id, 
+        completedByName: completerName, 
+        completedAt: new Date().toISOString(), 
+        pendingVerification: true 
+      } : t));
     } catch (error) {
       console.error('Error marking task completed:', error);
       alert('Failed to mark task completed');
@@ -352,17 +429,26 @@ export default function ProjectWorkspace() {
 
     try {
       const feedback = verificationFeedbacks[taskId] || '';
-      await updateTaskInDb(projectId!, taskId, {
+      const verifierName = user?.name || user?.email?.split('@')[0] || 'Creator';
+      await updateTaskInDb(actualProjectId || projectId!, taskId, {
         verified: true,
         verifiedBy: user?.id,
-        verifiedByName: user?.name || user?.email?.split('@')[0] || 'Creator',
+        verifiedByName: verifierName,
         verifiedAt: new Date().toISOString(),
         verificationFeedback: feedback,
         pendingVerification: false,
         status: 'completed'
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, verified: true, verificationFeedback: feedback, pendingVerification: false, status: 'completed' } as any : t));
+      setTasks(tasks.map(t => t.id === taskId ? { 
+        ...t, 
+        verified: true, 
+        verifiedBy: user?.id || null,
+        verifiedByName: verifierName,
+        verificationFeedback: feedback, 
+        pendingVerification: false, 
+        status: 'completed' as const
+      } : t));
       setVerificationFeedbacks(prev => ({ ...prev, [taskId]: '' }));
     } catch (error) {
       console.error('Error approving verification:', error);
@@ -378,7 +464,7 @@ export default function ProjectWorkspace() {
 
     try {
       const feedback = verificationFeedbacks[taskId] || '';
-      await updateTaskInDb(projectId!, taskId, {
+      await updateTaskInDb(actualProjectId || projectId!, taskId, {
         verified: false,
         verificationFeedback: feedback,
         pendingVerification: false,
@@ -389,7 +475,16 @@ export default function ProjectWorkspace() {
         completedByName: null
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, verified: false, verificationFeedback: feedback, pendingVerification: false, status: 'inprogress', completedBy: undefined, completedAt: undefined } as any : t));
+      setTasks(tasks.map(t => t.id === taskId ? { 
+        ...t, 
+        verified: false, 
+        verificationFeedback: feedback, 
+        pendingVerification: false, 
+        status: 'inprogress' as const, 
+        completedBy: null, 
+        completedAt: undefined,
+        completedByName: null
+      } : t));
       setVerificationFeedbacks(prev => ({ ...prev, [taskId]: '' }));
     } catch (error) {
       console.error('Error rejecting verification:', error);
@@ -401,7 +496,8 @@ export default function ProjectWorkspace() {
     if (!newMessage.trim()) return;
 
     try {
-      await sendMessageToDb(projectId!, { text: newMessage });
+      const projectIdToUse = actualProjectId || projectId;
+      await sendMessageToDb(projectIdToUse!, { text: newMessage });
       await loadMessages();
       setNewMessage('');
     } catch (error) {
@@ -717,7 +813,7 @@ export default function ProjectWorkspace() {
                           {task.assignedTo && (
                             <div className="flex items-center gap-1">
                               <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span className="truncate">{task.assignedTo}</span>
+                              <span className="truncate">{getMemberName(task.assignedTo)}</span>
                             </div>
                           )}
                           {task.dueDate && (
@@ -747,7 +843,8 @@ export default function ProjectWorkspace() {
                             </div>
                           )}
 
-                          {!task.pendingVerification && !task.verified && task.assignedTo === (user?.name || user?.email?.split('@')[0]) && (
+                          {/* Show Mark Completed button for assigned user (not pending, not verified) */}
+                          {!task.pendingVerification && !task.verified && task.assignedTo && isCurrentUserAssigned(task.assignedTo) && (
                             <div className="mt-2">
                               <button onClick={() => markTaskCompletedByMember(task.id)} className="w-full sm:w-auto px-3 py-2 text-xs sm:text-sm bg-[#00ADB5] text-white rounded-lg">Mark Completed</button>
                             </div>
@@ -755,7 +852,13 @@ export default function ProjectWorkspace() {
 
                           {task.verified && (
                             <div className="mt-2 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 p-2 rounded">
-                              <p className="text-xs sm:text-sm text-green-800 dark:text-green-300 font-semibold">Verified completed</p>
+                              <p className="text-xs sm:text-sm text-green-800 dark:text-green-300 font-semibold">✓ Verified completed</p>
+                              {task.completedByName && (
+                                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Completed by: {task.completedByName}</p>
+                              )}
+                              {task.verifiedByName && (
+                                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Reviewed by: {task.verifiedByName}</p>
+                              )}
                               {task.verificationFeedback && <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Feedback: {task.verificationFeedback}</p>}
                             </div>
                           )}
@@ -793,6 +896,7 @@ export default function ProjectWorkspace() {
                       <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">{msg.message}</p>
                     </div>
                   ))}
+                  <div ref={chatEndRef} />
                 </div>
               )}
             </div>
@@ -838,9 +942,9 @@ export default function ProjectWorkspace() {
                         url: '#' // Placeholder - would be Firebase Storage URL
                       };
                       try {
-                        await uploadFileToDb(projectId!, fileData);
-                        const filesList = await fetchFilesFromDb(projectId!);
-                        setFiles(filesList);
+                        const projectIdToUse = actualProjectId || projectId;
+                        await uploadFileToDb(projectIdToUse!, fileData);
+                        await loadFiles();
                         alert('File metadata saved! (Note: Actual file upload requires Firebase Storage setup)');
                       } catch (error) {
                         console.error('Error uploading file:', error);
@@ -878,7 +982,8 @@ export default function ProjectWorkspace() {
                         <button
                           onClick={async () => {
                             try {
-                              await deleteFileFromDb(projectId!, file.id);
+                              const projectIdToUse = actualProjectId || projectId;
+                              await deleteFileFromDb(projectIdToUse!, file.id);
                               setFiles(files.filter(f => f.id !== file.id));
                             } catch (error) {
                               console.error('Error deleting file:', error);

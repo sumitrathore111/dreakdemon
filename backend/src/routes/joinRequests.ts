@@ -1,7 +1,13 @@
-import { Router, Response } from 'express';
+import { Response, Router } from 'express';
+import { Server as SocketIOServer } from 'socket.io';
+import { authenticate, AuthRequest } from '../middleware/auth';
 import JoinRequest from '../models/JoinRequest';
 import Project from '../models/Project';
-import { authenticate, AuthRequest } from '../middleware/auth';
+
+// Helper to get socket.io instance from app
+const getIO = (req: AuthRequest): SocketIOServer | null => {
+  return req.app.get('io') as SocketIOServer | null;
+};
 
 const router = Router();
 
@@ -64,12 +70,26 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
+    // Get the user's name from database if not available in req.user
+    let userName = req.user?.name || '';
+    const userEmail = req.user?.email || '';
+    
+    if (!userName || userName.trim() === '') {
+      const User = require('../models/User').default;
+      const user = await User.findById(req.user?.id);
+      if (user) {
+        userName = user.name || userEmail.split('@')[0] || 'Unknown User';
+      } else {
+        userName = userEmail.split('@')[0] || 'Unknown User';
+      }
+    }
+
     // Create join request
     const request = await JoinRequest.create({
       projectId,
       userId: req.user?.id,
-      userName: req.user?.name || '',
-      userEmail: req.user?.email || '',
+      userName,
+      userEmail,
       message
     });
 
@@ -92,9 +112,13 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
 });
 
 // Get join requests for a project (for project owner/admin)
+// Only returns pending requests - approved/rejected are filtered out
 router.get('/project/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const requests = await JoinRequest.find({ projectId: req.params.projectId })
+    const requests = await JoinRequest.find({ 
+      projectId: req.params.projectId,
+      status: 'pending'  // Only show pending requests
+    })
       .populate('userId', 'name email skills')
       .sort({ createdAt: -1 });
     res.json({ requests });
@@ -144,14 +168,55 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
 
     // If approved, add user to project
     if (status === 'approved') {
-      project.members.push({
-        userId: request.userId,
-        name: request.userName,
-        email: request.userEmail,
-        role: 'member',
-        joinedAt: new Date()
+      // Check if user is already a member to prevent duplicates
+      const isAlreadyMember = project.members.some(m => m.userId.toString() === request.userId.toString());
+      
+      if (!isAlreadyMember) {
+        // Get the user's name from the database if not stored in request
+        let userName = request.userName;
+        let userEmail = request.userEmail;
+        
+        if (!userName || userName.trim() === '') {
+          const User = require('../models/User').default;
+          const user = await User.findById(request.userId);
+          if (user) {
+            userName = user.name || user.email?.split('@')[0] || 'Unknown User';
+            userEmail = user.email || userEmail;
+          } else {
+            userName = userEmail?.split('@')[0] || 'Unknown User';
+          }
+        }
+        
+        project.members.push({
+          userId: request.userId,
+          name: userName,
+          email: userEmail,
+          role: 'member',
+          joinedAt: new Date()
+        });
+        await project.save();
+        
+        // Emit real-time event for new member
+        const io = getIO(req);
+        if (io) {
+          io.to(`project:${project._id}`).emit('member-joined', {
+            userId: request.userId,
+            userName,
+            userEmail,
+            role: 'member'
+          });
+        }
+      }
+    }
+
+    // Emit real-time event for join request status change
+    const io = getIO(req);
+    if (io) {
+      io.to(`project:${project._id}`).emit('join-request-updated', {
+        requestId: req.params.requestId,
+        status,
+        userId: request.userId
       });
-      await project.save();
     }
 
     res.json({ request, project: status === 'approved' ? project : undefined });

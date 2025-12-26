@@ -1,19 +1,59 @@
-import { Router, Response } from 'express';
-import User from '../models/User';
-import Task from '../models/Task';
+import { Response, Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { updateProfileValidation } from '../middleware/validation';
+import Project from '../models/Project';
+import User from '../models/User';
 
 const router = Router();
 
 // Get user's completed tasks count (MUST be before /:userId route)
+// Counts tasks that are verified completed and assigned to this user
 router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const count = await Task.countDocuments({
-      completedBy: req.params.userId,
-      status: 'completed'
-    });
-    res.json({ count });
+    const userId = req.params.userId;
+    
+    // Get user to find their name for matching assignedTo
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    const userName = user.name || user.email?.split('@')[0] || '';
+    
+    // Find all projects and count issues where:
+    // - verified is true (approved by owner)
+    // - assignedTo matches user's name OR completedBy matches user's id
+    const projects = await Project.find({});
+    
+    let count = 0;
+    const completedTasks: any[] = [];
+    
+    for (const project of projects) {
+      for (const issue of project.issues) {
+        const issueData = issue as any;
+        // Task is considered completed if:
+        // 1. verified === true (owner approved it)
+        // 2. AND (assignedTo matches userName OR completedBy matches userId)
+        if (issueData.verified === true && 
+            (issueData.assignedTo === userName || 
+             issueData.assignedTo === user.email?.split('@')[0] ||
+             issueData.completedBy === userId)) {
+          count++;
+          completedTasks.push({
+            id: issueData._id,
+            title: issueData.title,
+            projectTitle: project.title,
+            projectId: project._id,
+            completedAt: issueData.completedAt,
+            verifiedAt: issueData.verifiedAt,
+            verifiedByName: issueData.verifiedByName
+          });
+        }
+      }
+    }
+    
+    res.json({ count, completedTasks });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

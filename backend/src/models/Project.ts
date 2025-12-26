@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IProjectMember {
   userId: mongoose.Types.ObjectId;
@@ -23,10 +23,20 @@ export interface IProjectIssue {
   description: string;
   status: 'open' | 'in-progress' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'critical';
-  assignedTo?: mongoose.Types.ObjectId;
+  assignedTo?: string;  // Store as string (username) like Firebase
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  // Completion/Verification fields
+  completedBy?: string;
+  completedByName?: string;
+  completedAt?: Date;
+  pendingVerification?: boolean;
+  verified?: boolean;
+  verifiedBy?: string;
+  verifiedByName?: string;
+  verifiedAt?: Date;
+  verificationFeedback?: string;
 }
 
 export interface IProject extends Document {
@@ -74,10 +84,20 @@ const ProjectIssueSchema = new Schema({
   description: { type: String },
   status: { type: String, enum: ['open', 'in-progress', 'resolved', 'closed'], default: 'open' },
   priority: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
-  assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
+  assignedTo: { type: String },  // Store as string (username) like Firebase
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+  // Completion/Verification fields
+  completedBy: { type: String },
+  completedByName: { type: String },
+  completedAt: { type: Date },
+  pendingVerification: { type: Boolean, default: false },
+  verified: { type: Boolean, default: false },
+  verifiedBy: { type: String },
+  verifiedByName: { type: String },
+  verifiedAt: { type: Date },
+  verificationFeedback: { type: String }
 });
 
 const ProjectSchema: Schema = new Schema({

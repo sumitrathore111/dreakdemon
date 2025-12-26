@@ -232,7 +232,7 @@ export default function AdminPanel() {
     }
 
     try {
-      await updateIdeaStatus(ideaId, 'approved', reviewFeedback, user?.email || 'Admin');
+      await updateIdeaStatus(ideaId, 'approved', reviewFeedback, user?.id);
       
       // Update local state
       setIdeas(ideas.map(idea => 
@@ -263,7 +263,7 @@ export default function AdminPanel() {
     }
 
     try {
-      await updateIdeaStatus(ideaId, 'rejected', reviewFeedback, user?.email || 'Admin');
+      await updateIdeaStatus(ideaId, 'rejected', reviewFeedback, user?.id);
       
       // Update local state
       setIdeas(ideas.map(idea => 
