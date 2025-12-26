@@ -2,48 +2,97 @@
 
 export interface DeveloperProfile {
   userId: string;
+  odId?: string;
+  odName?: string;
+  odPic?: string;
   name: string;
   email: string;
   avatar: string;
   bio: string;
-  college: string;
-  year: 'First' | 'Second' | 'Third' | 'Fourth' | 'Other';
+  
+  // Institute/College info
+  college?: string;
+  institute?: string;
+  year?: 'First' | 'Second' | 'Third' | 'Fourth' | 'Other' | string;
+  yearOfStudy?: number;
+  location?: string;
+  phone?: string;
   
   // CodeArena Stats
-  codeArenaStats: {
+  codeArenaStats?: {
     problemsSolved: number;
     rating: number;
     rank: number;
     battlesWon: number;
     totalCoins: number;
   };
+  challenges_solved?: number;
+  marathon_score?: number;
+  marathon_rank?: number;
+  streakCount?: number;
   
   // Skills & Expertise
-  skills: string[]; // ['React', 'Node.js', 'Python', etc]
-  languages: string[]; // ['JavaScript', 'Python', 'Java', etc]
+  skills: string[];
+  languages?: string[];
+  
+  // Education & Experience
+  education?: Array<{
+    degree: string;
+    school: string;
+    year: string;
+  }>;
+  experience?: Array<{
+    title: string;
+    company: string;
+    year: string;
+    desc: string;
+  }>;
+  achievements?: string[];
   
   // Projects
-  projectsCompleted: number;
-  projectsLeading: number;
+  projectsCompleted?: number;
+  projectsLeading?: number;
+  projects?: Array<{
+    project_id: string;
+    role: string;
+    project_status: string;
+  }>;
   
   // Reputation
-  endorsements: SkillEndorsement[];
-  averageRating: number;
-  reviewCount: number;
+  endorsements?: SkillEndorsement[];
+  averageRating?: number;
+  reviewCount?: number;
+  rating?: number;
   
   // Collaboration Status
-  lookingFor: 'Teammates' | 'Mentoring' | 'Both' | 'Not looking';
-  lookingForDetails?: string; // e.g., "Backend developer for 6-week project"
-  availability: 'Full-time' | 'Part-time' | 'Weekends only' | 'Flexible';
+  lookingFor?: 'Teammates' | 'Mentoring' | 'Both' | 'Not looking' | string;
+  lookingForDetails?: string;
+  availability?: 'Full-time' | 'Part-time' | 'Weekends only' | 'Flexible' | string;
   
-  // Social
+  // Profile Status
+  profileCompletion?: number;
+  isProfileComplete?: boolean;
+  role?: string;
+  
+  // Social & Links
   github?: string;
+  githubUsername?: string;
   linkedin?: string;
   twitter?: string;
   portfolio?: string;
+  resume_objective?: string;
+  links?: Array<{
+    platform: string;
+    url: string;
+  }>;
+  target_company?: string[];
   
-  createdAt: Date;
-  updatedAt: Date;
+  // Status
+  isOnline?: boolean;
+  joinedDate?: Date;
+  
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface SkillEndorsement {

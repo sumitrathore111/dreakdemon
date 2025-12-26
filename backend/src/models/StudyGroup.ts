@@ -1,11 +1,15 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IStudyGroup extends Document {
   name: string;
   description: string;
   category: string;
+  topic: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
   tags: string[];
   createdBy: string;
+  creatorName: string;
+  creatorAvatar: string;
   members: Array<{
     userId: string;
     userName: string;
@@ -36,9 +40,13 @@ export interface IStudyGroup extends Document {
 const StudyGroupSchema: Schema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  category: { type: String, required: true },
+  category: { type: String, default: 'General' },
+  topic: { type: String, required: true },
+  level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], default: 'Beginner' },
   tags: [{ type: String }],
   createdBy: { type: String, required: true },
+  creatorName: { type: String },
+  creatorAvatar: { type: String },
   members: [{
     userId: { type: String, required: true },
     userName: { type: String, required: true },

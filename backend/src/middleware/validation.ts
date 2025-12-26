@@ -1,5 +1,5 @@
+import { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { Request, Response, NextFunction } from 'express';
 
 export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
@@ -26,7 +26,23 @@ export const loginValidation = [
 export const updateProfileValidation = [
   body('email').optional().isEmail().normalizeEmail(),
   body('name').optional().trim().notEmpty(),
-  body('phone').optional().isMobilePhone('any'),
-  body('skills').optional().isArray(),
+  body('phone').optional(),
+  body('location').optional(),
+  body('institute').optional(),
+  body('bio').optional(),
+  body('portfolio').optional(),
+  body('resume_objective').optional(),
+  body('skills').optional(),
+  body('languages').optional(),
+  body('achievements').optional(),
+  body('target_company').optional(),
+  body('education').optional(),
+  body('experience').optional(),
+  body('links').optional(),
+  body('yearOfStudy').optional(),
+  body('profileCompletion').optional(),
+  body('isProfileComplete').optional(),
+  body('githubUsername').optional(),
+  body('avatar').optional(),
   validateRequest
 ];

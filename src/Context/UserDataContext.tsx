@@ -15,7 +15,7 @@ interface DataContextType {
   pushDataToFirestore: (collectionName: string, dataList: object[]) => void;
   contributors: LegacyContributor[] | undefined;
   avatrUrl: string;
-  pushDataWithId: (data: any) => void;
+  pushDataWithId: (data: any) => Promise<void>;
   calculateResumeCompletion: (userProfile: any) => number;
   calculateCategoryCompletion: (userProfile: any) => object;
   
@@ -176,8 +176,58 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     console.warn("pushDataToFirestore not implemented with custom backend");
   };
 
-  const pushDataWithId = (_data: any) => {
-    console.warn("pushDataWithId not implemented with custom backend");
+  const pushDataWithId = async (data: any): Promise<void> => {
+    if (!user?.id) {
+      console.error("No user ID available for profile update");
+      throw new Error("No user ID available");
+    }
+    
+    try {
+      // Clean the data - only include fields that the backend accepts
+      const cleanedData: any = {};
+      
+      // Only add fields that exist and are allowed
+      if (data.name) cleanedData.name = data.name;
+      if (data.phone) cleanedData.phone = String(data.phone);
+      if (data.location) cleanedData.location = data.location;
+      if (data.institute) cleanedData.institute = data.institute;
+      if (data.bio) cleanedData.bio = data.bio;
+      if (data.portfolio) cleanedData.portfolio = data.portfolio;
+      if (data.resume_objective) cleanedData.resume_objective = data.resume_objective;
+      if (data.githubUsername) cleanedData.githubUsername = data.githubUsername;
+      if (data.yearOfStudy !== undefined) cleanedData.yearOfStudy = Number(data.yearOfStudy) || 0;
+      if (data.profileCompletion !== undefined) cleanedData.profileCompletion = Number(data.profileCompletion) || 0;
+      
+      // Boolean fields
+      if (data.isprofileComplete !== undefined || data.isProfileComplete !== undefined) {
+        cleanedData.isProfileComplete = Boolean(data.isprofileComplete ?? data.isProfileComplete);
+      }
+      
+      // Arrays - ensure they are arrays
+      if (Array.isArray(data.skills)) cleanedData.skills = data.skills;
+      if (Array.isArray(data.languages)) cleanedData.languages = data.languages;
+      if (Array.isArray(data.achievements)) cleanedData.achievements = data.achievements;
+      if (Array.isArray(data.target_company)) cleanedData.target_company = data.target_company;
+      if (Array.isArray(data.education)) cleanedData.education = data.education;
+      if (Array.isArray(data.experience)) cleanedData.experience = data.experience;
+      if (Array.isArray(data.links)) cleanedData.links = data.links;
+      
+      console.log("Sending profile update:", cleanedData);
+      
+      await apiRequest(`/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(cleanedData)
+      });
+      
+      // Refresh the user profile after update
+      const response = await apiRequest(`/users/${user.id}`);
+      setUserProfile(response.user);
+      
+      console.log("Profile updated successfully");
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
   };
 
   const fetchAllIdeas = async (): Promise<any[]> => {

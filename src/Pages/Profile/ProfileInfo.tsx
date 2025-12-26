@@ -1,31 +1,31 @@
 import {
-  Award,
-  Briefcase,
-  Building,
-  Edit3,
-  FileText,
-  Globe,
-  GraduationCap,
-  Mail,
-  MapPin,
-  Phone,
-  Plus,
-  Save,
-  User,
-  X,
+    Award,
+    Briefcase,
+    Building,
+    Edit3,
+    FileText,
+    Globe,
+    GraduationCap,
+    Mail,
+    MapPin,
+    Phone,
+    Plus,
+    Save,
+    User,
+    X,
 } from "lucide-react";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useEffect, useState } from "react";
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Textarea,
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Input,
+    Label,
+    Textarea,
 } from "../../Component/Global/ui";
 import { useDataContext } from "../../Context/UserDataContext";
 
@@ -106,6 +106,7 @@ export default function Profile() {
     desc: "",
   });
   const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
+  const [isSaving, setIsSaving] = useState(false);
   const { avatrUrl, pushDataWithId, userprofile } = useDataContext()
 
   const handleAddSkill = () => {
@@ -126,9 +127,18 @@ export default function Profile() {
     }));
   };
 
-  const handleSave = () => {
-    pushDataWithId(profile)
-    setIsEditing(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await pushDataWithId(profile);
+      setIsEditing(false);
+      alert('Profile saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   }
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -204,9 +214,23 @@ export default function Profile() {
       links: prev.links.filter((_, i) => i !== index),
     }));
   };
+  
   useEffect(() => {
-    setProfile(userprofile)
-  }, [])
+    if (userprofile) {
+      // Map backend field to frontend field for compatibility
+      setProfile({
+        ...userprofile,
+        uid: userprofile.id || userprofile._id,
+        isprofileComplete: userprofile.isProfileComplete ?? userprofile.isprofileComplete,
+        skills: userprofile.skills || [],
+        education: userprofile.education || [],
+        experience: userprofile.experience || [],
+        achievements: userprofile.achievements || [],
+        links: userprofile.links || [],
+        languages: userprofile.languages || [],
+      });
+    }
+  }, [userprofile])
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -224,8 +248,13 @@ export default function Profile() {
           onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
           className="hover:from-blue-700 hover:to-green-700 w-full sm:w-auto"
           style={{ backgroundColor: "#00ADB5" }}
+          disabled={isSaving}
         >
-          {isEditing ? (
+          {isSaving ? (
+            <>
+              <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></span> Saving...
+            </>
+          ) : isEditing ? (
             <>
               <Save className="h-4 w-4 mr-2" /> Save Changes
             </>

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IUser extends Document {
   email: string;
@@ -43,6 +43,8 @@ export interface IUser extends Document {
   streakCount: number;
   challenges_solved: number;
   last_active_date: Date;
+  githubUsername: string;
+  avatar: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,7 +91,9 @@ const UserSchema: Schema = new Schema({
   marathon_rank: { type: Number, default: 0 },
   streakCount: { type: Number, default: 0 },
   challenges_solved: { type: Number, default: 0 },
-  last_active_date: { type: Date }
+  last_active_date: { type: Date },
+  githubUsername: { type: String, default: '' },
+  avatar: { type: String, default: '' }
 }, {
   timestamps: true
 });

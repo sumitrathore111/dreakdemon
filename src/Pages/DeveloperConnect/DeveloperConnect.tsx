@@ -18,7 +18,7 @@ import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { apiRequest } from '../../service/api';
-import { createStudyGroup, deleteStudyGroup, getAllStudyGroups } from '../../service/studyGroupsService';
+import { createStudyGroup, deleteStudyGroup, getAllStudyGroups, joinStudyGroup } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
 
 // Helper function to format timestamps
@@ -131,6 +131,22 @@ export default function DeveloperConnect() {
     loadGroups();
   }, []);
 
+  // Load endorsements from backend
+  useEffect(() => {
+    const loadEndorsements = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await apiRequest('/developers/endorsements/me');
+        setEndorsements(response.endorsements || []);
+      } catch (err) {
+        console.error('Error loading endorsements:', err);
+      }
+    };
+    
+    loadEndorsements();
+  }, [user]);
+
   // Subscribe to messages when chat is selected
   useEffect(() => {
     if (!selectedChat || !user) {
@@ -213,8 +229,17 @@ export default function DeveloperConnect() {
 
     const loadConversations = async () => {
       try {
-        const response = await apiRequest(`/messages/conversations?userId=${user.id}`);
-        setConversations(response.conversations || []);
+        // Load chats from the chats endpoint
+        const chats = await apiRequest('/chats');
+        // Transform chats to conversation format
+        const formattedConversations = (chats || []).map((chat: any) => ({
+          participantId: chat.participantId,
+          participantName: chat.participantName,
+          participantAvatar: chat.participantAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.participantName?.replace(/\s+/g, '')}`,
+          lastMessage: chat.lastMessage,
+          lastMessageAt: chat.lastMessageAt
+        }));
+        setConversations(formattedConversations);
       } catch (err) {
         console.warn('Could not load conversations yet:', err);
         setConversations([]);
@@ -223,6 +248,31 @@ export default function DeveloperConnect() {
 
     loadConversations();
   }, [user?.id, activeTab]);
+
+  // Load group messages when a group is selected
+  useEffect(() => {
+    if (!selectedGroup || !user) {
+      setGroupMessages([]);
+      return;
+    }
+
+    const loadGroupMessages = async () => {
+      try {
+        const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`);
+        setGroupMessages(response.messages || []);
+      } catch (err) {
+        console.warn('Could not load group messages:', err);
+        setGroupMessages([]);
+      }
+    };
+
+    loadGroupMessages();
+    
+    // Poll for new messages every 5 seconds
+    const intervalId = setInterval(loadGroupMessages, 5000);
+    
+    return () => clearInterval(intervalId);
+  }, [selectedGroup?.id, user]);
 
 
   const filteredDevelopers = developers.filter(dev => {
@@ -414,9 +464,9 @@ export default function DeveloperConnect() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
                   <p className="text-xs text-gray-500 dark:text-white">
-                    {dev.college || 'Not specified'} • {
-                      (dev.year || '').includes('Year') && !(dev.year || '').includes('Passout') ? 
-                        ((dev.year || '').includes('1') ? '1st Year' : (dev.year || '').includes('2') ? '2nd Year' : (dev.year || '').includes('3') ? '3rd Year' : '4th Year') 
+                    {dev.institute || dev.college || 'Not specified'} • {
+                      dev.yearOfStudy ? 
+                        (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`) 
                         : (dev.year || 'Student')
                     }
                   </p>
@@ -429,18 +479,18 @@ export default function DeveloperConnect() {
             </div>
 
             {/* Bio */}
-            <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{dev.bio}</p>
+            <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{dev.bio || 'No bio available'}</p>
 
             {/* CodeArena Stats */}
             <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(0, 173, 181, 0.1)' }}>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <p className="text-gray-600 dark:text-white">Problems Solved</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.codeArenaStats?.problemsSolved || 0}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{dev.challenges_solved || dev.codeArenaStats?.problemsSolved || 0}</p>
                 </div>
                 <div>
                   <p className="text-gray-600 dark:text-white">Rank</p>
-                  <p className="font-bold text-gray-900 dark:text-white">#{dev.codeArenaStats?.rank || 'N/A'}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">#{dev.marathon_rank || dev.codeArenaStats?.rank || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -449,19 +499,25 @@ export default function DeveloperConnect() {
             <div className="mb-4">
               <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
               <div className="flex flex-wrap gap-1">
-                {(dev.skills || []).slice(0, 3).map(skill => (
-                  <span
-                    key={skill}
-                    className="text-xs px-2 py-1 rounded-full"
-                    style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
-                  >
-                    {skill}
-                  </span>
-                ))}
-                {(dev.skills || []).length > 3 && (
-                  <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
-                    +{(dev.skills || []).length - 3}
-                  </span>
+                {(dev.skills || []).length > 0 ? (
+                  <>
+                    {(dev.skills || []).slice(0, 3).map((skill: string) => (
+                      <span
+                        key={skill}
+                        className="text-xs px-2 py-1 rounded-full"
+                        style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                    {(dev.skills || []).length > 3 && (
+                      <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
+                        +{(dev.skills || []).length - 3}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">No skills added</span>
                 )}
               </div>
             </div>
@@ -592,19 +648,37 @@ export default function DeveloperConnect() {
       const messageContent = newMessage;
       setNewMessage('');
       
+      // Optimistically add message to UI
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        senderId: user.id,
+        senderName: userprofile?.displayName || user.name || 'User',
+        senderAvatar: userprofile?.avatrUrl || '',
+        message: messageContent,
+        timestamp: new Date(),
+        isRead: false
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+      
       try {
         await apiRequest(`/chats/${chatId}/messages`, {
           method: 'POST',
           body: JSON.stringify({
             senderId: user.id,
+            senderName: userprofile?.displayName || user.name || 'User',
+            senderAvatar: userprofile?.avatrUrl || '',
             message: messageContent,
           }),
         });
         
-        // The polling will automatically refresh the messages
+        // Fetch updated messages to get the real message with ID
+        const loadedMessages = await apiRequest(`/chats/${chatId}/messages`);
+        setMessages(loadedMessages);
       } catch (error) {
         console.error('Error sending message:', error);
         setNewMessage(messageContent); // Re-set message on error
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
       }
     };
 
@@ -670,29 +744,92 @@ export default function DeveloperConnect() {
                 <p className="text-gray-500 text-sm">No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.senderId !== user.id && (
-                    <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full flex-shrink-0" />
-                  )}
-                  <div className={`max-w-xs px-4 py-2 rounded-lg ${
-                    msg.senderId === user.id
-                      ? 'text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                  }`}
-                  style={msg.senderId === user.id ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}>
-                    <p className="text-sm">{msg.message || msg.content}</p>
-                    <p className={`text-xs mt-1 ${msg.senderId === user.id ? 'text-blue-100' : 'text-gray-500 dark:text-white'}`}>
-                      {msg.timestamp instanceof Date
-                        ? msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+              messages.map((msg) => {
+                const isMe = msg.senderId === user.id;
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex mb-3 ${isMe ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {/* Other user avatar - left side */}
+                    {!isMe && (
+                      <img 
+                        src={msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderName?.replace(/\s+/g, '') || 'User'}`} 
+                        alt={msg.senderName || 'User'} 
+                        className="w-8 h-8 rounded-full flex-shrink-0 mr-2 mt-1" 
+                      />
+                    )}
+                    
+                    {/* Message bubble */}
+                    <div className={`relative max-w-[70%] ${isMe ? 'mr-2' : 'ml-0'}`}>
+                      {/* Sender name for other user */}
+                      {!isMe && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">{msg.senderName || 'User'}</p>
+                      )}
+                      
+                      <div 
+                        className={`relative px-4 py-2.5 shadow-sm ${
+                          isMe 
+                            ? 'rounded-tl-2xl rounded-tr-sm rounded-bl-2xl rounded-br-2xl text-white' 
+                            : 'rounded-tl-sm rounded-tr-2xl rounded-bl-2xl rounded-br-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600'
+                        }`}
+                        style={isMe ? { 
+                          background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
+                          boxShadow: '0 2px 8px rgba(0, 173, 181, 0.3)'
+                        } : {
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                        }}
+                      >
+                        {/* Message tail */}
+                        <div 
+                          className={`absolute top-0 w-3 h-3 ${
+                            isMe 
+                              ? 'right-[-6px]' 
+                              : 'left-[-6px]'
+                          }`}
+                          style={{
+                            clipPath: isMe 
+                              ? 'polygon(0 0, 100% 0, 0 100%)' 
+                              : 'polygon(100% 0, 0 0, 100% 100%)',
+                            background: isMe 
+                              ? 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' 
+                              : 'white',
+                            borderLeft: !isMe ? '1px solid #e5e7eb' : 'none',
+                            borderTop: !isMe ? '1px solid #e5e7eb' : 'none'
+                          }}
+                        />
+                        
+                        <p className="text-sm leading-relaxed break-words">{msg.message || msg.content || msg.text}</p>
+                        
+                        <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                            {msg.timestamp instanceof Date
+                              ? msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : msg.createdAt 
+                                ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          {/* Seen indicator for sent messages */}
+                          {isMe && (
+                            <svg className="w-3.5 h-3.5 text-cyan-100" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* My avatar - right side */}
+                    {isMe && (
+                      <img 
+                        src={userprofile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name?.replace(/\s+/g, '') || 'Me'}`} 
+                        alt="Me" 
+                        className="w-8 h-8 rounded-full flex-shrink-0 ml-2 mt-1" 
+                      />
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -826,32 +963,58 @@ export default function DeveloperConnect() {
                       type="text"
                       value={groupMessage}
                       onChange={(e) => setGroupMessage(e.target.value)}
-                      onKeyPress={(e) => {
+                      onKeyPress={async (e) => {
                         if (e.key === 'Enter' && groupMessage.trim()) {
-                          const newMsg = {
-                            name: userprofile?.displayName || user?.name || 'User',
-                            avatar: userprofile?.avatrUrl || '',
-                            message: groupMessage,
-                            timestamp: new Date()
-                          };
-                          setGroupMessages([...groupMessages, newMsg]);
-                          setGroupMessage('');
+                          try {
+                            const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
+                            const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
+                            
+                            const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
+                              method: 'POST',
+                              body: JSON.stringify({
+                                message: groupMessage.trim(),
+                                senderName,
+                                senderAvatar
+                              })
+                            });
+                            
+                            if (response.message) {
+                              setGroupMessages(prev => [...prev, response.message]);
+                            }
+                            setGroupMessage('');
+                          } catch (error) {
+                            console.error('Error sending group message:', error);
+                            toast.error('Failed to send message');
+                          }
                         }
                       }}
                       placeholder="Type a message..."
                       className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                     />
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (groupMessage.trim()) {
-                          const newMsg = {
-                            name: userprofile?.displayName || user?.name || 'User',
-                            avatar: userprofile?.avatrUrl || '',
-                            message: groupMessage,
-                            timestamp: new Date()
-                          };
-                          setGroupMessages([...groupMessages, newMsg]);
-                          setGroupMessage('');
+                          try {
+                            const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
+                            const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
+                            
+                            const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
+                              method: 'POST',
+                              body: JSON.stringify({
+                                message: groupMessage.trim(),
+                                senderName,
+                                senderAvatar
+                              })
+                            });
+                            
+                            if (response.message) {
+                              setGroupMessages(prev => [...prev, response.message]);
+                            }
+                            setGroupMessage('');
+                          } catch (error) {
+                            console.error('Error sending group message:', error);
+                            toast.error('Failed to send message');
+                          }
                         }
                       }}
                       className="px-4 py-2 text-white rounded-lg transition-all shadow-md hover:opacity-90"
@@ -894,13 +1057,16 @@ export default function DeveloperConnect() {
                   onClick={async () => {
                     if (user) {
                       try {
-                        const updatedGroup = await apiRequest(`/study-groups/${selectedGroup.id}/join`, { method: 'POST' });
+                        const userName = userprofile?.displayName || user.name || 'User';
+                        const userAvatar = userprofile?.avatrUrl || '';
+                        const updatedGroup = await joinStudyGroup(selectedGroup.id, userName, userAvatar);
                         const updatedGroups = studyGroups.map(g => g.id === selectedGroup.id ? updatedGroup : g);
                         setSelectedGroup(updatedGroup);
                         setStudyGroups(updatedGroups);
-                      } catch (error) {
+                        toast.success('Successfully joined the group!');
+                      } catch (error: any) {
                         console.error('Error joining group:', error);
-                        alert('Failed to join group. Please try again.');
+                        toast.error(error?.message || 'Failed to join group. Please try again.');
                       }
                     }
                   }}
@@ -1336,31 +1502,22 @@ export default function DeveloperConnect() {
                   }
 
                   try {
-                    // Create endorsement with current timestamp for immediate display
-                    const currentTime = new Date();
-                    const newEndorsementLocal = {
-                      id: Date.now().toString(),
-                      endorserId: user.id,
-                      endorserName: userprofile?.displayName || user.name || 'User',
-                      endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
-                      recipientId: selectedUserToEndorse.userId,
-                      recipientName: selectedUserToEndorse.name,
-                      skill: endorsementData.skill,
-                      message: endorsementData.message,
-                      timestamp: currentTime
-                    };
-                    
-                    // Save to backend
-                    await apiRequest(`/developers/${selectedUserToEndorse.userId}/endorse`, {
+                    // Save to backend first
+                    const response = await apiRequest(`/developers/${selectedUserToEndorse.userId}/endorse`, {
                       method: 'POST',
                       body: JSON.stringify({
                         skill: endorsementData.skill,
-                        message: endorsementData.message
+                        message: endorsementData.message,
+                        endorserName: userprofile?.displayName || user.name || 'User',
+                        endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
+                        recipientName: selectedUserToEndorse.name
                       })
                     });
                     
-                    // Update local state for instant UI feedback
-                    setEndorsements(prev => [...prev, newEndorsementLocal]);
+                    // Update local state with the returned endorsement
+                    if (response.endorsement) {
+                      setEndorsements(prev => [...prev, response.endorsement]);
+                    }
                     
                     // Close modal and reset
                     setShowEndorseModal(false);
@@ -1368,13 +1525,14 @@ export default function DeveloperConnect() {
                     setEndorsementData({skill: '', message: ''});
                     
                     // Show success toast
-                    toast.success(`✅ Successfully endorsed ${newEndorsementLocal.recipientName} for ${endorsementData.skill}!`, {
+                    toast.success(`✅ Successfully endorsed ${selectedUserToEndorse.name} for ${endorsementData.skill}!`, {
                       duration: 4000,
                       position: 'top-center',
                     });
-                  } catch (error) {
+                  } catch (error: any) {
                     console.error('Error saving endorsement:', error);
-                    toast.error('Failed to save endorsement. Please try again.');
+                    const errorMessage = error?.message || 'Failed to save endorsement. Please try again.';
+                    toast.error(errorMessage);
                   }
                 }}
                 disabled={!endorsementData.skill}
