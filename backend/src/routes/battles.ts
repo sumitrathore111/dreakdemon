@@ -275,7 +275,32 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    res.json({ battle });
+    
+    // Transform participants to frontend expected format
+    const transformedBattle = {
+      id: battle._id,
+      status: battle.status,
+      difficulty: battle.difficulty,
+      entryFee: battle.entryFee,
+      prize: battle.prize,
+      timeLimit: battle.timeLimit,
+      challenge: battle.challenge,
+      startedAt: battle.startedAt,
+      createdAt: battle.createdAt,
+      winnerId: battle.winner,
+      forfeitedBy: null,
+      participants: battle.participants.map((p: any) => ({
+        odId: p.userId,
+        odName: p.userName,
+        odProfilePic: p.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`,
+        rating: p.rating || 1000,
+        hasSubmitted: p.hasSubmitted || false,
+        submissionResult: p.submissionResult,
+        score: p.score
+      }))
+    };
+    
+    res.json(transformedBattle);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
