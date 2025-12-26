@@ -238,28 +238,66 @@ rl.on('close', () => {
     setQuickRunResult(null);
 
     try {
-      const success = await secureCodeExecutionService.submitChallenge(challengeId, code, language);
+      // Pass test cases to backend for validation (especially for local/questions.json challenges)
+      const submissionResult = await secureCodeExecutionService.submitChallenge(
+        challengeId, 
+        code, 
+        language,
+        testCases.map(tc => ({
+          input: tc.input,
+          expected_output: tc.expectedOutput || tc.output || tc.expected_output,
+          expectedOutput: tc.expectedOutput || tc.output || tc.expected_output
+        })),
+        challenge?.coinReward,
+        challenge?.title,
+        challenge?.difficulty
+      );
       
-      if (success && challenge && user) {
+      if (submissionResult.success && challenge && user) {
         // Coins are awarded server-side, just update UI
         setSolved(true);
         setResults({
           success: true,
-          passedCount: testCases.length,
-          totalCount: testCases.length,
+          passedCount: submissionResult.passedCount,
+          totalCount: submissionResult.totalCount,
           totalTime: 0,
           totalMemory: 0,
-          results: testCases.map((_, idx) => ({ testCase: idx + 1, passed: true }))
+          results: submissionResult.testResults?.map((r, idx) => ({ 
+            testCase: idx + 1, 
+            passed: r.passed,
+            input: r.input,
+            expected: r.expected,
+            output: r.output
+          })) || testCases.map((_, idx) => ({ testCase: idx + 1, passed: true }))
         });
+        
+        // Show success message with coins earned
+        if (submissionResult.coinsChanged > 0) {
+          alert(`🎉 ${submissionResult.message}`);
+        }
       } else {
         setResults({
           success: false,
-          passedCount: 0,
-          totalCount: testCases.length,
+          passedCount: submissionResult.passedCount,
+          totalCount: submissionResult.totalCount,
           totalTime: 0,
           totalMemory: 0,
-          results: testCases.map((_, idx) => ({ testCase: idx + 1, passed: false }))
+          results: submissionResult.testResults?.map((r, idx) => ({ 
+            testCase: idx + 1, 
+            passed: r.passed,
+            input: r.input,
+            expected: r.expected,
+            output: r.output,
+            error: r.error
+          })) || testCases.map((_, idx) => ({ testCase: idx + 1, passed: false }))
         });
+        
+        // Show failure message with coins lost
+        if (submissionResult.coinsChanged < 0) {
+          alert(`❌ ${submissionResult.message}`);
+        } else if (submissionResult.message) {
+          alert(submissionResult.message);
+        }
       }
     } catch (error: any) {
       console.error('Submission error:', error);

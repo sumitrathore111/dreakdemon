@@ -6,36 +6,75 @@ import User from '../models/User';
 const router = express.Router();
 
 // Get global leaderboard
-router.get('/', authenticate, async (_req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
+    const { period } = req.query;
+    
     // Get all wallets with user info, sorted by coins
-    const wallets = await Wallet.find()
+    let wallets = await Wallet.find()
       .sort({ coins: -1 })
       .limit(100)
       .lean();
     
+    // For weekly/monthly, filter based on recent activity
+    if (period === 'weekly' || period === 'monthly') {
+      const now = new Date();
+      const periodStart = period === 'weekly' 
+        ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+        : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+      
+      // Filter wallets that have recent transactions
+      wallets = wallets.filter(wallet => {
+        if (!wallet.transactions || wallet.transactions.length === 0) return false;
+        // Check if any transaction is within the period
+        return wallet.transactions.some((tx: any) => 
+          tx.createdAt && new Date(tx.createdAt) >= periodStart
+        );
+      });
+      
+      // Re-sort by coins earned in this period (calculate from transactions)
+      wallets = wallets.map(wallet => {
+        const periodCoins = (wallet.transactions || [])
+          .filter((tx: any) => tx.createdAt && new Date(tx.createdAt) >= periodStart)
+          .reduce((sum: number, tx: any) => {
+            if (tx.type === 'credit') return sum + (tx.amount || 0);
+            if (tx.type === 'debit') return sum - (tx.amount || 0);
+            return sum;
+          }, 0);
+        return { ...wallet, periodCoins };
+      }).sort((a, b) => b.periodCoins - a.periodCoins);
+    }
+    
     // Get user details for each wallet
-    const leaderboard = await Promise.all(
+    const leaderboardData = await Promise.all(
       wallets.map(async (wallet, index) => {
         const user = await User.findById(wallet.userId).select('name email').lean();
-        const userName = user?.name || 'Anonymous';
+        
+        // Skip users without a proper name
+        if (!user?.name || user.name.trim() === '') {
+          return null;
+        }
+        
+        const userName = user.name;
         const problemsSolved = wallet.achievements?.problemsSolved || 0;
         const battlesWon = wallet.achievements?.battlesWon || 0;
         
         // Calculate level based on problems solved and battles won
         const level = Math.floor((problemsSolved + battlesWon * 2) / 5) + 1;
         
-        // Calculate rating based on coins and achievements
-        const rating = wallet.coins + (problemsSolved * 10) + (battlesWon * 25);
+        // Calculate rating on 1-10 scale based on achievements
+        // Base rating is 1, increases with problems solved and battles won
+        const rawScore = (problemsSolved * 0.5) + (battlesWon * 1) + (wallet.coins / 100);
+        const rating = Math.min(10, Math.max(1, Math.round(rawScore * 10) / 10 + 1)); // 1-10 scale with 1 decimal
         
         return {
-          rank: index + 1,
           odId: wallet.userId.toString(),
           odName: userName,
           name: userName,
           email: user?.email || '',
           avatar: userName.charAt(0).toUpperCase(),
-          coins: wallet.coins,
+          coins: (wallet as any).periodCoins !== undefined ? (wallet as any).periodCoins : wallet.coins,
+          totalCoins: wallet.coins,
           problemsSolved,
           battlesWon,
           currentStreak: wallet.achievements?.currentStreak || 0,
@@ -44,6 +83,14 @@ router.get('/', authenticate, async (_req: Request, res: Response) => {
         };
       })
     );
+    
+    // Filter out null entries (users without proper names) and add ranks
+    const leaderboard = leaderboardData
+      .filter(entry => entry !== null)
+      .map((entry, index) => ({
+        ...entry,
+        rank: index + 1
+      }));
     
     res.json({ leaderboard });
   } catch (error) {

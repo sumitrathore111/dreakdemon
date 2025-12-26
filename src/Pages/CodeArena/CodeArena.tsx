@@ -578,11 +578,16 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
           ) : (
             <div className="space-y-3">
               {liveBattles.map((battle, i) => (
-                <div key={battle.id || i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                <div
+                  key={battle.id || i}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/dashboard/codearena/battle/${battle.id}`)}
+                  title="Rejoin this battle"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex -space-x-2">
                       {battle.participants?.slice(0, 2).map((participant: any, idx: number) => (
-                        <div 
+                        <div
                           key={idx}
                           className={`w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-white ${
                             idx === 0 ? 'bg-[#00ADB5]' : 'bg-purple-500'
@@ -600,8 +605,8 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                     </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    battle.status === 'waiting' 
-                      ? 'text-[#00ADB5] bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20' 
+                    battle.status === 'waiting'
+                      ? 'text-[#00ADB5] bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20'
                       : 'text-orange-600 bg-orange-50 dark:bg-orange-900/30'
                   }`}>
                     {battle.status === 'waiting' ? 'Waiting' : 'In Progress'}

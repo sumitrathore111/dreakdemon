@@ -358,6 +358,8 @@ const BattleHistory = () => {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/dashboard/codearena/battle/results/${battle.id}`)}
                   className={`bg-white dark:bg-gray-800 rounded-2xl shadow-md border-2 p-4 cursor-pointer hover:shadow-xl transition-all group ${
                     isWinner 

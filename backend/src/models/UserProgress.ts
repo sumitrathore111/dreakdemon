@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IUserProgress extends Document {
   userId: mongoose.Types.ObjectId;
   solvedChallenges: {
-    challengeId: mongoose.Types.ObjectId;
+    challengeId: string;  // Can be MongoDB ObjectId or string ID like "A002"
     solvedAt: Date;
     language: string;
     executionTime?: number;
@@ -16,7 +16,7 @@ export interface IUserProgress extends Document {
 const UserProgressSchema = new Schema<IUserProgress>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   solvedChallenges: [{
-    challengeId: { type: Schema.Types.ObjectId, ref: 'Challenge' },
+    challengeId: { type: String, required: true },  // Changed to String to support both formats
     solvedAt: { type: Date, default: Date.now },
     language: { type: String },
     executionTime: { type: Number }

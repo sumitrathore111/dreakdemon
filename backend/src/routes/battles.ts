@@ -31,13 +31,19 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       .sort({ createdAt: -1 })
       .limit(50);
     
-    // Transform to frontend expected format
-    const formattedBattles = battles.map(battle => {
+    // Transform to frontend expected format - filter out battles without proper creator names
+    const formattedBattles = battles
+      .filter(battle => {
+        const creator = battle.participants[0];
+        // Only include battles where creator has a proper name
+        return creator?.userName && creator.userName.trim() !== '';
+      })
+      .map(battle => {
       const creator = battle.participants[0];
       return {
         id: battle._id,
         creatorId: creator?.userId || battle.createdBy,
-        creatorName: creator?.userName || 'Anonymous',
+        creatorName: creator?.userName,
         creatorProfilePic: creator?.userAvatar,
         creatorRating: creator?.rating || 1000,
         difficulty: battle.difficulty,
@@ -108,8 +114,26 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
     
     const randomQuestion = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
     
+    console.log('Selected question:', randomQuestion.id, randomQuestion.title);
+    console.log('Question testCases:', randomQuestion.testCases?.length || 0);
+    console.log('Question test_cases:', randomQuestion.test_cases?.length || 0);
+    
     const prize = Math.floor(entryFee * 2 * 0.9);
     const timeLimit = difficulty === 'easy' ? 900 : difficulty === 'medium' ? 1200 : 1800;
+    
+    // Ensure testCases are properly included in the challenge object
+    const challengeData = {
+      id: randomQuestion.id,
+      title: randomQuestion.title,
+      difficulty: randomQuestion.difficulty,
+      category: randomQuestion.category || randomQuestion.tags?.[0] || 'general',
+      coinReward: randomQuestion.coins || randomQuestion.coinReward || 10,
+      description: randomQuestion.description,
+      testCases: randomQuestion.testCases || randomQuestion.test_cases || [],
+      test_cases: randomQuestion.test_cases || randomQuestion.testCases || []
+    };
+    
+    console.log('Challenge testCases being saved:', challengeData.testCases.length);
     
     const battle = await Battle.create({
       status: 'waiting',
@@ -125,7 +149,7 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
         rating: rating || 1000,
         hasSubmitted: false
       }],
-      challenge: randomQuestion,
+      challenge: challengeData,
       createdBy: userId,
       version: 'v2.0-custom'
     });
@@ -188,11 +212,33 @@ router.post('/:battleId/join', authenticate, async (req: AuthRequest, res: Respo
       hasSubmitted: false
     });
     
-    battle.status = 'active';
-    battle.startedAt = new Date();
+    // Set to countdown first, then frontend will trigger start after countdown
+    battle.status = 'countdown';
     await battle.save();
     
     res.json({ battle });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start battle (after countdown)
+router.post('/:battleId/start', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const battle = await Battle.findById(req.params.battleId);
+    if (!battle) {
+      res.status(404).json({ error: 'Battle not found' });
+      return;
+    }
+    
+    // Only start if currently in countdown status
+    if (battle.status === 'countdown') {
+      battle.status = 'active';
+      battle.startedAt = new Date();
+      await battle.save();
+    }
+    
+    res.json({ battle, success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -239,8 +285,55 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
       return;
     }
     
+    // Check if already submitted
+    if (participant.hasSubmitted) {
+      res.status(400).json({ error: 'Already submitted', alreadySubmitted: true });
+      return;
+    }
+    
+    // Get test cases from either field (testCases is used in questions.json)
+    const challengeData = battle.challenge as any;
+    let testCases = challengeData.testCases || challengeData.test_cases || [];
+    
+    console.log('Battle challenge data:', JSON.stringify(challengeData, null, 2));
+    console.log('Test cases found:', testCases.length);
+    
+    // If no test cases in battle, try to load from questions.json
+    if (testCases.length === 0 && challengeData.id) {
+      console.log('No test cases in battle, loading from questions.json...');
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const questionsPath = path.join(__dirname, '../../../public/questions.json');
+        const questionsData = await fs.readFile(questionsPath, 'utf-8');
+        const questionsJson = JSON.parse(questionsData);
+        
+        let questions: any[] = [];
+        if (Array.isArray(questionsJson)) {
+          questions = questionsJson;
+        } else if (questionsJson.problems) {
+          questions = questionsJson.problems;
+        } else if (questionsJson.questions) {
+          questions = questionsJson.questions;
+        }
+        
+        const foundQuestion = questions.find((q: any) => q.id === challengeData.id);
+        if (foundQuestion) {
+          testCases = foundQuestion.testCases || foundQuestion.test_cases || [];
+          console.log('Loaded test cases from questions.json:', testCases.length);
+        }
+      } catch (err) {
+        console.error('Error loading questions.json for test cases:', err);
+      }
+    }
+    
+    if (testCases.length === 0) {
+      res.status(400).json({ error: 'No test cases available', challenge: challengeData });
+      return;
+    }
+    
     // Execute code against test cases
-    const testResults = await executeCode(code, language, battle.challenge.test_cases);
+    const testResults = await executeCode(code, language, testCases);
     const score = calculateScore(testResults);
     
     participant.hasSubmitted = true;
@@ -258,11 +351,51 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
         (current.score || 0) > (prev.score || 0) ? current : prev
       );
       battle.winner = winner.userId;
+      
+      // Award prize to winner
+      try {
+        const Wallet = require('../models/Wallet').default;
+        const mongoose = require('mongoose');
+        await Wallet.findOneAndUpdate(
+          { userId: new mongoose.Types.ObjectId(winner.userId) },
+          {
+            $inc: { coins: battle.prize },
+            $push: {
+              transactions: {
+                type: 'credit',
+                amount: battle.prize,
+                reason: 'Battle won!',
+                createdAt: new Date()
+              }
+            }
+          },
+          { upsert: true }
+        );
+      } catch (walletError) {
+        console.error('Error awarding prize:', walletError);
+      }
     }
     
     await battle.save();
-    res.json({ battle, score, testResults });
+    
+    const passedCount = testResults.filter((r: any) => r.passed).length;
+    
+    // Calculate total time properly (ensure it's a valid number)
+    const totalTime = testResults.reduce((sum: number, r: any) => {
+      const timeValue = typeof r.time === 'number' ? r.time : 0;
+      return sum + (isNaN(timeValue) ? 0 : timeValue);
+    }, 0);
+    
+    res.json({ 
+      passed: passedCount === testResults.length,
+      passedCount,
+      totalCount: testResults.length,
+      totalTime: Math.round(totalTime * 1000) / 1000, // Round to 3 decimal places
+      score,
+      testResults 
+    });
   } catch (error: any) {
+    console.error('Submit error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -285,10 +418,12 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
       prize: battle.prize,
       timeLimit: battle.timeLimit,
       challenge: battle.challenge,
+      startTime: battle.startedAt, // Frontend expects startTime
       startedAt: battle.startedAt,
       createdAt: battle.createdAt,
       winnerId: battle.winner,
-      forfeitedBy: null,
+      winner: battle.winner,
+      forfeitedBy: (battle as any).forfeitedBy,
       participants: battle.participants.map((p: any) => ({
         odId: p.userId,
         odName: p.userName,
@@ -296,7 +431,7 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
         rating: p.rating || 1000,
         hasSubmitted: p.hasSubmitted || false,
         submissionResult: p.submissionResult,
-        score: p.score
+        score: p.score || 0
       }))
     };
     
@@ -360,6 +495,66 @@ router.post('/:battleId/cancel', async (req, res): Promise<void> => {
   }
 });
 
+// Forfeit a battle - user leaves during active battle
+router.post('/:battleId/forfeit', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const battle = await Battle.findById(req.params.battleId);
+    if (!battle) {
+      res.status(404).json({ error: 'Battle not found' });
+      return;
+    }
+    
+    if (battle.status !== 'active' && battle.status !== 'countdown') {
+      res.status(400).json({ error: 'Battle is not active' });
+      return;
+    }
+    
+    const userId = req.user!.id;
+    
+    // Find the opponent (winner)
+    const opponent = battle.participants.find((p: any) => p.userId !== userId);
+    if (!opponent) {
+      res.status(400).json({ error: 'No opponent found' });
+      return;
+    }
+    
+    // Update battle status
+    battle.status = 'forfeited';
+    battle.winner = opponent.userId;
+    battle.forfeitedBy = userId;
+    (battle as any).winReason = 'Opponent left the battle or switched tabs';
+    battle.completedAt = new Date();
+    await battle.save();
+    
+    // Award prize to winner
+    const Wallet = require('../models/Wallet').default;
+    await Wallet.findOneAndUpdate(
+      { userId: opponent.userId },
+      {
+        $inc: { coins: battle.prize || 0 },
+        $push: {
+          transactions: {
+            amount: battle.prize || 0,
+            type: 'credit',
+            reason: 'Battle win (opponent forfeited)',
+            createdAt: new Date()
+          }
+        }
+      },
+      { upsert: true }
+    );
+    
+    res.json({
+      success: true,
+      message: 'Battle forfeited',
+      winner: opponent.userId
+    });
+  } catch (error: any) {
+    console.error('Error forfeiting battle:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get user battles
 router.get('/user/my-battles', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -367,7 +562,33 @@ router.get('/user/my-battles', authenticate, async (req: AuthRequest, res: Respo
       'participants.userId': req.user!.id
     }).sort({ createdAt: -1 });
     
-    res.json({ battles });
+    // Transform battles for frontend
+    const transformedBattles = battles.map(battle => ({
+      id: battle._id,
+      status: battle.status,
+      difficulty: battle.difficulty,
+      entryFee: battle.entryFee,
+      prize: battle.prize,
+      timeLimit: battle.timeLimit,
+      challenge: battle.challenge,
+      startTime: battle.startedAt,
+      startedAt: battle.startedAt,
+      createdAt: battle.createdAt,
+      completedAt: battle.completedAt,
+      winnerId: battle.winner,
+      winner: battle.winner,
+      forfeitedBy: (battle as any).forfeitedBy,
+      participants: battle.participants.map((p: any) => ({
+        odId: p.userId,
+        odName: p.userName,
+        odProfilePic: p.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`,
+        rating: p.rating || 1000,
+        hasSubmitted: p.hasSubmitted || false,
+        score: p.score || 0
+      }))
+    }));
+    
+    res.json({ battles: transformedBattles });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -387,41 +608,97 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
       'participants.userId': userId
     }).sort({ createdAt: -1 });
     
-    res.json({ battles });
+    // Transform battles for frontend
+    const transformedBattles = battles.map(battle => ({
+      id: battle._id,
+      status: battle.status,
+      difficulty: battle.difficulty,
+      entryFee: battle.entryFee,
+      prize: battle.prize,
+      timeLimit: battle.timeLimit,
+      challenge: battle.challenge,
+      startTime: battle.startedAt,
+      startedAt: battle.startedAt,
+      createdAt: battle.createdAt,
+      completedAt: battle.completedAt,
+      winnerId: battle.winner,
+      winner: battle.winner,
+      forfeitedBy: (battle as any).forfeitedBy,
+      participants: battle.participants.map((p: any) => ({
+        odId: p.userId,
+        odName: p.userName,
+        odProfilePic: p.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`,
+        rating: p.rating || 1000,
+        hasSubmitted: p.hasSubmitted || false,
+        score: p.score || 0
+      }))
+    }));
+    
+    res.json({ battles: transformedBattles });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Helper function to execute code
+// Judge0 language IDs for battles
+const JUDGE0_BATTLE_LANG_IDS: Record<string, number> = {
+  'python': 71,
+  'python3': 71,
+  'javascript': 63,
+  'java': 62,
+  'cpp': 54,
+  'c++': 54,
+  'c': 50,
+};
+
+// Helper function to execute code using Judge0
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
+  const languageId = JUDGE0_BATTLE_LANG_IDS[language.toLowerCase()] || 71;
   
   for (const testCase of testCases) {
     try {
-      const response = await axios.post(process.env.CODE_EXECUTION_API_URL || 'https://emkc.org/api/v2/piston/execute', {
-        language: language.toLowerCase(),
-        version: '*',
-        files: [{
-          name: `main.${getFileExtension(language)}`,
-          content: code
-        }],
-        stdin: testCase.input || ''
-      });
+      const response = await axios.post(
+        `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
+        {
+          source_code: code,
+          language_id: languageId,
+          stdin: testCase.input || '',
+          expected_output: (testCase.expected || testCase.output || testCase.expected_output || '').trim()
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-RapidAPI-Key': process.env.JUDGE0_API_KEY,
+            'X-RapidAPI-Host': process.env.JUDGE0_API_HOST || 'judge0-ce.p.rapidapi.com'
+          },
+          timeout: 15000
+        }
+      );
       
-      const output = response.data.run.output?.trim();
-      const expected = testCase.expected?.trim();
+      const result = response.data;
+      const output = (result.stdout || '').trim();
+      const expected = (testCase.expected || testCase.output || testCase.expected_output || '').trim();
+      
+      // Parse time as a number (Judge0 may return it as a string)
+      const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
       
       results.push({
-        passed: output === expected,
+        passed: output === expected && result.status?.description === 'Accepted',
         input: testCase.input,
         expected,
-        output
+        output,
+        time: isNaN(timeValue) ? 0 : timeValue
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Code execution error:', error.response?.data || error.message);
       results.push({
         passed: false,
-        error: 'Execution error'
+        input: testCase.input,
+        expected: testCase.expected || testCase.output || '',
+        output: '',
+        error: 'Execution error',
+        time: 0
       });
     }
   }
@@ -441,8 +718,10 @@ function getFileExtension(language: string): string {
 }
 
 function calculateScore(results: any[]): number {
+  if (!results || results.length === 0) return 0;
   const passed = results.filter(r => r.passed).length;
-  return Math.round((passed / results.length) * 100);
+  const score = Math.round((passed / results.length) * 100);
+  return isNaN(score) ? 0 : score;
 }
 
 // Request rematch
