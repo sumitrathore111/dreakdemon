@@ -1,14 +1,7 @@
-import {
-    addDoc,
-    collection,
-    doc,
-    onSnapshot,
-    serverTimestamp,
-    updateDoc,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { auth, db } from "../../service/Firebase";
+import { useAuth } from "../../Context/AuthContext";
+import { apiRequest } from "../../service/api";
 
 
 export default function Issues() {

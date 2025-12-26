@@ -1,38 +1,56 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
-  signInWithPopup,
-  updateProfile,
-} from "firebase/auth";
-import { auth, googleProvider } from "../service/Firebase";
-import { createUserProfileIfNeeded } from "./users";
+import { apiRequest, saveAuthToken, clearAuthToken } from "./api";
 
-export async function signupWithEmail(email: string, password: string , name : string) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password );
-  await updateProfile(cred.user , {
-    displayName : name
-  })
-  await createUserProfileIfNeeded(cred.user , name); 
-  return cred.user;
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
 }
 
-export async function loginWithEmail(email: string, password: string) {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
-  return cred.user;
+export async function signupWithEmail(email: string, password: string, name: string): Promise<User> {
+  const response = await apiRequest('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, name })
+  });
+  
+  saveAuthToken(response.token);
+  return response.user;
 }
 
-export async function loginWithGoogle() {
-  const cred = await signInWithPopup(auth, googleProvider);
-  await createUserProfileIfNeeded(cred.user , "");
-  return cred.user;
+export async function loginWithEmail(email: string, password: string): Promise<User> {
+  const response = await apiRequest('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+  
+  saveAuthToken(response.token);
+  return response.user;
 }
 
-export function logout() {
-  return signOut(auth);
+export async function loginWithGoogle(): Promise<User> {
+  // Google OAuth would need to be implemented on backend
+  // For now, throw an error
+  throw new Error('Google login not implemented yet. Please use email/password.');
 }
 
-export function resetPassword(email: string) {
-  return sendPasswordResetEmail(auth, email);
+export async function logout(): Promise<void> {
+  await apiRequest('/auth/logout', { method: 'POST' });
+  clearAuthToken();
+}
+
+export async function resetPassword(email: string): Promise<void> {
+  await apiRequest('/auth/reset-password-request', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const response = await apiRequest('/auth/me');
+    return response.user;
+  } catch (error) {
+    clearAuthToken();
+    return null;
+  }
 }

@@ -43,15 +43,15 @@ export default function DashboardComingSoon() {
       
       // 1. CodeArena Analytics
       const [userProgress, userWallet, userSubmissions, userBattles] = await Promise.all([
-        getUserProgress(user.uid),
-        getUserWallet(user.uid),
-        fetchUserSubmissions(user.uid),
-        fetchUserBattles(user.uid)
+        getUserProgress(user.id),
+        getUserWallet(user.id),
+        fetchUserSubmissions(user.id),
+        fetchUserBattles(user.id)
       ]);
 
       const solvedChallenges = userProgress?.solvedChallenges?.length || 0;
       const totalCoins = userWallet?.coins || 0;
-      const battleWins = userBattles?.filter((b: any) => b.winnerId === user.uid).length || 0;
+      const battleWins = userBattles?.filter((b: any) => b.winnerId === user.id).length || 0;
       const acceptedSubmissions = userSubmissions?.filter((s: any) => s.status === 'Accepted').length || 0;
       
       // Calculate today's solved challenges
@@ -97,8 +97,8 @@ export default function DashboardComingSoon() {
         fetchAllProjectMembers()
       ]);
 
-      const userCreatedProjects = allIdeas?.filter((idea: any) => idea.userId === user.uid) || [];
-      const userJoinedProjects = allMembers?.filter((member: any) => member.userId === user.uid) || [];
+      const userCreatedProjects = allIdeas?.filter((idea: any) => idea.userId === user.id) || [];
+      const userJoinedProjects = allMembers?.filter((member: any) => member.userId === user.id) || [];
       const approvedProjects = userCreatedProjects?.filter((p: any) => p.status === 'approved').length || 0;
       const contributingProjects = userJoinedProjects?.length || 0;
 

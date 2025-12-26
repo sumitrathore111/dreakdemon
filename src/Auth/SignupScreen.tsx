@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signupWithEmail } from "../service/auth";
+import { useAuth } from "../Context/AuthContext";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +34,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await signupWithEmail(email, password, name);
+      await refreshUser(); // Refresh auth state after signup
       navigate("/dashboard/db");
     } catch (e: any) {
       setErr(e.message);

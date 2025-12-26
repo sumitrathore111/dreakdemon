@@ -24,7 +24,7 @@ const CourseView: React.FC = () => {
   const [githubUrl, setGithubUrl] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
 
-  // Course data - in production this would come from Firebase
+  // Course data - in production this would come from backend API
   const coursesData: any = {
     'web-101': {
       title: 'JavaScript Fundamentals',
@@ -198,7 +198,7 @@ const CourseView: React.FC = () => {
           alert(`✅ Payment successful!\n\nYour enrollment is confirmed. Contact your mentor on WhatsApp to get started with your personalized project roadmap.`);
         },
         prefill: {
-          name: user.displayName || '',
+          name: user.name || '',
           email: user.email || '',
         },
         theme: {

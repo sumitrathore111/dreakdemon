@@ -14,17 +14,17 @@ export default function MyPurchases() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.uid) {
+    if (user?.id) {
       loadPurchases();
     }
   }, [user]);
 
   const loadPurchases = async () => {
-    if (!user?.uid) return;
+    if (!user?.id) return;
 
     try {
       setLoading(true);
-      const data = await getUserPurchases(user.uid);
+      const data = await getUserPurchases(user.id);
       setPurchases(data);
     } catch (error) {
       console.error('Error loading purchases:', error);

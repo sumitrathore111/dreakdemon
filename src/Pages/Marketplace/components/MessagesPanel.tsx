@@ -15,17 +15,17 @@ export default function MessagesPanel() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.id) return;
 
-    const unsubscribe = subscribeToAcceptedChats(user.uid, (acceptedChats) => {
+    const unsubscribe = subscribeToAcceptedChats(user.id, (acceptedChats) => {
       setChats(acceptedChats);
     });
 
     return () => unsubscribe();
-  }, [user?.uid]);
+  }, [user?.id]);
 
   const filteredChats = chats.filter((chat) => {
-    const otherUserId = chat.participants.find((id) => id !== user?.uid) || '';
+    const otherUserId = chat.participants.find((id) => id !== user?.id) || '';
     const otherUserName = chat.participantNames[otherUserId] || '';
     return (
       otherUserName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,7 +34,7 @@ export default function MessagesPanel() {
   });
 
   const totalUnread = chats.reduce((sum, chat) => {
-    return sum + (chat.unreadCount[user?.uid || ''] || 0);
+    return sum + (chat.unreadCount[user?.id || ''] || 0);
   }, 0);
 
   const formatTime = (date: Date) => {
@@ -133,10 +133,10 @@ export default function MessagesPanel() {
                     </div>
                   ) : (
                     filteredChats.map((chat) => {
-                      const otherUserId = chat.participants.find((id) => id !== user?.uid) || '';
+                      const otherUserId = chat.participants.find((id) => id !== user?.id) || '';
                       const otherUserName = chat.participantNames[otherUserId] || 'User';
                       const otherUserAvatar = chat.participantAvatars[otherUserId] || '';
-                      const unreadCount = chat.unreadCount[user?.uid || ''] || 0;
+                      const unreadCount = chat.unreadCount[user?.id || ''] || 0;
 
                       return (
                         <motion.button

@@ -1,5 +1,4 @@
 import Editor from '@monaco-editor/react';
-import { doc, onSnapshot, Timestamp, updateDoc, type DocumentData } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -15,17 +14,15 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { apiRequest } from '../../service/api';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import { type Challenge } from '../../service/challenges';
 import {
-  determineBattleWinnerPiston,
   getPistonSupportedLanguages,
-  submitBattleCodePiston,
   type PistonBattleSubmissionResult
 } from '../../service/codeExecution';
-import { db } from '../../service/Firebase';
 
 interface BattleSubmissionResult {
   success: boolean;
@@ -68,8 +65,8 @@ interface Battle {
   entryFee: number;
   prize: number;
   timeLimit: number; // in seconds
-  startTime?: Timestamp;
-  endTime?: Timestamp;
+  startTime?: string;
+  endTime?: string;
   winnerId?: string;
   winReason?: string;
   forfeitedBy?: string;
@@ -79,7 +76,7 @@ const BattleRoom = () => {
   const { battleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addCoins } = useDataContext();
+  useDataContext();
 
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -277,17 +274,15 @@ rl.on('close', () => {
 
   // Subscribe to battle updates
   useEffect(() => {
-    if (!battleId) return;
+    if (!battleId || !user) return;
 
-    const unsubscribe = onSnapshot(
-      doc(db, 'CodeArena_Battles', battleId),
-      async (snapshot) => {
-        if (!snapshot.exists()) {
+    const fetchBattleData = async () => {
+      try {
+        const battleData = await apiRequest(`/battles/${battleId}`);
+        if (!battleData) {
           navigate('/dashboard/codearena');
           return;
         }
-
-        const battleData = { id: snapshot.id, ...snapshot.data() } as Battle;
         setBattle(battleData);
 
         // If challenge is from questions.json, use its data directly
@@ -302,35 +297,11 @@ rl.on('close', () => {
               ? battleData.challenge.testCases.map((tc: any) => ({ input: tc.input, output: tc.expectedOutput || tc.output || tc.expected_output || '' }))
               : (battleData.challenge.test_cases || []).map((tc: any) => ({ input: tc.input, output: tc.expected_output || tc.output || '' }));
             setTestCases(cases);
-          } else {
-            // As a last resort, show a random question from questions.json and update the battle document for consistency
-            try {
-              const { getRandomQuestion } = await import('../../service/questionsService');
-              const randomQ = await getRandomQuestion();
-              if (randomQ) {
-                // Save the randomQ to Firestore for this battle
-                const battleRef = doc(db, 'CodeArena_Battles', battleId);
-                await updateDoc(battleRef, {
-                  challenge: {
-                    ...randomQ,
-                    testCases: randomQ.testCases,
-                    test_cases: randomQ.test_cases,
-                  }
-                });
-                setChallenge(randomQ as any);
-                const cases = (randomQ.testCases && randomQ.testCases.length > 0)
-                  ? randomQ.testCases.map((tc: any) => ({ input: tc.input, output: tc.expectedOutput || tc.output || tc.expected_output || '' }))
-                  : (randomQ.test_cases || []).map((tc: any) => ({ input: tc.input, output: tc.expected_output || tc.output || '' }));
-                setTestCases(cases);
-              }
-            } catch (e) {
-              // ignore
-            }
           }
         }
 
         // Check if current user has already submitted
-        const me = battleData.participants.find(p => p.odId === user?.uid);
+        const me = battleData.participants.find((p: Participant) => p.odId === user?.id);
         if (me?.hasSubmitted && !hasSubmitted) {
           setHasSubmitted(true);
           if (me.submissionResult) {
@@ -347,37 +318,8 @@ rl.on('close', () => {
           }
         }
 
-        // Check if both players submitted - complete battle if not already
-        const allPlayersSubmitted = battleData.participants.every(p => p.hasSubmitted);
-        if (battleData.status === 'active' && allPlayersSubmitted) {
-          const battleRef = doc(db, 'CodeArena_Battles', battleId);
-          const p1Result = battleData.participants[0].submissionResult!;
-          const p2Result = battleData.participants[1].submissionResult!;
-          const winner = determineBattleWinnerPiston(p1Result, p2Result);
-
-          // Build update object without undefined/null values
-          const battleUpdate: Partial<DocumentData> = {
-            status: "completed",
-            winnerId: winner.winnerId || "",
-            winReason: winner.reason || "Battle completed",
-            endTime: Timestamp.now(),
-          };
-
-          // Complete the battle
-          await updateDoc(battleRef, battleUpdate);
-
-          // Award coins
-          if (winner.winnerId && !winner.isDraw) {
-            await addCoins(winner.winnerId, battleData.prize, `Battle victory!`);
-          } else if (winner.isDraw) {
-            for (const p of battleData.participants) {
-              await addCoins(p.odId, battleData.entryFee, 'Battle draw - refund');
-            }
-          }
-        }
-
         // Check if opponent forfeited/left
-        if (battleData.forfeitedBy && battleData.forfeitedBy !== user?.uid) {
+        if (battleData.forfeitedBy && battleData.forfeitedBy !== user?.id) {
           setOpponentLeft(true);
         }
 
@@ -387,10 +329,16 @@ rl.on('close', () => {
         }
 
         setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch battle data", error);
+        navigate('/dashboard/codearena');
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchBattleData(); // Initial fetch
+    const intervalId = setInterval(fetchBattleData, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleId, user, hasSubmitted, challenge]);
 
@@ -453,11 +401,7 @@ rl.on('close', () => {
         // Show "GO!" for 1 second, then start the battle
         const timer = setTimeout(async () => {
           if (battleId) {
-            const battleRef = doc(db, 'CodeArena_Battles', battleId);
-            await updateDoc(battleRef, {
-              status: 'active',
-              startTime: new Date()
-            });
+            await apiRequest(`/battles/${battleId}/start`, { method: 'POST' });
           }
         }, 1000);
         return () => clearTimeout(timer);
@@ -475,7 +419,7 @@ rl.on('close', () => {
   // Battle timer
   useEffect(() => {
     if (battle?.status === 'active' && battle.startTime) {
-      const startTime = battle.startTime.toDate().getTime();
+      const startTime = new Date(battle.startTime).getTime();
       const duration = battle.timeLimit * 1000;
 
       timerRef.current = setInterval(() => {
@@ -515,7 +459,7 @@ rl.on('close', () => {
     if (!user || !battle || !battleId || isLeaving) return;
 
     const confirmLeave = window.confirm(
-      '⚠️ Are you sure you want to leave?\n\nLeaving will forfeit the match and your opponent will win the prize!'
+      '⚠️ Are you sure you want to leave?\\n\\nLeaving will forfeit the match and your opponent will win the prize!'
     );
 
     if (!confirmLeave) return;
@@ -523,23 +467,7 @@ rl.on('close', () => {
     setIsLeaving(true);
 
     try {
-      const battleRef = doc(db, 'CodeArena_Battles', battleId);
-      const opponent = battle.participants.find(p => p.odId !== user.uid);
-
-      // Update battle as forfeited
-      await updateDoc(battleRef, {
-        status: 'forfeited',
-        forfeitedBy: user.uid,
-        winnerId: opponent?.odId || '',
-        winReason: 'Opponent forfeited the battle',
-        endTime: Timestamp.now()
-      });
-
-      // Award prize to opponent
-      if (opponent?.odId) {
-        await addCoins(opponent.odId, battle.prize, 'Battle victory - opponent forfeited!');
-      }
-
+      await apiRequest(`/battles/${battleId}/forfeit`, { method: 'POST' });
       // Navigate away
       navigate('/dashboard/codearena');
 
@@ -566,101 +494,26 @@ rl.on('close', () => {
     localStorage.removeItem(`battle_autosubmit_${battleId}`);
 
     try {
-      // Submit code using Piston API (FREE - no quota limits!)
-      const submissionResult = await submitBattleCodePiston(
-        user.uid,
-        code,
-        language,
-        testCases
-      );
-
-      // Sanitize submission result - remove undefined values for Firestore
-      const sanitizedResult = {
-        userId: submissionResult.userId,
-        passed: submissionResult.passed,
-        passedCount: submissionResult.passedCount,
-        totalCount: submissionResult.totalCount,
-        totalTime: submissionResult.totalTime || 0,
-        totalMemory: submissionResult.totalMemory || 0,
-        submittedAt: submissionResult.submittedAt,
-        ...(submissionResult.compilationError ? { compilationError: submissionResult.compilationError } : {})
-      };
+      // Submit code to our backend
+      const submissionResult = await apiRequest(`/battles/${battleId}/submit`, {
+        method: 'POST',
+        body: JSON.stringify({
+          code,
+          language,
+        }),
+      });
 
       // Update UI with results
       setMyResult({
-        success: sanitizedResult.passed,
-        passed: sanitizedResult.passed,
-        status: sanitizedResult.passed ? 'Accepted' : 'Wrong Answer',
-        passedCount: sanitizedResult.passedCount,
-        totalCount: sanitizedResult.totalCount,
-        totalTime: sanitizedResult.totalTime,
-        executionTime: sanitizedResult.totalTime
+        success: submissionResult.passed,
+        passed: submissionResult.passed,
+        status: submissionResult.passed ? 'Accepted' : 'Wrong Answer',
+        passedCount: submissionResult.passedCount,
+        totalCount: submissionResult.totalCount,
+        totalTime: submissionResult.totalTime,
+        executionTime: submissionResult.totalTime
       });
       setHasSubmitted(true);
-
-      // Update battle in Firestore
-      const battleRef = doc(db, 'CodeArena_Battles', battleId);
-
-      // Get fresh battle data to avoid race conditions
-      const freshBattle = await new Promise<Battle>((resolve) => {
-        const unsub = onSnapshot(doc(db, 'CodeArena_Battles', battleId!), (snap) => {
-          unsub();
-          resolve({ id: snap.id, ...snap.data() } as Battle);
-        });
-      });
-
-      const updatedParticipants = freshBattle.participants.map(p => {
-        if (p.odId === user.uid) {
-          return {
-            ...p,
-            hasSubmitted: true,
-            submissionResult: sanitizedResult
-          };
-        }
-        return p;
-      });
-
-      await updateDoc(battleRef, {
-        participants: updatedParticipants,
-        lastUpdate: Timestamp.now()
-      });
-
-      // Check if both players have submitted
-      const allSubmitted = updatedParticipants.every(p => p.hasSubmitted);
-
-      if (allSubmitted) {
-        // Determine winner using Piston determineBattleWinner
-        const p1Result = updatedParticipants[0].submissionResult!;
-        const p2Result = updatedParticipants[1].submissionResult!;
-        const winner = determineBattleWinnerPiston(p1Result, p2Result);
-
-        // Build update object without undefined values
-        const battleUpdate: Partial<DocumentData> = {
-  status: "completed",
-  winnerId: winner.winnerId || "",
-  winReason: winner.reason || "Battle completed",
-  endTime: Timestamp.now(),
-};
-
-        // Only add winnerId if it's not null
-        if (winner.winnerId !== null) {
-          battleUpdate.winnerId = winner.winnerId;
-        } else {
-          battleUpdate.winnerId = ''; // Use empty string for draws
-        }
-
-        await updateDoc(battleRef, battleUpdate);
-
-        // Award coins to winner
-        if (winner.winnerId && !winner.isDraw) {
-          await addCoins(winner.winnerId, freshBattle.prize, `Battle victory!`);
-        } else if (winner.isDraw) {
-          // Refund both players
-          for (const p of freshBattle.participants) {
-            await addCoins(p.odId, freshBattle.entryFee, 'Battle draw - refund');
-          }
-        }
-      }
 
     } catch (error: unknown) {
       console.error('Battle submission error:', error);
@@ -712,11 +565,11 @@ rl.on('close', () => {
   };
 
   const getOpponent = () => {
-    return battle?.participants.find(p => p.odId !== user?.uid);
+    return battle?.participants.find(p => p.odId !== user?.id);
   };
 
   const getMe = () => {
-    return battle?.participants.find(p => p.odId === user?.uid);
+    return battle?.participants.find(p => p.odId === user?.id);
   };
 
   if (loading) {
@@ -823,7 +676,7 @@ rl.on('close', () => {
           {/* Left - Me */}
           <div className="flex items-center gap-3">
             <img
-              src={me?.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid}`}
+              src={me?.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`}
               alt="You"
               className="w-10 h-10 rounded-full border-2 border-cyan-400"
             />

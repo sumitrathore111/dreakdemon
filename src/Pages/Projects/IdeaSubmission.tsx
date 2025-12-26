@@ -1,10 +1,9 @@
-import { doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { Bold, Clock, FileText, Italic, Lightbulb, Link2, List, ListOrdered, Send, Tag } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { db } from '../../service/Firebase';
+import { apiRequest } from '../../service/api';
 
 export default function IdeaSubmission() {
   // Get actual auth and data context
@@ -83,14 +82,16 @@ export default function IdeaSubmission() {
     setSubmitting(true);
     try {
       if (ideaToEdit && ideaToEdit.id) {
-        // Update existing idea document directly
-        const ideaRef = doc(db, 'Project_Ideas', ideaToEdit.id);
-        await updateDoc(ideaRef, {
-          title: formData.title,
-          description: formData.description,
-          category: formData.category,
-          expectedTimeline: formData.expectedTimeline,
-          editedAt: Timestamp.now()
+        // Update existing idea via backend API
+        await apiRequest(`/ideas/${ideaToEdit.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            expectedTimeline: formData.expectedTimeline,
+            editedAt: new Date().toISOString()
+          })
         });
         alert('✅ Idea updated successfully');
         try { triggerIdeasRefresh && triggerIdeasRefresh(); } catch (err) { /* noop */ }

@@ -48,11 +48,11 @@ export default function DashboardLayout() {
       
       try {
         const ideas = await fetchAllIdeas();
-        const myProjects = ideas.filter((idea: any) => idea.userId === user.uid && idea.status === 'approved');
+        const myProjects = ideas.filter((idea: any) => idea.userId === user.id && idea.status === 'approved');
         
         let totalPending = 0;
-        for (const project of myProjects) {
-          const requests = await fetchJoinRequests(project.id);
+        for (const _project of myProjects) {
+          const requests = await fetchJoinRequests();
           totalPending += requests.length;
         }
         
@@ -213,14 +213,14 @@ export default function DashboardLayout() {
                 className="hidden flex-shrink-0 w-10 h-10 rounded-full items-center justify-center text-white font-bold text-lg"
                 style={{ backgroundColor: "#00ADB5" }}
               >
-                {user?.displayName?.charAt(0)?.toUpperCase() || "U"}
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
 
               {/* User Info */}
               {!isMinimized && (
                 <div className="flex-1 min-w-0 text-left">
                   <p className="font-semibold truncate text-sm dark:text-white">
-                    {user?.displayName || "User"}
+                    {user?.name || "User"}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {user?.email || "user@example.com"}
@@ -236,7 +236,7 @@ export default function DashboardLayout() {
                     bottom: '24px'
                   }}
                 >
-                  <p className="font-semibold">{user?.displayName || "User"}</p>
+                  <p className="font-semibold">{user?.name || "User"}</p>
                   <p className="text-xs text-gray-300">{user?.email || "user@example.com"}</p>
                   <div className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-gray-900"></div>
                 </div>

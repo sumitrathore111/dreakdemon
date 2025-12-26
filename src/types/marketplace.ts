@@ -22,6 +22,8 @@ export interface MarketplaceProject {
   reviewCount: number;
   createdAt: Date;
   updatedAt: Date;
+  tags?: string[];
+  features?: string[];
 }
 
 export interface ProjectLinks {

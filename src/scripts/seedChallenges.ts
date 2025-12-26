@@ -1,5 +1,7 @@
-import { collection, addDoc, getDocs } from 'firebase/firestore';
-import { db } from '../service/Firebase';
+// This script has been deprecated - challenges are now managed via backend API
+// Use the backend endpoints to seed challenges instead
+
+import { apiRequest } from '../service/api';
 
 // Real coding challenges with test cases
 const challenges = [
@@ -682,26 +684,27 @@ public:
 ];
 
 export async function seedChallenges() {
-  const challengesRef = collection(db, 'codearena_challenges');
-  
   try {
-    // Check if challenges already exist
-    const existingChallenges = await getDocs(challengesRef);
+    console.log('Starting to seed challenges via backend API...');
     
-    if (existingChallenges.size > 0) {
-      console.log(`${existingChallenges.size} challenges already exist. Skipping seed.`);
-      return { success: true, added: 0, existing: existingChallenges.size };
+    // Check if challenges already exist
+    const response = await apiRequest('/challenges');
+    const existingChallenges = response.challenges || [];
+    
+    if (existingChallenges.length > 0) {
+      console.log(`${existingChallenges.length} challenges already exist. Skipping seed.`);
+      return { success: true, added: 0, existing: existingChallenges.length };
     }
 
-    console.log('Starting to seed challenges...');
     let added = 0;
 
     for (const challenge of challenges) {
-      await addDoc(challengesRef, {
-        ...challenge,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isActive: true
+      await apiRequest('/challenges', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...challenge,
+          isActive: true
+        })
       });
       added++;
       console.log(`✓ Added: ${challenge.title}`);

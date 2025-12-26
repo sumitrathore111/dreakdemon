@@ -1,22 +1,9 @@
-﻿import type { DocumentData } from "firebase/firestore";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, ExternalLink, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
-import { db } from "../../service/Firebase";
+import { apiRequest } from "../../service/api";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -63,7 +50,7 @@ export default function ProjectDetail() {
     if (!id || !user) return;
     const checkJoined = async () => {
       const contributorsRef = collection(db, "Open_Projects", id, "contributors");
-      const q = query(contributorsRef, where("userId", "==", user.uid));
+      const q = query(contributorsRef, where("userId", "==", user.id));
       const snap = await getDocs(q);
       setHasJoined(!snap.empty);
     };
@@ -73,7 +60,7 @@ export default function ProjectDetail() {
   // Calculate contributions
   useEffect(() => {
     if (!user) return;
-    const resolved = issues.filter(i => i.resolvedBy === user.uid).length;
+    const resolved = issues.filter(i => i.resolvedBy === user.id).length;
     setUserContributions({ issuesResolved: resolved, totalIssues: issues.length });
   }, [issues, user]);
 
@@ -86,14 +73,14 @@ export default function ProjectDetail() {
     setLoading(true);
     try {
       await addDoc(collection(db, "Open_Projects", id, "contributors"), {
-        userId: user.uid,
-        userName: user.displayName || user.email || "Anonymous",
+        userId: user.id,
+        userName: user.name || user.email || "Anonymous",
         userEmail: user.email,
         joinedAt: serverTimestamp(),
         issuesResolved: 0,
       });
       setHasJoined(true);
-      alert("ðŸŽ‰ Successfully joined the project! Start contributing now.");
+      alert("🎉 Successfully joined the project! Start contributing now.");
     } catch (error) {
       console.error("Error joining project:", error);
       alert("Failed to join project. Please try again.");
@@ -114,14 +101,14 @@ export default function ProjectDetail() {
         title: newIssue.title.trim(),
         description: newIssue.description.trim(),
         status: "Open",
-        createdBy: user.uid,
-        creatorName: user.displayName || user.email || "Anonymous",
+        createdBy: user.id,
+        creatorName: user.name || user.email || "Anonymous",
         resolvedBy: null,
         createdAt: serverTimestamp(),
       });
       setNewIssue({ title: "", description: "" });
       setShowNewIssue(false);
-      alert("âœ… Issue added successfully!");
+      alert("✅ Issue added successfully!");
     } catch (error) {
       console.error("Error adding issue:", error);
       alert("Failed to add issue");
@@ -139,7 +126,7 @@ export default function ProjectDetail() {
       const newStatus = currentStatus === "Open" ? "Resolved" : "Open";
       await updateDoc(issueRef, { 
         status: newStatus,
-        resolvedBy: newStatus === "Resolved" ? user.uid : null,
+        resolvedBy: newStatus === "Resolved" ? user.id : null,
         resolvedAt: newStatus === "Resolved" ? serverTimestamp() : null,
       });
     } catch (error) {
@@ -182,7 +169,7 @@ export default function ProjectDetail() {
 
     ctx.font = 'bold 48px Arial';
     ctx.fillStyle = '#00ADB5';
-    ctx.fillText(user.displayName || user.email || 'Contributor', canvas.width / 2, 370);
+    ctx.fillText(user.name || user.email || 'Contributor', canvas.width / 2, 370);
 
     ctx.font = '28px Arial';
     ctx.fillStyle = '#333333';
@@ -208,10 +195,10 @@ export default function ProjectDetail() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${user.displayName || 'Contributor'}_${project.title}_Certificate.png`;
+        link.download = `${user.name || 'Contributor'}_${project.title}_Certificate.png`;
         link.click();
         URL.revokeObjectURL(url);
-        alert('âœ… Certificate downloaded successfully!');
+        alert('✅ Certificate downloaded successfully!');
       }
     });
   };
@@ -224,7 +211,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const isCreator = project.creatorId === user?.uid;
+  const isCreator = project.creatorId === user?.id;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
@@ -283,7 +270,7 @@ export default function ProjectDetail() {
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(`git clone ${project.githubRepo}`);
-                      alert('📋 Clone command copied!');
+                      alert('?? Clone command copied!');
                     }}
                     className="bg-white text-gray-900 px-2 sm:px-3 py-1 rounded text-[10px] sm:text-xs font-semibold hover:bg-gray-100 flex items-center gap-1 whitespace-nowrap"
                   >
@@ -304,13 +291,13 @@ export default function ProjectDetail() {
                   disabled={loading || !user}
                   className="flex-1 lg:flex-none px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-bold hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg disabled:opacity-50"
                 >
-                  {loading ? "Joining..." : "🚀 Join Project"}
+                  {loading ? "Joining..." : "?? Join Project"}
                 </button>
               )}
 
               {hasJoined && (
                 <div className="flex-1 lg:flex-none bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-600 rounded-lg p-3 sm:p-4 text-center">
-                  <p className="text-sm sm:text-base text-green-700 dark:text-green-400 font-bold mb-2">✅ You're a Contributor!</p>
+                  <p className="text-sm sm:text-base text-green-700 dark:text-green-400 font-bold mb-2">? You're a Contributor!</p>
                   <div className="flex items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm">
                     <div>
                       <div className="text-xl sm:text-2xl font-black text-green-600 dark:text-green-400">{userContributions.issuesResolved}</div>
@@ -322,7 +309,7 @@ export default function ProjectDetail() {
                       onClick={downloadCertificate}
                       className="mt-2 sm:mt-3 w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-cyan-500 text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-cyan-600"
                     >
-                      📜 Download Certificate
+                      ?? Download Certificate
                     </button>
                   )}
                 </div>
@@ -330,7 +317,7 @@ export default function ProjectDetail() {
 
               {isCreator && (
                 <div className="flex-1 lg:flex-none bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-500 dark:border-yellow-600 rounded-lg p-3 sm:p-4 text-center">
-                  <p className="text-sm sm:text-base text-yellow-700 dark:text-yellow-400 font-bold">👑 You're the Creator</p>
+                  <p className="text-sm sm:text-base text-yellow-700 dark:text-yellow-400 font-bold">?? You're the Creator</p>
                 </div>
               )}
             </div>
@@ -340,7 +327,7 @@ export default function ProjectDetail() {
         {/* Issues Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">📋 Tasks & Issues</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">?? Tasks & Issues</h2>
             {(hasJoined || isCreator) && (
               <button
                 onClick={() => setShowNewIssue(!showNewIssue)}
@@ -409,14 +396,14 @@ export default function ProjectDetail() {
                               : "bg-green-200 text-green-800"
                           }`}
                         >
-                          {issue.status === "Open" ? "🔴 Open" : "✅ Resolved"}
+                          {issue.status === "Open" ? "?? Open" : "? Resolved"}
                         </span>
                       </div>
                       {issue.description && (
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">{issue.description}</p>
                       )}
                       <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                        Created by: {issue.createdBy === user?.uid ? "You" : issue.creatorName}
+                        Created by: {issue.createdBy === user?.id ? "You" : issue.creatorName}
                       </p>
                     </div>
 
@@ -456,7 +443,7 @@ export default function ProjectDetail() {
         {/* How to Contribute Guide */}
         {!hasJoined && !isCreator && (
           <div className="mt-6 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-2 border-cyan-200 dark:border-cyan-700 rounded-2xl p-6">
-            <h3 className="text-xl font-bold text-cyan-700 dark:text-cyan-400 mb-4">🚀 How to Contribute</h3>
+            <h3 className="text-xl font-bold text-cyan-700 dark:text-cyan-400 mb-4">?? How to Contribute</h3>
             <ol className="space-y-3 text-gray-700 dark:text-gray-300">
               <li className="flex gap-3">
                 <span className="font-bold text-cyan-600 dark:text-cyan-400">1.</span>

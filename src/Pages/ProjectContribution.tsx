@@ -1,6 +1,5 @@
-import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { db } from "../service/Firebase";
+import { apiRequest } from "../service/api";
 
 interface LeaderboardEntry {
   userId: string;

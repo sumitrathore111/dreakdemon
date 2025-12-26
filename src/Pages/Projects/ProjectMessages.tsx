@@ -1,40 +1,54 @@
-import {
-    addDoc,
-    collection,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { auth, db } from "../../service/Firebase";
+import { useAuth } from "../../Context/AuthContext";
+import { apiRequest } from "../../service/api";
 
 export default function Messages() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMsg, setNewMsg] = useState("");
 
   useEffect(() => {
-    const q = query(
-      collection(db, "Open_Projects", id!, "messages"),
-      orderBy("createdAt", "asc")
-    );
-    const unsub = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return () => unsub();
+    if (!id) return;
+
+    // Fetch messages from backend
+    const fetchMessages = async () => {
+      try {
+        const response = await apiRequest(`/projects/${id}/messages`);
+        setMessages(response.messages || []);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+
+    fetchMessages();
+    
+    // Poll for new messages every 5 seconds
+    const interval = setInterval(fetchMessages, 15000);
+    return () => clearInterval(interval);
   }, [id]);
 
   const sendMessage = async () => {
-    if (!newMsg.trim()) return;
-    const user = auth.currentUser;
-    await addDoc(collection(db, "projects", id!, "messages"), {
-      sender: user?.email,
-      text: newMsg,
-      createdAt: serverTimestamp(),
-    });
-    setNewMsg("");
+    if (!newMsg.trim() || !user || !id) return;
+    
+    try {
+      await apiRequest(`/projects/${id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          sender: user.email || user.name,
+          text: newMsg,
+          userId: user.id
+        })
+      });
+      setNewMsg("");
+      
+      // Fetch updated messages
+      const response = await apiRequest(`/projects/${id}/messages`);
+      setMessages(response.messages || []);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   return (

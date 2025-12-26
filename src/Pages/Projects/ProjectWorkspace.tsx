@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import {
     Activity,
     Bell,
@@ -130,7 +129,7 @@ export default function ProjectWorkspace() {
       setProject(projectData);
       
       // Check user role
-      const role = await checkUserRole(projectId!, user!.uid);
+      const role = await checkUserRole(projectId!, user!.id);
       
       if (!role) {
         console.log('❌ NO ACCESS - Redirecting to diagnostics page');
@@ -142,7 +141,7 @@ export default function ProjectWorkspace() {
       
       // Load members
       const membersList = await getProjectMembers(projectId!);
-      console.log('🔍 LOADED MEMBERS FROM FIREBASE:', membersList);
+      console.log('🔍 LOADED MEMBERS FROM BACKEND:', membersList);
       
       // Remove duplicates based on userId
       const uniqueMembers = membersList.filter((member: any, index: number, self: any[]) => 
@@ -168,7 +167,7 @@ export default function ProjectWorkspace() {
       // Load join requests (only for creator)
       if (role === 'creator') {
         console.log('📋 Loading join requests for project:', projectId);
-        console.log('📋 Current user ID:', user!.uid);
+        console.log('📋 Current user ID:', user!.id);
         console.log('📋 Project creator ID:', projectData.userId);
         
         const requests = await fetchJoinRequests(projectId!);
@@ -180,7 +179,7 @@ export default function ProjectWorkspace() {
           const allRequests = await fetchAllJoinRequestsDebug();
           const needFix = allRequests.filter((r: any) => 
             r.status === 'pending' && 
-            r.creatorId === user!.uid &&
+            r.creatorId === user!.id &&
             r.projectId !== projectId
           );
           
@@ -194,7 +193,7 @@ export default function ProjectWorkspace() {
         }
       }
       
-      // Load tasks, messages, files from Firebase
+      // Load tasks, messages, files from backend
       loadTasks();
       loadMessages();
       loadFiles();
@@ -332,13 +331,13 @@ export default function ProjectWorkspace() {
     if (!user) return;
     try {
       await updateTaskInDb(projectId!, taskId, {
-        completedBy: user.uid,
-        completedByName: user.displayName || user.email?.split('@')[0] || 'User',
-        completedAt: Timestamp.now(),
+        completedBy: user.id,
+        completedByName: user.name || user.email?.split('@')[0] || 'User',
+        completedAt: new Date().toISOString(),
         pendingVerification: true
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, completedBy: user.uid, completedByName: user.displayName, completedAt: new Date().toISOString(), pendingVerification: true } as any : t));
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, completedBy: user.id, completedByName: user.name, completedAt: new Date().toISOString(), pendingVerification: true } as any : t));
     } catch (error) {
       console.error('Error marking task completed:', error);
       alert('Failed to mark task completed');
@@ -355,9 +354,9 @@ export default function ProjectWorkspace() {
       const feedback = verificationFeedbacks[taskId] || '';
       await updateTaskInDb(projectId!, taskId, {
         verified: true,
-        verifiedBy: user?.uid,
-        verifiedByName: user?.displayName || user?.email?.split('@')[0] || 'Creator',
-        verifiedAt: Timestamp.now(),
+        verifiedBy: user?.id,
+        verifiedByName: user?.name || user?.email?.split('@')[0] || 'Creator',
+        verifiedAt: new Date().toISOString(),
         verificationFeedback: feedback,
         pendingVerification: false,
         status: 'completed'
@@ -748,7 +747,7 @@ export default function ProjectWorkspace() {
                             </div>
                           )}
 
-                          {!task.pendingVerification && !task.verified && task.assignedTo === (user?.displayName || user?.email?.split('@')[0]) && (
+                          {!task.pendingVerification && !task.verified && task.assignedTo === (user?.name || user?.email?.split('@')[0]) && (
                             <div className="mt-2">
                               <button onClick={() => markTaskCompletedByMember(task.id)} className="w-full sm:w-auto px-3 py-2 text-xs sm:text-sm bg-[#00ADB5] text-white rounded-lg">Mark Completed</button>
                             </div>
@@ -1033,3 +1032,5 @@ export default function ProjectWorkspace() {
     </div>
   );
 }
+
+

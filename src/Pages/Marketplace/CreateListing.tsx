@@ -1,13 +1,11 @@
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { storage } from '../../service/Firebase';
-import { createProject, getProjectById, updateProject } from '../../service/marketplaceService';
+import { createListing, getListingById, updateListing } from '../../service/marketplaceServiceNew';
 import type { CreateProjectData, LicenseType, ProjectCategory } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
 
@@ -39,9 +37,7 @@ export default function CreateListing() {
   const [techInput, setTechInput] = useState('');
   const [imageInput, setImageInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing project data when in edit mode
   useEffect(() => {
@@ -50,10 +46,10 @@ export default function CreateListing() {
 
       setIsLoading(true);
       try {
-        const project = await getProjectById(projectId);
+        const project = await getListingById(projectId);
         if (project) {
           // Check if user owns this project
-          if (project.sellerId !== user?.uid) {
+          if (project.sellerId !== user?.id) {
             toast.error('You can only edit your own projects');
             navigate('/dashboard/marketplace/my-listings');
             return;
@@ -106,11 +102,18 @@ export default function CreateListing() {
 
   const handleAddImage = () => {
     if (imageInput && !formData.images.includes(imageInput)) {
+      // Validate URL format
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(imageInput)) {
+        toast.error('Please enter a valid image URL (must start with http:// or https://)');
+        return;
+      }
       setFormData({
         ...formData,
         images: [...formData.images, imageInput],
       });
       setImageInput('');
+      toast.success('Image URL added!');
     }
   };
 
@@ -119,70 +122,6 @@ export default function CreateListing() {
       ...formData,
       images: formData.images.filter((img) => img !== image),
     });
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    if (!user) {
-      toast.error('You must be logged in to upload images');
-      return;
-    }
-
-    setIsUploading(true);
-    const uploadedUrls: string[] = [];
-
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          toast.error(`${file.name} is not an image file`);
-          continue;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name} is too large. Max size is 5MB`);
-          continue;
-        }
-
-        // Create unique filename
-        const timestamp = Date.now();
-        const fileName = `marketplace/${user.uid}/${timestamp}_${file.name}`;
-        const storageRef = ref(storage, fileName);
-
-        // Upload file
-        await uploadBytes(storageRef, file);
-        
-        // Get download URL
-        const downloadURL = await getDownloadURL(storageRef);
-        uploadedUrls.push(downloadURL);
-      }
-
-      if (uploadedUrls.length > 0) {
-        setFormData({
-          ...formData,
-          images: [...formData.images, ...uploadedUrls],
-        });
-        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
-      }
-    } catch (error: any) {
-      console.error('Error uploading images:', error);
-      if (error?.code === 'storage/unauthorized') {
-        toast.error('Permission denied. Please check Firebase Storage rules.');
-      } else {
-        toast.error('Failed to upload images. Please try again.');
-      }
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,17 +167,18 @@ export default function CreateListing() {
     try {
       if (isEditMode && projectId) {
         // Update existing project
-        await updateProject(projectId, formData);
+        await updateListing(projectId, formData);
         toast.success('Project updated successfully!');
         navigate(`/dashboard/marketplace/project/${projectId}`);
       } else {
         // Create new project
-        await createProject(
-          formData,
-          user.uid,
-          userprofile.name,
-          avatrUrl || ''
-        );
+        const listingData = {
+          ...formData,
+          sellerId: user.id,
+          sellerName: userprofile.name,
+          sellerAvatar: avatrUrl || ''
+        };
+        await createListing(listingData);
         toast.success('Project submitted for verification! It will be visible after admin approval.', {
           duration: 5000,
           icon: '🔍'
@@ -249,9 +189,7 @@ export default function CreateListing() {
       console.error(`Error ${isEditMode ? 'updating' : 'creating'} project:`, error);
       
       // Provide specific error messages
-      if (error?.code === 'permission-denied') {
-        toast.error('Permission denied! Please deploy Firestore rules first.\n\nGo to Firebase Console → Firestore → Rules → Publish');
-      } else if (error?.message) {
+      if (error?.message) {
         toast.error(`Failed to ${isEditMode ? 'update' : 'create'} listing: ${error.message}`);
       } else {
         toast.error(`Failed to ${isEditMode ? 'update' : 'create'} listing. Check browser console for details.`);
@@ -467,39 +405,13 @@ export default function CreateListing() {
                 Project Images
               </label>
               
-              {/* File Upload Section */}
+              {/* URL Input Section */}
               <div className="mb-4">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isUploading ? (
-                    <div className="flex flex-col items-center">
-                      <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin mb-2" />
-                      <span className="text-sm text-gray-500 dark:text-white">Uploading...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center">
-                      <ImageIcon className="w-8 h-8 text-[#00ADB5] mb-2" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-white">Click to upload images</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">PNG, JPG, GIF up to 5MB each</span>
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              {/* URL Input Section (Alternative) */}
-              <div className="mb-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Or add image by URL:</p>
+                <div className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 mb-3">
+                  <ImageIcon className="w-8 h-8 text-[#00ADB5] mb-2" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-white">Add images by URL</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Use image URLs from hosting services like Imgur, Cloudinary, etc.</span>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="url"

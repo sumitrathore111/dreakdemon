@@ -1,4 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
     ArrowDownRight,
@@ -19,7 +18,6 @@ import {
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { db } from '../../service/Firebase';
 
 interface WalletPanelProps {
   wallet: any;
@@ -39,37 +37,36 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
     currentStreak: 0
   });
 
-  // Fetch real stats from Firebase
+  // Fetch real stats from backend
   useEffect(() => {
     const fetchRealStats = async () => {
       if (!user) return;
       
       try {
         // Get problems solved from user progress
-        const userProgress = await getUserProgress?.(user.uid);
+        const userProgress = await getUserProgress?.(user.id);
         const solvedCount = userProgress?.solvedChallenges?.length || wallet?.achievements?.problemsSolved || 0;
         
-        // Get battles won and streak from Firebase
+        // Get battles won and streak from backend
         let battlesWon = 0;
         let currentStreak = 0;
         
         try {
           const battlesRef = collection(db, 'CodeArena_Battles');
-          const snapshot = await getDocs(battlesRef);
-          const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
+          const snapshot = await null // TODO: Replace with backend API GET } as any));
           
           // Filter battles where user participated
           const userBattles = allBattles.filter((battle: any) => {
             const participants = battle.participants || [];
             return participants.some((p: any) => {
               const odId = p.odId || p.userId;
-              return odId === user.uid;
+              return odId === user.id;
             });
           });
           
           // Count wins
           userBattles.forEach((battle: any) => {
-            if (battle.winnerId === user.uid) {
+            if (battle.winnerId === user.id) {
               battlesWon++;
             }
           });
@@ -88,7 +85,7 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
             });
           
           for (const battle of completedBattles) {
-            if (battle.winnerId === user.uid) {
+            if (battle.winnerId === user.id) {
               currentStreak++;
             } else if (battle.winnerId) {
               break;
@@ -124,27 +121,26 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
       
       try {
         // Try to fetch from transactions collection
-        let data = await fetchUserTransactions(user.uid);
+        let data = await fetchUserTransactions(user.id);
         
         // If no transactions, try to build from battle history
         if (!data || data.length === 0) {
           try {
             const battlesRef = collection(db, 'CodeArena_Battles');
-            const snapshot = await getDocs(battlesRef);
-            const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
+            const snapshot = await null // TODO: Replace with backend API GET } as any));
             
             // Filter completed battles where user participated
             const userBattles = allBattles.filter((battle: any) => {
               const participants = battle.participants || [];
               return participants.some((p: any) => {
                 const odId = p.odId || p.userId;
-                return odId === user.uid;
+                return odId === user.id;
               }) && (battle.status === 'completed' || battle.status === 'forfeited');
             });
             
             // Convert battles to transaction format
             data = userBattles.map((battle: any) => {
-              const isWinner = battle.winnerId === user.uid;
+              const isWinner = battle.winnerId === user.id;
               return {
                 id: battle.id,
                 type: isWinner ? 'earn' : 'spend',
@@ -437,3 +433,5 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
 };
 
 export default WalletPanel;
+
+

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../../../service/Firebase";
+import { apiRequest } from "../../../service/api";
 import { useAuth } from "../../../Context/AuthContext";
 
 
@@ -8,24 +7,28 @@ export function AddProjectModal({ onClose }: { onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [tech, setTech] = useState("");
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   const handleSubmit = async () => {
-    if (!title || !desc) return;
+    if (!title || !desc || !user) return;
 
-    await addDoc(collection(db, "Open_Projects"), {
-      title,
-      description: desc,
-      techStack: tech.split(",").map((t) => t.trim()),
-      createdAt: serverTimestamp(),
-      status: "Planning",
-      members: [],
-      messages: [],
-      issues: [],
-      creatorId: user?.uid
-    });
+    try {
+      await apiRequest('/projects', {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          description: desc,
+          techStack: tech.split(",").map((t) => t.trim()),
+          status: "Planning",
+          creatorId: user.id
+        })
+      });
 
-    onClose();
+      onClose();
+    } catch (error) {
+      console.error('Error adding project:', error);
+      alert('Failed to add project');
+    }
   };
 
   return (

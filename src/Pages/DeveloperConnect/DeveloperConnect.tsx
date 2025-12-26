@@ -1,4 +1,3 @@
-import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
     AlertCircle,
@@ -18,7 +17,7 @@ import { toast } from 'react-hot-toast';
 import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { db } from '../../service/Firebase';
+import { apiRequest } from '../../service/api';
 import { createOrGetDeveloperChat, getConversationsWithMessages, sendMessage, subscribeToMessages } from '../../service/messagingService';
 import { createStudyGroup, deleteStudyGroup, getAllStudyGroups, joinStudyGroup } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
@@ -98,109 +97,20 @@ export default function DeveloperConnect() {
   const [groupMessage, setGroupMessage] = useState('');
   const [groupMessages, setGroupMessages] = useState<any[]>([]);
 
-  // Fetch REAL users from Firebase with actual profile photos
+  // Fetch REAL users from the backend
   useEffect(() => {
     const loadRealUsers = async () => {
       try {
         setLoading(true);
         setError(null);
-        const allUsers = await fetchAllUsers();
+        const developersData = await apiRequest('/developers');
         
-        console.log('All users from Firebase:', allUsers); // Debug
+        console.log('All users from backend:', developersData); // Debug
         
-        // Fetch user progress for problems solved
-        const userProgressMap: Record<string, number> = {};
-        try {
-          const progressRef = collection(db, 'CodeArena_UserProgress');
-          const progressSnap = await getDocs(progressRef);
-          console.log('User progress docs:', progressSnap.docs.length); // Debug
-          progressSnap.docs.forEach(doc => {
-            const data = doc.data();
-            const solved = data.solvedChallenges?.length || 0;
-            userProgressMap[doc.id] = solved;
-            console.log(`User ${doc.id} solved: ${solved}`); // Debug
-          });
-        } catch (e) {
-          console.log('Could not fetch user progress:', e);
-        }
-
-        // Fetch battles won from CodeArena_Battles
-        const battlesWonMap: Record<string, number> = {};
-        try {
-          const battlesRef = collection(db, 'CodeArena_Battles');
-          const battlesSnap = await getDocs(battlesRef);
-          battlesSnap.docs.forEach(doc => {
-            const data = doc.data();
-            if (data.status === 'completed' && data.winner) {
-              battlesWonMap[data.winner] = (battlesWonMap[data.winner] || 0) + 1;
-            }
-          });
-        } catch (e) {
-          console.log('Could not fetch battles:', e);
-        }
+        setDevelopers(developersData);
         
-        // Show ALL users with generated avatars
-        const realDevelopers: DeveloperProfile[] = allUsers
-          .filter((user: any) => user && user.id) // Only valid users with ID
-          .map((user: any, index: number) => {
-            // Generate avatar URL using DiceBear API with user-specific seed
-            const seedIndex = (index + (user.id?.charCodeAt(0) || 0)) % avatarSeeds.length;
-            const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${avatarSeeds[seedIndex]}`;
-            
-            const odName = user.id || user.uid;
-            const problemsSolved = userProgressMap[odName] || 0;
-            const battlesWon = battlesWonMap[odName] || 0;
-            
-            return {
-              userId: odName,
-              name: user.displayName || user.odName || user.name || 'Developer',
-              email: user.email || '',
-              avatar: avatarUrl, // Generated avatar
-              bio: user.bio || 'Student on NextStep',
-              college: user.institute || 'Not specified',
-              year: user.yearOfStudy || 'Other',
-              codeArenaStats: {
-                problemsSolved: problemsSolved,
-                rating: user.codeRating || 0,
-                rank: 0, // Will be calculated below
-                battlesWon: battlesWon,
-                totalCoins: user.totalCoins || 0
-              },
-              skills: user.skills || [],
-              languages: user.languages || [],
-              projectsCompleted: user.projectsCompleted || 0,
-              projectsLeading: user.projectsLeading || 0,
-              endorsements: user.endorsements || [],
-              averageRating: user.averageRating || 0,
-              reviewCount: user.reviewCount || 0,
-              lookingFor: user.lookingFor || 'Not looking',
-              lookingForDetails: user.lookingForDetails || '',
-              availability: user.availability || ('Flexible' as const),
-              github: user.github,
-              linkedin: user.linkedin,
-              twitter: user.twitter,
-              portfolio: user.portfolio,
-              createdAt: user.createdAt || new Date(),
-              updatedAt: user.updatedAt || new Date()
-            };
-          });
-        
-        // Calculate ranks based on problems solved
-        const sortedByProblems = [...realDevelopers].sort(
-          (a, b) => b.codeArenaStats.problemsSolved - a.codeArenaStats.problemsSolved
-        );
-        sortedByProblems.forEach((dev, index) => {
-          const originalDev = realDevelopers.find(d => d.userId === dev.userId);
-          if (originalDev) {
-            originalDev.codeArenaStats.rank = index + 1;
-          }
-        });
-        
-        console.log('Real developers mapped:', realDevelopers); // Debug
-        setDevelopers(realDevelopers);
-        
-        if (realDevelopers.length === 0) {
-          setError('No developers found in database. Check your Firebase connection.');
+        if (developersData.length === 0) {
+          setError('No developers found. The community is waiting for you!');
         }
       } catch (err) {
         console.error('Error loading users:', err);
@@ -211,37 +121,14 @@ export default function DeveloperConnect() {
     };
 
     loadRealUsers();
-  }, [fetchAllUsers]);
+  }, []);
 
-  // Load endorsements from Firebase
-  useEffect(() => {
-    const loadEndorsements = async () => {
-      try {
-        const endorsementsRef = collection(db, 'endorsements');
-        
-        // Load ALL endorsements to show counts for all users
-        const snapshot = await getDocs(endorsementsRef);
-        
-        const allEndorsements = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setEndorsements(allEndorsements as any[]);
-      } catch (err) {
-        console.error('Error loading endorsements:', err);
-      }
-    };
-    
-    loadEndorsements();
-  }, [user?.uid]);
-
-  // Load study groups from Firebase
+  // Load study groups from backend
   useEffect(() => {
     const loadGroups = async () => {
       try {
-        const groups = await getAllStudyGroups();
-        setStudyGroups(groups);
+        const response = await apiRequest('/study-groups');
+        setStudyGroups(response.groups || []);
       } catch (err) {
         console.error('Error loading study groups:', err);
       }
@@ -258,60 +145,72 @@ export default function DeveloperConnect() {
       return;
     }
 
+    let isMounted = true;
+    let intervalId: NodeJS.Timeout;
+
     const setupChat = async () => {
-      console.log('Setting up chat for:', user.uid, selectedChat);
-      // Don't show loading indicator
-      setLoadingMessages(false);
+      console.log('Setting up chat for:', user.id, selectedChat);
+      setLoadingMessages(true);
 
       try {
         // Get selected developer info
         const selectedDev = developers.find(d => d.userId === selectedChat);
         if (!selectedDev) {
           console.error('Selected developer not found');
+          setLoadingMessages(false);
           return;
         }
 
         // Create or get the chat
-        const newChatId = await createOrGetDeveloperChat(
-          user.uid,
-          user.displayName || userprofile?.displayName || 'User',
-          userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
-          selectedChat,
-          selectedDev.name,
-          selectedDev.avatar
-        );
+        const chat = await apiRequest('/chats', {
+          method: 'POST',
+          body: JSON.stringify({
+            participantIds: [user.id, selectedChat],
+            participantNames: [user.displayName || 'User', selectedDev.name],
+            participantAvatars: [userprofile?.avatrUrl || '', selectedDev.avatar]
+          })
+        });
+        
+        if (!isMounted) return;
+        setChatId(chat.id);
+        console.log('Chat ID obtained:', chat.id);
 
-        setChatId(newChatId);
-        console.log('Chat ID obtained:', newChatId);
-
-        // Subscribe to messages
-        const unsubscribe = subscribeToMessages(
-          newChatId,
-          (loadedMessages) => {
-            console.log('Messages received:', loadedMessages);
-            setMessages(loadedMessages);
+        const fetchMessages = async () => {
+          try {
+            const loadedMessages = await apiRequest(`/chats/${chat.id}/messages`);
+            if (isMounted) {
+              setMessages(loadedMessages);
+            }
+          } catch (error) {
+            console.error('Error fetching messages:', error);
           }
-        );
+        };
 
-        // Clear loading after subscription is set up (don't wait for first message)
+        await fetchMessages();
         setLoadingMessages(false);
 
-        return () => {
-          if (unsubscribe) unsubscribe();
-        };
+        // Poll for new messages
+        intervalId = setInterval(fetchMessages, 15000); // Poll every 15 seconds
+
       } catch (error) {
         console.error('Error setting up chat:', error);
+        if (isMounted) {
+          setLoadingMessages(false);
+        }
       }
     };
 
-    const cleanupPromise = setupChat();
+    setupChat();
 
     return () => {
-      cleanupPromise?.then(cleanup => cleanup?.());
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
-  }, [selectedChat, user?.uid, developers, userprofile]);
+  }, [selectedChat, user?.id, developers, userprofile]);
 
-  // Load conversations when messages tab is opened (single effect, not duplicate)
+  // Load conversations when messages tab is opened
   useEffect(() => {
     if (!user || activeTab !== 'messages') {
       setConversations([]);
@@ -320,17 +219,16 @@ export default function DeveloperConnect() {
 
     const loadConversations = async () => {
       try {
-        const convs = await getConversationsWithMessages(user.uid);
-        setConversations(convs);
+        const response = await apiRequest(`/messages/conversations?userId=${user.id}`);
+        setConversations(response.conversations || []);
       } catch (err) {
-        // Silently handle - indexes might still be building
         console.warn('Could not load conversations yet:', err);
         setConversations([]);
       }
     };
 
     loadConversations();
-  }, [user?.uid, activeTab]);
+  }, [user?.id, activeTab]);
 
 
   const filteredDevelopers = developers.filter(dev => {
@@ -698,22 +596,18 @@ export default function DeveloperConnect() {
       setNewMessage('');
       
       try {
-        // Send the message using the existing chatId
-        await sendMessage(
-          chatId,
-          user.uid,
-          user.displayName || userprofile?.displayName || 'User',
-          userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
-          messageContent,
-          selectedChat!
-        );
+        await apiRequest(`/chats/${chatId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({
+            senderId: user.id,
+            message: messageContent,
+          }),
+        });
         
-        // Refresh conversations after sending
-        const convs = await getConversationsWithMessages(user.uid);
-        setConversations(convs);
+        // The polling will automatically refresh the messages
       } catch (error) {
         console.error('Error sending message:', error);
-        setNewMessage(messageContent);
+        setNewMessage(messageContent); // Re-set message on error
       }
     };
 
@@ -1003,16 +897,10 @@ export default function DeveloperConnect() {
                   onClick={async () => {
                     if (user) {
                       try {
-                        await joinStudyGroup(
-                          selectedGroup.id,
-                          user.uid,
-                          user.displayName || 'User',
-                          userprofile?.avatrUrl || ''
-                        );
-                        const groups = await getAllStudyGroups();
-                        const updatedGroup = groups.find(g => g.id === selectedGroup.id);
+                        const updatedGroup = await apiRequest(`/study-groups/${selectedGroup.id}/join`, { method: 'POST' });
+                        const updatedGroups = studyGroups.map(g => g.id === selectedGroup.id ? updatedGroup : g);
                         setSelectedGroup(updatedGroup);
-                        setStudyGroups(groups);
+                        setStudyGroups(updatedGroups);
                       } catch (error) {
                         console.error('Error joining group:', error);
                         alert('Failed to join group. Please try again.');

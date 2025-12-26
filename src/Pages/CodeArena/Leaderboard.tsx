@@ -47,11 +47,11 @@ const Leaderboard = () => {
 
         // Get user's wallet for their stats
         if (user) {
-          const walletData = await getUserWallet(user.uid);
+          const walletData = await getUserWallet(user.id);
           setWallet(walletData);
 
           // Find user's rank
-          const userRank = data.find((r: any) => r.odId === user.uid);
+          const userRank = data.find((r: any) => r.odId === user.id);
           if (userRank) {
             setMyRank(userRank);
           }
@@ -295,7 +295,7 @@ const Leaderboard = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.03 }}
                 className={`grid grid-cols-12 gap-2 px-4 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                  player.odId === user?.uid ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border-l-4 border-[#00ADB5]' : ''
+                  player.odId === user?.id ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border-l-4 border-[#00ADB5]' : ''
                 }`}
               >
                 {/* Rank */}
@@ -326,7 +326,7 @@ const Leaderboard = () => {
                   <div className="min-w-0">
                     <p className="text-gray-900 dark:text-white font-medium truncate flex items-center gap-2">
                       {player.odName}
-                      {player.odId === user?.uid && (
+                      {player.odId === user?.id && (
                         <span className="text-xs bg-[#00ADB5]/20 dark:bg-blue-900/50 text-[#00ADB5] dark:text-[#00ADB5] px-2 py-0.5 rounded-full font-medium">You</span>
                       )}
                     </p>

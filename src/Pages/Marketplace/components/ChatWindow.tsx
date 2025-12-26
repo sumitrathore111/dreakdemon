@@ -25,10 +25,10 @@ export default function ChatWindow({ chat, isOpen, onClose }: ChatWindowProps) {
   const [isMinimized, setIsMinimized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const otherUserId = chat.participants.find((id) => id !== user?.uid) || '';
+  const otherUserId = chat.participants.find((id) => id !== user?.id) || '';
   const otherUserName = chat.participantNames[otherUserId] || 'User';
   const otherUserAvatar = chat.participantAvatars[otherUserId] || '';
-  const myAvatar = avatrUrl || chat.participantAvatars[user?.uid || ''] || '';
+  const myAvatar = avatrUrl || chat.participantAvatars[user?.id || ''] || '';
 
   useEffect(() => {
     if (!isOpen || !chat.id) {
@@ -42,13 +42,13 @@ export default function ChatWindow({ chat, isOpen, onClose }: ChatWindowProps) {
       console.log('ChatWindow: Received messages:', newMessages.length, newMessages);
       setMessages(newMessages);
       // Mark messages as read
-      if (user?.uid) {
-        markMessagesAsRead(chat.id, user.uid);
+      if (user?.id) {
+        markMessagesAsRead(chat.id, user.id);
       }
     });
 
     return () => unsubscribe();
-  }, [isOpen, chat.id, user?.uid]);
+  }, [isOpen, chat.id, user?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -59,12 +59,12 @@ export default function ChatWindow({ chat, isOpen, onClose }: ChatWindowProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user?.uid || isSending) return;
+    if (!newMessage.trim() || !user?.id || isSending) return;
 
     console.log('ChatWindow: Sending message to chat:', chat.id);
     setIsSending(true);
     try {
-      await sendMessage(chat.id, user.uid, userprofile?.name || 'User', newMessage, otherUserId);
+      await sendMessage(chat.id, user.id, userprofile?.name || 'User', newMessage, otherUserId);
       setNewMessage('');
       console.log('ChatWindow: Message sent successfully');
     } catch (error) {
@@ -200,7 +200,7 @@ export default function ChatWindow({ chat, isOpen, onClose }: ChatWindowProps) {
 
                       {/* Messages for this date */}
                       {group.messages.map((message, msgIndex) => {
-                        const isOwn = message.senderId === user?.uid;
+                        const isOwn = message.senderId === user?.id;
                         const showAvatar = msgIndex === 0 || group.messages[msgIndex - 1]?.senderId !== message.senderId;
 
                         return (

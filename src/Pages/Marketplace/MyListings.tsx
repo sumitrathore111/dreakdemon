@@ -17,19 +17,19 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState<'projects' | 'sales'>('projects');
 
   useEffect(() => {
-    if (user?.uid) {
+    if (user?.id) {
       loadData();
     }
   }, [user]);
 
   const loadData = async () => {
-    if (!user?.uid) return;
+    if (!user?.id) return;
 
     try {
       setLoading(true);
       const [projectsData, salesData] = await Promise.all([
-        getSellerProjects(user.uid),
-        getSellerSales(user.uid),
+        getSellerProjects(user.id),
+        getSellerSales(user.id),
       ]);
       setProjects(projectsData);
       setSales(salesData);
@@ -54,11 +54,15 @@ export default function MyListings() {
     }
   };
 
+  // Ensure sales and projects are arrays
+  const projectsArray = Array.isArray(projects) ? projects : [];
+  const salesArray = Array.isArray(sales) ? sales : [];
+
   const stats = {
-    totalProjects: projects.length,
-    totalViews: projects.reduce((sum, p) => sum + p.views, 0),
-    totalSales: sales.length,
-    totalRevenue: sales.reduce((sum, s) => sum + s.price, 0),
+    totalProjects: projectsArray.length,
+    totalViews: projectsArray.reduce((sum, p) => sum + (p.views || 0), 0),
+    totalSales: salesArray.length,
+    totalRevenue: salesArray.reduce((sum, s) => sum + (s.price || 0), 0),
   };
 
   if (loading) {
@@ -199,7 +203,7 @@ export default function MyListings() {
 
         {/* Content */}
         {activeTab === 'projects' ? (
-          projects.length === 0 ? (
+          projectsArray.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-white text-lg mb-4">
@@ -216,7 +220,7 @@ export default function MyListings() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {projects.map((project, index) => (
+              {projectsArray.map((project, index) => (
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -314,7 +318,7 @@ export default function MyListings() {
           )
         ) : (
           // Sales History
-          sales.length === 0 ? (
+          salesArray.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-white text-lg">
@@ -342,7 +346,7 @@ export default function MyListings() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {sales.map((sale) => (
+                    {salesArray.map((sale) => (
                       <tr key={sale.id} className="hover:bg-[#00ADB5]/10 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">

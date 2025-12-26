@@ -1,8 +1,5 @@
 // Sample challenges for CodeArena
-// You can run this script to seed your Firestore with challenges
-
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../../service/Firebase';
+// Note: These are now managed via backend API instead of Firestore
 
 export const sampleChallenges = [
   {
@@ -140,8 +137,8 @@ int main() {
     totalSubmissions: 0,
     successfulSubmissions: 0,
     acceptanceRate: 0,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   },
   {
     title: 'Valid Parentheses',
@@ -235,8 +232,8 @@ int main() {
     totalSubmissions: 0,
     successfulSubmissions: 0,
     acceptanceRate: 0,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   },
   {
     title: 'Maximum Subarray',
@@ -349,8 +346,8 @@ int main() {
     totalSubmissions: 0,
     successfulSubmissions: 0,
     acceptanceRate: 0,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   },
   {
     title: 'Merge Intervals',
@@ -469,8 +466,8 @@ int main() {
     totalSubmissions: 0,
     successfulSubmissions: 0,
     acceptanceRate: 0,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   },
   {
     title: 'Longest Palindromic Substring',
@@ -566,18 +563,21 @@ int main() {
     totalSubmissions: 0,
     successfulSubmissions: 0,
     acceptanceRate: 0,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   }
 ];
 
-// Function to seed challenges to Firestore
+// Function to seed challenges to backend API
 export async function seedChallenges() {
   try {
-    const challengesRef = collection(db, 'CodeArena_Challenges');
+    const apiRequest = (await import('../../service/api')).apiRequest;
     
     for (const challenge of sampleChallenges) {
-      await addDoc(challengesRef, challenge);
+      await apiRequest('/challenges', {
+        method: 'POST',
+        body: JSON.stringify(challenge)
+      });
       console.log(`Added challenge: ${challenge.title}`);
     }
     

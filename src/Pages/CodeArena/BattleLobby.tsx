@@ -1,13 +1,4 @@
-import {
-    collection,
-    deleteDoc,
-    doc,
-    onSnapshot,
-    query,
-    Timestamp,
-    updateDoc,
-    where
-} from 'firebase/firestore';
+import { apiRequest } from '../../service/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     ChevronRight,
@@ -26,8 +17,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { joinOrCreateBattle } from '../../service/battleService';
-import { db } from '../../service/Firebase';
-import { secureCodeExecutionService } from '../../service/secureCodeExecution';
 
 interface Wallet {
   coins: number;
@@ -55,7 +44,7 @@ interface WaitingBattle {
     difficulty: string;
     category: string;
   };
-  createdAt: Timestamp;
+  createdAt: Date;
 }
 
 const difficulties = [
@@ -84,97 +73,48 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   const [myBattleId, setMyBattleId] = useState<string | null>(null);
   const [searchTime, setSearchTime] = useState(0);
 
-  // Subscribe to waiting battles
+  // Poll for waiting battles
   useEffect(() => {
-    const q = query(
-      collection(db, 'CodeArena_Battles'),
-      where('status', '==', 'waiting')
-    );
+    if (!user) return;
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const battles: WaitingBattle[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        // Extract creator info from participants array if available
-        const creatorParticipant = data.participants?.[0];
-        const creatorUserId = data.createdBy || data.creatorId || creatorParticipant?.odId || '';
-        
-        // Don't show user's own battles - prevent fighting yourself
-        if (creatorUserId === user?.uid) {
-          return;
-        }
-        
-        battles.push({ 
-          id: doc.id, 
-          creatorId: creatorUserId,
-          creatorName: creatorParticipant?.odName || data.creatorName || 'Unknown User',
-          creatorProfilePic: creatorParticipant?.odProfilePic || data.creatorProfilePic || '',
-          creatorRating: creatorParticipant?.rating || data.creatorRating || 1000,
-          difficulty: data.difficulty,
-          entryFee: data.entryFee,
-          prize: data.prize,
-          timeLimit: data.timeLimit,
-          status: data.status,
-          challenge: data.challenge,
-          createdAt: data.createdAt
-        });
-      });
-      setWaitingBattles(battles);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Auto-matchmaking - automatically try to join battles
-  useEffect(() => {
-    if (!isSearching || !myBattleId || !user) return;
-    
-    // Every 2 seconds, check if there's a battle we can join
-    const autoMatchInterval = setInterval(async () => {
-      const matchingBattle = waitingBattles.find(
-        (b) => b.difficulty === selectedDifficulty && 
-               b.entryFee === selectedEntry.fee &&
-               b.creatorId !== user.uid
-      );
-
-      if (matchingBattle) {
-        clearInterval(autoMatchInterval);
-        
-        // Cancel our own battle first
-        try {
-          const myBattleRef = doc(db, 'CodeArena_Battles', myBattleId);
-          await updateDoc(myBattleRef, { status: 'cancelled' });
-        } catch {
-          console.log('Our battle was already taken');
-        }
-        
-        // Join the found battle
-        await joinBattle(matchingBattle);
+    const fetchWaitingBattles = async () => {
+      try {
+        const response = await apiRequest(`/battles?status=waiting&difficulty=${selectedDifficulty}`);
+        const battles = response.battles || [];
+        const filteredBattles = battles.filter((b: WaitingBattle) => b.creatorId !== user.id);
+        setWaitingBattles(filteredBattles);
+      } catch (error) {
+        console.error("Error fetching waiting battles:", error);
       }
-    }, 2000);
+    };
 
-    return () => clearInterval(autoMatchInterval);
-  }, [isSearching, myBattleId, waitingBattles, selectedDifficulty, selectedEntry.fee, user]);
+    fetchWaitingBattles();
+    const interval = setInterval(fetchWaitingBattles, 15000); // Poll every 15 seconds
 
-  // Watch for match when searching
+    return () => clearInterval(interval);
+  }, [user, selectedDifficulty]);
+
+  // Poll for my battle status when searching
   useEffect(() => {
-    if (!myBattleId) return;
+    if (!myBattleId || !isSearching) return;
 
-    const unsubscribe = onSnapshot(
-      doc(db, 'CodeArena_Battles', myBattleId),
-      (snapshot) => {
-        if (!snapshot.exists()) return;
-        
-        const data = snapshot.data();
-        if (data.status === 'countdown' || data.status === 'active') {
-          // Match found! Navigate to battle room
+    const pollBattleStatus = async () => {
+      try {
+        const response = await apiRequest(`/battles/${myBattleId}`);
+        const battle = response.battle;
+        if (battle && (battle.status === 'countdown' || battle.status === 'active')) {
           navigate(`/dashboard/codearena/battle/${myBattleId}`);
         }
+      } catch (error) {
+        console.error('Error polling battle status:', error);
+        // Handle error, maybe stop polling if battle not found
       }
-    );
+    };
 
-    return () => unsubscribe();
-  }, [myBattleId, navigate]);
+    const interval = setInterval(pollBattleStatus, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [myBattleId, isSearching, navigate]);
 
   // Search timer
   useEffect(() => {
@@ -188,7 +128,22 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   }, [isSearching]);
 
   const handleFindMatch = async () => {
-    if (!user || !wallet || wallet.coins < selectedEntry.fee) return;
+    console.log('handleFindMatch called', { user, wallet, selectedEntry });
+    
+    if (!user) {
+      alert('Please log in to find a match');
+      return;
+    }
+    
+    if (!wallet) {
+      alert('Wallet not loaded. Please wait or refresh the page.');
+      return;
+    }
+    
+    if ((wallet.coins || 0) < selectedEntry.fee) {
+      alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
+      return;
+    }
 
     setIsSearching(true);
     setSearchTime(0);
@@ -198,11 +153,11 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       const matchingBattle = waitingBattles.find(
         (b) => b.difficulty === selectedDifficulty && 
                b.entryFee === selectedEntry.fee &&
-               b.creatorId !== user.uid
+               b.creatorId !== user.id
       );
 
       // Deduct entry fee
-      await deductCoins(user.uid, selectedEntry.fee, 'Battle entry fee');
+      await deductCoins(user.id, selectedEntry.fee, 'Battle entry fee');
 
       if (matchingBattle) {
         // Join existing battle immediately
@@ -213,6 +168,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       }
     } catch (error) {
       console.error('Error finding match:', error);
+      alert('Failed to find match. Please try again.');
       setIsSearching(false);
     }
   };
@@ -224,32 +180,35 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       // Ensure wallet exists before verification
       if (!wallet) {
         alert('Wallet not initialized. Please refresh the page.');
+        setIsSearching(false);
         return;
       }
       
-      // Verify user has sufficient coins
-      const hasEnoughCoins = await secureCodeExecutionService.verifyBattleEntry(user!.uid, selectedEntry.fee);
-      
-      if (!hasEnoughCoins) {
-        alert(`Insufficient coins for battle entry fee! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
+      // Simple coin check - we already verified in handleFindMatch
+      if ((wallet.coins || 0) < selectedEntry.fee) {
+        alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
+        setIsSearching(false);
         return;
       }
       
       const battleRequest = {
         difficulty: selectedDifficulty as 'easy' | 'medium' | 'hard',
         entryFee: selectedEntry.fee,
-        userId: user!.uid,
+        userId: user!.id,
         userName: userprofile?.name || user!.email?.split('@')[0] || 'User',
         userAvatar: userprofile?.profilePic || '',
         rating: wallet?.rating || 1000
       };
       
+      console.log('Creating battle with request:', battleRequest);
       const battleId = await joinOrCreateBattle(battleRequest);
+      console.log('Battle created with ID:', battleId);
       setMyBattleId(battleId);
       
     } catch (error: unknown) {
       console.error('Error creating battle:', error);
       alert(error instanceof Error ? error.message : 'Failed to create battle');
+      setIsSearching(false);
     } finally {
       setIsCreating(false);
     }
@@ -260,38 +219,26 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       // Ensure wallet exists before verification
       if (!wallet) {
         alert('Wallet not initialized. Please refresh the page.');
+        setIsSearching(false);
         return;
       }
       
-      // Verify user has sufficient coins
-      const hasEnoughCoins = await secureCodeExecutionService.verifyBattleEntry(user!.uid, battle.entryFee);
-      
-      if (!hasEnoughCoins) {
-        alert(`Insufficient coins for battle entry fee! You have ${wallet.coins || 0} coins but need ${battle.entryFee} coins.`);
+      // Simple coin check - we already verified in handleFindMatch
+      if ((wallet.coins || 0) < battle.entryFee) {
+        alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${battle.entryFee} coins.`);
+        setIsSearching(false);
         return;
       }
       
-      const battleRef = doc(db, 'CodeArena_Battles', battle.id);
-      
-      await updateDoc(battleRef, {
-        status: 'countdown',
-        participants: [
-          {
-            odId: battle.creatorId || '',
-            odName: battle.creatorName || 'Unknown User',
-            odProfilePic: battle.creatorProfilePic || '',
-            rating: battle.creatorRating || 1000,
-            hasSubmitted: false
-          },
-          {
-            odId: user!.uid,
-            odName: userprofile?.name || user!.email?.split('@')[0] || 'User',
-            odProfilePic: userprofile?.profilePic || '',
-            rating: wallet?.rating || 1000,
-            hasSubmitted: false
-          }
-        ],
-        matchedAt: Timestamp.now()
+      console.log('Joining battle:', battle.id);
+      await apiRequest(`/battles/${battle.id}/join`, {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user!.id,
+          userName: userprofile?.name || user!.email?.split('@')[0] || 'User',
+          userAvatar: userprofile?.profilePic || '',
+          rating: wallet?.rating || 1000
+        })
       });
 
       // Navigate to battle room
@@ -300,6 +247,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     } catch (error: unknown) {
       console.error('Error joining battle:', error);
       alert(error instanceof Error ? error.message : 'Failed to join battle');
+      setIsSearching(false);
     }
   };
 
@@ -307,11 +255,10 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     if (myBattleId) {
       try {
         // Refund entry fee
-        await deductCoins(user!.uid, -selectedEntry.fee, 'Battle cancelled - refund');
+        await deductCoins(user!.id, -selectedEntry.fee, 'Battle cancelled - refund');
         
         // Delete the battle document so it doesn't show to other users
-        const battleRef = doc(db, 'CodeArena_Battles', myBattleId);
-        await deleteDoc(battleRef);
+        await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
       } catch (error) {
         console.error('Error cancelling battle:', error);
       }
@@ -327,6 +274,13 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Debug wallet state
+  const walletCoins = wallet?.coins ?? 0;
+  const hasEnoughCoins = walletCoins >= selectedEntry.fee;
+  const isButtonDisabled = !wallet || !hasEnoughCoins || isSearching || isCreating;
+
+  console.log('BattleLobby render:', { wallet, walletCoins, selectedEntry, hasEnoughCoins, isButtonDisabled });
 
   return (
     <div className="space-y-6 pb-20 md:pb-6">
@@ -486,13 +440,13 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
         {/* Find Match Button */}
         <motion.button
-          whileHover={{ scale: !isCreating ? 1.02 : 1 }}
-          whileTap={{ scale: !isCreating ? 0.98 : 1 }}
+          whileHover={{ scale: !isButtonDisabled ? 1.02 : 1 }}
+          whileTap={{ scale: !isButtonDisabled ? 0.98 : 1 }}
           onClick={handleFindMatch}
-          disabled={!wallet || wallet.coins < selectedEntry.fee || isSearching || isCreating}
+          disabled={isButtonDisabled}
           className={`w-full py-3 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all shadow-md ${
-            wallet?.coins >= selectedEntry.fee && !isCreating
-              ? 'bg-gradient-to-r from-[#00ADB5] via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700'
+            !isButtonDisabled
+              ? 'bg-gradient-to-r from-[#00ADB5] via-purple-600 to-indigo-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 cursor-pointer'
               : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
@@ -519,9 +473,21 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
           <span>Secure Battle System</span>
         </div>
 
-        {wallet?.coins < selectedEntry.fee && (
+        {!wallet && (
+          <p className="text-center text-amber-500 text-xs mt-2">
+            Loading wallet... Please wait
+          </p>
+        )}
+
+        {wallet && !hasEnoughCoins && (
           <p className="text-center text-red-500 text-xs mt-2">
-            Need {selectedEntry.fee - wallet.coins} more coins
+            Need {selectedEntry.fee - walletCoins} more coins (You have {walletCoins})
+          </p>
+        )}
+
+        {wallet && hasEnoughCoins && (
+          <p className="text-center text-green-500 text-xs mt-2">
+            Ready to battle! ({walletCoins} coins available)
           </p>
         )}
       </div>
@@ -583,7 +549,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                   <button
                     onClick={async () => {
                       if (wallet?.coins >= battle.entryFee) {
-                        await deductCoins(user!.uid, battle.entryFee, 'Battle entry fee');
+                        await deductCoins(user!.id, battle.entryFee, 'Battle entry fee');
                         await joinBattle(battle);
                       }
                     }}

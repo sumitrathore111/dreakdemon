@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginWithEmail } from "../service/auth";
+import { useAuth } from "../Context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -14,6 +16,7 @@ export default function Login() {
     setErr(null);
     try {
       await loginWithEmail(email, password);
+      await refreshUser(); // Refresh auth state after login
       navigate("/dashboard/db");
     } catch (e: any) {
       setErr(e.message);

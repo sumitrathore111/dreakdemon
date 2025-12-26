@@ -74,8 +74,8 @@ export default function ProjectDetail() {
         setProject(projectData);
         setReviews(reviewsData);
 
-        if (user?.uid) {
-          const purchased = await checkUserPurchased(user.uid, projectId);
+        if (user?.id) {
+          const purchased = await checkUserPurchased(user.id, projectId);
           setHasPurchased(purchased);
         }
       } else {
@@ -99,7 +99,7 @@ export default function ProjectDetail() {
 
     setIsPurchasing(true);
     try {
-      await createPurchase(project.id, project, user.uid, userprofile?.name || 'User');
+      await createPurchase(project.id, project, user.id, userprofile?.name || 'User');
       toast.success(project.isFree ? 'Project added to your library!' : 'Purchase successful!');
       setHasPurchased(true);
       setShowPurchaseModal(false);
@@ -117,7 +117,7 @@ export default function ProjectDetail() {
 
     try {
       const result = await createOrGetChat(
-        user.uid,
+        user.id,
         userprofile?.name || 'User',
         avatrUrl || '',
         project.sellerId,
@@ -146,23 +146,23 @@ export default function ProjectDetail() {
       // Chat is accepted, open the chat window
       setActiveChat({
         id: result.chatId,
-        participants: [user.uid, project.sellerId],
+        participants: [user.id, project.sellerId],
         participantNames: {
-          [user.uid]: userprofile?.name || 'User',
+          [user.id]: userprofile?.name || 'User',
           [project.sellerId]: project.sellerName,
         },
         participantAvatars: {
-          [user.uid]: avatrUrl || '',
+          [user.id]: avatrUrl || '',
           [project.sellerId]: project.sellerAvatar,
         },
         projectId: project.id,
         projectTitle: project.title,
         status: result.status,
-        requesterId: user.uid,
+        requesterId: user.id,
         sellerId: project.sellerId,
         lastMessage: '',
         lastMessageTime: new Date(),
-        unreadCount: { [user.uid]: 0, [project.sellerId]: 0 },
+        unreadCount: { [user.id]: 0, [project.sellerId]: 0 },
       });
       setShowChat(true);
     } catch (error) {
@@ -181,7 +181,7 @@ export default function ProjectDetail() {
     try {
       await createReview(
         project.id,
-        user.uid,
+        user.id,
         userprofile?.name || 'User',
         avatrUrl || '',
         reviewRating,
@@ -210,7 +210,7 @@ export default function ProjectDetail() {
 
   if (!project) return null;
 
-  const isOwnProject = user?.uid === project.sellerId;
+  const isOwnProject = user?.id === project.sellerId;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">

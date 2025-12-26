@@ -22,28 +22,28 @@ export default function ChatRequests({ onChatAccepted }: ChatRequestsProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.uid) {
+    if (!user?.id) {
       console.log('ChatRequests: No user logged in');
       return;
     }
 
-    console.log('ChatRequests: User ID is:', user.uid);
-    console.log('ChatRequests: Subscribing to pending requests for seller:', user.uid);
+    console.log('ChatRequests: User ID is:', user.id);
+    console.log('ChatRequests: Subscribing to pending requests for seller:', user.id);
     
     // Debug: Run a direct query to check the database
-    debugChatSystem(user.uid).then(result => {
+    debugChatSystem(user.id).then(result => {
       console.log('ChatRequests: Debug result:', result);
     }).catch(err => {
       console.error('ChatRequests: Debug error:', err);
     });
     
-    const unsubscribe = subscribeToPendingRequests(user.uid, (requests) => {
+    const unsubscribe = subscribeToPendingRequests(user.id, (requests) => {
       console.log('ChatRequests: Received pending requests:', requests.length, requests);
       setPendingRequests(requests);
     });
 
     return () => unsubscribe();
-  }, [user?.uid]);
+  }, [user?.id]);
 
   const handleAccept = async (chat: MarketplaceChat) => {
     setProcessingId(chat.id);

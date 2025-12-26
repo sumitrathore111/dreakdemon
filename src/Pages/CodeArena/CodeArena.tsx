@@ -1,4 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -20,7 +19,8 @@ import { Component, useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { db } from '../../service/Firebase'; // Error Boundary Component
+
+// Error Boundary Component
 class ErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean; error?: Error }
@@ -79,6 +79,7 @@ import LocalChallengeEditor from './LocalChallengeEditor';
 import PracticeChallenges from './PracticeChallenges';
 import SeedChallenges from './SeedChallenges';
 import WalletPanel from './WalletPanel';
+import { apiRequest } from '../../service/api';
 
 const CodeArenaContent = () => {
   const navigate = useNavigate();
@@ -105,13 +106,12 @@ const CodeArenaContent = () => {
       const userProgress = await getUserProgress?.(userId);
       const solvedCount = userProgress?.solvedChallenges?.length || walletData?.achievements?.problemsSolved || 0;
       
-      // Get battles won directly from Firebase (same as BattleHistory)
+      // Get battles won directly from backend 
       let battlesWon = 0;
       let currentStreak = 0;
       try {
-        const battlesRef = collection(db, 'CodeArena_Battles');
-        const snapshot = await getDocs(battlesRef);
-        const allBattles = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as any));
+        const response = await apiRequest('/battles');
+        const allBattles = response.battles || [];
         
         // Filter battles where user participated
         const userBattles = allBattles.filter((battle: any) => {
@@ -184,16 +184,21 @@ const CodeArenaContent = () => {
 
   useEffect(() => {
     const initWallet = async () => {
-      if (user) {
+      if (user && user.id) {
         try {
-          const existingWallet = await getUserWallet(user.uid);
+          console.log('Initializing wallet for user:', user.id);
+          const existingWallet = await getUserWallet(user.id);
+          console.log('Existing wallet:', existingWallet);
+          
           if (!existingWallet) {
-            await initializeWallet(user.uid, userprofile?.name || user.email?.split('@')[0] || 'User');
+            console.log('No wallet found, creating new one...');
+            await initializeWallet(user.id, userprofile?.name || user.email?.split('@')[0] || 'User');
           }
           
-          const unsubscribe = subscribeToWallet(user.uid, async (walletData) => {
+          const unsubscribe = subscribeToWallet(user.id, async (walletData) => {
+            console.log('Wallet data received:', walletData);
             setWallet(walletData);
-            await fetchUserStats(user.uid, walletData);
+            await fetchUserStats(user.id, walletData);
             setLoading(false);
           });
           
@@ -204,6 +209,7 @@ const CodeArenaContent = () => {
           setLoading(false);
         }
       } else {
+        console.log('No user or user.id, skipping wallet init');
         setLoading(false);
       }
     };

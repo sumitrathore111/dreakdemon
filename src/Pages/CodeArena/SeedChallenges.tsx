@@ -1,11 +1,3 @@
-import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDocs,
-    Timestamp
-} from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
     AlertCircle,
@@ -16,7 +8,7 @@ import {
     Upload
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { db } from '../../service/Firebase';
+import { apiRequest } from '../../service/api';
 import { defaultChallenges } from '../../service/challenges';
 
 const CHALLENGES_COLLECTION = 'CodeArena_Challenges';
@@ -29,9 +21,10 @@ const SeedChallenges = () => {
 
   const checkExistingChallenges = async () => {
     try {
-      const snapshot = await getDocs(collection(db, CHALLENGES_COLLECTION));
-      setExistingCount(snapshot.size);
-      return snapshot.size;
+      const response = await apiRequest('/challenges');
+      const count = response.challenges?.length || 0;
+      setExistingCount(count);
+      return count;
     } catch (error) {
       console.error('Error checking challenges:', error);
       return 0;
@@ -43,21 +36,22 @@ const SeedChallenges = () => {
     setMessage(null);
 
     try {
-      const challengesRef = collection(db, CHALLENGES_COLLECTION);
-      
       let added = 0;
       for (const challenge of defaultChallenges) {
-        await addDoc(challengesRef, {
-          ...challenge,
-          createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now()
+        await apiRequest('/challenges', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...challenge,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
         });
         added++;
       }
       
-      setMessage({ 
+      setMessage({
         type: 'success', 
-        text: `Successfully added ${added} challenges to Firebase!` 
+        text: `Successfully added ${added} challenges to backend!` 
       });
       await checkExistingChallenges();
     } catch (error: any) {
@@ -80,17 +74,20 @@ const SeedChallenges = () => {
     setMessage(null);
 
     try {
-      const snapshot = await getDocs(collection(db, CHALLENGES_COLLECTION));
+      const response = await apiRequest('/challenges');
+      const challenges = response.challenges || [];
       
       let deleted = 0;
-      for (const docSnap of snapshot.docs) {
-        await deleteDoc(doc(db, CHALLENGES_COLLECTION, docSnap.id));
+      for (const challenge of challenges) {
+        await apiRequest(`/challenges/${challenge.id}`, {
+          method: 'DELETE'
+        });
         deleted++;
       }
       
       setMessage({ 
         type: 'info', 
-        text: `Deleted ${deleted} challenges from Firebase.` 
+        text: `Deleted ${deleted} challenges from backend.` 
       });
       setExistingCount(0);
     } catch (error: any) {
@@ -121,7 +118,7 @@ const SeedChallenges = () => {
             <Database className="w-8 h-8 text-[#00ADB5] dark:text-[#00ADB5]" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">CodeArena Seed Tool</h1>
-          <p className="text-gray-500 dark:text-white">Add sample challenges to your Firebase database</p>
+          <p className="text-gray-500 dark:text-white">Add sample challenges to your backend database</p>
         </div>
 
         {/* Stats */}
@@ -131,7 +128,7 @@ const SeedChallenges = () => {
             <span className="font-semibold text-gray-900 dark:text-white">{defaultChallenges.length}</span>
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-gray-600 dark:text-white">Existing in Firebase:</span>
+            <span className="text-gray-600 dark:text-white">Existing in backend:</span>
             <span className="font-semibold text-gray-900 dark:text-white">
               {existingCount !== null ? existingCount : (
                 <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />

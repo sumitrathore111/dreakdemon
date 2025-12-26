@@ -20,7 +20,7 @@ export default function ProjectAccessDiagnostic() {
     
     setLoading(true);
     try {
-      const results = await checkAccessDiagnostics(projectId, user.uid);
+      const results = await checkAccessDiagnostics(projectId, user.id);
       setDiagnostics(results);
       console.log('🔍 DIAGNOSTIC RESULTS:', results);
     } catch (error) {
@@ -37,7 +37,7 @@ export default function ProjectAccessDiagnostic() {
     setFixing(true);
     try {
       const userName = userprofile?.name || user.email?.split('@')[0] || 'User';
-      await forceAddMember(projectId, user.uid, userName);
+      await forceAddMember(projectId, user.id, userName);
       
       alert('✅ Access fixed! You have been added to the project. Redirecting...');
       setTimeout(() => {

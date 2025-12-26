@@ -1,4 +1,4 @@
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { apiRequest } from '../../service/api';
 import { motion } from 'framer-motion';
 import {
   CheckCircle,
@@ -21,7 +21,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { createRematchBattle } from '../../service/battleService';
-import { db } from '../../service/Firebase';
 
 interface SubmissionResult {
   passedCount: number;
@@ -112,29 +111,29 @@ const BattleResults = () => {
       if (!battleId) return;
 
       try {
-        const battleDoc = await getDoc(doc(db, 'CodeArena_Battles', battleId));
-        
-        if (!battleDoc.exists()) {
+        const response = await apiRequest(`/battles/${battleId}`);
+        const battleData = response.battle as Battle;
+
+        if (!battleData) {
           navigate('/dashboard/codearena');
           return;
         }
 
-        const battleData = { id: battleDoc.id, ...battleDoc.data() } as Battle;
         setBattle(battleData);
 
         // Find my data and opponent data using odId field
-        const me = battleData.participants?.find((p: Participant) => p.odId === user?.uid);
-        const opp = battleData.participants?.find((p: Participant) => p.odId !== user?.uid);
+        const me = battleData.participants?.find((p: Participant) => p.odId === user?.id);
+        const opp = battleData.participants?.find((p: Participant) => p.odId !== user?.id);
         
         setMyData(me || null);
         setOpponentData(opp || null);
 
         // Check if winner
-        const won = battleData.winnerId === user?.uid;
+        const won = battleData.winnerId === user?.id;
         setIsWinner(won);
 
         // Check if won by forfeit
-        if (battleData.status === 'forfeited' && battleData.forfeitedBy !== user?.uid) {
+        if (battleData.status === 'forfeited' && battleData.forfeitedBy !== user?.id) {
           setWinByForfeit(true);
         }
 
@@ -184,7 +183,7 @@ const BattleResults = () => {
         {
           difficulty,
           entryFee,
-          userId: user.uid,
+          userId: user.id,
           userName: userprofile?.name || 'Player',
           userAvatar: userprofile?.avatarUrl,
           rating: myData?.rating || 1000
@@ -195,27 +194,33 @@ const BattleResults = () => {
       if (rematchBattleId) {
         setRematchSent(true);
         
-        // Listen for opponent to accept or reject
-        const unsubscribe = onSnapshot(
-          doc(db, 'CodeArena_Battles', rematchBattleId),
-          (snapshot) => {
-            const data = snapshot.data();
+        // Poll for opponent to accept or reject
+        const pollRematchStatus = async () => {
+          try {
+            const response = await apiRequest(`/battles/${rematchBattleId}`);
+            const data = response.battle;
             if (data?.status === 'countdown' && data?.participants?.length === 2) {
               // Opponent accepted! Navigate to battle
-              unsubscribe();
+              clearInterval(interval);
               navigate(`/dashboard/codearena/battle/${rematchBattleId}`);
             } else if (data?.status === 'rejected') {
               // Opponent declined the rematch
-              unsubscribe();
+              clearInterval(interval);
               setRematchSent(false);
               alert(`${opponentData?.odName || 'Opponent'} declined the rematch request.`);
             }
+          } catch (error) {
+            console.error("Error polling rematch status:", error);
+            clearInterval(interval);
+            setRematchSent(false);
           }
-        );
+        };
+
+        const interval = setInterval(pollRematchStatus, 15000); // Poll every 15 seconds
 
         // Clean up listener after 5 minutes (timeout)
         setTimeout(() => {
-          unsubscribe();
+          clearInterval(interval);
           // If still waiting after 5 minutes, reset the button
           setRematchSent(false);
         }, 300000);

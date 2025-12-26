@@ -64,7 +64,7 @@ export default function BrowseProjects() {
     doc.setFontSize(26);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text(user.displayName || user.email || 'User', width / 2, 82, { align: 'center' });
+    doc.text(user.name || user.email || 'User', width / 2, 82, { align: 'center' });
     // User Email
     if (user.email) {
       doc.setFontSize(14);
@@ -89,7 +89,7 @@ export default function BrowseProjects() {
     doc.setFontSize(13);
     doc.setTextColor(200, 200, 200);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 30, height - 30);
-    doc.text('Certificate ID: NEXTSTEP-' + user.uid, width - 30, height - 30, { align: 'right' });
+    doc.text('Certificate ID: NEXTSTEP-' + user.id, width - 30, height - 30, { align: 'right' });
     // Signature: Stylized 'NextStep' signature
     doc.setFontSize(28);
     doc.setTextColor(0, 173, 181);
@@ -194,7 +194,7 @@ export default function BrowseProjects() {
     if (!user) return;
     try {
       // overall verified completed tasks
-      const total = await fetchCompletedTasksCount(user.uid);
+      const total = await fetchCompletedTasksCount(user.id);
       setCompletedCount(total);
 
       // collect completed tasks per approved project
@@ -207,7 +207,7 @@ export default function BrowseProjects() {
         approved.map(async (idea: any) => {
           try {
             const tasks = await fetchTasks(idea.id);
-            const userCompleted = tasks.filter((t: any) => t.completedBy === user.uid && t.verified === true);
+            const userCompleted = tasks.filter((t: any) => t.completedBy === user.id && t.verified === true);
             if (userCompleted.length > 0) {
               userCompleted.forEach((t: any) => tasksCollected.push({ ...t, projectTitle: idea.title, projectId: idea.id }));
             }
@@ -283,7 +283,7 @@ export default function BrowseProjects() {
     try {
       const allIdeas = await fetchAllIdeas();
       // Filter to show only current user's ideas
-      const userIdeas = allIdeas.filter((idea: any) => idea.userId === user.uid);
+      const userIdeas = allIdeas.filter((idea: any) => idea.userId === user.id);
       setMyIdeas(userIdeas);
     } catch (error) {
       console.error('Error loading user ideas:', error);
@@ -296,7 +296,7 @@ export default function BrowseProjects() {
     try {
       const allIdeas = await fetchAllIdeas();
       // Show projects where user is the creator (their approved ideas)
-      const userApprovedIdeas = allIdeas.filter((idea: any) => idea.userId === user.uid && idea.status === 'approved');
+      const userApprovedIdeas = allIdeas.filter((idea: any) => idea.userId === user.id && idea.status === 'approved');
       
       // Get member count for each project
       const userProjects = await Promise.all(
@@ -348,7 +348,7 @@ export default function BrowseProjects() {
     try {
       // Get all join requests by current user
       const allRequests = await fetchAllJoinRequests();
-      const userRequests = allRequests.filter((req: any) => req.userId === user.uid);
+      const userRequests = allRequests.filter((req: any) => req.userId === user.id);
       
       // Create a map of projectId -> request data
       const requestsMap: Record<string, any> = {};
@@ -366,7 +366,7 @@ export default function BrowseProjects() {
       // Check each project for membership
       for (const project of approvedProjects) {
         const members = await getProjectMembers(project.id);
-        const isMember = members.some((m: any) => m.userId === user.uid);
+        const isMember = members.some((m: any) => m.userId === user.id);
         if (isMember) {
           membershipSet.add(project.id);
         }
@@ -394,7 +394,7 @@ export default function BrowseProjects() {
         return;
       }
       
-      if (project.userId === user.uid) {
+      if (project.userId === user.id) {
         alert('You cannot join your own project');
         return;
       }
@@ -433,7 +433,7 @@ export default function BrowseProjects() {
   
   const getProjectButtonState = (projectId: string, creatorId: string) => {
     if (!user) return { text: 'Login to Join', disabled: true, action: 'login' };
-    if (creatorId === user.uid) return { text: 'Manage →', disabled: false, action: 'manage' };
+    if (creatorId === user.id) return { text: 'Manage →', disabled: false, action: 'manage' };
     if (userMemberships.has(projectId)) return { text: 'Open Workspace →', disabled: false, action: 'open' };
     
     const request = userJoinRequests[projectId];
@@ -1044,7 +1044,7 @@ export default function BrowseProjects() {
                           )}
 
                           {/* Owner actions: Edit / Delete */}
-                          {user && idea.userId === user.uid && (
+                          {user && idea.userId === user.id && (
                             <div className="mt-3 flex flex-col items-end gap-2">
                               <button
                                 onClick={(e) => {

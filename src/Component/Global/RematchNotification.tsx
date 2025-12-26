@@ -1,20 +1,10 @@
-import {
-    collection,
-    doc,
-    getDoc,
-    onSnapshot,
-    query,
-    Timestamp,
-    updateDoc,
-    where
-} from 'firebase/firestore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Coins, Swords, Trophy, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
-import { db } from '../../service/Firebase';
+import { apiRequest } from '../../service/api';
 
 interface RematchRequest {
   battleId: string;
@@ -51,7 +41,7 @@ const addRejectedRematch = (battleId: string) => {
 
 const RematchNotification = () => {
   const { user } = useAuth();
-  const { userprofile, deductCoins, subscribeToWallet } = useDataContext();
+  const { userprofile } = useDataContext();
   const navigate = useNavigate();
 
   const [incomingRematch, setIncomingRematch] = useState<RematchRequest | null>(null);
@@ -62,63 +52,78 @@ const RematchNotification = () => {
 
   // Subscribe to wallet updates
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.id) return;
     
-    const unsubscribe = subscribeToWallet(user.uid, (walletData: Wallet | null) => {
-      setWallet(walletData);
-    });
+    // Fetch wallet data from backend
+    const fetchWallet = async () => {
+      try {
+        const response = await apiRequest(`/wallet/${user.id}`);
+        setWallet(response.wallet);
+      } catch (error) {
+        console.error('Error fetching wallet:', error);
+      }
+    };
     
-    return () => unsubscribe();
-  }, [user?.uid, subscribeToWallet]);
+    fetchWallet();
+    
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchWallet, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   // Listen for incoming rematch requests targeting current user
   useEffect(() => {
-    if (!user?.uid) return;
+    // Only run if user and user.id are defined
+    if (!user || !user.id) return;
 
-    const q = query(
-      collection(db, 'CodeArena_Battles'),
-      where('status', '==', 'waiting'),
-      where('isRematch', '==', true),
-      where('targetOpponent', '==', user.uid)
-    );
+    // Fetch rematch requests from backend
+    const fetchRematchRequests = async () => {
+      try {
+        if (!user || !user.id) return; // Guard inside async as well
+        const response = await apiRequest(`/battles/rematch-requests?userId=${user.id}`);
+        const battles = response.battles || [];
+        const rejectedIds = getRejectedRematches();
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const rejectedIds = getRejectedRematches();
+        for (const battle of battles) {
+          const battleId = battle.id;
 
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        const battleId = docSnap.id;
+          // Skip if already rejected or if it's from ourselves
+          if (rejectedIds.includes(battleId) || battle.createdBy === user.id) {
+            continue;
+          }
 
-        // Skip if already rejected or if it's from ourselves
-        if (rejectedIds.includes(battleId) || data.createdBy === user.uid) {
-          continue;
+          // Get challenger info from participants
+          const challenger = battle.participants?.[0];
+          if (!challenger) continue;
+
+          setIncomingRematch({
+            battleId,
+            challengerName: challenger.odName || 'Unknown',
+            challengerAvatar: challenger.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${battle.createdBy}`,
+            challengerRating: challenger.rating || 1000,
+            difficulty: battle.difficulty,
+            entryFee: battle.entryFee,
+            prize: battle.prize
+          });
+          setShowToast(true);
+          return; // Only show one rematch at a time
         }
 
-        // Get challenger info from participants
-        const challenger = data.participants?.[0];
-        if (!challenger) continue;
-
-        setIncomingRematch({
-          battleId,
-          challengerName: challenger.odName || 'Unknown',
-          challengerAvatar: challenger.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.createdBy}`,
-          challengerRating: challenger.rating || 1000,
-          difficulty: data.difficulty,
-          entryFee: data.entryFee,
-          prize: data.prize
-        });
-        setShowToast(true);
-        return; // Only show one rematch at a time
+        // No valid rematch found
+        setIncomingRematch(null);
+        setShowToast(false);
+        setShowFullModal(false);
+      } catch (error) {
+        console.error('Error fetching rematch requests:', error);
       }
+    };
 
-      // No valid rematch found
-      setIncomingRematch(null);
-      setShowToast(false);
-      setShowFullModal(false);
-    });
+    fetchRematchRequests();
 
-    return () => unsubscribe();
-  }, [user?.uid]);
+    // Poll for updates every 10 seconds
+    const interval = setInterval(fetchRematchRequests, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Auto-hide toast after 10 seconds
   useEffect(() => {
@@ -132,7 +137,7 @@ const RematchNotification = () => {
   }, [showToast, showFullModal, incomingRematch?.battleId]);
 
   const handleAccept = useCallback(async () => {
-    if (!incomingRematch || !user?.uid || isAccepting) return;
+    if (!incomingRematch || !user || isAccepting) return;
 
     const { battleId, entryFee } = incomingRematch;
 
@@ -145,32 +150,16 @@ const RematchNotification = () => {
     setIsAccepting(true);
 
     try {
-      // Deduct entry fee from accepter's wallet
-      await deductCoins(user.uid, entryFee, 'Rematch entry fee');
-
-      // Join the battle - read current data first
-      const battleRef = doc(db, 'CodeArena_Battles', battleId);
-      const battleDoc = await getDoc(battleRef);
-      
-      if (battleDoc.exists()) {
-        const battleData = battleDoc.data();
-        const existingParticipants = battleData.participants || [];
-        
-        await updateDoc(battleRef, {
-          status: 'countdown',
-          participants: [
-            existingParticipants[0], // Keep creator
-            {
-              odId: user.uid,
-              odName: userprofile?.name || user.email?.split('@')[0] || 'User',
-              odProfilePic: userprofile?.profilePic || '',
-              rating: wallet?.rating || 1000,
-              hasSubmitted: false
-            }
-          ],
-          matchedAt: Timestamp.now()
-        });
-      }
+      // Accept rematch via backend
+      await apiRequest(`/battles/${battleId}/accept-rematch`, {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user.id,
+          userName: userprofile?.name || user.name || 'User',
+          userProfilePic: userprofile?.profilePic || '',
+          rating: wallet?.rating || 1000
+        })
+      });
 
       setIncomingRematch(null);
       setShowToast(false);
@@ -182,7 +171,7 @@ const RematchNotification = () => {
     } finally {
       setIsAccepting(false);
     }
-  }, [incomingRematch, user, wallet, userprofile, deductCoins, navigate, isAccepting]);
+  }, [incomingRematch, user, wallet, userprofile, navigate, isAccepting]);
 
   const handleDecline = useCallback(async () => {
     if (!incomingRematch) return;
@@ -194,11 +183,11 @@ const RematchNotification = () => {
 
     // Optionally update the battle status to rejected
     try {
-      const battleRef = doc(db, 'CodeArena_Battles', battleId);
-      await updateDoc(battleRef, {
-        status: 'rejected',
-        rejectedAt: Timestamp.now(),
-        rejectedBy: user?.uid
+      await apiRequest(`/battles/${battleId}/reject-rematch`, {
+        method: 'POST',
+        body: JSON.stringify({
+          rejectedBy: user?.id
+        })
       });
     } catch (error) {
       console.error('Error rejecting rematch:', error);
@@ -207,7 +196,7 @@ const RematchNotification = () => {
     setIncomingRematch(null);
     setShowToast(false);
     setShowFullModal(false);
-  }, [incomingRematch, user?.uid]);
+  }, [incomingRematch, user?.id]);
 
   const handleToastClick = () => {
     setShowToast(false);

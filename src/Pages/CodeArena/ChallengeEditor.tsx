@@ -23,6 +23,7 @@ import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import {
     fetchChallengeById,
+    getChallengeById,
     getChallengeTestCases,
     type Challenge
 } from '../../service/challenges';

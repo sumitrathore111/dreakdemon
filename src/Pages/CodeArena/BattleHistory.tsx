@@ -1,4 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import {
   Calendar,
@@ -14,7 +13,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { db } from '../../service/Firebase';
+import { apiRequest } from '../../service/api';
 
 interface BattleHistoryItem {
   id: string;
@@ -67,37 +66,22 @@ const BattleHistory = () => {
       }
 
       try {
-        // Fetch ALL battles and filter client-side to avoid index issues
-        const battlesRef = collection(db, 'CodeArena_Battles');
-        const snapshot = await getDocs(battlesRef);
-        
-        const allBattles = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as BattleHistoryItem[];
+        // Fetch user's battles from backend
+        const response = await apiRequest(`/battles/user/${user.id}`);
+        const userBattles = response.battles || [];
 
-        console.log('Total battles in database:', allBattles.length);
-        console.log('Current user ID:', user.uid);
-
-        // Filter battles where user participated
-        const userBattles = allBattles.filter(battle => {
-          const participants = battle.participants || [];
-          const isParticipant = participants.some(p => {
-            const odId = p.odId || (p as { userId?: string }).userId;
-            return odId === user.uid;
-          });
-          return isParticipant;
-        });
+        console.log('User battles:', userBattles.length);
+        console.log('Current user ID:', user.id);
 
         console.log('User participated in:', userBattles.length, 'battles');
         
         // Filter to only show completed/forfeited battles for history
-        const completedBattles = userBattles.filter(b => 
+        const completedBattles = userBattles.filter((b: any) => 
           b.status === 'completed' || b.status === 'forfeited'
         );
 
         // Sort by creation date (newest first)
-        completedBattles.sort((a, b) => {
+        completedBattles.sort((a: any, b: any) => {
           const getTime = (ts: { toDate?: () => Date } | Date | number | undefined) => {
             if (!ts) return 0;
             if (typeof ts === 'object' && 'toDate' in ts && ts.toDate) {
@@ -121,12 +105,12 @@ const BattleHistory = () => {
         let losses = 0;
         let totalEarnings = 0;
 
-        userBattles.forEach(battle => {
-          const isWinner = battle.winnerId === user.uid;
+        userBattles.forEach((battle: any) => {
+          const isWinner = battle.winnerId === user.id;
           if (isWinner) {
             wins++;
             totalEarnings += battle.prize || 0;
-          } else if (battle.winnerId && battle.winnerId !== user.uid) {
+          } else if (battle.winnerId && battle.winnerId !== user.id) {
             losses++;
             totalEarnings -= battle.entryFee || 0;
           }
@@ -152,8 +136,8 @@ const BattleHistory = () => {
 
   const getFilteredBattles = () => {
     if (filter === 'all') return battles;
-    if (filter === 'won') return battles.filter(b => b.winnerId === user?.uid);
-    if (filter === 'lost') return battles.filter(b => b.winnerId && b.winnerId !== user?.uid);
+    if (filter === 'won') return battles.filter(b => b.winnerId === user?.id);
+    if (filter === 'lost') return battles.filter(b => b.winnerId && b.winnerId !== user?.id);
     return battles;
   };
 
@@ -178,7 +162,7 @@ const BattleHistory = () => {
   const getOpponent = (battle: BattleHistoryItem) => {
     const participant = battle.participants?.find(p => {
       const part = p as { odId?: string; userId?: string };
-      return part.odId !== user?.uid && part.userId !== user?.uid;
+      return part.odId !== user?.id && part.userId !== user?.id;
     });
     return participant;
   };
@@ -186,7 +170,7 @@ const BattleHistory = () => {
   const getMyResult = (battle: BattleHistoryItem) => {
     const participant = battle.participants?.find(p => {
       const part = p as { odId?: string; userId?: string };
-      return part.odId === user?.uid || part.userId === user?.uid;
+      return part.odId === user?.id || part.userId === user?.id;
     });
     return participant;
   };
@@ -310,8 +294,8 @@ const BattleHistory = () => {
         >
           {[
             { id: 'all', label: 'All Battles', count: battles.length },
-            { id: 'won', label: 'Victories', count: battles.filter(b => b.winnerId === user?.uid).length },
-            { id: 'lost', label: 'Defeats', count: battles.filter(b => b.winnerId && b.winnerId !== user?.uid).length }
+            { id: 'won', label: 'Victories', count: battles.filter(b => b.winnerId === user?.id).length },
+            { id: 'lost', label: 'Defeats', count: battles.filter(b => b.winnerId && b.winnerId !== user?.id).length }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -362,11 +346,11 @@ const BattleHistory = () => {
             </div>
           ) : (
             getFilteredBattles().map((battle, index) => {
-              const isWinner = battle.winnerId === user?.uid;
+              const isWinner = battle.winnerId === user?.id;
               const opponent = getOpponent(battle);
               const myResult = getMyResult(battle);
-              const wonByForfeit = battle.status === 'forfeited' && battle.forfeitedBy !== user?.uid;
-              const lostByForfeit = battle.status === 'forfeited' && battle.forfeitedBy === user?.uid;
+              const wonByForfeit = battle.status === 'forfeited' && battle.forfeitedBy !== user?.id;
+              const lostByForfeit = battle.status === 'forfeited' && battle.forfeitedBy === user?.id;
 
               return (
                 <motion.div

@@ -297,7 +297,7 @@ rl.on('close', () => {
       // If all tests passed, check if already solved before awarding coins
       if (result.success && user && challenge && challengeId) {
         // Get user progress to check if challenge was already solved
-        const userProgress = await getUserProgress(user.uid);
+        const userProgress = await getUserProgress(user.id);
         
         // Check if this challenge was already solved
         const alreadySolved = userProgress?.solvedChallenges?.some(
@@ -306,9 +306,9 @@ rl.on('close', () => {
 
         if (!alreadySolved) {
           // Award coins only if solving for the first time
-          await addCoins(user.uid, challenge.coinReward, `Solved: ${challenge.title}`, challengeId);
+          await addCoins(user.id, challenge.coinReward, `Solved: ${challenge.title}`, challengeId);
           // Mark challenge as solved in user progress
-          await markChallengeAsSolved(user.uid, challengeId, `local-${Date.now()}`);
+          await markChallengeAsSolved(user.id, challengeId, `local-${Date.now()}`);
           setSolved(true);
         } else {
           // Already solved - no coins awarded

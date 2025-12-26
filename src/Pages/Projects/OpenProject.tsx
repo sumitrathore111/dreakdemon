@@ -1,9 +1,8 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
-import { db } from "../../service/Firebase";
+import { apiRequest } from "../../service/api";
 
 export type Project = {
 
@@ -120,7 +119,7 @@ export default function ProjectList() {
       for (const project of demoProjects) {
         const projectRef = await addDoc(collection(db, "Open_Projects"), {
           ...project,
-          creatorId: user.uid,
+          creatorId: user.id,
           creatorName: "NextStep Team",
           createdAt: serverTimestamp(),
           status: "Open",
@@ -133,7 +132,7 @@ export default function ProjectList() {
         for (let i = 0; i < numIssues; i++) {
           await addDoc(collection(db, "Open_Projects", projectRef.id, "issues"), {
             ...shuffledIssues[i],
-            createdBy: user.uid,
+            createdBy: user.id,
             creatorName: "NextStep Team",
             resolvedBy: null,
             createdAt: serverTimestamp(),
@@ -464,7 +463,7 @@ export default function ProjectList() {
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
                         <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full font-medium">
-                          🎯 {p.creatorId === user?.uid ? 'Your Project' : `by ${p.creatorName}`}
+                          🎯 {p.creatorId === user?.id ? 'Your Project' : `by ${p.creatorName}`}
                         </span>
                       </div>
                     </div>
@@ -502,7 +501,7 @@ export default function ProjectList() {
                       Join & Contribute
                     </span>
                     <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 font-bold text-sm group-hover:gap-2 transition-all">
-                      {p.creatorId === user?.uid ? 'Manage' : 'View Details'}
+                      {p.creatorId === user?.id ? 'Manage' : 'View Details'}
                       <span className="group-hover:translate-x-1 transition-transform">→</span>
                     </span>
                   </div>

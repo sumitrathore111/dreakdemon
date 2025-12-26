@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthContext";
 import { useDataContext } from "../Context/UserDataContext";
@@ -8,7 +7,7 @@ interface Question {
   question: string;
   answer: string;
   ans_user: string
-  createdAt: Timestamp;
+  createdAt: any; // Changed from Timestamp to any
   userId?: string;
 
 }
@@ -29,9 +28,9 @@ export default function QueryScreen() {
       id: questions.length + 1,
       question: newQuestion,
       answer: "Waiting for answer...",
-      createdAt: Timestamp.now(),
+      createdAt: new Date(),
       ans_user: '',
-      userId: user?.uid
+      userId: user?.id
     };
     setQuestions([...questions, newQ]);
     setNewQuestion("");
