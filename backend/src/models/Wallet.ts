@@ -24,7 +24,7 @@ const WalletSchema = new Schema<IWallet>({
   transactions: [{
     type: { type: String, enum: ['credit', 'debit'], required: true },
     amount: { type: Number, required: true },
-    reason: { type: String, required: true },
+    reason: { type: String, default: 'Transaction' },
     createdAt: { type: Date, default: Date.now }
   }],
   achievements: {

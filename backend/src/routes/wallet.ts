@@ -100,7 +100,8 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 const addCoinsHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { amount, reason } = req.body;
+    const { amount, reason, description } = req.body;
+    const transactionReason = reason || description || 'Transaction';
     
     // Validate userId
     if (!userId || userId === 'undefined' || !mongoose.Types.ObjectId.isValid(userId)) {
@@ -115,7 +116,7 @@ const addCoinsHandler = async (req: Request, res: Response) => {
           transactions: {
             type: 'credit',
             amount,
-            reason,
+            reason: transactionReason,
             createdAt: new Date()
           }
         }
@@ -137,7 +138,8 @@ router.post('/:userId/add', authenticate, addCoinsHandler);
 const deductCoinsHandler = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { amount, reason } = req.body;
+    const { amount, reason, description } = req.body;
+    const transactionReason = reason || description || 'Transaction';
     
     // Validate userId
     if (!userId || userId === 'undefined' || !mongoose.Types.ObjectId.isValid(userId)) {
@@ -154,16 +156,24 @@ const deductCoinsHandler = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Insufficient coins' });
     }
     
-    wallet.coins -= amount;
-    wallet.transactions.push({
-      type: 'debit',
-      amount,
-      reason,
-      createdAt: new Date()
-    });
+    // Use atomic update to avoid validation issues with existing data
+    const updatedWallet = await Wallet.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId) },
+      {
+        $inc: { coins: -amount },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount,
+            reason: transactionReason,
+            createdAt: new Date()
+          }
+        }
+      },
+      { new: true }
+    );
     
-    await wallet.save();
-    res.json({ wallet });
+    res.json({ wallet: updatedWallet });
   } catch (error) {
     console.error('Error deducting coins:', error);
     res.status(500).json({ error: 'Failed to deduct coins' });

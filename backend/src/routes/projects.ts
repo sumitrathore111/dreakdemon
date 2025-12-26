@@ -44,6 +44,31 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
+// Get all project members (for admin stats) - MUST BE BEFORE /:projectId
+router.get('/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const projects = await Project.find({})
+      .select('members title')
+      .populate('members.userId', 'name email');
+    
+    const allMembers = projects.flatMap(p => 
+      p.members.map((m: any) => ({
+        userId: m.userId,
+        name: m.name,
+        email: m.email,
+        role: m.role,
+        joinedAt: m.joinedAt,
+        projectTitle: p.title,
+        projectId: p._id
+      }))
+    );
+    
+    res.json({ members: allMembers });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get single project by ID
 router.get('/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -350,31 +375,6 @@ router.put('/:projectId/issues/:issueId', authenticate, async (req: AuthRequest,
       message: 'Issue updated successfully',
       issue: project.issues[issueIndex]
     });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get all project members (for admin stats)
-router.get('/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const projects = await Project.find({})
-      .select('members title')
-      .populate('members.userId', 'name email');
-    
-    const allMembers = projects.flatMap(p => 
-      p.members.map((m: any) => ({
-        userId: m.userId,
-        name: m.name,
-        email: m.email,
-        role: m.role,
-        joinedAt: m.joinedAt,
-        projectTitle: p.title,
-        projectId: p._id
-      }))
-    );
-    
-    res.json({ members: allMembers });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
