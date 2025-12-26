@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion';
 import {
-    AlertCircle,
-    Award,
-    BookOpen,
-    Code2,
-    Mail,
-    MessageSquare,
-    Plus,
-    Search,
-    Send,
-    Trash2,
-    Zap
+  AlertCircle,
+  Award,
+  BookOpen,
+  Code2,
+  Mail,
+  MessageSquare,
+  Plus,
+  Search,
+  Send,
+  Trash2,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -18,20 +18,19 @@ import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { apiRequest } from '../../service/api';
-import { createOrGetDeveloperChat, getConversationsWithMessages, sendMessage, subscribeToMessages } from '../../service/messagingService';
-import { createStudyGroup, deleteStudyGroup, getAllStudyGroups, joinStudyGroup } from '../../service/studyGroupsService';
+import { createStudyGroup, deleteStudyGroup, getAllStudyGroups } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
 
-// Helper function to format Firestore timestamps
+// Helper function to format timestamps
 const formatTimestamp = (timestamp: any): string => {
   if (!timestamp) return 'Unknown date';
   
   try {
-    // Handle Firestore Timestamp object
+    // Handle date object with toDate method
     if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
       return timestamp.toDate().toLocaleDateString();
     }
-    // Handle seconds/nanoseconds object
+    // Handle seconds/nanoseconds object (MongoDB/timestamp format)
     if (timestamp?.seconds) {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
     }
@@ -46,14 +45,9 @@ const formatTimestamp = (timestamp: any): string => {
   }
 };
 
-const avatarSeeds = [
-  "Eliza", "Easton", "Brian", "Liam", "Jessica", "Destiny", "Luis", "Chase", "Ryan",
-  "Emma", "Oliver", "Ava", "Sophia", "Jackson", "Aiden", "Isabella", "Mia", "Lucas"
-];
-
 export default function DeveloperConnect() {
   const { user } = useAuth();
-  const { userprofile, fetchAllUsers } = useDataContext();
+  const { userprofile } = useDataContext();
   
   const [activeTab, setActiveTab] = useState<'directory' | 'messages' | 'groups' | 'endorsements'>('directory');
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,7 +140,7 @@ export default function DeveloperConnect() {
     }
 
     let isMounted = true;
-    let intervalId: NodeJS.Timeout;
+    let intervalId: ReturnType<typeof setInterval>;
 
     const setupChat = async () => {
       console.log('Setting up chat for:', user.id, selectedChat);
@@ -166,7 +160,7 @@ export default function DeveloperConnect() {
           method: 'POST',
           body: JSON.stringify({
             participantIds: [user.id, selectedChat],
-            participantNames: [user.displayName || 'User', selectedDev.name],
+            participantNames: [userprofile?.displayName || user.name || 'User', selectedDev.name],
             participantAvatars: [userprofile?.avatrUrl || '', selectedDev.avatar]
           })
         });
@@ -420,7 +414,7 @@ export default function DeveloperConnect() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
                   <p className="text-xs text-gray-500 dark:text-white">
-                    {dev.college || dev.institute || 'Not specified'} • {
+                    {dev.college || 'Not specified'} • {
                       (dev.year || '').includes('Year') && !(dev.year || '').includes('Passout') ? 
                         ((dev.year || '').includes('1') ? '1st Year' : (dev.year || '').includes('2') ? '2nd Year' : (dev.year || '').includes('3') ? '3rd Year' : '4th Year') 
                         : (dev.year || 'Student')
@@ -668,7 +662,7 @@ export default function DeveloperConnect() {
               <div className="flex flex-col items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderColor: '#00ADB5' }}></div>
                 <div className="text-gray-500 text-sm">Loading messages...</div>
-                <div className="text-gray-400 text-xs mt-2">If this takes long, Firebase indexes may be building</div>
+                <div className="text-gray-400 text-xs mt-2">If this takes long, the server may be starting up</div>
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full">
@@ -679,19 +673,19 @@ export default function DeveloperConnect() {
               messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex gap-3 ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-3 ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}
                 >
-                  {msg.senderId !== user.uid && (
+                  {msg.senderId !== user.id && (
                     <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full flex-shrink-0" />
                   )}
                   <div className={`max-w-xs px-4 py-2 rounded-lg ${
-                    msg.senderId === user.uid
+                    msg.senderId === user.id
                       ? 'text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                   }`}
-                  style={msg.senderId === user.uid ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}>
+                  style={msg.senderId === user.id ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}>
                     <p className="text-sm">{msg.message || msg.content}</p>
-                    <p className={`text-xs mt-1 ${msg.senderId === user.uid ? 'text-blue-100' : 'text-gray-500 dark:text-white'}`}>
+                    <p className={`text-xs mt-1 ${msg.senderId === user.id ? 'text-blue-100' : 'text-gray-500 dark:text-white'}`}>
                       {msg.timestamp instanceof Date
                         ? msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -737,7 +731,7 @@ export default function DeveloperConnect() {
   const renderGroups = () => {
     // If a group is selected, show group details
     if (selectedGroup) {
-      const isMember = selectedGroup.members?.some((m: any) => m.userId === user?.uid);
+      const isMember = selectedGroup.members?.some((m: any) => m.userId === user?.id);
       
       return (
         <div className="space-y-6">
@@ -835,7 +829,7 @@ export default function DeveloperConnect() {
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && groupMessage.trim()) {
                           const newMsg = {
-                            name: user?.displayName || 'User',
+                            name: userprofile?.displayName || user?.name || 'User',
                             avatar: userprofile?.avatrUrl || '',
                             message: groupMessage,
                             timestamp: new Date()
@@ -851,7 +845,7 @@ export default function DeveloperConnect() {
                       onClick={() => {
                         if (groupMessage.trim()) {
                           const newMsg = {
-                            name: user?.displayName || 'User',
+                            name: userprofile?.displayName || user?.name || 'User',
                             avatar: userprofile?.avatrUrl || '',
                             message: groupMessage,
                             timestamp: new Date()
@@ -1016,12 +1010,12 @@ export default function DeveloperConnect() {
                     try {
                       await createStudyGroup({
                         ...newGroupData,
-                        creatorId: user.uid,
-                        creatorName: user.displayName || 'User',
+                        creatorId: user.id,
+                        creatorName: userprofile?.displayName || user.name || 'User',
                         creatorAvatar: userprofile?.avatrUrl || '',
                         members: [{
-                          userId: user.uid,
-                          name: user.displayName || 'User',
+                          userId: user.id,
+                          name: userprofile?.displayName || user.name || 'User',
                           avatar: userprofile?.avatrUrl || '',
                           joinedAt: new Date(),
                           role: 'creator' as const
@@ -1084,7 +1078,7 @@ export default function DeveloperConnect() {
                   }`}>
                     {group.level}
                   </span>
-                  {group.creatorId === user?.uid && (
+                  {group.creatorId === user?.id && (
                     <button
                       onClick={async () => {
                         if (window.confirm('Are you sure you want to delete this study group?')) {
@@ -1170,14 +1164,14 @@ export default function DeveloperConnect() {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Award className="w-5 h-5" style={{ color: '#00ADB5' }} />
-          Endorsements Received ({endorsements.filter(e => e.recipientId === user?.uid).length})
+          Endorsements Received ({endorsements.filter(e => e.recipientId === user?.id).length})
         </h4>
         
-        {endorsements.filter(e => e.recipientId === user?.uid).length === 0 ? (
+        {endorsements.filter(e => e.recipientId === user?.id).length === 0 ? (
           <p className="text-gray-500 dark:text-white text-center py-8">No endorsements yet. Keep collaborating!</p>
         ) : (
           <div className="space-y-4">
-            {endorsements.filter(e => e.recipientId === user?.uid).map(endorsement => (
+            {endorsements.filter(e => e.recipientId === user?.id).map(endorsement => (
               <div key={endorsement.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <img src={endorsement.endorserAvatar} alt={endorsement.endorserName} className="w-10 h-10 rounded-full" />
                 <div className="flex-1">
@@ -1204,16 +1198,16 @@ export default function DeveloperConnect() {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-yellow-500" />
-          Endorsements Given ({endorsements.filter(e => e.endorserId === user?.uid).length})
+          Endorsements Given ({endorsements.filter(e => e.endorserId === user?.id).length})
         </h4>
         
-        {endorsements.filter(e => e.endorserId === user?.uid).length === 0 ? (
+        {endorsements.filter(e => e.endorserId === user?.id).length === 0 ? (
           <p className="text-gray-500 dark:text-white text-center py-8">
             You haven't endorsed anyone yet. Go to the directory to endorse developers!
           </p>
         ) : (
           <div className="space-y-4">
-            {endorsements.filter(e => e.endorserId === user?.uid).map(endorsement => (
+            {endorsements.filter(e => e.endorserId === user?.id).map(endorsement => (
               <div key={endorsement.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -1346,8 +1340,8 @@ export default function DeveloperConnect() {
                     const currentTime = new Date();
                     const newEndorsementLocal = {
                       id: Date.now().toString(),
-                      endorserId: user.uid,
-                      endorserName: user.displayName || userprofile?.displayName || 'User',
+                      endorserId: user.id,
+                      endorserName: userprofile?.displayName || user.name || 'User',
                       endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
                       recipientId: selectedUserToEndorse.userId,
                       recipientName: selectedUserToEndorse.name,
@@ -1356,10 +1350,19 @@ export default function DeveloperConnect() {
                       timestamp: currentTime
                     };
                     
-                    // Update local state immediately for instant UI feedback
+                    // Save to backend
+                    await apiRequest(`/developers/${selectedUserToEndorse.userId}/endorse`, {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        skill: endorsementData.skill,
+                        message: endorsementData.message
+                      })
+                    });
+                    
+                    // Update local state for instant UI feedback
                     setEndorsements(prev => [...prev, newEndorsementLocal]);
                     
-                    // Close modal and reset immediately
+                    // Close modal and reset
                     setShowEndorseModal(false);
                     setSelectedUserToEndorse(null);
                     setEndorsementData({skill: '', message: ''});
@@ -1369,20 +1372,6 @@ export default function DeveloperConnect() {
                       duration: 4000,
                       position: 'top-center',
                     });
-
-                    // Save to Firebase in background
-                    const newEndorsementFirebase = {
-                      endorserId: user.uid,
-                      endorserName: user.displayName || userprofile?.displayName || 'User',
-                      endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
-                      recipientId: selectedUserToEndorse.userId,
-                      recipientName: selectedUserToEndorse.name,
-                      skill: endorsementData.skill,
-                      message: endorsementData.message,
-                      timestamp: serverTimestamp()
-                    };
-                    
-                    await addDoc(collection(db, 'endorsements'), newEndorsementFirebase);
                   } catch (error) {
                     console.error('Error saving endorsement:', error);
                     toast.error('Failed to save endorsement. Please try again.');
