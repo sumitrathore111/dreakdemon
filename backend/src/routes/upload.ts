@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter to only allow images
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -46,35 +46,37 @@ const upload = multer({
 // Upload single image
 router.post('/image', upload.single('image'), (req: Request, res: Response) => {
   try {
-    if (!req.file) {
+    const file = req.file;
+    if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     // Get the server URL from environment or construct from request
     const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    const imageUrl = `${baseUrl}/uploads/${file.filename}`;
 
     res.json({
       success: true,
       imageUrl,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
     console.error('Upload error:', error);
-    res.status(500).json({ error: error.message || 'Failed to upload image' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
 // Upload multiple images (up to 5)
 router.post('/images', upload.array('images', 5), (req: Request, res: Response) => {
   try {
-    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+    const files = req.files as Express.Multer.File[] | undefined;
+    if (!files || files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const files = req.files as Express.Multer.File[];
     const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
     
     const uploadedImages = files.map(file => ({
@@ -88,14 +90,15 @@ router.post('/images', upload.array('images', 5), (req: Request, res: Response) 
       success: true,
       images: uploadedImages
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload images';
     console.error('Upload error:', error);
-    res.status(500).json({ error: error.message || 'Failed to upload images' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
 // Error handling middleware for multer errors
-router.use((err: any, _req: Request, res: Response, next: any) => {
+router.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File size too large. Maximum size is 5MB.' });
