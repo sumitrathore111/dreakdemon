@@ -95,8 +95,9 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   }, [user, selectedDifficulty]);
 
   // Poll for my battle status when searching - FAST polling for real-time feel
+  // Also implements auto-match: continuously checks for available battles to join
   useEffect(() => {
-    if (!myBattleId || !isSearching) return;
+    if (!myBattleId || !isSearching || !user) return;
 
     const pollBattleStatus = async () => {
       try {
@@ -109,6 +110,41 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         )) {
           console.log('Opponent found! Navigating to battle...');
           navigate(`/dashboard/codearena/battle/${myBattleId}`);
+          return;
+        }
+
+        // Auto-match: Check if there are other battles we can join instead of waiting
+        const response = await apiRequest(`/battles?status=waiting&difficulty=${selectedDifficulty}`);
+        const availableBattles = (response.battles || []).filter(
+          (b: WaitingBattle) => b.creatorId !== user.id && 
+                               b.id !== myBattleId &&
+                               b.entryFee === selectedEntry.fee
+        );
+
+        if (availableBattles.length > 0) {
+          // Found another battle! Cancel our battle and join theirs
+          const targetBattle = availableBattles[0];
+          console.log('Auto-match: Found existing battle, joining...', targetBattle.id);
+          
+          // Cancel our waiting battle (refund already handled)
+          try {
+            await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
+          } catch (e) {
+            console.log('Could not delete own battle, may already be matched');
+          }
+          
+          // Join the other battle
+          await apiRequest(`/battles/${targetBattle.id}/join`, {
+            method: 'POST',
+            body: JSON.stringify({
+              userId: user.id,
+              userName: userprofile?.name || user.email?.split('@')[0] || 'User',
+              userAvatar: userprofile?.profilePic || '',
+              rating: wallet?.rating || 1000
+            })
+          });
+
+          navigate(`/dashboard/codearena/battle/${targetBattle.id}`);
         }
       } catch (error) {
         console.error('Error polling battle status:', error);
@@ -121,7 +157,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     const interval = setInterval(pollBattleStatus, 2000); // Poll every 2 seconds for fast response
 
     return () => clearInterval(interval);
-  }, [myBattleId, isSearching, navigate]);
+  }, [myBattleId, isSearching, navigate, user, selectedDifficulty, selectedEntry.fee, userprofile, wallet]);
 
   // Cancel battle when user leaves the page or closes browser
   // NOTE: Tab switching and window blur handlers removed to allow testing with multiple accounts

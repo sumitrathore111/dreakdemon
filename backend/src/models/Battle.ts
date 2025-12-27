@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBattle extends Document {
-  status: 'waiting' | 'countdown' | 'active' | 'completed' | 'cancelled' | 'forfeited';
+  status: 'waiting' | 'countdown' | 'active' | 'completed' | 'cancelled' | 'forfeited' | 'rejected';
   difficulty: 'easy' | 'medium' | 'hard';
   entryFee: number;
   prize: number;
@@ -29,6 +29,14 @@ export interface IBattle extends Document {
   };
   winner?: string;
   forfeitedBy?: string;
+  rematchRequest?: {
+    from: string;
+    fromName: string;
+    to: string;
+    toName: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    createdAt: Date;
+  };
   startedAt?: Date;
   completedAt?: Date;
   createdBy: string;
@@ -40,7 +48,7 @@ export interface IBattle extends Document {
 const BattleSchema: Schema = new Schema({
   status: { 
     type: String, 
-    enum: ['waiting', 'countdown', 'active', 'completed', 'cancelled', 'forfeited'], 
+    enum: ['waiting', 'countdown', 'active', 'completed', 'cancelled', 'forfeited', 'rejected'], 
     default: 'waiting' 
   },
   difficulty: { 
@@ -74,6 +82,14 @@ const BattleSchema: Schema = new Schema({
   },
   winner: { type: String },
   forfeitedBy: { type: String },
+  rematchRequest: {
+    from: { type: String },
+    fromName: { type: String },
+    to: { type: String },
+    toName: { type: String },
+    status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+    createdAt: { type: Date }
+  },
   startedAt: { type: Date },
   completedAt: { type: Date },
   createdBy: { type: String, required: true },

@@ -335,12 +335,15 @@ rl.on('close', () => {
         setSolved(true);
         if (submissionResult.coinsChanged > 0) {
           alert(`🎉 ${submissionResult.message}`);
+        } else {
+          // Already solved or no coins awarded
+          alert(`✅ ${submissionResult.message || 'All test cases passed!'}`);
         }
       } else {
         if (submissionResult.coinsChanged < 0) {
           alert(`❌ ${submissionResult.message}`);
         } else if (submissionResult.message) {
-          alert(submissionResult.message);
+          alert(`❌ ${submissionResult.message}`);
         }
       }
     } catch (error: any) {

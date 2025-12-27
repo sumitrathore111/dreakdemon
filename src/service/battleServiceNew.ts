@@ -126,12 +126,37 @@ export const getUserBattles = async (): Promise<any[]> => {
   }
 };
 
-// Create a rematch battle (kept for compatibility)
+// Create a rematch battle request
 export const createRematchBattle = async (
-  battleRequest: BattleRequest,
-  _targetOpponentId: string
+  battleRequest: BattleRequest & { originalBattleId?: string },
+  targetOpponentId: string,
+  targetOpponentName?: string
 ): Promise<string | null> => {
-  // For now, just create a regular battle
-  // You can implement specific rematch logic on backend later
-  return createRandomBattle(battleRequest);
+  try {
+    // Use the rematch endpoint if we have an original battle ID
+    if (battleRequest.originalBattleId) {
+      const response = await apiRequest(`/battles/${battleRequest.originalBattleId}/rematch`, {
+        method: 'POST',
+        body: JSON.stringify({
+          to: targetOpponentId,
+          toName: targetOpponentName || 'Opponent',
+          fromName: battleRequest.userName,
+          difficulty: battleRequest.difficulty,
+          entryFee: battleRequest.entryFee,
+          userName: battleRequest.userName,
+          userAvatar: battleRequest.userAvatar,
+          rating: battleRequest.rating
+        })
+      });
+      
+      console.log(`Created rematch battle ${response.battleId}`);
+      return response.battleId;
+    }
+    
+    // Fallback: create a regular battle
+    return createRandomBattle(battleRequest);
+  } catch (error) {
+    console.error('Error creating rematch battle:', error);
+    throw error;
+  }
 };

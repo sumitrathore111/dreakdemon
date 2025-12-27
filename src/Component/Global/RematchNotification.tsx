@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Coins, Swords, Trophy, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
@@ -66,8 +67,8 @@ const RematchNotification = () => {
     
     fetchWallet();
     
-    // Poll for updates every 5 seconds
-    const interval = setInterval(fetchWallet, 30000);
+    // Poll for updates every 10 seconds
+    const interval = setInterval(fetchWallet, 10000);
     return () => clearInterval(interval);
   }, [user?.id]);
 
@@ -85,22 +86,23 @@ const RematchNotification = () => {
         const rejectedIds = getRejectedRematches();
 
         for (const battle of battles) {
-          const battleId = battle.id;
+          const battleId = battle._id || battle.id;
 
           // Skip if already rejected or if it's from ourselves
           if (rejectedIds.includes(battleId) || battle.createdBy === user.id) {
             continue;
           }
 
-          // Get challenger info from participants
+          // Get challenger info from rematchRequest or participants
+          const rematchRequest = battle.rematchRequest;
           const challenger = battle.participants?.[0];
-          if (!challenger) continue;
+          if (!challenger && !rematchRequest) continue;
 
           setIncomingRematch({
             battleId,
-            challengerName: challenger.odName || 'Unknown',
-            challengerAvatar: challenger.odProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${battle.createdBy}`,
-            challengerRating: challenger.rating || 1000,
+            challengerName: rematchRequest?.fromName || challenger?.userName || 'Unknown',
+            challengerAvatar: challenger?.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${battle.createdBy}`,
+            challengerRating: challenger?.rating || 1000,
             difficulty: battle.difficulty,
             entryFee: battle.entryFee,
             prize: battle.prize
@@ -120,8 +122,8 @@ const RematchNotification = () => {
 
     fetchRematchRequests();
 
-    // Poll for updates every 10 seconds
-    const interval = setInterval(fetchRematchRequests, 30000);
+    // Poll for updates every 5 seconds for faster response
+    const interval = setInterval(fetchRematchRequests, 5000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -143,7 +145,7 @@ const RematchNotification = () => {
 
     // Check wallet balance
     if (!wallet || wallet.coins < entryFee) {
-      alert(`Insufficient coins! You need ${entryFee} coins to accept this rematch.`);
+      toast.error(`Insufficient coins! You need ${entryFee} coins to accept this rematch.`);
       return;
     }
 
@@ -161,13 +163,18 @@ const RematchNotification = () => {
         })
       });
 
+      toast.success(`🎉 Rematch accepted! Starting battle with ${incomingRematch.challengerName}...`, {
+        duration: 3000,
+        icon: '⚔️'
+      });
+
       setIncomingRematch(null);
       setShowToast(false);
       setShowFullModal(false);
       navigate(`/dashboard/codearena/battle/${battleId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting rematch:', error);
-      alert('Failed to accept rematch. Please try again.');
+      toast.error(error?.message || 'Failed to accept rematch. Please try again.');
     } finally {
       setIsAccepting(false);
     }
@@ -176,18 +183,24 @@ const RematchNotification = () => {
   const handleDecline = useCallback(async () => {
     if (!incomingRematch) return;
 
-    const { battleId } = incomingRematch;
+    const { battleId, challengerName } = incomingRematch;
 
     // Mark as rejected locally so it won't show again
     addRejectedRematch(battleId);
 
-    // Optionally update the battle status to rejected
+    // Update the battle status to rejected - this will notify the rematcher
     try {
       await apiRequest(`/battles/${battleId}/reject-rematch`, {
         method: 'POST',
         body: JSON.stringify({
-          rejectedBy: user?.id
+          rejectedBy: user?.id,
+          rejectedByName: userprofile?.name || user?.name || 'User'
         })
+      });
+      
+      toast(`Rematch from ${challengerName} declined`, {
+        duration: 3000,
+        icon: '❌'
       });
     } catch (error) {
       console.error('Error rejecting rematch:', error);

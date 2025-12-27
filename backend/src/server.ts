@@ -74,8 +74,8 @@ app.set('io', io);
 app.use(helmet());
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL || 'https://dreakdemon.vercel.app',
-    'https://dreakdemon.vercel.app',
+    process.env.FRONTEND_URL || 'https://codetermite.vercel.app',
+    'https://codetermite.vercel.app',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175'

@@ -1,9 +1,9 @@
-import { Router, Response } from 'express';
+import axios from 'axios';
+import { Response, Router } from 'express';
+import { adminOnly, authenticate, AuthRequest } from '../middleware/auth';
 import Challenge from '../models/Challenge';
 import UserProgress from '../models/UserProgress';
 import Wallet from '../models/Wallet';
-import { authenticate, AuthRequest, adminOnly } from '../middleware/auth';
-import axios from 'axios';
 
 const router = Router();
 
@@ -284,37 +284,8 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
         message = 'All test cases passed! (Already solved - no additional coins)';
       }
     } else {
-      // Deduct coins for wrong answer (only if not already solved)
-      if (!alreadySolved) {
-        const penalty = Math.min(5, Math.floor(coinReward / 2)); // Deduct 5 coins or half of reward
-        coinsChanged = -penalty;
-        message = `Wrong answer. ${passedCount}/${totalCount} test cases passed. Lost ${penalty} coins.`;
-        
-        // Check if user has enough coins
-        const wallet = await Wallet.findOne({ userId });
-        if (wallet && wallet.coins >= penalty) {
-          await Wallet.findOneAndUpdate(
-            { userId },
-            {
-              $inc: { coins: -penalty },
-              $push: {
-                transactions: {
-                  type: 'debit',
-                  amount: penalty,
-                  reason: `Wrong answer: ${challengeTitle}`,
-                  createdAt: new Date()
-                }
-              }
-            }
-          );
-        } else {
-          // Not enough coins, no penalty applied
-          coinsChanged = 0;
-          message = `Wrong answer. ${passedCount}/${totalCount} test cases passed. (Not enough coins for penalty)`;
-        }
-      } else {
-        message = `Wrong answer. ${passedCount}/${totalCount} test cases passed.`;
-      }
+      // Wrong answer - no coin penalty for practice
+      message = `Wrong answer. ${passedCount}/${totalCount} test cases passed.`;
     }
     
     res.json({

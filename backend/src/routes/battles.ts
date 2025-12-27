@@ -1,7 +1,7 @@
-import { Router, Response } from 'express';
-import Battle from '../models/Battle';
-import { authenticate, AuthRequest } from '../middleware/auth';
 import axios from 'axios';
+import { Response, Router } from 'express';
+import { authenticate, AuthRequest } from '../middleware/auth';
+import Battle from '../models/Battle';
 
 const router = Router();
 
@@ -724,12 +724,112 @@ function calculateScore(results: any[]): number {
   return isNaN(score) ? 0 : score;
 }
 
-// Request rematch
+// Request rematch - creates a new battle with rematch request
 router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { battleId } = req.params;
-    const { to } = req.body;
+    const { to, toName, fromName, difficulty, entryFee, userName, userAvatar, rating } = req.body;
     const from = req.user!.id;
+    
+    const originalBattle = await Battle.findById(battleId);
+    if (!originalBattle) {
+      res.status(404).json({ error: 'Battle not found' });
+      return;
+    }
+    
+    // Check if requester has enough coins
+    const Wallet = require('../models/Wallet').default;
+    const wallet = await Wallet.findOne({ userId: from });
+    const actualEntryFee = entryFee || originalBattle.entryFee;
+    
+    if (!wallet || wallet.coins < actualEntryFee) {
+      res.status(400).json({ error: 'Insufficient coins for rematch' });
+      return;
+    }
+    
+    // Get a new random question for the rematch
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const questionsPath = path.join(__dirname, '../../../public/questions.json');
+    const questionsData = await fs.readFile(questionsPath, 'utf-8');
+    const questionsJson = JSON.parse(questionsData);
+    
+    let questions: any[] = [];
+    if (Array.isArray(questionsJson)) {
+      questions = questionsJson;
+    } else if (questionsJson.problems) {
+      questions = questionsJson.problems;
+    } else if (questionsJson.questions) {
+      questions = questionsJson.questions;
+    }
+    
+    const actualDifficulty = difficulty || originalBattle.difficulty;
+    const difficultyQuestions = questions.filter((q: any) => 
+      q.difficulty && q.difficulty.toLowerCase() === actualDifficulty.toLowerCase()
+    );
+    
+    if (difficultyQuestions.length === 0) {
+      res.status(400).json({ error: `No ${actualDifficulty} questions available` });
+      return;
+    }
+    
+    const randomQuestion = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
+    const prize = Math.floor(actualEntryFee * 2 * 0.9);
+    const timeLimit = actualDifficulty === 'easy' ? 900 : actualDifficulty === 'medium' ? 1200 : 1800;
+    
+    // Create new battle with rematch request
+    const rematchBattle = await Battle.create({
+      status: 'waiting',
+      difficulty: actualDifficulty,
+      entryFee: actualEntryFee,
+      prize,
+      timeLimit,
+      maxParticipants: 2,
+      participants: [{
+        userId: from,
+        userName: userName || fromName || 'Player',
+        userAvatar: userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${from}`,
+        rating: rating || 1000,
+        hasSubmitted: false
+      }],
+      challenge: {
+        id: randomQuestion.id,
+        title: randomQuestion.title,
+        difficulty: randomQuestion.difficulty,
+        category: randomQuestion.category || randomQuestion.tags?.[0] || 'general',
+        coinReward: randomQuestion.coins || randomQuestion.coinReward || 10,
+        description: randomQuestion.description,
+        testCases: randomQuestion.testCases || randomQuestion.test_cases || [],
+        test_cases: randomQuestion.test_cases || randomQuestion.testCases || []
+      },
+      rematchRequest: {
+        from,
+        fromName: userName || fromName || 'Player',
+        to,
+        toName: toName || 'Opponent',
+        status: 'pending',
+        createdAt: new Date()
+      },
+      createdBy: from,
+      version: 'v2.0-rematch'
+    });
+    
+    res.json({ 
+      message: 'Rematch requested', 
+      battleId: rematchBattle._id,
+      battle: rematchBattle 
+    });
+  } catch (error: any) {
+    console.error('Error creating rematch:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Accept rematch request
+router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { battleId } = req.params;
+    const { userId, userName, userProfilePic, rating } = req.body;
     
     const battle = await Battle.findById(battleId);
     if (!battle) {
@@ -737,18 +837,107 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
       return;
     }
     
-    // Add rematch request to battle
-    battle.set('rematchRequest', {
-      from,
-      to,
-      status: 'pending',
-      createdAt: new Date()
+    if (battle.status !== 'waiting') {
+      res.status(400).json({ error: 'Battle is no longer available' });
+      return;
+    }
+    
+    // Check if this user is the target of the rematch request
+    const rematchRequest = battle.rematchRequest;
+    if (!rematchRequest || rematchRequest.to !== userId) {
+      res.status(403).json({ error: 'You are not the target of this rematch request' });
+      return;
+    }
+    
+    // Check if user has enough coins
+    const Wallet = require('../models/Wallet').default;
+    const wallet = await Wallet.findOne({ userId });
+    
+    if (!wallet || wallet.coins < battle.entryFee) {
+      res.status(400).json({ error: 'Insufficient coins to accept rematch' });
+      return;
+    }
+    
+    // Deduct entry fee from both players
+    await Wallet.findOneAndUpdate(
+      { userId },
+      {
+        $inc: { coins: -battle.entryFee },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount: battle.entryFee,
+            reason: `Battle entry fee (Rematch)`,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    
+    await Wallet.findOneAndUpdate(
+      { userId: rematchRequest.from },
+      {
+        $inc: { coins: -battle.entryFee },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount: battle.entryFee,
+            reason: `Battle entry fee (Rematch)`,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    
+    // Add second participant and update status
+    battle.participants.push({
+      userId,
+      userName: userName || 'Player',
+      userAvatar: userProfilePic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+      rating: rating || 1000,
+      hasSubmitted: false
     });
     
+    battle.rematchRequest!.status = 'accepted';
+    battle.status = 'countdown';
     await battle.save();
     
-    res.json({ message: 'Rematch requested', battle });
+    res.json({ 
+      success: true, 
+      message: 'Rematch accepted',
+      battle 
+    });
   } catch (error: any) {
+    console.error('Error accepting rematch:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Reject rematch request
+router.post('/:battleId/reject-rematch', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { battleId } = req.params;
+    const { rejectedBy } = req.body;
+    
+    const battle = await Battle.findById(battleId);
+    if (!battle) {
+      res.status(404).json({ error: 'Battle not found' });
+      return;
+    }
+    
+    if (battle.rematchRequest) {
+      battle.rematchRequest.status = 'rejected';
+    }
+    battle.status = 'rejected';
+    await battle.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Rematch rejected',
+      rejectedBy 
+    });
+  } catch (error: any) {
+    console.error('Error rejecting rematch:', error);
     res.status(500).json({ error: error.message });
   }
 });

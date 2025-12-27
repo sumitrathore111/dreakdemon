@@ -1,18 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    ChevronRight,
-    Code2,
-    Coins,
-    Crown,
-    History,
-    Loader2,
-    Star,
-    Swords,
-    Target,
-    TrendingUp,
-    Trophy,
-    Users
+  AlertTriangle,
+  ChevronRight,
+  Code2,
+  Coins,
+  Crown,
+  History,
+  Loader2,
+  Star,
+  Swords,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
@@ -431,8 +431,32 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
   useEffect(() => {
     const loadLiveBattles = async () => {
       try {
-        // fetchActiveBattles removed - use API directly if needed
-        setLiveBattles([]);
+        // Fetch active and waiting battles from the API
+        const response = await apiRequest('/battles?status=active');
+        const waitingResponse = await apiRequest('/battles?status=waiting');
+        const countdownResponse = await apiRequest('/battles?status=countdown');
+        
+        const activeBattles = response.battles || [];
+        const waitingBattles = waitingResponse.battles || [];
+        const countdownBattles = countdownResponse.battles || [];
+        
+        // Combine and show the most recent battles
+        const allBattles = [...activeBattles, ...countdownBattles, ...waitingBattles]
+          .slice(0, 5) // Show max 5 battles
+          .map((battle: any) => ({
+            id: battle.id || battle._id,
+            status: battle.status,
+            difficulty: battle.difficulty,
+            entryFee: battle.entryFee,
+            prize: battle.prize,
+            participants: battle.participants?.map((p: any) => ({
+              odId: p.odId || p.userId,
+              userName: p.userName || p.odName || 'Player',
+              userAvatar: p.userAvatar || p.odProfilePic
+            })) || []
+          }));
+        
+        setLiveBattles(allBattles);
       } catch (error) {
         console.error('Error loading battles:', error);
         setLiveBattles([]);
@@ -458,13 +482,16 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
     loadLiveBattles();
     loadTopPlayers();
 
-    // Refresh data every 30 seconds
-    const interval = setInterval(() => {
-      loadLiveBattles();
-      loadTopPlayers();
-    }, 30000);
+    // Refresh live battles every 10 seconds for real-time updates
+    const battlesInterval = setInterval(loadLiveBattles, 10000);
+    
+    // Refresh top players every 30 seconds
+    const playersInterval = setInterval(loadTopPlayers, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(battlesInterval);
+      clearInterval(playersInterval);
+    };
   }, []);
 
   return (

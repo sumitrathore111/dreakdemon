@@ -1,26 +1,27 @@
-import { apiRequest } from '../../service/api';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle,
-  Clock,
-  Coins,
-  Crown,
-  Home,
-  Loader2,
-  Medal,
-  RotateCcw,
-  Star,
-  Swords,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
-  X
+    CheckCircle,
+    Clock,
+    Coins,
+    Crown,
+    Home,
+    Loader2,
+    Medal,
+    RotateCcw,
+    Star,
+    Swords,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Trophy,
+    X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { apiRequest } from '../../service/api';
 import { createRematchBattle } from '../../service/battleService';
 
 interface SubmissionResult {
@@ -224,7 +225,7 @@ const BattleResults = () => {
       const entryFee = battle.entryFee || 50;
       const difficulty = battle.difficulty || 'easy';
 
-      // Create rematch request battle
+      // Create rematch request battle with original battle ID
       const rematchBattleId = await createRematchBattle(
         {
           difficulty,
@@ -232,13 +233,21 @@ const BattleResults = () => {
           userId: user.id,
           userName: userprofile?.name || 'Player',
           userAvatar: userprofile?.avatarUrl,
-          rating: myData?.rating || 1000
+          rating: myData?.rating || 1000,
+          originalBattleId: battleId // Pass the original battle ID for rematch
         },
-        opponentData.odId
+        opponentData.odId,
+        opponentData.odName
       );
 
       if (rematchBattleId) {
         setRematchSent(true);
+        
+        // Show toast that rematch request was sent
+        toast.success(`⚔️ Rematch request sent to ${opponentData.odName}! Waiting for response...`, {
+          duration: 5000,
+          icon: '⚔️'
+        });
         
         // Poll for opponent to accept or reject
         const pollRematchStatus = async () => {
@@ -248,12 +257,19 @@ const BattleResults = () => {
             if (data?.status === 'countdown' && data?.participants?.length === 2) {
               // Opponent accepted! Navigate to battle
               clearInterval(interval);
+              toast.success(`🎉 ${opponentData.odName} accepted the rematch! Starting battle...`, {
+                duration: 3000,
+                icon: '🎉'
+              });
               navigate(`/dashboard/codearena/battle/${rematchBattleId}`);
             } else if (data?.status === 'rejected') {
               // Opponent declined the rematch
               clearInterval(interval);
               setRematchSent(false);
-              alert(`${opponentData?.odName || 'Opponent'} declined the rematch request.`);
+              toast.error(`${opponentData?.odName || 'Opponent'} declined the rematch request.`, {
+                duration: 4000,
+                icon: '❌'
+              });
             }
           } catch (error) {
             console.error("Error polling rematch status:", error);
@@ -262,18 +278,24 @@ const BattleResults = () => {
           }
         };
 
-        const interval = setInterval(pollRematchStatus, 15000); // Poll every 15 seconds
+        const interval = setInterval(pollRematchStatus, 5000); // Poll every 5 seconds
 
         // Clean up listener after 5 minutes (timeout)
         setTimeout(() => {
           clearInterval(interval);
           // If still waiting after 5 minutes, reset the button
-          setRematchSent(false);
+          if (rematchSent) {
+            setRematchSent(false);
+            toast('Rematch request timed out. Please try again.', {
+              duration: 4000,
+              icon: '⏰'
+            });
+          }
         }, 300000);
       }
     } catch (error) {
       console.error('Error creating rematch:', error);
-      alert('Failed to send rematch request. Please try again.');
+      toast.error('Failed to send rematch request. Please try again.');
       setRematchSent(false);
     } finally {
       setIsRequestingRematch(false);
