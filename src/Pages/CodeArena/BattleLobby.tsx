@@ -1,4 +1,3 @@
-import { apiRequest } from '../../service/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     ChevronRight,
@@ -16,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { apiRequest } from '../../service/api';
 import { joinOrCreateBattle } from '../../service/battleService';
 
 interface Wallet {
@@ -133,7 +133,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         // Use sendBeacon for reliable delivery on page unload
         const token = localStorage.getItem('token');
         navigator.sendBeacon(
-          `http://localhost:5000/api/battles/${myBattleId}/cancel`,
+          `https://nextstepbackend-qhxw.onrender.com/api/battles/${myBattleId}/cancel`,
           JSON.stringify({ token })
         );
       } catch (error) {
