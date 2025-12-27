@@ -333,19 +333,9 @@ rl.on('close', () => {
 
       if (submissionResult.success) {
         setSolved(true);
-        if (submissionResult.coinsChanged > 0) {
-          alert(`🎉 ${submissionResult.message}`);
-        } else {
-          // Already solved or no coins awarded
-          alert(`✅ ${submissionResult.message || 'All test cases passed!'}`);
-        }
-      } else {
-        if (submissionResult.coinsChanged < 0) {
-          alert(`❌ ${submissionResult.message}`);
-        } else if (submissionResult.message) {
-          alert(`❌ ${submissionResult.message}`);
-        }
+        // No alert - results are shown in the UI
       }
+      // No alert for failure either - results panel shows the details
     } catch (error: any) {
       console.error('Submission error:', error);
       setResults({

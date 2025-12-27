@@ -1,5 +1,7 @@
 // API Configuration
-const API_BASE_URL =  'https://nextstepbackend-qhxw.onrender.com/api';
+const API_BASE_URL = import.meta.env.DEV 
+  ? 'http://localhost:5000/api' 
+  : 'https://nextstepbackend-qhxw.onrender.com/api';
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {

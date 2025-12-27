@@ -452,11 +452,11 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
     loadLiveBattles();
     loadTopPlayers();
 
-    // Refresh live battles every 10 seconds for real-time updates
-    const battlesInterval = setInterval(loadLiveBattles, 10000);
+    // Refresh live battles every 30 seconds (reduced from 10 for better performance)
+    const battlesInterval = setInterval(loadLiveBattles, 30000);
     
-    // Refresh top players every 30 seconds
-    const playersInterval = setInterval(loadTopPlayers, 30000);
+    // Refresh top players every 60 seconds (reduced from 30)
+    const playersInterval = setInterval(loadTopPlayers, 60000);
 
     return () => {
       clearInterval(battlesInterval);

@@ -331,12 +331,26 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
   
   const languageId = JUDGE0_LANGUAGE_IDS[language.toLowerCase()] || 71; // Default to Python
   
-  console.log(`Executing ${testCases.length} test cases for language: ${language} (ID: ${languageId})`);
+  console.log('=== JUDGE0 EXECUTION START ===');
+  console.log(`Language: ${language} (ID: ${languageId})`);
+  console.log(`Test cases count: ${testCases.length}`);
+  console.log('API URL:', process.env.JUDGE0_API_URL);
+  console.log('API Key present:', !!process.env.JUDGE0_API_KEY);
+  console.log('Code length:', code.length);
+  console.log('Code preview:', code.substring(0, 200));
   
-  for (const testCase of testCases) {
+  for (let i = 0; i < testCases.length; i++) {
+    const testCase = testCases[i];
+    console.log(`\n--- Test Case ${i + 1} ---`);
+    console.log('Raw test case:', JSON.stringify(testCase));
+    
     try {
-      console.log('Test case input:', JSON.stringify(testCase.input));
-      console.log('Expected output:', JSON.stringify(testCase.expectedOutput || testCase.output));
+      // Convert escaped newlines to actual newlines
+      const stdin = (testCase.input || '').replace(/\\n/g, '\n');
+      const expectedRaw = (testCase.expectedOutput || testCase.output || testCase.expected || '');
+      
+      console.log('Input (stdin):', JSON.stringify(stdin));
+      console.log('Expected output:', JSON.stringify(expectedRaw));
       
       // Don't send expected_output to Judge0 - we'll do our own comparison
       const submitResponse = await axios.post(
@@ -344,7 +358,7 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
         {
           source_code: code,
           language_id: languageId,
-          stdin: testCase.input || ''
+          stdin: stdin
         },
         {
           headers: {
@@ -359,9 +373,10 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       const result = submitResponse.data;
       const output = (result.stdout || '').trim();
       const stderr = result.stderr || result.compile_output || '';
-      const expected = (testCase.expectedOutput || testCase.output || testCase.expected || '').trim();
+      const expected = expectedRaw.trim();
       const status = result.status?.description || 'Unknown';
-      const hasError = result.stderr || result.compile_output || result.status?.id >= 5;
+      // status id 3 is Accepted, 4+ are errors
+      const hasError = result.stderr || result.compile_output || (result.status?.id && result.status.id > 4);
       
       // Parse time as a number (Judge0 may return it as a string)
       const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);

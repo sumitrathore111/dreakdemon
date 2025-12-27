@@ -44,6 +44,7 @@ const RematchNotification = () => {
   const { user } = useAuth();
   const { userprofile } = useDataContext();
   const navigate = useNavigate();
+  const location = window.location.pathname;
 
   const [incomingRematch, setIncomingRematch] = useState<RematchRequest | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -51,9 +52,12 @@ const RematchNotification = () => {
   const [showFullModal, setShowFullModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // Subscribe to wallet updates
+  // Only poll when user is on CodeArena-related pages
+  const isCodeArenaPage = location.includes('/code-arena') || location.includes('/battle');
+
+  // Subscribe to wallet updates - only when on CodeArena pages
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !isCodeArenaPage) return;
     
     // Fetch wallet data from backend
     const fetchWallet = async () => {
@@ -67,15 +71,15 @@ const RematchNotification = () => {
     
     fetchWallet();
     
-    // Poll for updates every 10 seconds
-    const interval = setInterval(fetchWallet, 10000);
+    // Poll for updates every 30 seconds (reduced from 10)
+    const interval = setInterval(fetchWallet, 30000);
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.id, isCodeArenaPage]);
 
-  // Listen for incoming rematch requests targeting current user
+  // Listen for incoming rematch requests targeting current user - only on CodeArena pages
   useEffect(() => {
-    // Only run if user and user.id are defined
-    if (!user || !user.id) return;
+    // Only run if user and user.id are defined and on CodeArena pages
+    if (!user || !user.id || !isCodeArenaPage) return;
 
     // Fetch rematch requests from backend
     const fetchRematchRequests = async () => {
@@ -130,10 +134,10 @@ const RematchNotification = () => {
 
     fetchRematchRequests();
 
-    // Poll for updates every 5 seconds for faster response
-    const interval = setInterval(fetchRematchRequests, 5000);
+    // Poll for updates every 15 seconds (reduced from 5 for better performance)
+    const interval = setInterval(fetchRematchRequests, 15000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, isCodeArenaPage]);
 
   // Auto-hide toast after 10 seconds
   useEffect(() => {

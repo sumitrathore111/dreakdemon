@@ -693,15 +693,34 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
   const results: any[] = [];
   const languageId = JUDGE0_BATTLE_LANG_IDS[language.toLowerCase()] || 71;
   
-  for (const testCase of testCases) {
+  console.log('=== BATTLE JUDGE0 EXECUTION START ===');
+  console.log(`Language: ${language} (ID: ${languageId})`);
+  console.log(`Test cases count: ${testCases.length}`);
+  console.log('API URL:', process.env.JUDGE0_API_URL);
+  console.log('API Key present:', !!process.env.JUDGE0_API_KEY);
+  console.log('Code length:', code.length);
+  console.log('Code preview:', code.substring(0, 200));
+  
+  for (let i = 0; i < testCases.length; i++) {
+    const testCase = testCases[i];
+    console.log(`\n--- Battle Test Case ${i + 1} ---`);
+    console.log('Raw test case:', JSON.stringify(testCase));
+    
     try {
+      // Convert escaped newlines to actual newlines
+      const stdin = (testCase.input || '').replace(/\\n/g, '\n');
+      const expectedRaw = (testCase.expected || testCase.output || testCase.expected_output || '');
+      
+      console.log('Input (stdin):', JSON.stringify(stdin));
+      console.log('Expected output:', JSON.stringify(expectedRaw));
+      
       // Don't send expected_output to Judge0 - we'll do our own comparison
       const response = await axios.post(
         `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
         {
           source_code: code,
           language_id: languageId,
-          stdin: testCase.input || ''
+          stdin: stdin
         },
         {
           headers: {
@@ -717,10 +736,10 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       
       // Get output - handle both stdout and compile_output
       let output = (result.stdout || '').trim();
-      const expected = (testCase.expected || testCase.output || testCase.expected_output || '').trim();
+      const expected = expectedRaw.trim();
       
-      // Check for errors
-      const hasError = result.stderr || result.compile_output || result.status?.id >= 5;
+      // Check for errors - status id 3 is Accepted, 4+ are errors
+      const hasError = result.stderr || result.compile_output || (result.status?.id && result.status.id > 4);
       
       // Parse time as a number (Judge0 may return it as a string)
       const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
@@ -736,7 +755,9 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       // Check if passed - compare normalized outputs
       const passed = !hasError && normalizedOutput === normalizedExpected;
       
-      console.log(`Test case: input="${testCase.input?.substring(0, 50)}..." expected="${expected}" got="${output}" passed=${passed}`);
+      console.log(`Test result: expected="${expected}" got="${output}" status=${result.status?.description} passed=${passed}`);
+      if (result.stderr) console.log(`Stderr: ${result.stderr}`);
+      if (result.compile_output) console.log(`Compile output: ${result.compile_output}`);
       
       results.push({
         passed,
