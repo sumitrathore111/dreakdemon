@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response, Router } from 'express';
-import { generateToken } from '../middleware/auth';
+import { generateToken, verifyToken } from '../middleware/auth';
 import { loginValidation, signupValidation } from '../middleware/validation';
 import User from '../models/User';
 
@@ -90,7 +90,6 @@ router.get('/me', async (req: Request, res: Response): Promise<void> => {
       return;
     }
     
-    const { verifyToken } = await import('../middleware/auth.js');
     const decoded = verifyToken(token);
     
     const user = await User.findById(decoded.id).select('-password');
