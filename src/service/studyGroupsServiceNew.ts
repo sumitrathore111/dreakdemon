@@ -100,3 +100,56 @@ export const deleteStudyGroup = async (groupId: string): Promise<void> => {
     throw error;
   }
 };
+
+// Request to join study group (creates pending request for owner approval)
+export const requestJoinStudyGroup = async (groupId: string, userName: string, userAvatar?: string): Promise<any> => {
+  try {
+    const response = await apiRequest(`/study-groups/${groupId}/join`, {
+      method: 'POST',
+      body: JSON.stringify({ userName, userAvatar })
+    });
+    return response;
+  } catch (error) {
+    console.error('Error requesting to join study group:', error);
+    throw error;
+  }
+};
+
+// Approve join request (admin only)
+export const approveJoinRequest = async (groupId: string, userId: string): Promise<any> => {
+  try {
+    const response = await apiRequest(`/study-groups/${groupId}/approve/${userId}`, {
+      method: 'POST'
+    });
+    return response.group;
+  } catch (error) {
+    console.error('Error approving join request:', error);
+    throw error;
+  }
+};
+
+// Reject join request (admin only)
+export const rejectJoinRequest = async (groupId: string, userId: string): Promise<any> => {
+  try {
+    const response = await apiRequest(`/study-groups/${groupId}/reject/${userId}`, {
+      method: 'POST'
+    });
+    return response.group;
+  } catch (error) {
+    console.error('Error rejecting join request:', error);
+    throw error;
+  }
+};
+
+// Remove member from group (admin only)
+export const removeMember = async (groupId: string, userId: string): Promise<any> => {
+  try {
+    const response = await apiRequest(`/study-groups/${groupId}/members/${userId}`, {
+      method: 'DELETE'
+    });
+    return response.group;
+  } catch (error) {
+    console.error('Error removing member:', error);
+    throw error;
+  }
+};

@@ -17,6 +17,13 @@ export interface IStudyGroup extends Document {
     role: 'admin' | 'member';
     joinedAt: Date;
   }>;
+  joinRequests: Array<{
+    userId: string;
+    userName: string;
+    userAvatar: string;
+    requestedAt: Date;
+    status: 'pending' | 'approved' | 'rejected';
+  }>;
   maxMembers: number;
   isPrivate: boolean;
   avatar?: string;
@@ -53,6 +60,13 @@ const StudyGroupSchema: Schema = new Schema({
     userAvatar: { type: String },
     role: { type: String, enum: ['admin', 'member'], default: 'member' },
     joinedAt: { type: Date, default: Date.now }
+  }],
+  joinRequests: [{
+    userId: { type: String, required: true },
+    userName: { type: String, required: true },
+    userAvatar: { type: String },
+    requestedAt: { type: Date, default: Date.now },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
   }],
   maxMembers: { type: Number, default: 50 },
   isPrivate: { type: Boolean, default: false },

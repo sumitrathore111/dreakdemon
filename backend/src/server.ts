@@ -5,6 +5,7 @@ import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import { createServer } from 'http';
 import morgan from 'morgan';
+import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { connectDatabase } from './config/database';
 
@@ -22,6 +23,7 @@ import marketplaceRoutes from './routes/marketplace';
 import messageRoutes from './routes/messages';
 import projectRoutes from './routes/projects';
 import studyGroupRoutes from './routes/studyGroups';
+import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
 import walletRoutes from './routes/wallet';
 
@@ -61,6 +63,42 @@ io.on('connection', (socket) => {
     socket.leave(`project:${projectId}`);
     console.log(`👤 Socket ${socket.id} left project:${projectId}`);
   });
+
+  // Join a chat room for real-time messaging
+  socket.on('join-chat', (chatId: string) => {
+    socket.join(`chat:${chatId}`);
+    console.log(`💬 Socket ${socket.id} joined chat:${chatId}`);
+  });
+
+  // Leave a chat room
+  socket.on('leave-chat', (chatId: string) => {
+    socket.leave(`chat:${chatId}`);
+    console.log(`💬 Socket ${socket.id} left chat:${chatId}`);
+  });
+
+  // Join a group room for real-time group messaging
+  socket.on('join-group', (groupId: string) => {
+    socket.join(`group:${groupId}`);
+    console.log(`👥 Socket ${socket.id} joined group:${groupId}`);
+  });
+
+  // Leave a group room
+  socket.on('leave-group', (groupId: string) => {
+    socket.leave(`group:${groupId}`);
+    console.log(`👥 Socket ${socket.id} left group:${groupId}`);
+  });
+
+  // Join user's personal room for notifications
+  socket.on('join-user', (userId: string) => {
+    socket.join(`user:${userId}`);
+    console.log(`👤 Socket ${socket.id} joined user:${userId}`);
+  });
+
+  // Leave user's personal room
+  socket.on('leave-user', (userId: string) => {
+    socket.leave(`user:${userId}`);
+    console.log(`👤 Socket ${socket.id} left user:${userId}`);
+  });
   
   socket.on('disconnect', () => {
     console.log('🔌 User disconnected:', socket.id);
@@ -89,6 +127,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Connect to database
 connectDatabase();
 
@@ -108,6 +149,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/join-requests', joinRequestRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {

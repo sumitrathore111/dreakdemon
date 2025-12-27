@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, Image as ImageIcon, Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, Image as ImageIcon, Plus, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { API_BASE_URL } from '../../service/api';
 import { createListing, getListingById, updateListing } from '../../service/marketplaceServiceNew';
 import type { CreateProjectData, LicenseType, ProjectCategory } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS, TECH_STACK_OPTIONS } from '../../types/marketplace';
@@ -38,6 +39,9 @@ export default function CreateListing() {
   const [imageInput, setImageInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing project data when in edit mode
   useEffect(() => {
@@ -122,6 +126,80 @@ export default function CreateListing() {
       ...formData,
       images: formData.images.filter((img) => img !== image),
     });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Check remaining slots
+    const remainingSlots = 5 - formData.images.length;
+    if (files.length > remainingSlots) {
+      toast.error(`You can only add ${remainingSlots} more image(s). Maximum is 5 images.`);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const uploadedUrls: string[] = [];
+      const totalFiles = files.length;
+
+      for (let i = 0; i < totalFiles; i++) {
+        const file = files[i];
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          toast.error(`${file.name}: Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.`);
+          continue;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name}: File too large. Maximum size is 5MB.`);
+          continue;
+        }
+
+        const formDataUpload = new FormData();
+        formDataUpload.append('image', file);
+
+        const response = await fetch(`${API_BASE_URL}/upload/image`, {
+          method: 'POST',
+          body: formDataUpload,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Upload failed');
+        }
+
+        const result = await response.json();
+        uploadedUrls.push(result.imageUrl);
+
+        // Update progress
+        setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
+      }
+
+      if (uploadedUrls.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, ...uploadedUrls],
+        }));
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully!`);
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -402,60 +480,132 @@ export default function CreateListing() {
             {/* Images */}
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Project Images
+                Project Images <span className="text-gray-500 text-xs">(max 5 images)</span>
               </label>
               
+              {/* File Upload Section */}
+              <div className="mb-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={isUploading || formData.images.length >= 5}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                    isUploading || formData.images.length >= 5
+                      ? 'border-gray-400 bg-gray-200 dark:bg-gray-800 cursor-not-allowed opacity-60'
+                      : 'border-[#00ADB5] bg-gradient-to-br from-[#00ADB5]/5 to-[#00ADB5]/10 hover:from-[#00ADB5]/10 hover:to-[#00ADB5]/20 dark:from-[#00ADB5]/10 dark:to-[#00ADB5]/20'
+                  }`}
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin mb-3" />
+                      <span className="text-sm font-medium text-[#00ADB5]">Uploading... {uploadProgress}%</span>
+                      <div className="w-48 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden">
+                        <div 
+                          className="h-full bg-[#00ADB5] transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="p-3 bg-[#00ADB5]/20 rounded-full mb-3">
+                        <Upload className="w-8 h-8 text-[#00ADB5]" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700 dark:text-white">
+                        {formData.images.length >= 5 ? 'Maximum images reached' : 'Click to upload images'}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {formData.images.length >= 5 
+                          ? 'Remove some images to add more'
+                          : 'JPEG, PNG, GIF, WebP up to 5MB each'
+                        }
+                      </span>
+                      {formData.images.length < 5 && (
+                        <span className="text-xs text-[#00ADB5] mt-2 font-medium">
+                          {5 - formData.images.length} slot(s) remaining
+                        </span>
+                      )}
+                    </>
+                  )}
+                </label>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">OR ADD BY URL</span>
+                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-600" />
+              </div>
+
               {/* URL Input Section */}
               <div className="mb-4">
-                <div className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 mb-3">
-                  <ImageIcon className="w-8 h-8 text-[#00ADB5] mb-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-white">Add images by URL</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Use image URLs from hosting services like Imgur, Cloudinary, etc.</span>
-                </div>
                 <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={imageInput}
-                    onChange={(e) => setImageInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddImage();
-                      }
-                    }}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all text-sm"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="relative flex-1">
+                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="url"
+                      value={imageInput}
+                      onChange={(e) => setImageInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddImage();
+                        }
+                      }}
+                      disabled={formData.images.length >= 5}
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={handleAddImage}
-                    className="px-3 py-2 bg-[#00ADB5] text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 text-sm"
+                    disabled={formData.images.length >= 5 || !imageInput}
+                    className="px-4 py-2.5 bg-[#00ADB5] text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Plus className="w-4 h-4" />
-                    Add
+                    Add URL
                   </button>
                 </div>
               </div>
 
               {/* Image Preview Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={image}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(image)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative group aspect-square">
+                      <img
+                        src={image}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg border-2 border-transparent group-hover:border-[#00ADB5] transition-all"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Image+Error';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(image)}
+                          className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-xs rounded">
+                        {index + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Links */}

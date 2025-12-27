@@ -1,7 +1,13 @@
-import { Response, Router } from 'express';
+import { Request, Response, Router } from 'express';
+import { Server as SocketIOServer } from 'socket.io';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import GroupMessage from '../models/GroupMessage';
 import StudyGroup from '../models/StudyGroup';
+
+// Helper to get socket.io instance from app
+const getIO = (req: Request): SocketIOServer | null => {
+  return req.app.get('io') as SocketIOServer || null;
+};
 
 const router = Router();
 
@@ -24,6 +30,13 @@ const transformGroup = (group: any) => ({
     avatar: m.userAvatar,
     role: m.role,
     joinedAt: m.joinedAt
+  })) || [],
+  joinRequests: group.joinRequests?.filter((r: any) => r.status === 'pending').map((r: any) => ({
+    userId: r.userId,
+    userName: r.userName,
+    userAvatar: r.userAvatar,
+    requestedAt: r.requestedAt,
+    status: r.status
   })) || [],
   maxMembers: group.maxMembers,
   isPrivate: group.isPrivate,
@@ -122,7 +135,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response): Promis
   }
 });
 
-// Join group
+// Request to join group (creates a pending request)
 router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userName, userAvatar } = req.body;
@@ -142,17 +155,241 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
       res.status(400).json({ error: 'Group is full' });
       return;
     }
+
+    // Check if user already has a pending request
+    const existingRequest = group.joinRequests?.find(
+      r => r.userId === req.user!.id && r.status === 'pending'
+    );
+    if (existingRequest) {
+      res.status(400).json({ error: 'Join request already pending' });
+      return;
+    }
+
+    // Create join request
+    if (!group.joinRequests) {
+      group.joinRequests = [];
+    }
     
-    group.members.push({
+    group.joinRequests.push({
       userId: req.user!.id,
       userName: userName || req.user!.name,
       userAvatar: userAvatar || '',
-      role: 'member',
-      joinedAt: new Date()
+      requestedAt: new Date(),
+      status: 'pending'
     });
     
     await group.save();
-    res.json({ group: transformGroup(group) });
+    
+    // Emit real-time event to group owner/admins
+    const io = getIO(req);
+    if (io) {
+      io.to(`group:${group._id.toString()}`).emit('joinRequest', {
+        groupId: group._id.toString(),
+        request: {
+          userId: req.user!.id,
+          userName: userName || req.user!.name,
+          userAvatar: userAvatar || '',
+          requestedAt: new Date(),
+          status: 'pending'
+        }
+      });
+    }
+    
+    res.json({ 
+      message: 'Join request sent successfully',
+      group: transformGroup(group),
+      requestStatus: 'pending'
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Approve join request (admin only)
+router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    
+    if (!group) {
+      res.status(404).json({ error: 'Group not found' });
+      return;
+    }
+    
+    // Check if current user is admin
+    const currentMember = group.members.find(m => m.userId === req.user!.id);
+    if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
+      res.status(403).json({ error: 'Only admins can approve join requests' });
+      return;
+    }
+
+    // Find the pending request
+    const requestIndex = group.joinRequests?.findIndex(
+      r => r.userId === req.params.userId && r.status === 'pending'
+    );
+    
+    if (requestIndex === undefined || requestIndex === -1) {
+      res.status(404).json({ error: 'Join request not found' });
+      return;
+    }
+
+    const request = group.joinRequests[requestIndex];
+    
+    // Check if group is full
+    if (group.members.length >= group.maxMembers) {
+      res.status(400).json({ error: 'Group is full' });
+      return;
+    }
+
+    // Add user to members
+    group.members.push({
+      userId: request.userId,
+      userName: request.userName,
+      userAvatar: request.userAvatar,
+      role: 'member',
+      joinedAt: new Date()
+    });
+
+    // Update request status
+    group.joinRequests[requestIndex].status = 'approved';
+    
+    await group.save();
+    
+    // Emit real-time event to the approved user and group members
+    const io = getIO(req);
+    if (io) {
+      const transformedGroup = transformGroup(group);
+      // Notify the approved user
+      io.to(`user:${req.params.userId}`).emit('requestApproved', {
+        groupId: group._id.toString(),
+        groupName: group.name,
+        group: transformedGroup
+      });
+      // Notify group members about new member
+      io.to(`group:${group._id.toString()}`).emit('memberJoined', {
+        groupId: group._id.toString(),
+        member: {
+          userId: request.userId,
+          name: request.userName,
+          avatar: request.userAvatar,
+          role: 'member'
+        },
+        group: transformedGroup
+      });
+    }
+    
+    res.json({ 
+      message: 'Join request approved',
+      group: transformGroup(group)
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Reject join request (admin only)
+router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    
+    if (!group) {
+      res.status(404).json({ error: 'Group not found' });
+      return;
+    }
+    
+    // Check if current user is admin
+    const currentMember = group.members.find(m => m.userId === req.user!.id);
+    if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
+      res.status(403).json({ error: 'Only admins can reject join requests' });
+      return;
+    }
+
+    // Find the pending request
+    const requestIndex = group.joinRequests?.findIndex(
+      r => r.userId === req.params.userId && r.status === 'pending'
+    );
+    
+    if (requestIndex === undefined || requestIndex === -1) {
+      res.status(404).json({ error: 'Join request not found' });
+      return;
+    }
+
+    // Update request status
+    group.joinRequests[requestIndex].status = 'rejected';
+    
+    await group.save();
+    
+    // Emit real-time event to the rejected user
+    const io = getIO(req);
+    if (io) {
+      io.to(`user:${req.params.userId}`).emit('requestRejected', {
+        groupId: group._id.toString(),
+        groupName: group.name
+      });
+      // Update group for admins
+      io.to(`group:${group._id.toString()}`).emit('groupUpdated', {
+        groupId: group._id.toString(),
+        group: transformGroup(group)
+      });
+    }
+    
+    res.json({ 
+      message: 'Join request rejected',
+      group: transformGroup(group)
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Remove member (admin only)
+router.delete('/:id/members/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    
+    if (!group) {
+      res.status(404).json({ error: 'Group not found' });
+      return;
+    }
+    
+    // Check if current user is admin
+    const currentMember = group.members.find(m => m.userId === req.user!.id);
+    if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
+      res.status(403).json({ error: 'Only admins can remove members' });
+      return;
+    }
+
+    // Cannot remove the creator
+    if (req.params.userId === group.createdBy) {
+      res.status(400).json({ error: 'Cannot remove the group creator' });
+      return;
+    }
+
+    // Remove the member
+    group.members = group.members.filter(m => m.userId !== req.params.userId);
+    
+    await group.save();
+    
+    // Emit real-time event to the removed user and group members
+    const io = getIO(req);
+    if (io) {
+      const transformedGroup = transformGroup(group);
+      // Notify the removed user
+      io.to(`user:${req.params.userId}`).emit('removedFromGroup', {
+        groupId: group._id.toString(),
+        groupName: group.name
+      });
+      // Notify group members
+      io.to(`group:${group._id.toString()}`).emit('memberRemoved', {
+        groupId: group._id.toString(),
+        userId: req.params.userId,
+        group: transformedGroup
+      });
+    }
+    
+    res.json({ 
+      message: 'Member removed successfully',
+      group: transformGroup(group)
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -312,6 +549,15 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Respons
       message: newMessage.message,
       timestamp: newMessage.createdAt
     };
+    
+    // Emit real-time message to group members
+    const io = getIO(req);
+    if (io) {
+      io.to(`group:${req.params.id}`).emit('newGroupMessage', {
+        groupId: req.params.id,
+        message: formattedMessage
+      });
+    }
     
     res.status(201).json({ message: formattedMessage });
   } catch (error: any) {

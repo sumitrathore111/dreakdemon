@@ -1,7 +1,7 @@
-import { Router, Response } from 'express';
+import { Response, Router } from 'express';
+import { authenticate, AuthRequest } from '../middleware/auth';
 import Chat from '../models/Chat';
 import ChatMessage from '../models/ChatMessage';
-import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -135,16 +135,26 @@ router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Res
       lastMessage: message,
       lastMessageAt: new Date()
     });
-    
-    res.status(201).json({
+
+    const messagePayload = {
       id: chatMessage._id.toString(),
+      chatId: req.params.chatId,
       senderId: chatMessage.senderId,
       senderName: chatMessage.senderName,
+      senderAvatar: chatMessage.senderAvatar,
       message: chatMessage.message,
       text: chatMessage.message,
       createdAt: chatMessage.createdAt,
       timestamp: chatMessage.createdAt
-    });
+    };
+
+    // Emit real-time event to chat room
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`chat:${req.params.chatId}`).emit('newMessage', messagePayload);
+    }
+    
+    res.status(201).json(messagePayload);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
