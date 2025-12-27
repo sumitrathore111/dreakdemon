@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     AlertTriangle,
     BookOpen,
@@ -16,9 +17,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useBattleGuard } from '../Context/BattleGuardContext';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from "../Context/AuthContext";
+import { useBattleGuard } from '../Context/BattleGuardContext';
 import { useTheme } from "../Context/ThemeContext";
 import { useDataContext } from "../Context/UserDataContext";
 import { logout } from "../service/auth";
@@ -44,7 +44,7 @@ export default function DashboardLayout() {
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
-  const { avatrUrl, fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
+  const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   

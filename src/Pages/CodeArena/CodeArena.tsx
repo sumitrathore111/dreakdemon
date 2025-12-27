@@ -85,7 +85,7 @@ const CodeArenaContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { getUserWallet, initializeWallet, subscribeToWallet, userprofile, fetchGlobalLeaderboard, getUserProgress } = useDataContext();
+  const { getUserWallet, initializeWallet, subscribeToWallet, fetchGlobalLeaderboard, getUserProgress } = useDataContext();
   
   const [activeTab, setActiveTab] = useState('home');
   const [wallet, setWallet] = useState<any>(null);

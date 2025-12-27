@@ -1,20 +1,20 @@
 import { motion } from 'framer-motion';
 import {
-    CheckCircle,
-    Clock,
-    Coins,
-    Crown,
-    Home,
-    Loader2,
-    Medal,
-    RotateCcw,
-    Star,
-    Swords,
-    Target,
-    TrendingDown,
-    TrendingUp,
-    Trophy,
-    X
+  CheckCircle,
+  Clock,
+  Coins,
+  Crown,
+  Home,
+  Loader2,
+  Medal,
+  RotateCcw,
+  Star,
+  Swords,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -97,7 +97,7 @@ const BattleResults = () => {
   const { battleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userprofile, getUserWallet, wallet } = useDataContext();
+  const { userprofile, getUserWallet } = useDataContext();
   
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -297,7 +297,7 @@ const BattleResults = () => {
         let isActive = true;
 
         // Clean up listener after 5 minutes (timeout)
-        const timeoutId = setTimeout(() => {
+        void setTimeout(() => {
           clearInterval(interval);
           // If still waiting after 5 minutes, reset the button
           if (isActive) {
