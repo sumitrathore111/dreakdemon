@@ -3,6 +3,18 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 
+// Define file type inline to avoid Express.Multer.File namespace issues
+interface UploadedFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  destination: string;
+  filename: string;
+  path: string;
+}
+
 const router = express.Router();
 
 // Create uploads directory if it doesn't exist
@@ -44,9 +56,9 @@ const upload = multer({
 });
 
 // Upload single image
-router.post('/image', upload.single('image'), (req: Request, res: Response) => {
+router.post('/image', upload.single('image'), (req, res: Response) => {
   try {
-    const file = req.file;
+    const file = (req as any).file as UploadedFile | undefined;
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -70,9 +82,9 @@ router.post('/image', upload.single('image'), (req: Request, res: Response) => {
 });
 
 // Upload multiple images (up to 5)
-router.post('/images', upload.array('images', 5), (req: Request, res: Response) => {
+router.post('/images', upload.array('images', 5), (req, res: Response) => {
   try {
-    const files = req.files as Express.Multer.File[] | undefined;
+    const files = (req as any).files as UploadedFile[] | undefined;
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
@@ -100,10 +112,11 @@ router.post('/images', upload.array('images', 5), (req: Request, res: Response) 
 // Error handling middleware for multer errors
 router.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
+    const multerErr = err as multer.MulterError;
+    if (multerErr.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File size too large. Maximum size is 5MB.' });
     }
-    if (err.code === 'LIMIT_FILE_COUNT') {
+    if (multerErr.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({ error: 'Too many files. Maximum is 5 files.' });
     }
     return res.status(400).json({ error: err.message });
