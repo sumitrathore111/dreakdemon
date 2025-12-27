@@ -87,21 +87,29 @@ const RematchNotification = () => {
 
         for (const battle of battles) {
           const battleId = battle._id || battle.id;
+          const rematchRequest = battle.rematchRequest;
 
-          // Skip if already rejected or if it's from ourselves
-          if (rejectedIds.includes(battleId) || battle.createdBy === user.id) {
+          // Skip if no rematch request exists
+          if (!rematchRequest) continue;
+
+          // Skip if already rejected or if the rematch is FROM ourselves (we sent it)
+          if (rejectedIds.includes(battleId) || rematchRequest.from === user.id) {
             continue;
           }
 
-          // Get challenger info from rematchRequest or participants
-          const rematchRequest = battle.rematchRequest;
-          const challenger = battle.participants?.[0];
-          if (!challenger && !rematchRequest) continue;
+          // Only show if this rematch is targeted TO us and status is pending
+          if (rematchRequest.to !== user.id || rematchRequest.status !== 'pending') {
+            continue;
+          }
+
+          // Get challenger info from rematchRequest (the person who sent the rematch)
+          // Challenger is the first participant (the one who created the rematch)
+          const challenger = battle.participants?.find((p: any) => p.userId === rematchRequest.from);
 
           setIncomingRematch({
             battleId,
-            challengerName: rematchRequest?.fromName || challenger?.userName || 'Unknown',
-            challengerAvatar: challenger?.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${battle.createdBy}`,
+            challengerName: rematchRequest.fromName || challenger?.userName || 'Unknown',
+            challengerAvatar: challenger?.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${rematchRequest.from}`,
             challengerRating: challenger?.rating || 1000,
             difficulty: battle.difficulty,
             entryFee: battle.entryFee,

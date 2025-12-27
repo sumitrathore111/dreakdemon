@@ -98,16 +98,16 @@ const BattleRoom = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Set battle guard context when battle is active
+  // Set battle guard context when battle is active or in countdown
   useEffect(() => {
-    if (battle?.status === 'active' && !hasSubmitted) {
-      setBattleActive(true);
+    if ((battle?.status === 'active' || battle?.status === 'countdown') && !hasSubmitted && battleId) {
+      setBattleActive(true, battleId);
     } else {
-      setBattleActive(false);
+      setBattleActive(false, null);
     }
     // Clean up on unmount
-    return () => setBattleActive(false);
-  }, [battle?.status, hasSubmitted, setBattleActive]);
+    return () => setBattleActive(false, null);
+  }, [battle?.status, hasSubmitted, setBattleActive, battleId]);
   const [myResult, setMyResult] = useState<BattleSubmissionResult | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
@@ -723,13 +723,11 @@ rl.on('close', () => {
           ))}
         </motion.div>
 
-        {/* Background gradient animation */}
+        {/* Background gradient animation - stable, no shrinking */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-[#00d4ff]/10"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.6, 0.3],
-            rotate: [0, 5, 0]
+            opacity: [0.3, 0.5, 0.3]
           }}
           transition={{
             duration: 2,
@@ -741,13 +739,11 @@ rl.on('close', () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={countdown}
-            initial={{ scale: 0.3, opacity: 0, rotateY: -180 }}
-            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-            exit={{ scale: 2, opacity: 0, rotateY: 180 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 20
+              duration: 0.3
             }}
             className="text-center z-10"
           >
@@ -848,18 +844,22 @@ rl.on('close', () => {
 
             <motion.p 
               className="text-gray-400 text-xl mb-6"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1, repeat: Infinity }}
             >
               {countdown > 0 ? 'Battle starts in' : ''}
             </motion.p>
 
+            {/* Countdown number with blink animation */}
             <motion.div
+              key={`countdown-${countdown}`}
+              initial={{ opacity: 0.3 }}
               animate={{
-                scale: countdown === 0 ? [1, 1.5, 1.2] : [1, 1.2, 1],
+                opacity: [0.3, 1, 0.3, 1],
                 color: countdown === 0 ? "#22c55e" : countdown === 1 ? "#ef4444" : countdown === 2 ? "#f59e0b" : "#06b6d4"
               }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ 
+                opacity: { duration: 1, times: [0, 0.3, 0.6, 1] },
+                color: { duration: 0.3 }
+              }}
               className="text-9xl font-black mb-6"
               style={{
                 textShadow: "0 0 50px currentColor, 0 0 100px currentColor",
@@ -869,9 +869,17 @@ rl.on('close', () => {
               {countdown === 0 ? '⚔️ FIGHT! ⚔️' : countdown}
             </motion.div>
 
+            {/* Screen flash effect on FIGHT */}
+            {countdown === 0 && (
+              <motion.div
+                className="absolute inset-0 bg-white pointer-events-none"
+                initial={{ opacity: 0.8 }}
+                animate={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              />
+            )}
+
             <motion.p
-              animate={{ opacity: [0.5, 1, 0.5], y: [0, -5, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
               className="text-gray-400 text-lg"
             >
               {countdown === 0 ? '🔥 Show your coding skills! 🔥' : '⚡ Get ready to code!'}

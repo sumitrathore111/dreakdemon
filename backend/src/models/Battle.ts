@@ -29,6 +29,7 @@ export interface IBattle extends Document {
   };
   winner?: string;
   forfeitedBy?: string;
+  prizeAwarded?: boolean; // Prevent double prize awarding
   rematchRequest?: {
     from: string;
     fromName: string;
@@ -82,6 +83,7 @@ const BattleSchema: Schema = new Schema({
   },
   winner: { type: String },
   forfeitedBy: { type: String },
+  prizeAwarded: { type: Boolean, default: false },
   rematchRequest: {
     from: { type: String },
     fromName: { type: String },

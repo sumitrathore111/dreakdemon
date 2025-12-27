@@ -230,15 +230,12 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                b.creatorId !== user.id
       );
 
-      // Deduct entry fee
-      await deductCoins(user.id, selectedEntry.fee, 'Battle entry fee');
-
       if (matchingBattle) {
-        // Join existing battle immediately
-        await joinBattle(matchingBattle);
+        // Join existing battle - coins deducted inside joinBattle on success
+        await joinBattle(matchingBattle, true);
       } else {
-        // Create new battle and wait for opponent
-        await createBattle();
+        // Create new battle - coins deducted inside createBattle on success
+        await createBattle(true);
       }
     } catch (error) {
       console.error('Error finding match:', error);
@@ -247,7 +244,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     }
   };
 
-  const createBattle = async () => {
+  const createBattle = async (shouldDeductCoins: boolean = false) => {
     try {
       setIsCreating(true);
       
@@ -258,7 +255,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         return;
       }
       
-      // Simple coin check - we already verified in handleFindMatch
+      // Simple coin check
       if ((wallet.coins || 0) < selectedEntry.fee) {
         alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
         setIsSearching(false);
@@ -277,6 +274,12 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       console.log('Creating battle with request:', battleRequest);
       const battleId = await joinOrCreateBattle(battleRequest);
       console.log('Battle created with ID:', battleId);
+      
+      // Deduct coins ONLY after successful battle creation
+      if (shouldDeductCoins) {
+        await deductCoins(user!.id, selectedEntry.fee, 'Battle entry fee');
+      }
+      
       setMyBattleId(battleId);
       
     } catch (error: unknown) {
@@ -288,7 +291,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     }
   };
 
-  const joinBattle = async (battle: WaitingBattle) => {
+  const joinBattle = async (battle: WaitingBattle, shouldDeductCoins: boolean = false) => {
     try {
       // Ensure wallet exists before verification
       if (!wallet) {
@@ -297,7 +300,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         return;
       }
       
-      // Simple coin check - we already verified in handleFindMatch
+      // Simple coin check
       if ((wallet.coins || 0) < battle.entryFee) {
         alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${battle.entryFee} coins.`);
         setIsSearching(false);
@@ -315,12 +318,17 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         })
       });
 
+      // Deduct coins ONLY after successful join
+      if (shouldDeductCoins) {
+        await deductCoins(user!.id, battle.entryFee, 'Battle entry fee');
+      }
+
       // Navigate to battle room
       navigate(`/dashboard/codearena/battle/${battle.id}`);
       
     } catch (error: unknown) {
       console.error('Error joining battle:', error);
-      alert(error instanceof Error ? error.message : 'Failed to join battle');
+      alert(error instanceof Error ? error.message : 'Failed to join battle. Battle may have been taken by another player.');
       setIsSearching(false);
     }
   };
@@ -623,8 +631,8 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                   <button
                     onClick={async () => {
                       if (wallet?.coins >= battle.entryFee) {
-                        await deductCoins(user!.id, battle.entryFee, 'Battle entry fee');
-                        await joinBattle(battle);
+                        // Coins are deducted inside joinBattle after successful join
+                        await joinBattle(battle, true);
                       }
                     }}
                     disabled={wallet?.coins < battle.entryFee}

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import {
     BookOpen,
+    CheckCircle,
     ChevronRight,
     Code2,
     Coins,
@@ -12,10 +13,14 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
+import { useDataContext } from '../../Context/UserDataContext';
 import { fetchAllQuestions, getAllTopics, type Question } from '../../service/questionsService';
 
 const PracticeChallenges = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { getUserProgress } = useDataContext();
   
   const [challenges, setChallenges] = useState<any[]>([]);
   const [filteredChallenges, setFilteredChallenges] = useState<any[]>([]);
@@ -25,6 +30,7 @@ const PracticeChallenges = () => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+  const [solvedChallengeIds, setSolvedChallengeIds] = useState<Set<string>>(new Set());
 
   const PROBLEMS_PER_PAGE = 20;
 
@@ -34,6 +40,27 @@ const PracticeChallenges = () => {
     { id: 'medium', label: 'Medium', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
     { id: 'hard', label: 'Hard', color: 'bg-red-50 text-red-700 border-red-200' },
   ];
+
+  // Fetch user's solved challenges
+  useEffect(() => {
+    const fetchSolvedChallenges = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const progress = await getUserProgress(user.id);
+        if (progress?.solvedChallenges) {
+          const solvedIds = new Set<string>(
+            progress.solvedChallenges.map((sc: any) => sc.challengeId?.toString() || sc.challengeId)
+          );
+          setSolvedChallengeIds(solvedIds);
+        }
+      } catch (error) {
+        console.error('Error fetching solved challenges:', error);
+      }
+    };
+    
+    fetchSolvedChallenges();
+  }, [user?.id, getUserProgress]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -145,6 +172,7 @@ const PracticeChallenges = () => {
 
   const stats = [
     { label: 'Total', value: challenges.length.toLocaleString(), icon: Code2, color: 'text-[#00ADB5] bg-[#00ADB5]/10' },
+    { label: 'Solved', value: solvedChallengeIds.size, icon: CheckCircle, color: 'text-emerald-600 bg-emerald-50' },
     { label: 'Easy', value: challenges.filter((c: any) => c.difficulty === 'easy').length, icon: Zap, color: 'text-green-600 bg-green-50' },
     { label: 'Medium', value: challenges.filter((c: any) => c.difficulty === 'medium').length, icon: Target, color: 'text-yellow-600 bg-yellow-50' },
     { label: 'Hard', value: challenges.filter((c: any) => c.difficulty === 'hard').length, icon: Star, color: 'text-red-600 bg-red-50' },
@@ -184,7 +212,7 @@ const PracticeChallenges = () => {
       </motion.div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {stats.map((stat, index) => (
           <motion.div 
             key={stat.label}
@@ -312,14 +340,21 @@ const PracticeChallenges = () => {
         </motion.div>
       ) : (
         <div className="space-y-3">
-          {filteredChallenges.map((challenge, index) => (
+          {filteredChallenges.map((challenge, index) => {
+            const isSolved = solvedChallengeIds.has(challenge.id?.toString() || challenge.id);
+            
+            return (
             <motion.div
               key={challenge.id}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: index * 0.05, duration: 0.4 }}
               whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
+              className={`bg-white dark:bg-gray-800 border rounded-xl p-6 hover:shadow-lg transition-all group ${
+                isSolved 
+                  ? 'border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/20' 
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -327,6 +362,12 @@ const PracticeChallenges = () => {
                     <h3 className="font-semibold text-gray-900 dark:text-white text-lg group-hover:text-[#00ADB5] dark:group-hover:text-[#00ADB5] transition-colors">
                       {challenge.title}
                     </h3>
+                    {isSolved && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full border border-green-200 dark:border-green-700">
+                        <CheckCircle className="w-3 h-3" />
+                        SOLVED
+                      </span>
+                    )}
                   </div>
                   
                   <p className="text-sm text-gray-600 dark:text-white mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{challenge.description}</p>
@@ -362,15 +403,19 @@ const PracticeChallenges = () => {
                     whileHover={{ scale: 1.05, boxShadow: "0 10px 30px rgba(59, 130, 246, 0.3)" }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleSolve(challenge)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#00ADB5] hover:bg-[#00ADB5]/80 text-white text-sm font-semibold rounded-lg transition-all"
+                    className={`flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition-all ${
+                      isSolved 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : 'bg-[#00ADB5] hover:bg-[#00ADB5]/80'
+                    }`}
                   >
-                    <span className="relative">Solve</span>
+                    <span className="relative">{isSolved ? 'Solve Again' : 'Solve'}</span>
                     <ChevronRight className="w-4 h-4 relative" />
                   </motion.button>
                 </div>
               </div>
             </motion.div>
-          ))}
+          )})}
         </div>
       )}
 

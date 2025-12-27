@@ -99,71 +99,30 @@ const CodeArenaContent = () => {
   const [showWallet, setShowWallet] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch real user stats
+  // Fetch real user stats - OPTIMIZED with dedicated endpoint
   const fetchUserStats = async (userId: string, walletData: any) => {
     try {
+      // Make parallel requests for faster loading
+      const [battleStatsResponse, userProgress, leaderboard] = await Promise.all([
+        // Use optimized user-stats endpoint
+        apiRequest(`/battles/user-stats/${userId}`).catch(() => null),
+        getUserProgress?.(userId).catch(() => null),
+        fetchGlobalLeaderboard?.().catch(() => null)
+      ]);
+      
       // Get problems solved from user progress
-      const userProgress = await getUserProgress?.(userId);
       const solvedCount = userProgress?.solvedChallenges?.length || walletData?.achievements?.problemsSolved || 0;
       
-      // Get battles won directly from backend 
-      let battlesWon = 0;
-      let currentStreak = 0;
-      try {
-        const response = await apiRequest('/battles');
-        const allBattles = response.battles || [];
-        
-        // Filter battles where user participated
-        const userBattles = allBattles.filter((battle: any) => {
-          const participants = battle.participants || [];
-          return participants.some((p: any) => {
-            const odId = p.odId || p.userId;
-            return odId === userId;
-          });
-        });
-        
-        // Count wins
-        userBattles.forEach((battle: any) => {
-          if (battle.winnerId === userId) {
-            battlesWon++;
-          }
-        });
-        
-        // Calculate current streak from consecutive wins (sorted by date, newest first)
-        const completedBattles = userBattles
-          .filter((b: any) => b.status === 'completed' || b.status === 'forfeited')
-          .sort((a: any, b: any) => {
-            const getTime = (ts: any) => {
-              if (!ts) return 0;
-              if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
-              if (ts instanceof Date) return ts.getTime();
-              return typeof ts === 'number' ? ts : 0;
-            };
-            return getTime(b.createdAt) - getTime(a.createdAt);
-          });
-        
-        // Count consecutive wins from most recent
-        for (const battle of completedBattles) {
-          if (battle.winnerId === userId) {
-            currentStreak++;
-          } else if (battle.winnerId) {
-            // Lost this battle, streak ends
-            break;
-          }
-        }
-      } catch (e) {
-        console.error('Error fetching battles:', e);
-        battlesWon = walletData?.achievements?.battlesWon || 0;
-        currentStreak = walletData?.streak?.current || 0;
-      }
+      // Get battles stats from optimized endpoint
+      const battlesWon = battleStatsResponse?.battlesWon || walletData?.achievements?.battlesWon || 0;
+      const currentStreak = battleStatsResponse?.currentStreak || walletData?.streak?.current || 0;
       
       // Get global rank from leaderboard
       let globalRank: string | number = '-';
-      try {
-        const leaderboard = await fetchGlobalLeaderboard?.();
-        const userRanking = leaderboard?.find((p: any) => p.odId === userId);
+      if (leaderboard) {
+        const userRanking = leaderboard.find((p: any) => p.odId === userId);
         if (userRanking) globalRank = userRanking.rank;
-      } catch { /* no rank */ }
+      }
       
       setUserStats({
         problemsSolved: solvedCount,
@@ -186,20 +145,22 @@ const CodeArenaContent = () => {
     const initWallet = async () => {
       if (user && user.id) {
         try {
-          console.log('Initializing wallet for user:', user.id);
+          // Show UI immediately, fetch data in parallel
+          setLoading(false);
+          
+          // Start fetching stats immediately (don't wait for wallet)
+          fetchUserStats(user.id, null);
+          
+          // Initialize wallet in background
           const existingWallet = await getUserWallet(user.id);
-          console.log('Existing wallet:', existingWallet);
           
           if (!existingWallet) {
-            console.log('No wallet found, creating new one...');
             await initializeWallet(user.id);
           }
           
           const unsubscribe = subscribeToWallet(user.id, async (walletData) => {
-            console.log('Wallet data received:', walletData);
             setWallet(walletData);
-            await fetchUserStats(user.id, walletData);
-            setLoading(false);
+            // Update stats with wallet data (but don't refetch from API)
           });
           
           return () => unsubscribe();
@@ -216,7 +177,7 @@ const CodeArenaContent = () => {
     
     initWallet();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, getUserWallet, initializeWallet, subscribeToWallet, userprofile]);
+  }, [user?.id]);
 
   useEffect(() => {
     const path = location.pathname;
@@ -449,11 +410,20 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             difficulty: battle.difficulty,
             entryFee: battle.entryFee,
             prize: battle.prize,
-            participants: battle.participants?.map((p: any) => ({
-              odId: p.odId || p.userId,
-              userName: p.userName || p.odName || 'Player',
-              userAvatar: p.userAvatar || p.odProfilePic
-            })) || []
+            // Use participants if available, otherwise construct from creator fields
+            participants: battle.participants?.length > 0 
+              ? battle.participants.map((p: any) => ({
+                  odId: p.odId || p.userId,
+                  userName: p.userName || p.odName || 'Player',
+                  userAvatar: p.userAvatar || p.odProfilePic
+                }))
+              : [
+                  { 
+                    odId: battle.creatorId, 
+                    userName: battle.creatorName || 'Player', 
+                    userAvatar: battle.creatorProfilePic 
+                  }
+                ]
           }));
         
         setLiveBattles(allBattles);

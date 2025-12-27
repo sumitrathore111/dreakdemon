@@ -1,6 +1,8 @@
 import {
+    AlertTriangle,
     BookOpen,
     ChevronsLeft,
+    DoorOpen,
     Folder,
     Home,
     LogOut,
@@ -26,9 +28,10 @@ export default function DashboardLayout() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [pendingNavPath, setPendingNavPath] = useState<string | null>(null);
   const location = useLocation();
   const navigation = useNavigate();
-  const { isBattleActive } = useBattleGuard();
+  const { isBattleActive, activeBattleId, forfeitBattle } = useBattleGuard();
   const [showBattleBlockModal, setShowBattleBlockModal] = useState(false);
   
   const navItems = [
@@ -41,7 +44,7 @@ export default function DashboardLayout() {
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
-  const { avatrUrl, fetchAllIdeas, fetchJoinRequests } = useDataContext();
+  const { avatrUrl, fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
@@ -139,6 +142,7 @@ export default function DashboardLayout() {
                     onClick={e => {
                       if (isBattleActive) {
                         e.preventDefault();
+                        setPendingNavPath(item.path);
                         setShowBattleBlockModal(true);
                         return;
                       }
@@ -196,18 +200,44 @@ export default function DashboardLayout() {
                       >
                         <div className="text-center">
                           <div className="w-16 h-16 mx-auto mb-4 bg-orange-500/20 rounded-full flex items-center justify-center">
-                            <Trophy className="w-8 h-8 text-orange-500" />
+                            <AlertTriangle className="w-8 h-8 text-orange-500" />
                           </div>
-                          <h3 className="text-2xl font-bold text-white mb-2">Battle In Progress</h3>
-                          <p className="text-gray-300 mb-4">
-                            You cannot leave or switch pages while a battle is active. Please finish your battle first!
+                          <h3 className="text-2xl font-bold text-white mb-2">Leave Battle?</h3>
+                          <p className="text-gray-300 mb-6">
+                            You have an active battle in progress. If you leave now, you will <span className="text-red-400 font-semibold">forfeit</span> and your opponent will win the prize!
                           </p>
-                          <button
-                            onClick={() => setShowBattleBlockModal(false)}
-                            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all mt-2"
-                          >
-                            Back to Battle
-                          </button>
+                          
+                          <div className="flex gap-3">
+                            <button
+                              onClick={async () => {
+                                // Forfeit and navigate
+                                await forfeitBattle();
+                                setShowBattleBlockModal(false);
+                                if (pendingNavPath) {
+                                  navigation(pendingNavPath);
+                                  setPendingNavPath(null);
+                                }
+                              }}
+                              className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                            >
+                              <DoorOpen className="w-5 h-5" />
+                              Leave Battle
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowBattleBlockModal(false);
+                                setPendingNavPath(null);
+                                // Navigate back to battle
+                                if (activeBattleId) {
+                                  navigation(`/dashboard/codearena/battle/${activeBattleId}`);
+                                }
+                              }}
+                              className="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                            >
+                              <Trophy className="w-5 h-5" />
+                              Continue Battle
+                            </button>
+                          </div>
                         </div>
                       </motion.div>
                     </motion.div>
@@ -245,19 +275,35 @@ export default function DashboardLayout() {
                 isMinimized ? "justify-center" : "gap-3"
               }`}
             >
-              {/* Avatar */}
-              <img
-                src={avatrUrl || "https://via.placeholder.com/40"}
-                alt="User Avatar"
-                className="flex-shrink-0 w-10 h-10 rounded-full "
-                style={{ backgroundColor: "#00ADB5" }}
-               
-              />
+              {/* Avatar/Emoji */}
               <div
-                className="hidden flex-shrink-0 w-10 h-10 rounded-full items-center justify-center text-white font-bold text-lg"
+                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
                 style={{ backgroundColor: "#00ADB5" }}
               >
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                {(() => {
+                  const avatar = userprofile?.avatar;
+                  if (avatar && avatar.trim() !== '') {
+                    // Check if it's a URL or emoji
+                    if (avatar.startsWith('http')) {
+                      return (
+                        <img
+                          src={avatar}
+                          alt="User Avatar"
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      );
+                    } else {
+                      // It's an emoji
+                      return <span className="text-2xl">{avatar}</span>;
+                    }
+                  }
+                  // Fallback to first letter of name
+                  return (
+                    <span className="text-white font-bold text-lg">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  );
+                })()}
               </div>
 
               {/* User Info */}
@@ -352,12 +398,26 @@ export default function DashboardLayout() {
                 <Moon className="w-5 h-5 text-gray-700" />
               )}
             </button>
-            <img
-              src={avatrUrl || "https://via.placeholder.com/40"}
-              alt="User Avatar"
-              className="w-10 h-10 rounded-full object-cover"
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: "#00ADB5" }}
-            />
+            >
+              {userprofile?.avatar && userprofile.avatar.trim() !== '' ? (
+                userprofile.avatar.startsWith('http') ? (
+                  <img
+                    src={userprofile.avatar}
+                    alt="User Avatar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl">{userprofile.avatar}</span>
+                )
+              ) : (
+                <span className="text-white font-bold text-lg">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

@@ -29,6 +29,14 @@ import {
 } from "../../Component/Global/ui";
 import { useDataContext } from "../../Context/UserDataContext";
 
+// Emoji options for profile
+const PROFILE_EMOJIS = [
+  '😀', '😎', '🤓', '🧑‍💻', '👨‍💻', '👩‍💻', '🦊', '🐱', '🐶', '🦁',
+  '🐯', '🐻', '🐼', '🐨', '🐸', '🦄', '🐲', '🦋', '🌟', '⭐',
+  '🔥', '💎', '🎯', '🚀', '💡', '🎨', '🎭', '🎮', '🏆', '👑',
+  '🦸', '🧙', '🧛', '🧜', '🧚', '🦹', '🥷', '🧑‍🚀', '🧑‍🔬', '🧑‍🎨'
+];
+
 interface Education {
   degree: string;
   school: string;
@@ -65,13 +73,15 @@ interface ProfileData {
   languages: Array<String>,
   yearOfStudy: string,
   githubUsername?: string;
-
+  avatar?: string;
+  profilePic?: string;
 }
 
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     uid:'',
     name: "Your Name",
@@ -90,7 +100,9 @@ export default function Profile() {
     yearOfStudy: "",
     createdAt:"",
     isprofileComplete:false,
-    role :'student'
+    role :'student',
+    avatar: '',
+    profilePic: ''
   });
 
   const [newAchievement, setNewAchievement] = useState("");
@@ -107,7 +119,7 @@ export default function Profile() {
   });
   const [newLink, setNewLink] = useState<Link>({ platform: "", url: "" });
   const [isSaving, setIsSaving] = useState(false);
-  const { avatrUrl, pushDataWithId, userprofile } = useDataContext()
+  const { pushDataWithId, userprofile } = useDataContext()
 
   const handleAddSkill = () => {
     const skill = newSkill.trim();
@@ -228,6 +240,8 @@ export default function Profile() {
         achievements: userprofile.achievements || [],
         links: userprofile.links || [],
         languages: userprofile.languages || [],
+        avatar: userprofile.avatar || userprofile.profilePic || '',
+        profilePic: userprofile.profilePic || userprofile.avatar || '',
       });
     }
   }, [userprofile])
@@ -275,19 +289,82 @@ export default function Profile() {
               <CardTitle className="dark:text-white">Profile Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3"
-                style={{ backgroundColor: "#00ADB5" }}
-              >
-                {avatrUrl && (
-                  <img
-                    src={avatrUrl}
-                    alt="Random Avatar"
-                    className="w-full h-full rounded-full"
-                  />
+              {/* Profile Avatar/Emoji */}
+              <div className="relative inline-block">
+                <div
+                  className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-3 cursor-pointer transition-transform hover:scale-105 border-4 border-white dark:border-gray-700 shadow-lg"
+                  style={{ backgroundColor: "#00ADB5" }}
+                  onClick={() => isEditing && setShowEmojiPicker(!showEmojiPicker)}
+                >
+                  {profile?.avatar || profile?.profilePic ? (
+                    // Check if it's an emoji (single character or emoji) or URL
+                    (profile.avatar || profile.profilePic || '').startsWith('http') ? (
+                      <img
+                        src={profile.avatar || profile.profilePic}
+                        alt="Profile"
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-5xl">{profile.avatar || profile.profilePic}</span>
+                    )
+                  ) : (
+                    <User className="w-10 h-10 text-white" />
+                  )}
+                </div>
+                
+                {/* Edit indicator when editing */}
+                {isEditing && (
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="absolute bottom-2 right-0 w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-lg transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4 text-white" />
+                  </button>
+                )}
+                
+                {/* Emoji Picker Dropdown */}
+                {showEmojiPicker && isEditing && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-3 w-72">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Choose your emoji</span>
+                      <button
+                        onClick={() => setShowEmojiPicker(false)}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                      >
+                        <X className="w-4 h-4 text-gray-500" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+                      {PROFILE_EMOJIS.map((emoji, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setProfile(prev => ({ ...prev, avatar: emoji, profilePic: emoji }));
+                            setShowEmojiPicker(false);
+                          }}
+                          className={`w-8 h-8 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded flex items-center justify-center transition-colors ${
+                            profile.avatar === emoji ? 'bg-blue-100 dark:bg-blue-900 ring-2 ring-blue-500' : ''
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Clear option */}
+                    <button
+                      onClick={() => {
+                        setProfile(prev => ({ ...prev, avatar: '', profilePic: '' }));
+                        setShowEmojiPicker(false);
+                      }}
+                      className="w-full mt-2 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                    >
+                      Remove Avatar
+                    </button>
+                  </div>
                 )}
               </div>
-              <h3 className="font-semibold">{profile?.name}</h3>
+              
+              <h3 className="font-semibold dark:text-white">{profile?.name}</h3>
               <p className="text-sm text-gray-500">{profile?.institute}</p>
 
               <div className="space-y-2 mt-2 text-left">

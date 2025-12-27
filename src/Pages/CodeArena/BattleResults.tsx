@@ -97,7 +97,7 @@ const BattleResults = () => {
   const { battleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userprofile } = useDataContext();
+  const { userprofile, getUserWallet, wallet } = useDataContext();
   
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,6 +109,18 @@ const BattleResults = () => {
   const [winReason, setWinReason] = useState<string>('');
   const [isRequestingRematch, setIsRequestingRematch] = useState(false);
   const [rematchSent, setRematchSent] = useState(false);
+  const [updatedCoins, setUpdatedCoins] = useState<number | null>(null);
+
+  // Refresh wallet to show updated balance after battle
+  useEffect(() => {
+    if (user?.id && battle?.status === 'completed') {
+      getUserWallet(user.id).then((walletData) => {
+        if (walletData) {
+          setUpdatedCoins(walletData.coins);
+        }
+      });
+    }
+  }, [user?.id, battle?.status, getUserWallet]);
 
   useEffect(() => {
     const fetchBattleResults = async () => {
@@ -231,8 +243,8 @@ const BattleResults = () => {
           difficulty,
           entryFee,
           userId: user.id,
-          userName: userprofile?.name || 'Player',
-          userAvatar: userprofile?.avatarUrl,
+          userName: userprofile?.name || user?.name || 'Player',
+          userAvatar: userprofile?.profilePic || userprofile?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
           rating: myData?.rating || 1000,
           originalBattleId: battleId // Pass the original battle ID for rematch
         },
@@ -253,7 +265,8 @@ const BattleResults = () => {
         const pollRematchStatus = async () => {
           try {
             const response = await apiRequest(`/battles/${rematchBattleId}`);
-            const data = response.battle;
+            // Backend returns battle data directly (not wrapped in { battle: ... })
+            const data = response.battle || response;
             if (data?.status === 'countdown' && data?.participants?.length === 2) {
               // Opponent accepted! Navigate to battle
               clearInterval(interval);
@@ -280,11 +293,15 @@ const BattleResults = () => {
 
         const interval = setInterval(pollRematchStatus, 5000); // Poll every 5 seconds
 
+        // Store interval ID for cleanup
+        let isActive = true;
+
         // Clean up listener after 5 minutes (timeout)
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           clearInterval(interval);
           // If still waiting after 5 minutes, reset the button
-          if (rematchSent) {
+          if (isActive) {
+            isActive = false;
             setRematchSent(false);
             toast('Rematch request timed out. Please try again.', {
               duration: 4000,
@@ -606,8 +623,13 @@ const BattleResults = () => {
               <div>
                 <p className="text-gray-400 text-sm mb-1">Coins Earned</p>
                 <p className={`text-3xl font-bold ${isWinner ? 'text-yellow-400' : 'text-gray-400'}`}>
-                  {isWinner ? `+${battle?.prizePool || 0}` : '+0'}
+                  {isWinner ? `+${battle?.prize || battle?.prizePool || 0}` : '+0'}
                 </p>
+                {updatedCoins !== null && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Balance: {updatedCoins.toLocaleString()} coins
+                  </p>
+                )}
               </div>
               <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
                 isWinner ? 'bg-yellow-500/20' : 'bg-gray-700/50'

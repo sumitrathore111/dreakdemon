@@ -212,6 +212,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       if (Array.isArray(data.experience)) cleanedData.experience = data.experience;
       if (Array.isArray(data.links)) cleanedData.links = data.links;
       
+      // Avatar/Emoji field
+      if (data.avatar !== undefined) cleanedData.avatar = data.avatar;
+      if (data.profilePic !== undefined) cleanedData.profilePic = data.profilePic;
+      
       console.log("Sending profile update:", cleanedData);
       
       await apiRequest(`/users/${user.id}`, {

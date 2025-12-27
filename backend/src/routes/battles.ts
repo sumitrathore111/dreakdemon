@@ -51,6 +51,17 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
         prize: battle.prize,
         timeLimit: battle.timeLimit,
         status: battle.status,
+        // Include all participants for live battles display
+        participants: battle.participants.map((p: any) => ({
+          odId: p.userId,
+          odName: p.userName,
+          odProfilePic: p.userAvatar,
+          userId: p.userId,
+          userName: p.userName,
+          userAvatar: p.userAvatar,
+          rating: p.rating || 1000,
+          hasSubmitted: p.hasSubmitted || false
+        })),
         challenge: battle.challenge ? {
           id: battle.challenge.id,
           title: battle.challenge.title,
@@ -346,33 +357,53 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
       battle.status = 'completed';
       battle.completedAt = new Date();
       
-      // Determine winner
-      const winner = battle.participants.reduce((prev, current) => 
-        (current.score || 0) > (prev.score || 0) ? current : prev
-      );
-      battle.winner = winner.userId;
+      // Determine winner - higher score wins, tie goes to faster submission
+      const winner = battle.participants.reduce((prev, current) => {
+        const prevScore = prev.score || 0;
+        const currentScore = current.score || 0;
+        
+        // Higher score wins
+        if (currentScore > prevScore) return current;
+        if (currentScore < prevScore) return prev;
+        
+        // Same score - faster submission wins
+        const prevTime = prev.submissionTime ? new Date(prev.submissionTime).getTime() : Infinity;
+        const currentTime = current.submissionTime ? new Date(current.submissionTime).getTime() : Infinity;
+        return currentTime < prevTime ? current : prev;
+      });
       
-      // Award prize to winner
-      try {
-        const Wallet = require('../models/Wallet').default;
-        const mongoose = require('mongoose');
-        await Wallet.findOneAndUpdate(
-          { userId: new mongoose.Types.ObjectId(winner.userId) },
-          {
-            $inc: { coins: battle.prize },
-            $push: {
-              transactions: {
-                type: 'credit',
-                amount: battle.prize,
-                reason: 'Battle won!',
-                createdAt: new Date()
+      // Check for true tie (same score, same time - very unlikely)
+      const isTie = battle.participants.length === 2 && 
+        battle.participants[0].score === battle.participants[1].score;
+      
+      battle.winner = winner.userId;
+      (battle as any).winReason = isTie ? 'Faster submission' : 'Higher score';
+      
+      // Award prize to winner - only if not already awarded (prevent double awarding)
+      if (!(battle as any).prizeAwarded) {
+        try {
+          const Wallet = require('../models/Wallet').default;
+          const mongoose = require('mongoose');
+          await Wallet.findOneAndUpdate(
+            { userId: new mongoose.Types.ObjectId(winner.userId) },
+            {
+              $inc: { coins: battle.prize },
+              $push: {
+                transactions: {
+                  type: 'credit',
+                  amount: battle.prize,
+                  reason: isTie ? 'Battle won (faster submission)!' : 'Battle won!',
+                  createdAt: new Date()
+                }
               }
-            }
-          },
-          { upsert: true }
-        );
-      } catch (walletError) {
-        console.error('Error awarding prize:', walletError);
+            },
+            { upsert: true }
+          );
+          (battle as any).prizeAwarded = true;
+          console.log(`Prize of ${battle.prize} coins awarded to winner ${winner.userId}`);
+        } catch (walletError) {
+          console.error('Error awarding prize:', walletError);
+        }
       }
     }
     
@@ -424,6 +455,7 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
       winnerId: battle.winner,
       winner: battle.winner,
       forfeitedBy: (battle as any).forfeitedBy,
+      rematchRequest: battle.rematchRequest, // Include rematch info for polling
       participants: battle.participants.map((p: any) => ({
         odId: p.userId,
         odName: p.userName,
@@ -524,25 +556,30 @@ router.post('/:battleId/forfeit', authenticate, async (req: AuthRequest, res: Re
     battle.forfeitedBy = userId;
     (battle as any).winReason = 'Opponent left the battle or switched tabs';
     battle.completedAt = new Date();
-    await battle.save();
     
-    // Award prize to winner
-    const Wallet = require('../models/Wallet').default;
-    await Wallet.findOneAndUpdate(
-      { userId: opponent.userId },
-      {
-        $inc: { coins: battle.prize || 0 },
-        $push: {
-          transactions: {
-            amount: battle.prize || 0,
-            type: 'credit',
-            reason: 'Battle win (opponent forfeited)',
-            createdAt: new Date()
+    // Award prize to winner - only if not already awarded
+    if (!(battle as any).prizeAwarded) {
+      const Wallet = require('../models/Wallet').default;
+      await Wallet.findOneAndUpdate(
+        { userId: opponent.userId },
+        {
+          $inc: { coins: battle.prize || 0 },
+          $push: {
+            transactions: {
+              amount: battle.prize || 0,
+              type: 'credit',
+              reason: 'Battle win (opponent forfeited)',
+              createdAt: new Date()
+            }
           }
-        }
-      },
-      { upsert: true }
-    );
+        },
+        { upsert: true }
+      );
+      (battle as any).prizeAwarded = true;
+      console.log(`Prize of ${battle.prize} coins awarded to winner ${opponent.userId} (forfeit)`);
+    }
+    
+    await battle.save();
     
     res.json({
       success: true,
@@ -909,6 +946,62 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
     });
   } catch (error: any) {
     console.error('Error accepting rematch:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user battle stats (optimized for fast loading)
+router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    
+    // Use aggregation pipeline for fast stats calculation
+    const stats = await Battle.aggregate([
+      // Match battles where user is a participant
+      { $match: { 'participants.userId': userId } },
+      // Group and calculate stats
+      {
+        $group: {
+          _id: null,
+          totalBattles: { $sum: 1 },
+          battlesWon: {
+            $sum: { $cond: [{ $eq: ['$winner', userId] }, 1, 0] }
+          },
+          completedBattles: {
+            $sum: { $cond: [{ $in: ['$status', ['completed', 'forfeited']] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+    
+    const result = stats[0] || { totalBattles: 0, battlesWon: 0, completedBattles: 0 };
+    
+    // Calculate win streak from recent battles
+    const recentBattles = await Battle.find({
+      'participants.userId': userId,
+      status: { $in: ['completed', 'forfeited'] }
+    })
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .select('winner createdAt');
+    
+    let currentStreak = 0;
+    for (const battle of recentBattles) {
+      if (battle.winner === userId) {
+        currentStreak++;
+      } else if (battle.winner) {
+        break;
+      }
+    }
+    
+    res.json({
+      battlesWon: result.battlesWon,
+      totalBattles: result.totalBattles,
+      completedBattles: result.completedBattles,
+      currentStreak
+    });
+  } catch (error: any) {
+    console.error('Error fetching user battle stats:', error);
     res.status(500).json({ error: error.message });
   }
 });
