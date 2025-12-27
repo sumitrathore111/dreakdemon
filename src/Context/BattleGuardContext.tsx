@@ -23,7 +23,7 @@ export const BattleGuardProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/battles/${activeBattleId}/forfeit`, {
+      await fetch(`https://nextstepbackend-qhxw.onrender.com/api/battles/${activeBattleId}/forfeit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
