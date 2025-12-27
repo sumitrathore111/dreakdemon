@@ -677,27 +677,28 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
   }
 });
 
-// Judge0 language IDs for battles
-const JUDGE0_BATTLE_LANG_IDS: Record<string, number> = {
-  'python': 71,
-  'python3': 71,
-  'javascript': 63,
-  'java': 62,
-  'cpp': 54,
-  'c++': 54,
-  'c': 50,
+// Piston API - Free code execution (NO API KEY REQUIRED!)
+const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
+
+// Language mappings for Piston API
+const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
+  'python': { language: 'python', version: '3.10.0' },
+  'python3': { language: 'python', version: '3.10.0' },
+  'javascript': { language: 'javascript', version: '18.15.0' },
+  'java': { language: 'java', version: '15.0.2' },
+  'cpp': { language: 'c++', version: '10.2.0' },
+  'c++': { language: 'c++', version: '10.2.0' },
+  'c': { language: 'c', version: '10.2.0' },
 };
 
-// Helper function to execute code using Judge0
+// Helper function to execute code using Piston API
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
-  const languageId = JUDGE0_BATTLE_LANG_IDS[language.toLowerCase()] || 71;
+  const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
   
-  console.log('=== BATTLE JUDGE0 EXECUTION START ===');
-  console.log(`Language: ${language} (ID: ${languageId})`);
+  console.log('=== BATTLE PISTON EXECUTION START ===');
+  console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
   console.log(`Test cases count: ${testCases.length}`);
-  console.log('API URL:', process.env.JUDGE0_API_URL);
-  console.log('API Key present:', !!process.env.JUDGE0_API_KEY);
   console.log('Code length:', code.length);
   console.log('Code preview:', code.substring(0, 200));
   
@@ -715,37 +716,35 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
       
-      // Don't send expected_output to Judge0 - we'll do our own comparison
+      // Use Piston API for code execution
       const response = await axios.post(
-        `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
+        `${PISTON_API_URL}/execute`,
         {
-          source_code: code,
-          language_id: languageId,
+          language: langConfig.language,
+          version: langConfig.version,
+          files: [{ content: code }],
           stdin: stdin
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'X-RapidAPI-Key': process.env.JUDGE0_API_KEY,
-            'X-RapidAPI-Host': process.env.JUDGE0_API_HOST || 'judge0-ce.p.rapidapi.com'
+            'Content-Type': 'application/json'
           },
           timeout: 15000
         }
       );
       
       const result = response.data;
+      const runResult = result.run || {};
       
-      // Get output - handle both stdout and compile_output
-      let output = (result.stdout || '').trim();
+      // Get output
+      let output = (runResult.stdout || '').trim();
+      const stderr = runResult.stderr || '';
       const expected = expectedRaw.trim();
       
-      // Check for errors - status id 3 is Accepted, 4+ are errors
-      const hasError = result.stderr || result.compile_output || (result.status?.id && result.status.id > 4);
+      // Check for errors
+      const hasError = !!stderr || runResult.code !== 0;
       
-      // Parse time as a number (Judge0 may return it as a string)
-      const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
-      
-      // Normalize output for comparison (remove trailing/leading whitespace from each line)
+      // Normalize output for comparison
       const normalizeOutput = (s: string) => {
         return s.split('\n').map(line => line.trim()).join('\n').trim();
       };
@@ -753,20 +752,19 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       const normalizedOutput = normalizeOutput(output);
       const normalizedExpected = normalizeOutput(expected);
       
-      // Check if passed - compare normalized outputs
+      // Check if passed
       const passed = !hasError && normalizedOutput === normalizedExpected;
       
-      console.log(`Test result: expected="${expected}" got="${output}" status=${result.status?.description} passed=${passed}`);
-      if (result.stderr) console.log(`Stderr: ${result.stderr}`);
-      if (result.compile_output) console.log(`Compile output: ${result.compile_output}`);
+      console.log(`Test result: expected="${expected}" got="${output}" passed=${passed}`);
+      if (stderr) console.log(`Stderr: ${stderr}`);
       
       results.push({
         passed,
         input: testCase.input,
         expected,
-        output: output || result.stderr || result.compile_output || 'No output',
-        time: isNaN(timeValue) ? 0 : timeValue,
-        error: hasError ? (result.stderr || result.compile_output || result.status?.description) : undefined
+        output: output || stderr || 'No output',
+        time: 0,
+        error: hasError ? stderr : undefined
       });
     } catch (error: any) {
       console.error('Code execution error:', error.response?.data || error.message);
