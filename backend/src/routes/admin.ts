@@ -1,11 +1,11 @@
-import { Router, Response } from 'express';
-import User from '../models/User';
-import Project from '../models/Project';
-import Idea from '../models/Idea';
-import Challenge from '../models/Challenge';
+import { Response, Router } from 'express';
+import { adminOnly, authenticate, AuthRequest } from '../middleware/auth';
 import Battle from '../models/Battle';
+import Challenge from '../models/Challenge';
+import Idea from '../models/Idea';
 import MarketplaceListing from '../models/MarketplaceListing';
-import { authenticate, AuthRequest, adminOnly } from '../middleware/auth';
+import Project from '../models/Project';
+import User from '../models/User';
 
 const router = Router();
 
@@ -33,7 +33,7 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
 
     const pendingIdeas = await Idea.countDocuments({ status: 'pending' });
     const activeProjects = await Project.countDocuments({ status: 'active' });
-    const pendingListings = await MarketplaceListing.countDocuments({ status: 'pending' });
+    const pendingListings = await MarketplaceListing.countDocuments({ status: 'pending_verification' });
 
     // Get recent users (last 7 days)
     const lastWeek = new Date();
@@ -224,7 +224,7 @@ router.put('/marketplace/:listingId/review', async (req: AuthRequest, res: Respo
   try {
     const { status, feedback } = req.body;
     
-    if (!['approved', 'rejected', 'pending'].includes(status)) {
+    if (!['published', 'rejected', 'pending_verification'].includes(status)) {
       res.status(400).json({ error: 'Invalid status' });
       return;
     }
@@ -234,8 +234,7 @@ router.put('/marketplace/:listingId/review', async (req: AuthRequest, res: Respo
       { 
         $set: { 
           status, 
-          adminFeedback: feedback,
-          reviewedAt: new Date()
+          rejectionReason: status === 'rejected' ? feedback : ''
         } 
       },
       { new: true }
@@ -298,13 +297,83 @@ router.get('/marketplace/projects', async (req: AuthRequest, res: Response): Pro
     const { status } = req.query;
     
     let query: any = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
     
-    const listings = await MarketplaceListing.find(query)
+    console.log('Admin marketplace query:', query);
+    const projects = await MarketplaceListing.find(query)
       .sort({ createdAt: -1 })
-      .populate('sellerId', 'name email');
+      .lean(); // Use lean for faster queries
     
-    res.json({ listings });
+    // Transform _id to id for lean documents
+    const transformedProjects = projects.map((p: any) => {
+      const { _id, __v, ...rest } = p;
+      return {
+        ...rest,
+        id: _id.toString()
+      };
+    });
+    
+    console.log('Found marketplace projects:', transformedProjects.length);
+    res.json({ projects: transformedProjects });
+  } catch (error: any) {
+    console.error('Error in admin/marketplace/projects:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Approve marketplace project
+router.post('/marketplace/projects/:projectId/approve', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const listing = await MarketplaceListing.findByIdAndUpdate(
+      req.params.projectId,
+      { 
+        $set: { 
+          status: 'published',
+          rejectionReason: ''
+        } 
+      },
+      { new: true }
+    );
+    
+    if (!listing) {
+      res.status(404).json({ error: 'Listing not found' });
+      return;
+    }
+    
+    res.json({ 
+      message: 'Project approved successfully',
+      listing 
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Reject marketplace project
+router.post('/marketplace/projects/:projectId/reject', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { reason } = req.body;
+    
+    const listing = await MarketplaceListing.findByIdAndUpdate(
+      req.params.projectId,
+      { 
+        $set: { 
+          status: 'rejected',
+          rejectionReason: reason || 'No reason provided'
+        } 
+      },
+      { new: true }
+    );
+    
+    if (!listing) {
+      res.status(404).json({ error: 'Listing not found' });
+      return;
+    }
+    
+    res.json({ 
+      message: 'Project rejected',
+      listing 
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

@@ -19,8 +19,6 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import { useDataContext } from '../../Context/UserDataContext';
 import {
     fetchChallengeById,
     getValidationTestCases,
@@ -48,8 +46,9 @@ const LocalChallengeEditor = () => {
   const { challengeId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const { getUserProgress } = useDataContext();
+  // Auth and context hooks available if needed:
+  // const { user } = useAuth();
+  // const { getUserProgress } = useDataContext();
 
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -90,11 +89,23 @@ const LocalChallengeEditor = () => {
         // If challenge came from PracticeChallenges, it has different field names
         // Map it to Challenge interface format
         if (challengeData && !challengeData.problemStatement) {
+          // Map difficulty to correct format
+          const difficultyMap: Record<string, 'Easy' | 'Medium' | 'Hard'> = {
+            'easy': 'Easy',
+            'Easy': 'Easy',
+            'medium': 'Medium',
+            'Medium': 'Medium',
+            'hard': 'Hard',
+            'Hard': 'Hard',
+            'expert': 'Hard'
+          };
+          const mappedDifficulty = difficultyMap[challengeData.difficulty as string] || 'Medium';
+          
           challengeData = {
             id: challengeData.id,
             title: challengeData.title,
             description: challengeData.description,
-            difficulty: challengeData.difficulty as 'easy' | 'medium' | 'hard' | 'expert',
+            difficulty: mappedDifficulty,
             category: challengeData.category || (challengeData as any).topic,
             points: 100,
             coinReward: (challengeData as any).coinReward || 10,
@@ -113,6 +124,8 @@ const LocalChallengeEditor = () => {
             totalSubmissions: 0,
             successfulSubmissions: 0,
             acceptanceRate: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           } as Challenge;
         }
 
@@ -498,14 +511,14 @@ rl.on('close', () => {
                 {/* Problem Statement */}
                 <div 
                   className="prose prose-invert max-w-none problem-statement"
-                  dangerouslySetInnerHTML={{ __html: challenge.problemStatement }}
+                  dangerouslySetInnerHTML={{ __html: challenge.problemStatement || '' }}
                 />
 
                 {/* Examples */}
                 <div className="mt-6 space-y-4">
                   <h3 className="text-lg font-semibold text-white">Examples</h3>
                   
-                  {challenge.examples.map((example, idx) => (
+                  {(challenge.examples || []).map((example, idx) => (
                     <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
                       <div className="grid grid-cols-2 divide-x divide-gray-700">
                         <div className="p-3">
@@ -588,9 +601,9 @@ rl.on('close', () => {
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="text-xs text-yellow-400">Hint {idx + 1}</span>
-                                <span className="text-xs text-yellow-400/70">{hint.coinCost} coins</span>
+                                <span className="text-xs text-yellow-400/70">{typeof hint === 'object' ? (hint as any).coinCost : 5} coins</span>
                               </div>
-                              <p className="text-sm text-gray-300">{hint.text}</p>
+                              <p className="text-sm text-gray-300">{typeof hint === 'object' ? (hint as any).text : hint}</p>
                             </div>
                           ))}
                         </motion.div>

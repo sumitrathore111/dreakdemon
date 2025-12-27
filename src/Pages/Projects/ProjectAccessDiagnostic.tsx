@@ -8,8 +8,18 @@ export default function ProjectAccessDiagnostic() {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   const { user } = useAuth();
-  const { checkAccessDiagnostics, forceAddMember, userprofile } = useDataContext();
+  const { userprofile } = useDataContext();
   const navigate = useNavigate();
+
+  // Placeholder functions - these need to be implemented in backend
+  const checkAccessDiagnostics = async (_projectId: string, _userId: string) => {
+    // TODO: Implement with backend API
+    return { hasAccess: false, issues: ['Not implemented yet'] };
+  };
+  const forceAddMember = async (_projectId: string, _userId: string, _userName: string) => {
+    // TODO: Implement with backend API
+    console.log('Force add member not implemented');
+  };
   
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [loading, setLoading] = useState(false);

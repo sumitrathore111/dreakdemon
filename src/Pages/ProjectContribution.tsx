@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../service/api";
-
-interface LeaderboardEntry {
-  userId: string;
-  name: string;
-  email: string;
-  issuesResolved: number;
-  projectsContributed: number;
-  messagesSent: number;
-  totalScore: number;
-  githubUsername?: string;
-}
+import type { LeaderboardEntry } from "../service/projectsService";
+import { getLeaderboard } from "../service/projectsService";
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -20,97 +10,7 @@ const Leaderboard = () => {
     const fetchLeaderboardData = async () => {
       setLoading(true);
       try {
-        const contributorsMap = new Map<string, LeaderboardEntry>();
-
-        // Fetch all projects
-        const projectsSnapshot = await getDocs(collection(db, "Open_Projects"));
-        
-        for (const projectDoc of projectsSnapshot.docs) {
-          const projectId = projectDoc.id;
-
-          // Fetch issues for this project
-          const issuesSnapshot = await getDocs(
-            collection(db, "Open_Projects", projectId, "issues")
-          );
-          issuesSnapshot.forEach((issueDoc) => {
-            const issue = issueDoc.data();
-            if (issue.status === "Resolved" && issue.creatorId) {
-              const entry = contributorsMap.get(issue.creatorId) || {
-                userId: issue.creatorId,
-                name: issue.creatorName || "Anonymous",
-                email: issue.creatorEmail || "",
-                issuesResolved: 0,
-                projectsContributed: 0,
-                messagesSent: 0,
-                totalScore: 0,
-              };
-              entry.issuesResolved += 1;
-              contributorsMap.set(issue.creatorId, entry);
-            }
-          });
-
-          // Fetch messages for this project
-          const messagesSnapshot = await getDocs(
-            collection(db, "Open_Projects", projectId, "messages")
-          );
-          messagesSnapshot.forEach((msgDoc) => {
-            const msg = msgDoc.data();
-            if (msg.senderId) {
-              const entry = contributorsMap.get(msg.senderId) || {
-                userId: msg.senderId,
-                name: msg.senderName || "Anonymous",
-                email: "",
-                issuesResolved: 0,
-                projectsContributed: 0,
-                messagesSent: 0,
-                totalScore: 0,
-              };
-              entry.messagesSent += 1;
-              contributorsMap.set(msg.senderId, entry);
-            }
-          });
-
-          // Fetch members to count active contributors
-          const membersSnapshot = await getDocs(
-            collection(db, "Open_Projects", projectId, "members")
-          );
-          membersSnapshot.forEach((memberDoc) => {
-            const member = memberDoc.data();
-            if (member.status === "Occupied" && member.userId) {
-              const entry = contributorsMap.get(member.userId) || {
-                userId: member.userId,
-                name: member.name || "Anonymous",
-                email: "",
-                issuesResolved: 0,
-                projectsContributed: 0,
-                messagesSent: 0,
-                totalScore: 0,
-              };
-              entry.projectsContributed += 1;
-              contributorsMap.set(member.userId, entry);
-            }
-          });
-        }
-
-        // Fetch user profiles for GitHub usernames
-        const usersSnapshot = await getDocs(collection(db, "Student_Detail"));
-        usersSnapshot.forEach((userDoc) => {
-          const userData = userDoc.data();
-          const entry = contributorsMap.get(userDoc.id);
-          if (entry && userData.githubUsername) {
-            entry.githubUsername = userData.githubUsername;
-          }
-        });
-
-        // Calculate total score (issues * 10 + messages * 2 + projects * 20)
-        const leaderboardData = Array.from(contributorsMap.values()).map(entry => ({
-          ...entry,
-          totalScore: (entry.issuesResolved * 10) + (entry.messagesSent * 2) + (entry.projectsContributed * 20)
-        }));
-
-        // Sort by total score descending
-        leaderboardData.sort((a, b) => b.totalScore - a.totalScore);
-
+        const leaderboardData = await getLeaderboard();
         setLeaderboard(leaderboardData);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);

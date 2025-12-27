@@ -4,15 +4,17 @@ import { apiRequest } from './api';
 export interface MarketplaceChat {
   id: string;
   participants: string[];
+  participantNames: { [userId: string]: string };
+  participantAvatars: { [userId: string]: string };
   projectId: string;
   projectTitle: string;
   sellerId: string;
   sellerName: string;
-  buyerId: string;
-  buyerName: string;
+  requesterId: string;
   lastMessage: string;
   lastMessageTime: Date;
   unreadCount: { [userId: string]: number };
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 export interface MarketplaceMessage {
@@ -20,10 +22,16 @@ export interface MarketplaceMessage {
   chatId: string;
   senderId: string;
   senderName: string;
-  content: string;
+  message: string;
   timestamp: Date;
   read: boolean;
   type?: 'text' | 'image' | 'file';
+}
+
+export interface CreateOrGetChatResult {
+  chatId: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  isNew: boolean;
 }
 
 // Get all chats for a user
@@ -38,27 +46,36 @@ export const getUserChats = async (userId: string): Promise<MarketplaceChat[]> =
 };
 
 // Create or get chat between buyer and seller
+// MATCHES COMPONENT CALL: createOrGetChat(userId, userName, userAvatar, sellerId, sellerName, sellerAvatar, projectId, projectTitle)
 export const createOrGetChat = async (
-  userId1: string,
-  userName1: string,
-  userId2: string,
-  userName2: string,
+  requesterId: string,
+  requesterName: string,
+  requesterAvatar: string,
+  sellerId: string,
+  sellerName: string,
+  sellerAvatar: string,
   projectId: string,
   projectTitle: string
-): Promise<string> => {
+): Promise<CreateOrGetChatResult> => {
   try {
     const response = await apiRequest('/marketplace/chats', {
       method: 'POST',
       body: JSON.stringify({
-        userId1,
-        userName1,
-        userId2,
-        userName2,
+        requesterId,
+        requesterName,
+        requesterAvatar,
+        sellerId,
+        sellerName,
+        sellerAvatar,
         projectId,
         projectTitle
       })
     });
-    return response.chatId;
+    return {
+      chatId: response.chatId,
+      status: response.status,
+      isNew: response.isNew || false
+    };
   } catch (error) {
     console.error('Error creating/getting chat:', error);
     throw error;
@@ -93,7 +110,13 @@ export const sendMessage = async (
 export const getChatMessages = async (chatId: string): Promise<MarketplaceMessage[]> => {
   try {
     const response = await apiRequest(`/marketplace/chats/${chatId}/messages`);
-    return response.messages || [];
+    const messages = response.messages || [];
+    
+    return messages.map((msg: any) => ({
+      ...msg,
+      id: msg.id || msg._id,
+      timestamp: new Date(msg.timestamp),
+    }));
   } catch (error) {
     console.error('Error fetching messages:', error);
     return [];
@@ -172,12 +195,11 @@ export const subscribeToMessages = (chatId: string, callback: (messages: Marketp
   return () => clearInterval(interval);
 };
 
-// Chat request functions
-export const acceptChatRequest = async (chatId: string, userId: string): Promise<void> => {
+// Chat request functions - MATCHES COMPONENT CALL: acceptChatRequest(chatId)
+export const acceptChatRequest = async (chatId: string): Promise<void> => {
   try {
     await apiRequest(`/marketplace/chats/${chatId}/accept`, {
-      method: 'POST',
-      body: JSON.stringify({ userId })
+      method: 'POST'
     });
   } catch (error) {
     console.error('Error accepting chat request:', error);
@@ -185,11 +207,11 @@ export const acceptChatRequest = async (chatId: string, userId: string): Promise
   }
 };
 
-export const rejectChatRequest = async (chatId: string, userId: string): Promise<void> => {
+// MATCHES COMPONENT CALL: rejectChatRequest(chatId)
+export const rejectChatRequest = async (chatId: string): Promise<void> => {
   try {
     await apiRequest(`/marketplace/chats/${chatId}/reject`, {
-      method: 'POST',
-      body: JSON.stringify({ userId })
+      method: 'POST'
     });
   } catch (error) {
     console.error('Error rejecting chat request:', error);
@@ -201,7 +223,16 @@ export const subscribeToPendingRequests = (userId: string, callback: (requests: 
   const fetchRequests = async () => {
     try {
       const response = await apiRequest(`/marketplace/chats/pending?userId=${userId}`);
-      callback(response.requests || []);
+      const requests = response.requests || [];
+      
+      // Transform dates
+      const transformedRequests = requests.map((req: any) => ({
+        ...req,
+        id: req.id || req._id,
+        lastMessageTime: new Date(req.lastMessageTime),
+      }));
+      
+      callback(transformedRequests);
     } catch (error) {
       console.error('Error fetching pending requests:', error);
       callback([]);
@@ -218,9 +249,11 @@ export const subscribeToAcceptedChats = (userId: string, callback: (chats: Marke
   return subscribeToUserChats(userId, callback);
 };
 
-export const debugChatSystem = async (): Promise<any> => {
+// Debug function - MATCHES COMPONENT CALL: debugChatSystem(userId)
+export const debugChatSystem = async (userId?: string): Promise<any> => {
   try {
-    const response = await apiRequest('/marketplace/chats/debug');
+    const url = userId ? `/marketplace/chats/debug?userId=${userId}` : '/marketplace/chats/debug';
+    const response = await apiRequest(url);
     return response;
   } catch (error) {
     console.error('Error debugging chat system:', error);

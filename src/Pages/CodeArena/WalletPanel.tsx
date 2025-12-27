@@ -52,45 +52,10 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
         let currentStreak = 0;
         
         try {
-          const battlesRef = collection(db, 'CodeArena_Battles');
-          const snapshot = await null // TODO: Replace with backend API GET } as any));
-          
-          // Filter battles where user participated
-          const userBattles = allBattles.filter((battle: any) => {
-            const participants = battle.participants || [];
-            return participants.some((p: any) => {
-              const odId = p.odId || p.userId;
-              return odId === user.id;
-            });
-          });
-          
-          // Count wins
-          userBattles.forEach((battle: any) => {
-            if (battle.winnerId === user.id) {
-              battlesWon++;
-            }
-          });
-          
-          // Calculate current streak from consecutive wins
-          const completedBattles = userBattles
-            .filter((b: any) => b.status === 'completed' || b.status === 'forfeited')
-            .sort((a: any, b: any) => {
-              const getTime = (ts: any) => {
-                if (!ts) return 0;
-                if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
-                if (ts instanceof Date) return ts.getTime();
-                return typeof ts === 'number' ? ts : 0;
-              };
-              return getTime(b.createdAt) - getTime(a.createdAt);
-            });
-          
-          for (const battle of completedBattles) {
-            if (battle.winnerId === user.id) {
-              currentStreak++;
-            } else if (battle.winnerId) {
-              break;
-            }
-          }
+          // TODO: Implement backend API for battles
+          // For now, use wallet data
+          battlesWon = wallet?.achievements?.battlesWon || 0;
+          currentStreak = wallet?.streak?.current || 0;
         } catch (e) {
           console.error('Error fetching battles for wallet:', e);
           battlesWon = wallet?.achievements?.battlesWon || 0;
@@ -121,51 +86,13 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
       
       try {
         // Try to fetch from transactions collection
-        let data = await fetchUserTransactions(user.id);
+        const data = await fetchUserTransactions(user.id);
         
-        // If no transactions, try to build from battle history
-        if (!data || data.length === 0) {
-          try {
-            const battlesRef = collection(db, 'CodeArena_Battles');
-            const snapshot = await null // TODO: Replace with backend API GET } as any));
-            
-            // Filter completed battles where user participated
-            const userBattles = allBattles.filter((battle: any) => {
-              const participants = battle.participants || [];
-              return participants.some((p: any) => {
-                const odId = p.odId || p.userId;
-                return odId === user.id;
-              }) && (battle.status === 'completed' || battle.status === 'forfeited');
-            });
-            
-            // Convert battles to transaction format
-            data = userBattles.map((battle: any) => {
-              const isWinner = battle.winnerId === user.id;
-              return {
-                id: battle.id,
-                type: isWinner ? 'earn' : 'spend',
-                category: 'battle',
-                amount: isWinner ? (battle.prize || battle.entryFee * 2 || 0) : (battle.entryFee || 0),
-                description: isWinner ? `Won battle - ${battle.challenge?.title || 'Coding Battle'}` : `Lost battle - ${battle.challenge?.title || 'Coding Battle'}`,
-                createdAt: battle.endTime || battle.createdAt
-              };
-            }).sort((a: any, b: any) => {
-              const getTime = (ts: any) => {
-                if (!ts) return 0;
-                if (typeof ts === 'object' && ts.toDate) return ts.toDate().getTime();
-                if (ts instanceof Date) return ts.getTime();
-                return typeof ts === 'number' ? ts : 0;
-              };
-              return getTime(b.createdAt) - getTime(a.createdAt);
-            });
-          } catch (e) {
-            console.error('Error building transactions from battles:', e);
-          }
-        }
-        
+        // If no transactions, use empty array
         setTransactions(data || []);
       } catch (error) {
         console.error('Error loading transactions:', error);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }

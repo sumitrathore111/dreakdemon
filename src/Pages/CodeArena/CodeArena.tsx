@@ -1,18 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  ChevronRight,
-  Code2,
-  Coins,
-  Crown,
-  History,
-  Loader2,
-  Star,
-  Swords,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users
+    AlertTriangle,
+    ChevronRight,
+    Code2,
+    Coins,
+    Crown,
+    History,
+    Loader2,
+    Star,
+    Swords,
+    Target,
+    TrendingUp,
+    Trophy,
+    Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
@@ -69,6 +69,7 @@ class ErrorBoundary extends Component<
 }
 
 // Import sub-components
+import { apiRequest } from '../../service/api';
 import BattleHistory from './BattleHistory';
 import BattleLobby from './BattleLobby';
 import BattleResults from './BattleResults';
@@ -79,7 +80,6 @@ import LocalChallengeEditor from './LocalChallengeEditor';
 import PracticeChallenges from './PracticeChallenges';
 import SeedChallenges from './SeedChallenges';
 import WalletPanel from './WalletPanel';
-import { apiRequest } from '../../service/api';
 
 const CodeArenaContent = () => {
   const navigate = useNavigate();
@@ -192,7 +192,7 @@ const CodeArenaContent = () => {
           
           if (!existingWallet) {
             console.log('No wallet found, creating new one...');
-            await initializeWallet(user.id, userprofile?.name || user.email?.split('@')[0] || 'User');
+            await initializeWallet(user.id);
           }
           
           const unsubscribe = subscribeToWallet(user.id, async (walletData) => {
@@ -422,7 +422,7 @@ const CodeArenaContent = () => {
 
 // Home Content
 const HomeContent = ({ stats, quickActions, navigate }: any) => {
-  const { fetchActiveBattles, fetchGlobalLeaderboard } = useDataContext();
+  const { fetchGlobalLeaderboard } = useDataContext();
   const [liveBattles, setLiveBattles] = useState<any[]>([]);
   const [topPlayers, setTopPlayers] = useState<any[]>([]);
   const [loadingBattles, setLoadingBattles] = useState(true);
@@ -431,10 +431,8 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
   useEffect(() => {
     const loadLiveBattles = async () => {
       try {
-        if (fetchActiveBattles) {
-          const battles = await fetchActiveBattles();
-          setLiveBattles(battles?.slice(0, 3) || []); // Show only top 3
-        }
+        // fetchActiveBattles removed - use API directly if needed
+        setLiveBattles([]);
       } catch (error) {
         console.error('Error loading battles:', error);
         setLiveBattles([]);

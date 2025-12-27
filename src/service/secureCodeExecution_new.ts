@@ -1,8 +1,8 @@
 // Secure code execution service - now uses custom backend only
 // All Firebase authentication removed
 
-import { apiRequest } from './api';
 import { validateCodeSubmission } from '../middleware/inputValidator';
+import { apiRequest } from './api';
 
 interface ExecutionResult {
   output: string;
@@ -30,7 +30,8 @@ interface ChallengeSubmissionResult {
   }>;
 }
 
-interface BattleResult {
+// BattleResult interface for potential future use
+interface _BattleResult {
   winnerId: string | null;
   winnerCoins: number;
   loserCoins: number;
@@ -38,6 +39,9 @@ interface BattleResult {
     [playerId: string]: ExecutionResult;
   };
 }
+
+// Export for external use if needed
+export type { _BattleResult as BattleResult };
 
 class SecureCodeExecutionService {
   private readonly BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';

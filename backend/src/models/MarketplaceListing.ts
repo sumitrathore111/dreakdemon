@@ -1,26 +1,32 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IMarketplaceListing extends Document {
   title: string;
   description: string;
   price: number;
+  isFree: boolean;
   category: string;
   tags: string[];
   images: string[];
   sellerId: string;
   sellerName: string;
   sellerAvatar: string;
-  status: 'active' | 'sold' | 'inactive';
-  projectType: 'full-stack' | 'frontend' | 'backend' | 'mobile' | 'other';
+  status: 'draft' | 'pending_verification' | 'published' | 'rejected' | 'sold-out' | 'archived';
+  rejectionReason?: string;
   techStack: string[];
-  demoUrl?: string;
-  repoUrl?: string;
-  hasSourceCode: boolean;
-  hasDocumentation: boolean;
-  license: string;
+  links: {
+    github?: string;
+    liveDemo?: string;
+    documentation?: string;
+    video?: string;
+  };
+  licenseType: 'personal' | 'commercial' | 'open-source' | 'mit';
   views: number;
   likes: string[];
   purchases: number;
+  rating: number;
+  reviewCount: number;
+  features?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,33 +35,57 @@ const MarketplaceListingSchema: Schema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   price: { type: Number, required: true, min: 0 },
+  isFree: { type: Boolean, default: false },
   category: { type: String, required: true },
   tags: [{ type: String }],
   images: [{ type: String }],
   sellerId: { type: String, required: true },
   sellerName: { type: String, required: true },
-  sellerAvatar: { type: String },
+  sellerAvatar: { type: String, default: '' },
   status: { 
     type: String, 
-    enum: ['active', 'sold', 'inactive'], 
-    default: 'active' 
+    enum: ['draft', 'pending_verification', 'published', 'rejected', 'sold-out', 'archived'], 
+    default: 'pending_verification' 
   },
-  projectType: { 
-    type: String, 
-    enum: ['full-stack', 'frontend', 'backend', 'mobile', 'other'],
-    required: true
-  },
+  rejectionReason: { type: String },
   techStack: [{ type: String }],
-  demoUrl: { type: String },
-  repoUrl: { type: String },
-  hasSourceCode: { type: Boolean, default: true },
-  hasDocumentation: { type: Boolean, default: false },
-  license: { type: String, default: 'MIT' },
+  links: {
+    github: { type: String },
+    liveDemo: { type: String },
+    documentation: { type: String },
+    video: { type: String }
+  },
+  licenseType: { 
+    type: String, 
+    enum: ['personal', 'commercial', 'open-source', 'mit'],
+    default: 'personal'
+  },
   views: { type: Number, default: 0 },
   likes: [{ type: String }],
-  purchases: { type: Number, default: 0 }
+  purchases: { type: Number, default: 0 },
+  rating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
+  features: [{ type: String }]
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
 export default mongoose.model<IMarketplaceListing>('MarketplaceListing', MarketplaceListingSchema);

@@ -34,7 +34,7 @@ export default function QueryScreen() {
     };
     setQuestions([...questions, newQ]);
     setNewQuestion("");
-    writeQueryOnDate(newQ)
+    writeQueryOnDate(newQ as any)
   };
 
   useEffect(() => {

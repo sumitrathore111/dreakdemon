@@ -2,18 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
-import { apiRequest } from "../../service/api";
-
-export type Project = {
-
-  name: string;
-  techStack: string;
-  idea: string;
-  shortDescription: string;
-  createdAt: string;
-};
-
-
+import type { LeaderboardEntry, Project } from "../../service/projectsService";
+import { getAllProjects, getLeaderboard } from "../../service/projectsService";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -23,139 +13,24 @@ const cardVariants = {
 export default function ProjectList() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
   const [showGuide, setShowGuide] = useState(false);
   const [activeTab, setActiveTab] = useState<'projects' | 'leaderboard'>('projects');
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
-  // const [loading, setLoading] = useState(false);
 
-  const deleteCorruptedProject = async () => {
-    if (!user) {
-      alert("Please login to delete projects");
-      return;
-    }
-    
-    try {
-      const querySnapshot = await getDocs(collection(db, "Open_Projects"));
-      const corruptedProjects = querySnapshot.docs.filter(doc => {
-        const data = doc.data();
-        return data.title === "nnl.n" || !data.title || data.title.length < 3;
-      });
-      
-      for (const docSnapshot of corruptedProjects) {
-        await deleteDoc(doc(db, "Open_Projects", docSnapshot.id));
-      }
-      
-      alert(`✅ Deleted ${corruptedProjects.length} corrupted project(s)`);
-      window.location.reload();
-    } catch (error) {
-      console.error("Error deleting corrupted projects:", error);
-      alert("Failed to delete corrupted projects. Check console for details.");
-    }
-  };
-
-
-  const addDemoProjects = async () => {
-    if (!user) {
-      alert("Please login to add demo projects");
-      return;
-    }
-    
-    const confirmAdd = window.confirm("⚠️ This will add 6 demo projects. Continue?");
-    if (!confirmAdd) return;
-    
-    // setLoading(true);
-    try {
-      const demoProjects = [
-        {
-          title: "AI-Powered Resume Builder",
-          description: "Build an intelligent resume builder that uses AI to suggest improvements, optimize keywords for ATS systems, and generate professional templates. Perfect for students entering the job market!",
-          techStack: ["React", "TypeScript", "Node.js", "OpenAI API", "MongoDB"],
-          githubRepo: "https://github.com/nextstep-projects/ai-resume-builder",
-        },
-        {
-          title: "Campus Event Management System",
-          description: "A comprehensive platform for managing college events, hackathons, and workshops. Features include event registration, QR code check-ins, live notifications, and analytics dashboard.",
-          techStack: ["Next.js", "Firebase", "Tailwind CSS", "React", "TypeScript"],
-          githubRepo: "https://github.com/nextstep-projects/campus-events",
-        },
-        {
-          title: "Code Collaboration Platform",
-          description: "Real-time collaborative code editor with video chat, syntax highlighting, and instant compilation. Think Google Docs but for coding! Great for pair programming and remote learning.",
-          techStack: ["React", "Node.js", "Socket.io", "WebRTC", "MongoDB"],
-          githubRepo: "https://github.com/nextstep-projects/code-collab",
-        },
-        {
-          title: "StudyBuddy - AI Study Assistant",
-          description: "An intelligent study companion that creates flashcards from notes, generates quiz questions, tracks study progress, and uses spaced repetition for better retention. Powered by AI!",
-          techStack: ["Python", "React", "Flask", "OpenAI API", "PostgreSQL"],
-          githubRepo: "https://github.com/nextstep-projects/studybuddy-ai",
-        },
-        {
-          title: "Open Source Blog Platform",
-          description: "A modern, fast, and SEO-friendly blogging platform with markdown support, dark mode, comment system, and analytics. Perfect for developers to showcase their journey!",
-          techStack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
-          githubRepo: "https://github.com/nextstep-projects/dev-blog-platform",
-        },
-        {
-          title: "Job Portal for Students",
-          description: "Connecting students with internships and entry-level jobs. Features smart matching algorithm, resume parser, application tracking, and company reviews by students.",
-          techStack: ["React", "Node.js", "Express", "MongoDB", "AWS S3"],
-          githubRepo: "https://github.com/nextstep-projects/student-job-portal",
-        },
-      ];
-
-      const sampleIssues = [
-        { title: "Add user authentication", description: "Implement JWT-based authentication with email/password and Google OAuth", status: "Open" },
-        { title: "Create responsive navbar", description: "Design and implement a mobile-friendly navigation bar with hamburger menu", status: "Open" },
-        { title: "Setup database schema", description: "Design and implement the database schema with proper relationships", status: "Open" },
-        { title: "Add dark mode support", description: "Implement theme switching between light and dark modes", status: "Open" },
-        { title: "Write API documentation", description: "Document all API endpoints using Swagger/OpenAPI specification", status: "Open" },
-      ];
-
-      for (const project of demoProjects) {
-        const projectRef = await addDoc(collection(db, "Open_Projects"), {
-          ...project,
-          creatorId: user.id,
-          creatorName: "NextStep Team",
-          createdAt: serverTimestamp(),
-          status: "Open",
-        });
-
-        // Add some issues to each project
-        const numIssues = Math.floor(Math.random() * 2) + 3; // 3-4 issues
-        const shuffledIssues = [...sampleIssues].sort(() => Math.random() - 0.5);
-        
-        for (let i = 0; i < numIssues; i++) {
-          await addDoc(collection(db, "Open_Projects", projectRef.id, "issues"), {
-            ...shuffledIssues[i],
-            createdBy: user.id,
-            creatorName: "NextStep Team",
-            resolvedBy: null,
-            createdAt: serverTimestamp(),
-          });
-        }
-      }
-
-      alert("✅ Successfully added 6 demo projects! Refresh the page to see them.");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error adding demo projects:", error);
-      alert("Failed to add demo projects. Check console for details.");
-    } finally {
-      // setLoading(false);
-    }
-  };
-  
+  // Fetch projects using backend API
   useEffect(() => {
     const fetchProjects = async () => {
-      const querySnapshot = await getDocs(collection(db, "Open_Projects"));
-      const projectsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setProjects(projectsData);
-      setFilteredProjects(projectsData);
+      try {
+        const projectsData = await getAllProjects();
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
     };
     fetchProjects();
   }, []);
@@ -176,85 +51,13 @@ export default function ProjectList() {
 
   const techFilters = ["All", "React", "Node.js", "Python", "MongoDB", "TypeScript", "JavaScript", "Next.js", "Express"];
 
-  // Fetch Leaderboard Data
+  // Fetch Leaderboard Data using backend API
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       const fetchLeaderboardData = async () => {
         setLoadingLeaderboard(true);
         try {
-          const contributorsMap = new Map<string, any>();
-          const projectsSnapshot = await getDocs(collection(db, "Open_Projects"));
-          
-          for (const projectDoc of projectsSnapshot.docs) {
-            const projectId = projectDoc.id;
-            
-            const issuesSnapshot = await getDocs(collection(db, "Open_Projects", projectId, "issues"));
-            issuesSnapshot.forEach((issueDoc) => {
-              const issue = issueDoc.data();
-              if (issue.status === "Resolved" && issue.creatorId) {
-                const entry = contributorsMap.get(issue.creatorId) || {
-                  userId: issue.creatorId,
-                  name: issue.creatorName || "Anonymous",
-                  issuesResolved: 0,
-                  projectsContributed: 0,
-                  messagesSent: 0,
-                  totalScore: 0,
-                };
-                entry.issuesResolved += 1;
-                contributorsMap.set(issue.creatorId, entry);
-              }
-            });
-            
-            const messagesSnapshot = await getDocs(collection(db, "Open_Projects", projectId, "messages"));
-            messagesSnapshot.forEach((msgDoc) => {
-              const msg = msgDoc.data();
-              if (msg.senderId) {
-                const entry = contributorsMap.get(msg.senderId) || {
-                  userId: msg.senderId,
-                  name: msg.senderName || "Anonymous",
-                  issuesResolved: 0,
-                  projectsContributed: 0,
-                  messagesSent: 0,
-                  totalScore: 0,
-                };
-                entry.messagesSent += 1;
-                contributorsMap.set(msg.senderId, entry);
-              }
-            });
-            
-            const membersSnapshot = await getDocs(collection(db, "Open_Projects", projectId, "members"));
-            membersSnapshot.forEach((memberDoc) => {
-              const member = memberDoc.data();
-              if (member.status === "Occupied" && member.userId) {
-                const entry = contributorsMap.get(member.userId) || {
-                  userId: member.userId,
-                  name: member.name || "Anonymous",
-                  issuesResolved: 0,
-                  projectsContributed: 0,
-                  messagesSent: 0,
-                  totalScore: 0,
-                };
-                entry.projectsContributed += 1;
-                contributorsMap.set(member.userId, entry);
-              }
-            });
-          }
-          
-          const usersSnapshot = await getDocs(collection(db, "Student_Detail"));
-          usersSnapshot.forEach((userDoc) => {
-            const userData = userDoc.data();
-            const entry = contributorsMap.get(userDoc.id);
-            if (entry && userData.githubUsername) {
-              entry.githubUsername = userData.githubUsername;
-            }
-          });
-          
-          const leaderboardData = Array.from(contributorsMap.values()).map(entry => ({
-            ...entry,
-            totalScore: (entry.issuesResolved * 10) + (entry.messagesSent * 2) + (entry.projectsContributed * 20)
-          }));
-          
-          leaderboardData.sort((a, b) => b.totalScore - a.totalScore);
+          const leaderboardData = await getLeaderboard();
           setLeaderboard(leaderboardData);
         } catch (error) {
           console.error("Error fetching leaderboard:", error);
@@ -317,20 +120,14 @@ export default function ProjectList() {
             )}
           </div>
 
-          {/* Admin Controls - Only show for logged in users */}
+          {/* Create Project Button - Only show for logged in users */}
           {user && (
             <div className="flex items-center gap-2">
               <button
-                onClick={deleteCorruptedProject}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold text-sm hover:from-red-600 hover:to-rose-700 transition-all hover:scale-105 shadow-md"
-              >
-                🗑️ Clean Database
-              </button>
-              <button
-                onClick={addDemoProjects}
+                onClick={() => navigate('/dashboard/openproject/new')}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-sm hover:from-green-600 hover:to-emerald-700 transition-all hover:scale-105 shadow-md"
               >
-                ➕ Load Demo Projects
+                ➕ Create Project
               </button>
             </div>
           )}
@@ -474,7 +271,7 @@ export default function ProjectList() {
                   
                   {/* Description */}
                   <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-4">
-                    {p.description || p.shortDescription}
+                    {p.description}
                   </p>
                   
                   {/* Tech Stack Pills */}

@@ -56,7 +56,7 @@ export type UserProfile = {
   streakCount: number;
 };
 
-export async function createUserProfileIfNeeded(user: any, name: string): Promise<void> {
+export async function createUserProfileIfNeeded(_user: any, _name: string): Promise<void> {
   // Profile is automatically created during signup
   // This function is kept for compatibility
 }

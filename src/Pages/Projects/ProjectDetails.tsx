@@ -3,15 +3,16 @@ import { ArrowLeft, Check, ExternalLink, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
-import { apiRequest } from "../../service/api";
+import type { Project, ProjectIssue } from "../../service/projectsService";
+import { createIssue, getProjectById, getProjectIssues, joinProject, updateIssueStatus } from "../../service/projectsService";
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [project, setProject] = useState<DocumentData | null>(null);
-  const [issues, setIssues] = useState<DocumentData[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
+  const [issues, setIssues] = useState<ProjectIssue[]>([]);
   const [hasJoined, setHasJoined] = useState(false);
   const [userContributions, setUserContributions] = useState({ issuesResolved: 0, totalIssues: 0 });
   const [loading, setLoading] = useState(false);
@@ -21,41 +22,37 @@ export default function ProjectDetail() {
   // Fetch project
   useEffect(() => {
     if (!id) return;
-    const projectRef = doc(db, "Open_Projects", id);
-    const unsub = onSnapshot(projectRef, (snap) => {
-      if (snap.exists()) {
-        setProject({ id: snap.id, ...snap.data() });
-      } else {
+    const fetchProject = async () => {
+      try {
+        const projectData = await getProjectById(id);
+        setProject(projectData);
+        // Check if user has joined by looking at members
+        if (projectData && user) {
+          const isMember = projectData.members?.some(m => m.userId === user.id);
+          setHasJoined(!!isMember);
+        }
+      } catch (error) {
+        console.error("Error fetching project:", error);
         setProject(null);
       }
-    });
-    return () => unsub();
-  }, [id]);
+    };
+    fetchProject();
+  }, [id, user]);
 
   // Fetch issues
   useEffect(() => {
     if (!id) return;
-    const issuesQ = query(
-      collection(db, "Open_Projects", id, "issues"),
-      orderBy("createdAt", "desc")
-    );
-    const unsub = onSnapshot(issuesQ, (snap) =>
-      setIssues(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-    return () => unsub();
-  }, [id]);
-
-  // Check if user has joined
-  useEffect(() => {
-    if (!id || !user) return;
-    const checkJoined = async () => {
-      const contributorsRef = collection(db, "Open_Projects", id, "contributors");
-      const q = query(contributorsRef, where("userId", "==", user.id));
-      const snap = await getDocs(q);
-      setHasJoined(!snap.empty);
+    const fetchIssues = async () => {
+      try {
+        const issuesData = await getProjectIssues(id);
+        setIssues(issuesData);
+      } catch (error) {
+        console.error("Error fetching issues:", error);
+        setIssues([]);
+      }
     };
-    checkJoined();
-  }, [id, user]);
+    fetchIssues();
+  }, [id]);
 
   // Calculate contributions
   useEffect(() => {
@@ -72,13 +69,7 @@ export default function ProjectDetail() {
     
     setLoading(true);
     try {
-      await addDoc(collection(db, "Open_Projects", id, "contributors"), {
-        userId: user.id,
-        userName: user.name || user.email || "Anonymous",
-        userEmail: user.email,
-        joinedAt: serverTimestamp(),
-        issuesResolved: 0,
-      });
+      await joinProject(id);
       setHasJoined(true);
       alert("🎉 Successfully joined the project! Start contributing now.");
     } catch (error) {
@@ -97,15 +88,13 @@ export default function ProjectDetail() {
 
     setLoading(true);
     try {
-      await addDoc(collection(db, "Open_Projects", id, "issues"), {
+      const createdIssue = await createIssue(id, {
         title: newIssue.title.trim(),
         description: newIssue.description.trim(),
-        status: "Open",
-        createdBy: user.id,
-        creatorName: user.name || user.email || "Anonymous",
-        resolvedBy: null,
-        createdAt: serverTimestamp(),
       });
+      if (createdIssue) {
+        setIssues([createdIssue, ...issues]);
+      }
       setNewIssue({ title: "", description: "" });
       setShowNewIssue(false);
       alert("✅ Issue added successfully!");
@@ -122,13 +111,14 @@ export default function ProjectDetail() {
     
     setLoading(true);
     try {
-      const issueRef = doc(db, "Open_Projects", id, "issues", issueId);
       const newStatus = currentStatus === "Open" ? "Resolved" : "Open";
-      await updateDoc(issueRef, { 
-        status: newStatus,
-        resolvedBy: newStatus === "Resolved" ? user.id : null,
-        resolvedAt: newStatus === "Resolved" ? serverTimestamp() : null,
-      });
+      await updateIssueStatus(id, issueId, newStatus as 'Open' | 'Resolved' | 'In Progress');
+      // Update local state
+      setIssues(issues.map(issue => 
+        (issue.id || issue._id) === issueId 
+          ? { ...issue, status: newStatus as 'Open' | 'Resolved' | 'In Progress', resolvedBy: newStatus === "Resolved" ? user.id : null }
+          : issue
+      ));
     } catch (error) {
       console.error("Error updating issue:", error);
       alert("Failed to update issue");
@@ -377,7 +367,7 @@ export default function ProjectDetail() {
             <div className="space-y-2 sm:space-y-3">
               {issues.map((issue, idx) => (
                 <div
-                  key={issue.id}
+                  key={issue.id || issue._id}
                   className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
                     issue.status === "Open" 
                       ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" 
@@ -396,7 +386,7 @@ export default function ProjectDetail() {
                               : "bg-green-200 text-green-800"
                           }`}
                         >
-                          {issue.status === "Open" ? "?? Open" : "? Resolved"}
+                          {issue.status === "Open" ? "🔴 Open" : "✅ Resolved"}
                         </span>
                       </div>
                       {issue.description && (
@@ -409,7 +399,7 @@ export default function ProjectDetail() {
 
                     {(hasJoined || isCreator) && (
                       <button
-                        onClick={() => handleToggleIssue(issue.id, issue.status)}
+                        onClick={() => handleToggleIssue(issue.id || issue._id || '', issue.status)}
                         disabled={loading}
                         className={`w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm disabled:opacity-50 whitespace-nowrap ${
                           issue.status === "Open"

@@ -11,7 +11,8 @@ import { useEffect, useState } from 'react';
 import { apiRequest } from '../../service/api';
 import { defaultChallenges } from '../../service/challenges';
 
-const CHALLENGES_COLLECTION = 'CodeArena_Challenges';
+// Collection name for reference - used in backend
+// const CHALLENGES_COLLECTION = 'CodeArena_Challenges';
 
 const SeedChallenges = () => {
   const [loading, setLoading] = useState(false);

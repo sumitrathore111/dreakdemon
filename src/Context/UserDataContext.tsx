@@ -350,7 +350,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const approveJoinRequest = async (requestId: string, projectId: string, userId: string, userName: string): Promise<void> => {
+  const approveJoinRequest = async (requestId: string, _projectId: string, _userId: string, _userName: string): Promise<void> => {
     try {
       await apiRequest(`/join-requests/${requestId}/respond`, {
         method: 'PUT',

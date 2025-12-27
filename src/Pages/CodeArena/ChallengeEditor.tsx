@@ -23,11 +23,19 @@ import { useDataContext } from '../../Context/UserDataContext';
 import { SecurityError, ValidationError } from '../../middleware/inputValidator';
 import {
     fetchChallengeById,
-    getChallengeById,
     getChallengeTestCases,
-    type Challenge
+    type Challenge,
+    type TestCase
 } from '../../service/challenges';
 import { secureCodeExecutionService } from '../../service/secureCodeExecution';
+
+// Supported languages for the editor
+const supportedLanguages = [
+  { id: 'python', name: 'Python' },
+  { id: 'cpp', name: 'C++' },
+  { id: 'java', name: 'Java' },
+  { id: 'javascript', name: 'JavaScript' }
+];
 
 const ChallengeEditor = () => {
   const { challengeId } = useParams(); // Format: "contestId-index" e.g., "1800-A"
@@ -38,7 +46,7 @@ const ChallengeEditor = () => {
 
   // Challenge state
   const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [testCases, setTestCases] = useState<{ input: string; output: string }[]>([]);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Editor state
@@ -59,7 +67,7 @@ const ChallengeEditor = () => {
   const [showHint, setShowHint] = useState(false);
   const [solved, setSolved] = useState(false);
 
-  const languages = secureCodeExecutionService.getSupportedLanguages();
+  const languages = supportedLanguages;
 
   const defaultCode: { [key: string]: string } = {
     python: `# Write your solution here
@@ -157,7 +165,7 @@ rl.on('close', () => {
           if (firestoreChallenge) {
             setChallenge(firestoreChallenge);
             // Fetch test cases (visible ones only for practice)
-            const cases = await getChallengeTestCases(challengeId, false);
+            const cases = await getChallengeTestCases(challengeId);
             setTestCases(cases);
           } else {
             // If not found in Firestore, show error
@@ -245,8 +253,8 @@ rl.on('close', () => {
         language,
         testCases.map(tc => ({
           input: tc.input,
-          expected_output: tc.expectedOutput || tc.output || tc.expected_output,
-          expectedOutput: tc.expectedOutput || tc.output || tc.expected_output
+          expected_output: tc.expectedOutput,
+          expectedOutput: tc.expectedOutput
         })),
         challenge?.coinReward,
         challenge?.title,
@@ -524,7 +532,7 @@ rl.on('close', () => {
                           onClick={async () => {
                             if (challengeId) {
                               setLoading(true);
-                              const cases = await getChallengeTestCases(challengeId, false);
+                              const cases = await getChallengeTestCases(challengeId);
                               setTestCases(cases);
                               setLoading(false);
                             }
@@ -556,7 +564,7 @@ rl.on('close', () => {
                                 <p className="text-xs text-green-400 mb-2 font-semibold flex items-center gap-1">
                                   ✅ Output
                                 </p>
-                                <pre className="text-sm text-white font-mono whitespace-pre-wrap bg-gray-900/50 p-2 rounded">{tc.output}</pre>
+                                <pre className="text-sm text-white font-mono whitespace-pre-wrap bg-gray-900/50 p-2 rounded">{tc.expectedOutput}</pre>
                               </div>
                             </div>
                           </motion.div>
