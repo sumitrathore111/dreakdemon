@@ -709,7 +709,8 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
     try {
       // Convert escaped newlines to actual newlines
       const stdin = (testCase.input || '').replace(/\\n/g, '\n');
-      const expectedRaw = (testCase.expected || testCase.output || testCase.expected_output || '');
+      // Check all possible field names for expected output
+      const expectedRaw = (testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '');
       
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
@@ -772,7 +773,7 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       results.push({
         passed: false,
         input: testCase.input,
-        expected: testCase.expected || testCase.output || '',
+        expected: testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '',
         output: '',
         error: error.response?.data?.message || error.message || 'Execution error',
         time: 0
