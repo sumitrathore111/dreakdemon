@@ -250,4 +250,88 @@ router.post('/:developerId/endorse', authenticate, async (req: AuthRequest, res:
   }
 });
 
+// Optimized endpoint to get all initial data for Developer Connect page
+router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    
+    // Fetch all data in parallel
+    const [users, studyGroupsData, endorsementsData] = await Promise.all([
+      // Get developers (excluding current user)
+      User.find(userId ? { _id: { $ne: userId } } : {})
+        .select('name email bio skills languages institute location avatar githubUsername createdAt')
+        .limit(50)
+        .sort({ createdAt: -1 }),
+      
+      // Get study groups
+      (async () => {
+        try {
+          const StudyGroup = require('../models/StudyGroup').default;
+          return await StudyGroup.find({ isActive: true })
+            .sort({ createdAt: -1 })
+            .limit(20);
+        } catch {
+          return [];
+        }
+      })(),
+      
+      // Get user's endorsements
+      userId ? Endorsement.find({ recipientId: userId }).sort({ createdAt: -1 }).limit(20) : Promise.resolve([])
+    ]);
+    
+    // Transform developers
+    const developers = users.map((user: any) => ({
+      userId: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      bio: user.bio || 'Developer on NextStep',
+      skills: user.skills || [],
+      languages: user.languages || [],
+      institute: user.institute || 'Not specified',
+      location: user.location || 'Not specified',
+      avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name?.replace(/\s+/g, '') || 'User'}`,
+      githubUsername: user.githubUsername || '',
+      isOnline: Math.random() > 0.5,
+      joinedDate: user.createdAt || new Date()
+    }));
+    
+    // Transform study groups
+    const studyGroups = (studyGroupsData || []).map((group: any) => ({
+      id: group._id.toString(),
+      name: group.name,
+      description: group.description,
+      topic: group.topic,
+      level: group.level,
+      memberCount: group.members?.length || 0,
+      maxMembers: group.maxMembers,
+      createdBy: group.createdBy,
+      creatorName: group.creatorName
+    }));
+    
+    // Transform endorsements
+    const endorsements = (endorsementsData || []).map((e: any) => ({
+      id: e._id.toString(),
+      endorserId: e.endorserId,
+      endorserName: e.endorserName,
+      skill: e.skill,
+      message: e.message,
+      timestamp: e.createdAt
+    }));
+    
+    res.json({
+      developers,
+      studyGroups,
+      endorsements,
+      counts: {
+        developers: developers.length,
+        studyGroups: studyGroups.length,
+        endorsements: endorsements.length
+      }
+    });
+  } catch (error: any) {
+    console.error('Error fetching developer connect data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

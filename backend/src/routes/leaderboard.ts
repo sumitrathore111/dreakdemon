@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
+import Battle from '../models/Battle';
 import Wallet from '../models/Wallet';
 import User from '../models/User';
 
@@ -45,10 +46,34 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       }).sort((a, b) => b.periodCoins - a.periodCoins);
     }
     
+    // Get battles won for all users in parallel (optimized query)
+    const userIds = wallets.map(w => w.userId.toString());
+    const battlesWonMap = new Map<string, number>();
+    
+    // Use aggregation to count wins for all users at once
+    const battlesWonAgg = await Battle.aggregate([
+      { 
+        $match: { 
+          winner: { $in: userIds },
+          status: { $in: ['completed', 'forfeited'] }
+        } 
+      },
+      { 
+        $group: { 
+          _id: '$winner', 
+          count: { $sum: 1 } 
+        } 
+      }
+    ]);
+    
+    battlesWonAgg.forEach((item: any) => {
+      battlesWonMap.set(item._id, item.count);
+    });
+    
     // Get user details for each wallet
     const leaderboardData = await Promise.all(
       wallets.map(async (wallet, index) => {
-        const user = await User.findById(wallet.userId).select('name email').lean();
+        const user = await User.findById(wallet.userId).select('name email avatar challenges_solved').lean();
         
         // Skip users without a proper name
         if (!user?.name || user.name.trim() === '') {
@@ -56,37 +81,38 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         }
         
         const userName = user.name;
-        const problemsSolved = wallet.achievements?.problemsSolved || 0;
-        const battlesWon = wallet.achievements?.battlesWon || 0;
+        const problemsSolved = wallet.achievements?.problemsSolved || (user as any).challenges_solved || 0;
+        // Get battles won from aggregation
+        const battlesWon = battlesWonMap.get(wallet.userId.toString()) || 0;
         
         // Calculate level based on problems solved and battles won
         const level = Math.floor((problemsSolved + battlesWon * 2) / 5) + 1;
         
-        // Calculate rating on 1-10 scale based on achievements
-        // Base rating is 1, increases with problems solved and battles won
-        const rawScore = (problemsSolved * 0.5) + (battlesWon * 1) + (wallet.coins / 100);
-        const rating = Math.min(10, Math.max(1, Math.round(rawScore * 10) / 10 + 1)); // 1-10 scale with 1 decimal
+        // Calculate rating - scale from coins and achievements
+        // Higher coins = higher rating, battles won adds bonus
+        const baseRating = Math.min(2500, 800 + Math.floor(wallet.coins / 10) + (battlesWon * 25) + (problemsSolved * 10));
         
         return {
           odId: wallet.userId.toString(),
           odName: userName,
           name: userName,
-          email: user?.email || '',
-          avatar: userName.charAt(0).toUpperCase(),
+          email: (user as any).email || '',
+          avatar: (user as any).avatar || userName.charAt(0).toUpperCase(),
           coins: (wallet as any).periodCoins !== undefined ? (wallet as any).periodCoins : wallet.coins,
           totalCoins: wallet.coins,
           problemsSolved,
           battlesWon,
           currentStreak: wallet.achievements?.currentStreak || 0,
           level,
-          rating
+          rating: baseRating
         };
       })
     );
     
-    // Filter out null entries (users without proper names) and add ranks
+    // Filter out null entries (users without proper names), sort by rating, and add ranks
     const leaderboard = leaderboardData
       .filter(entry => entry !== null)
+      .sort((a, b) => (b?.rating || 0) - (a?.rating || 0))
       .map((entry, index) => ({
         ...entry,
         rank: index + 1

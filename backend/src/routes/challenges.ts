@@ -338,14 +338,13 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       console.log('Test case input:', JSON.stringify(testCase.input));
       console.log('Expected output:', JSON.stringify(testCase.expectedOutput || testCase.output));
       
-      // Step 1: Create submission
+      // Don't send expected_output to Judge0 - we'll do our own comparison
       const submitResponse = await axios.post(
         `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
         {
           source_code: code,
           language_id: languageId,
-          stdin: testCase.input || '',
-          expected_output: (testCase.expectedOutput || testCase.output || '').trim()
+          stdin: testCase.input || ''
         },
         {
           headers: {
@@ -362,25 +361,36 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       const stderr = result.stderr || result.compile_output || '';
       const expected = (testCase.expectedOutput || testCase.output || testCase.expected || '').trim();
       const status = result.status?.description || 'Unknown';
+      const hasError = result.stderr || result.compile_output || result.status?.id >= 5;
       
       // Parse time as a number (Judge0 may return it as a string)
       const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
       const memoryValue = typeof result.memory === 'string' ? parseInt(result.memory) : (result.memory || 0);
       
+      // Normalize output for comparison (remove trailing/leading whitespace from each line)
+      const normalizeOutput = (s: string) => {
+        return s.split('\n').map(line => line.trim()).join('\n').trim();
+      };
+      
+      const normalizedOutput = normalizeOutput(output);
+      const normalizedExpected = normalizeOutput(expected);
+      const passed = !hasError && normalizedOutput === normalizedExpected;
+      
       console.log('Status:', status);
       console.log('Actual output:', JSON.stringify(output));
-      console.log('Stderr:', stderr);
-      console.log('Match:', output === expected);
+      console.log('Expected:', JSON.stringify(expected));
+      console.log('Normalized match:', passed);
       
       results.push({
-        passed: output === expected && status === 'Accepted',
+        passed,
         input: testCase.input,
         expected,
-        output,
+        output: output || stderr || 'No output',
         stderr,
         status,
         time: isNaN(timeValue) ? 0 : timeValue,
-        memory: isNaN(memoryValue) ? 0 : memoryValue
+        memory: isNaN(memoryValue) ? 0 : memoryValue,
+        error: hasError ? (stderr || status) : undefined
       });
     } catch (error: any) {
       console.error('Code execution error:', error.response?.data || error.message);

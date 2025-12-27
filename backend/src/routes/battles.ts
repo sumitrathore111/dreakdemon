@@ -695,13 +695,13 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
   
   for (const testCase of testCases) {
     try {
+      // Don't send expected_output to Judge0 - we'll do our own comparison
       const response = await axios.post(
         `${process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com'}/submissions?base64_encoded=false&wait=true`,
         {
           source_code: code,
           language_id: languageId,
-          stdin: testCase.input || '',
-          expected_output: (testCase.expected || testCase.output || testCase.expected_output || '').trim()
+          stdin: testCase.input || ''
         },
         {
           headers: {
@@ -714,18 +714,37 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       );
       
       const result = response.data;
-      const output = (result.stdout || '').trim();
+      
+      // Get output - handle both stdout and compile_output
+      let output = (result.stdout || '').trim();
       const expected = (testCase.expected || testCase.output || testCase.expected_output || '').trim();
+      
+      // Check for errors
+      const hasError = result.stderr || result.compile_output || result.status?.id >= 5;
       
       // Parse time as a number (Judge0 may return it as a string)
       const timeValue = typeof result.time === 'string' ? parseFloat(result.time) : (result.time || 0);
       
+      // Normalize output for comparison (remove trailing/leading whitespace from each line)
+      const normalizeOutput = (s: string) => {
+        return s.split('\n').map(line => line.trim()).join('\n').trim();
+      };
+      
+      const normalizedOutput = normalizeOutput(output);
+      const normalizedExpected = normalizeOutput(expected);
+      
+      // Check if passed - compare normalized outputs
+      const passed = !hasError && normalizedOutput === normalizedExpected;
+      
+      console.log(`Test case: input="${testCase.input?.substring(0, 50)}..." expected="${expected}" got="${output}" passed=${passed}`);
+      
       results.push({
-        passed: output === expected && result.status?.description === 'Accepted',
+        passed,
         input: testCase.input,
         expected,
-        output,
-        time: isNaN(timeValue) ? 0 : timeValue
+        output: output || result.stderr || result.compile_output || 'No output',
+        time: isNaN(timeValue) ? 0 : timeValue,
+        error: hasError ? (result.stderr || result.compile_output || result.status?.description) : undefined
       });
     } catch (error: any) {
       console.error('Code execution error:', error.response?.data || error.message);
@@ -734,7 +753,7 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
         input: testCase.input,
         expected: testCase.expected || testCase.output || '',
         output: '',
-        error: 'Execution error',
+        error: error.response?.data?.message || error.message || 'Execution error',
         time: 0
       });
     }

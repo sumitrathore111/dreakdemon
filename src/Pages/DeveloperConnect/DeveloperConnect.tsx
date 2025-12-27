@@ -106,63 +106,50 @@ export default function DeveloperConnect() {
     scrollToBottom();
   }, [messages]);
 
-  // Fetch REAL users from the backend
+  // Fetch ALL initial data in one optimized call
   useEffect(() => {
-    const loadRealUsers = async () => {
+    const loadInitialData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const developersData = await apiRequest('/developers');
         
-        console.log('All users from backend:', developersData); // Debug
+        // Use optimized endpoint that fetches everything in parallel
+        const data = await apiRequest('/developers/init/page-data');
         
-        setDevelopers(developersData);
+        console.log('Developer Connect data loaded:', data);
         
-        if (developersData.length === 0) {
+        setDevelopers(data.developers || []);
+        setStudyGroups(data.studyGroups || []);
+        setEndorsements(data.endorsements || []);
+        
+        if (!data.developers || data.developers.length === 0) {
           setError('No developers found. The community is waiting for you!');
         }
       } catch (err) {
-        console.error('Error loading users:', err);
-        setError('Failed to load developers: ' + (err instanceof Error ? err.message : String(err)));
+        console.error('Error loading Developer Connect data:', err);
+        // Fallback to individual calls if optimized endpoint fails
+        try {
+          const [developersData, groupsData, endorsementsData] = await Promise.all([
+            apiRequest('/developers').catch(() => []),
+            apiRequest('/study-groups').catch(() => ({ groups: [] })),
+            apiRequest('/developers/endorsements/me').catch(() => ({ endorsements: [] }))
+          ]);
+          
+          setDevelopers(developersData || []);
+          setStudyGroups(groupsData.groups || []);
+          setEndorsements(endorsementsData.endorsements || []);
+        } catch (fallbackErr) {
+          setError('Failed to load developers: ' + (err instanceof Error ? err.message : String(err)));
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadRealUsers();
+    loadInitialData();
   }, []);
 
-  // Load study groups from backend
-  useEffect(() => {
-    const loadGroups = async () => {
-      try {
-        const response = await apiRequest('/study-groups');
-        setStudyGroups(response.groups || []);
-      } catch (err) {
-        console.error('Error loading study groups:', err);
-      }
-    };
-    
-    loadGroups();
-  }, []);
-
-  // Load endorsements from backend
-  useEffect(() => {
-    const loadEndorsements = async () => {
-      if (!user) return;
-      
-      try {
-        const response = await apiRequest('/developers/endorsements/me');
-        setEndorsements(response.endorsements || []);
-      } catch (err) {
-        console.error('Error loading endorsements:', err);
-      }
-    };
-    
-    loadEndorsements();
-  }, [user]);
-
-  // Subscribe to messages when chat is selected
+  // Load conversations when messages tab is opened
   useEffect(() => {
     if (!selectedChat || !user) {
       setMessages([]);
