@@ -64,6 +64,18 @@ io.on('connection', (socket) => {
     console.log(`👤 Socket ${socket.id} left project:${projectId}`);
   });
 
+  // Join user's personal room for notifications
+  socket.on('join-user', (userId: string) => {
+    socket.join(`user:${userId}`);
+    console.log(`👤 Socket ${socket.id} joined user room: user:${userId}`);
+  });
+
+  // Leave user's personal room
+  socket.on('leave-user', (userId: string) => {
+    socket.leave(`user:${userId}`);
+    console.log(`👤 Socket ${socket.id} left user room: user:${userId}`);
+  });
+
   // Join a chat room for real-time messaging
   socket.on('join-chat', (chatId: string) => {
     socket.join(`chat:${chatId}`);

@@ -62,6 +62,7 @@ interface DataContextType {
   // Admin functions
   updateIdeaStatus: (ideaId: string, status: string, feedback?: string, reviewedBy?: string) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
+  deleteIdea: (ideaId: string) => Promise<void>;
   fetchAllUsers: () => Promise<any[]>;
   fetchAllProjectMembers: () => Promise<any[]>;
   getPlatformStats: () => Promise<any>;
@@ -243,15 +244,33 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         // Extract the actual project ID from the populated projectId object
         let actualProjectId = null;
         if (idea.projectId) {
-          // If projectId is populated (object with _id), extract _id
-          actualProjectId = idea.projectId._id || idea.projectId;
+          // If projectId is populated (object with _id or id), extract it
+          actualProjectId = idea.projectId.id || idea.projectId._id || idea.projectId;
         }
+        
+        // Extract userId as string - handle populated object (with id or _id) and plain string
+        let userId = idea.userId;
+        if (idea.submittedBy) {
+          if (typeof idea.submittedBy === 'object') {
+            // Populated user object - check for id first (from toJSON transform), then _id
+            userId = idea.submittedBy.id || idea.submittedBy._id;
+            if (userId && typeof userId !== 'string') {
+              userId = String(userId);
+            }
+          } else if (typeof idea.submittedBy === 'string') {
+            userId = idea.submittedBy;
+          } else {
+            userId = String(idea.submittedBy);
+          }
+        }
+        
+        console.log('Idea mapping:', { ideaTitle: idea.title, submittedBy: idea.submittedBy, extractedUserId: userId });
         
         return {
           ...idea,
           id: idea._id || idea.id,
           projectId: actualProjectId,  // Include actual project ID
-          userId: idea.submittedBy?._id || idea.submittedBy || idea.userId,
+          userId: userId,
           userName: idea.submittedByName || idea.submittedBy?.name || idea.userName,
           userEmail: idea.submittedByEmail || idea.submittedBy?.email || idea.userEmail,
           submittedAt: idea.createdAt || idea.submittedAt
@@ -393,15 +412,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await apiRequest(`/projects/${projectId}/members`);
       const members = response.members || [];
+      console.log('📋 Raw members from API for project', projectId, ':', members);
       // Map backend member format to frontend format
-      return members.map((member: any) => ({
-        id: member._id || member.id,
-        userId: member.userId?._id || member.userId,
-        userName: member.userId?.name || member.name || member.userName || 'Unknown',
-        userEmail: member.userId?.email || member.email || member.userEmail,
-        role: member.role === 'owner' ? 'creator' : 'contributor',
-        joinedAt: member.joinedAt
-      }));
+      return members.map((member: any) => {
+        // Backend now returns userId as a string directly
+        const userId = String(member.userId);
+        
+        return {
+          id: member._id || member.id,
+          userId: userId,
+          userName: member.name || 'Unknown',
+          userEmail: member.email,
+          role: member.role === 'owner' ? 'creator' : 'contributor',
+          joinedAt: member.joinedAt
+        };
+      });
     } catch (error) {
       console.error('Error fetching project members:', error);
       return [];
@@ -647,9 +672,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteIdea = async (ideaId: string): Promise<void> => {
+    try {
+      await apiRequest(`/ideas/${ideaId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error deleting idea:', error);
+      throw error;
+    }
+  };
+
   const fetchAllUsers = async (): Promise<any[]> => {
     try {
-      const response = await apiRequest('/admin/users');
+      const response = await apiRequest('/users');
       return response.users || [];
     } catch (error) {
       console.error('Error fetching all users:', error);
@@ -905,6 +941,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     fetchUserTransactions,
     updateIdeaStatus,
     deleteProject,
+    deleteIdea,
     fetchAllUsers,
     fetchAllProjectMembers,
     getPlatformStats,

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IJoinRequest extends Document {
   projectId: mongoose.Types.ObjectId;
@@ -27,7 +27,25 @@ const JoinRequestSchema: Schema = new Schema({
   respondedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   respondedAt: { type: Date }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
 // Index for efficient queries

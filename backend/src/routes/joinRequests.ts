@@ -142,13 +142,19 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
       res.status(404).json({ error: 'Join request not found' });
       return;
     }
+    
+    console.log('📋 Processing join request:', req.params.requestId);
+    console.log('📋 Request projectId:', request.projectId.toString());
 
     // Check if user is project owner or admin
     const project = await Project.findById(request.projectId);
     if (!project) {
+      console.log('❌ Project not found for request projectId:', request.projectId.toString());
       res.status(404).json({ error: 'Project not found' });
       return;
     }
+    
+    console.log('📋 Found project:', project._id.toString(), 'Title:', project.title);
 
     const isOwner = project.owner.toString() === req.user?.id;
     const isAdmin = project.members.some(m => 
@@ -168,8 +174,12 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
 
     // If approved, add user to project
     if (status === 'approved') {
+      console.log('📋 Approving join request for project:', project._id.toString());
+      console.log('📋 Request userId:', request.userId.toString());
+      
       // Check if user is already a member to prevent duplicates
       const isAlreadyMember = project.members.some(m => m.userId.toString() === request.userId.toString());
+      console.log('📋 Is already member:', isAlreadyMember);
       
       if (!isAlreadyMember) {
         // Get the user's name from the database if not stored in request
@@ -187,6 +197,8 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
           }
         }
         
+        console.log('📋 Adding member:', { userId: request.userId.toString(), name: userName, email: userEmail });
+        
         project.members.push({
           userId: request.userId,
           name: userName,
@@ -194,12 +206,21 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
           role: 'member',
           joinedAt: new Date()
         });
-        await project.save();
+        
+        const savedProject = await project.save();
+        console.log('📋 Project saved with', savedProject.members.length, 'members');
         
         // Emit real-time event for new member
         const io = getIO(req);
         if (io) {
           io.to(`project:${project._id}`).emit('member-joined', {
+            userId: request.userId,
+            userName,
+            userEmail,
+            role: 'member'
+          });
+          // Also emit to the user's personal room so they get notified even if not in project room
+          io.to(`user:${request.userId}`).emit('member-joined', {
             userId: request.userId,
             userName,
             userEmail,
@@ -216,6 +237,13 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
         requestId: req.params.requestId,
         status,
         userId: request.userId
+      });
+      // Also emit to the user who made the request so they get notified immediately
+      io.to(`user:${request.userId}`).emit('join-request-updated', {
+        requestId: req.params.requestId,
+        status,
+        userId: request.userId,
+        projectId: project._id
       });
     }
 

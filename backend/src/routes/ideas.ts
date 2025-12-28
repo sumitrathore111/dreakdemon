@@ -20,8 +20,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       .sort({ createdAt: -1 })
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit))
-      .populate('submittedBy', 'name email')
-      .populate('reviewedBy', 'name email')
+      .populate('submittedBy', '_id name email')
+      .populate('reviewedBy', '_id name email')
       .populate('projectId', '_id title');
     
     const total = await Idea.countDocuments(query);
@@ -42,8 +42,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 router.get('/:ideaId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const idea = await Idea.findById(req.params.ideaId)
-      .populate('submittedBy', 'name email')
-      .populate('reviewedBy', 'name email')
+      .populate('submittedBy', '_id name email')
+      .populate('reviewedBy', '_id name email')
       .populate('projectId', '_id title');
     
     if (!idea) {
@@ -199,7 +199,7 @@ router.put('/:ideaId/status', authenticate, async (req: AuthRequest, res: Respon
   }
 });
 
-// Delete an idea
+// Delete an idea (and associated project if it exists)
 router.delete('/:ideaId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const idea = await Idea.findById(req.params.ideaId);
@@ -209,15 +209,14 @@ router.delete('/:ideaId', authenticate, async (req: AuthRequest, res: Response):
       return;
     }
     
-    // Only the owner or admin can delete
-    if (idea.submittedBy.toString() !== req.user?.id && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Not authorized to delete this idea' });
-      return;
+    // If idea has an associated project, delete it too
+    if (idea.projectId) {
+      await Project.findByIdAndDelete(idea.projectId);
     }
     
     await Idea.findByIdAndDelete(req.params.ideaId);
     
-    res.json({ message: 'Idea deleted successfully' });
+    res.json({ message: 'Idea and associated project deleted successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

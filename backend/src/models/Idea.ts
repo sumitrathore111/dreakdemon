@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IIdea extends Document {
   title: string;
@@ -35,7 +35,25 @@ const IdeaSchema: Schema = new Schema({
   reviewedAt: { type: Date },
   projectId: { type: Schema.Types.ObjectId, ref: 'Project' }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
 // Index for efficient queries

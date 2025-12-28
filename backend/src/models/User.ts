@@ -95,7 +95,25 @@ const UserSchema: Schema = new Schema({
   githubUsername: { type: String, default: '' },
   avatar: { type: String, default: '' }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: {
+    virtuals: true,
+    transform: function(_doc: any, ret: any) {
+      ret.id = ret._id?.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
 });
 
 export default mongoose.model<IUser>('User', UserSchema);

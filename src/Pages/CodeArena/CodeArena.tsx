@@ -1,18 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  ChevronRight,
-  Code2,
-  Coins,
-  Crown,
-  History,
-  Loader2,
-  Star,
-  Swords,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users
+    AlertTriangle,
+    ChevronRight,
+    Code2,
+    Coins,
+    Crown,
+    History,
+    Loader2,
+    Star,
+    Swords,
+    Target,
+    TrendingUp,
+    Trophy,
+    Users
 } from 'lucide-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
@@ -575,9 +575,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               {liveBattles.map((battle, i) => (
                 <div
                   key={battle.id || i}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/dashboard/codearena/battle/${battle.id}`)}
-                  title="Rejoin this battle"
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex -space-x-2">

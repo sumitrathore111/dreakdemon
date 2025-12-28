@@ -1,7 +1,9 @@
 import { Response, Router } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import Message from '../models/Message';
 import Project from '../models/Project';
+import User from '../models/User';
 
 // Helper to get socket.io instance from app
 const getIO = (req: AuthRequest): SocketIOServer | null => {
@@ -193,7 +195,7 @@ router.put('/:projectId', authenticate, async (req: AuthRequest, res: Response):
   }
 });
 
-// Delete a project
+// Delete a project (and associated ideas and join requests)
 router.delete('/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -203,15 +205,20 @@ router.delete('/:projectId', authenticate, async (req: AuthRequest, res: Respons
       return;
     }
     
-    // Only owner or admin can delete
-    if (project.owner.toString() !== req.user?.id && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'Not authorized to delete this project' });
-      return;
-    }
+    // Import models for cleanup
+    const Idea = require('../models/Idea').default;
+    const JoinRequest = require('../models/JoinRequest').default;
     
+    // Delete associated idea that created this project
+    await Idea.deleteMany({ projectId: req.params.projectId });
+    
+    // Delete all join requests for this project
+    await JoinRequest.deleteMany({ projectId: req.params.projectId });
+    
+    // Delete the project itself
     await Project.findByIdAndDelete(req.params.projectId);
     
-    res.json({ message: 'Project deleted successfully' });
+    res.json({ message: 'Project and all associated data deleted successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -251,15 +258,35 @@ router.get('/:projectId/role/:userId', authenticate, async (req: AuthRequest, re
 // Get project members
 router.get('/:projectId/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    
     const project = await Project.findById(req.params.projectId)
-      .populate('members.userId', 'name email');
+      .populate('members.userId', 'name email _id');
     
     if (!project) {
+      console.log('❌ Project not found:', req.params.projectId);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
     
-    res.json({ members: project.members });
+    // Map members to ensure userId is always available as a string
+    const mappedMembers = project.members.map((m: any) => {
+      // Get userId - whether populated or not
+      const userId = typeof m.userId === 'object' && m.userId !== null
+        ? (m.userId._id?.toString() || m.userId.id?.toString() || m.userId.toString())
+        : m.userId?.toString();
+      
+      return {
+        _id: m._id,
+        userId: userId,
+        name: m.userId?.name || m.name,
+        email: m.userId?.email || m.email,
+        role: m.role,
+        joinedAt: m.joinedAt
+      };
+    });
+    
+    console.log('📋 Found project with', mappedMembers.length, 'members:', mappedMembers.map((m: any) => ({ userId: m.userId, name: m.name })));
+    res.json({ members: mappedMembers });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -494,6 +521,218 @@ router.get('/members', authenticate, async (req: AuthRequest, res: Response): Pr
     res.json({ members: allMembers });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== PROJECT MESSAGES ====================
+
+// Get project messages
+router.get('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const messages = await Message.find({ projectId: req.params.projectId })
+      .sort({ createdAt: 1 });
+    
+    // Map to frontend format
+    const formattedMessages = messages.map((msg) => ({
+      id: msg._id.toString(),
+      text: msg.text || msg.content,
+      senderId: msg.senderId,
+      senderName: msg.senderName || 'Unknown',
+      timestamp: msg.createdAt
+    }));
+    
+    res.json({ messages: formattedMessages });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Send message to project
+router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    
+    // Check if user is a member or owner
+    const isOwner = project.owner.toString() === req.user?.id;
+    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
+    
+    if (!isOwner && !isMember) {
+      res.status(403).json({ error: 'You must be a project member to send messages' });
+      return;
+    }
+    
+    // Get sender name
+    const sender = await User.findById(req.user?.id);
+    const senderName = sender?.name || req.user?.email?.split('@')[0] || 'Unknown';
+    
+    const message = await Message.create({
+      projectId: req.params.projectId,
+      senderId: req.user?.id,
+      senderName: senderName,
+      text: req.body.text,
+      content: req.body.text
+    });
+    
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.projectId}`).emit('new-message', {
+        id: message._id.toString(),
+        text: message.text,
+        senderId: req.user?.id,
+        senderName: senderName,
+        timestamp: message.createdAt
+      });
+    }
+    
+    res.status(201).json({ 
+      message: {
+        id: message._id.toString(),
+        text: message.text,
+        senderId: req.user?.id,
+        senderName: senderName,
+        timestamp: message.createdAt
+      }
+    });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// ==================== PROJECT FILES ====================
+
+// Get project files
+router.get('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    
+    const files = project.files.map((file: any) => ({
+      id: file._id?.toString() || file.id,
+      name: file.name,
+      url: file.url,
+      type: file.type,
+      size: file.size,
+      uploadedBy: file.uploadedBy,
+      uploadedAt: file.uploadedAt
+    }));
+    
+    res.json({ files });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Upload file to project
+router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    
+    // Check if user is a member or owner
+    const isOwner = project.owner.toString() === req.user?.id;
+    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
+    
+    if (!isOwner && !isMember) {
+      res.status(403).json({ error: 'You must be a project member to upload files' });
+      return;
+    }
+    
+    const { name, url, size, type } = req.body;
+    
+    const newFile = {
+      name,
+      url: url || '#',
+      type: type || 'unknown',
+      size: size || 0,
+      uploadedBy: req.user?.id,
+      uploadedAt: new Date()
+    };
+    
+    project.files.push(newFile as any);
+    await project.save();
+    
+    // Get the saved file with its generated _id
+    const savedFile = project.files[project.files.length - 1];
+    
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.projectId}`).emit('file-uploaded', {
+        id: (savedFile as any)._id?.toString(),
+        name: savedFile.name,
+        url: savedFile.url,
+        type: savedFile.type,
+        size: savedFile.size,
+        uploadedBy: req.user?.id,
+        uploadedAt: savedFile.uploadedAt
+      });
+    }
+    
+    res.status(201).json({ 
+      file: {
+        id: (savedFile as any)._id?.toString(),
+        name: savedFile.name,
+        url: savedFile.url,
+        type: savedFile.type,
+        size: savedFile.size,
+        uploadedBy: req.user?.id,
+        uploadedAt: savedFile.uploadedAt
+      }
+    });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Delete file from project
+router.delete('/:projectId/files/:fileId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' });
+      return;
+    }
+    
+    // Check if user is a member or owner
+    const isOwner = project.owner.toString() === req.user?.id;
+    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
+    
+    if (!isOwner && !isMember) {
+      res.status(403).json({ error: 'You must be a project member to delete files' });
+      return;
+    }
+    
+    const fileIndex = project.files.findIndex((f: any) => f._id?.toString() === req.params.fileId);
+    if (fileIndex === -1) {
+      res.status(404).json({ error: 'File not found' });
+      return;
+    }
+    
+    project.files.splice(fileIndex, 1);
+    await project.save();
+    
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.projectId}`).emit('file-deleted', {
+        fileId: req.params.fileId
+      });
+    }
+    
+    res.json({ success: true });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

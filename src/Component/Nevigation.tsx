@@ -48,19 +48,23 @@ export default function DashboardLayout() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
-  // Load pending requests count
+  // Load pending requests count for projects where user is the creator
   useEffect(() => {
     const loadPendingRequests = async () => {
       if (!user) return;
       
       try {
         const ideas = await fetchAllIdeas();
+        // Get only approved projects where the current user is the creator
         const myProjects = ideas.filter((idea: any) => idea.userId === user.id && idea.status === 'approved');
         
         let totalPending = 0;
-        for (const _project of myProjects) {
-          const requests = await fetchJoinRequests();
-          totalPending += requests.length;
+        for (const project of myProjects) {
+          // Fetch join requests for each project
+          const requests = await fetchJoinRequests(project.projectId || project.id);
+          // Count only pending requests
+          const pendingRequests = requests.filter((req: any) => req.status === 'pending');
+          totalPending += pendingRequests.length;
         }
         
         setPendingRequestsCount(totalPending);

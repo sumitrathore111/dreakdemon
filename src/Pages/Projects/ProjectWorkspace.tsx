@@ -1,38 +1,38 @@
 import {
-  Activity,
-  Bell,
-  CheckCircle, Circle, Clock,
-  FileText,
-  MessageSquare,
-  Send,
-  Shield,
-  Trash2,
-  Upload,
-  User,
-  UserCheck,
-  UserPlus,
-  UserX
+    Activity,
+    Bell,
+    CheckCircle, Circle, Clock,
+    FileText,
+    MessageSquare,
+    Send,
+    Shield,
+    Trash2,
+    Upload,
+    User,
+    UserCheck,
+    UserPlus,
+    UserX
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import {
-  initializeSocket,
-  joinProjectRoom,
-  leaveProjectRoom,
-  offJoinRequestUpdated,
-  offMemberJoined,
-  offNewMessage,
-  offTaskCreated,
-  offTaskDeleted,
-  offTaskUpdated,
-  onJoinRequestUpdated,
-  onMemberJoined,
-  onNewMessage,
-  onTaskCreated,
-  onTaskDeleted,
-  onTaskUpdated
+    initializeSocket,
+    joinProjectRoom,
+    leaveProjectRoom,
+    offJoinRequestUpdated,
+    offMemberJoined,
+    offNewMessage,
+    offTaskCreated,
+    offTaskDeleted,
+    offTaskUpdated,
+    onJoinRequestUpdated,
+    onMemberJoined,
+    onNewMessage,
+    onTaskCreated,
+    onTaskDeleted,
+    onTaskUpdated
 } from '../../service/socketService';
 
 interface Task {
@@ -306,25 +306,41 @@ export default function ProjectWorkspace() {
       setUserRole(role as 'creator' | 'contributor');
       
       // Load members using actual project ID
+      console.log('🔍 Loading members for realProjectId:', realProjectId);
       const membersList = await getProjectMembers(realProjectId);
       console.log('🔍 LOADED MEMBERS FROM BACKEND:', membersList);
       
-      // Remove duplicates based on userId
-      const uniqueMembers = membersList.filter((member: any, index: number, self: any[]) => 
-        index === self.findIndex((m: any) => m.userId === member.userId)
-      );
+      // Get creator userId as string for comparison
+      const creatorUserId = String(projectData.userId);
+      console.log('🔍 Creator userId:', creatorUserId);
       
-      // Add creator as first member, then filter out any duplicates
+      // Filter out the creator from membersList to avoid showing twice
+      // Also filter out duplicates
+      const seenUserIds = new Set<string>();
+      seenUserIds.add(creatorUserId); // Add creator first to prevent duplicates
+      
+      const nonCreatorMembers = membersList.filter((member: any) => {
+        const memberId = String(member.userId);
+        console.log('🔍 Checking member:', memberId, 'vs creator:', creatorUserId, 'equal:', memberId === creatorUserId);
+        if (seenUserIds.has(memberId)) {
+          return false; // Skip duplicates and creator
+        }
+        seenUserIds.add(memberId);
+        return true;
+      });
+      
+      console.log('🔍 Non-creator members:', nonCreatorMembers);
+      
+      // Add creator as first member
       const allMembers: Member[] = [
         {
           id: 'creator',
-          userId: projectData.userId,
+          userId: creatorUserId,
           userName: projectData.userName,
           role: 'creator',
           joinedAt: projectData.submittedAt
         },
-        // Filter out the creator if they appear in membersList to avoid duplicates
-        ...uniqueMembers.filter((member: any) => member.userId !== projectData.userId)
+        ...nonCreatorMembers
       ];
       
       console.log('👥 ALL MEMBERS (including creator):', allMembers);
@@ -411,15 +427,24 @@ export default function ProjectWorkspace() {
       
       // Reload members using actual project ID
       const membersList = await getProjectMembers(projectIdToUse!);
+      
+      // Get creator userId as string for comparison
+      const creatorUserId = String(project.userId);
+      
+      // Filter out the creator from membersList to avoid showing twice
+      const nonCreatorMembers = membersList.filter((member: any) => 
+        String(member.userId) !== creatorUserId
+      );
+      
       const allMembers: Member[] = [
         {
           id: 'creator',
-          userId: project.userId,
+          userId: creatorUserId,
           userName: project.userName,
           role: 'creator',
           joinedAt: project.submittedAt
         },
-        ...membersList
+        ...nonCreatorMembers
       ];
       setMembers(allMembers);
       
@@ -1017,12 +1042,12 @@ export default function ProjectWorkspace() {
                   {messages.map(msg => (
                     <div key={msg.id} className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 shadow">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white truncate">{msg.userName}</span>
+                        <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white truncate">{msg.senderName || msg.userName}</span>
                         <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">{msg.message}</p>
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 break-words">{msg.text || msg.message}</p>
                     </div>
                   ))}
                   <div ref={chatEndRef} />

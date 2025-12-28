@@ -44,6 +44,21 @@ export const leaveProjectRoom = (projectId: string): void => {
   }
 };
 
+// Join user's personal room for receiving notifications
+export const joinUserRoom = (userId: string): void => {
+  if (socket) {
+    socket.emit('join-user', userId);
+    console.log('📡 Joined user room:', userId);
+  }
+};
+
+export const leaveUserRoom = (userId: string): void => {
+  if (socket) {
+    socket.emit('leave-user', userId);
+    console.log('📡 Left user room:', userId);
+  }
+};
+
 export const disconnectSocket = (): void => {
   if (socket) {
     socket.disconnect();

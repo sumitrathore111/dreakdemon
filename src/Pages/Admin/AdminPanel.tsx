@@ -56,6 +56,9 @@ interface PlatformStats {
   rejectedIdeas: number;
   activeProjects: number;
   totalContributors: number;
+  totalMarketplace: number;
+  pendingMarketplace: number;
+  publishedMarketplace: number;
 }
 
 export default function AdminPanel() {
@@ -63,10 +66,9 @@ export default function AdminPanel() {
   const { 
     fetchAllIdeas, 
     updateIdeaStatus,
-    deleteProject,
+    deleteIdea,
     fetchAllUsers, 
-    fetchAllProjectMembers,
-    getPlatformStats 
+    fetchAllProjectMembers
   } = useDataContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'ideas' | 'projects' | 'users' | 'marketplace'>('overview');
@@ -83,7 +85,10 @@ export default function AdminPanel() {
     approvedIdeas: 0,
     rejectedIdeas: 0,
     activeProjects: 0,
-    totalContributors: 0
+    totalContributors: 0,
+    totalMarketplace: 0,
+    pendingMarketplace: 0,
+    publishedMarketplace: 0
   });
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
@@ -91,6 +96,9 @@ export default function AdminPanel() {
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  const [deletingIdeaId, setDeletingIdeaId] = useState<string | null>(null);
+  const [showIdeaDeleteConfirm, setShowIdeaDeleteConfirm] = useState(false);
+  const [ideaToDelete, setIdeaToDelete] = useState<SubmittedIdea | null>(null);
   
   // Marketplace verification state
   const [marketplaceProjects, setMarketplaceProjects] = useState<MarketplaceProject[]>([]);
@@ -118,7 +126,6 @@ export default function AdminPanel() {
     try {
       await Promise.all([
         loadIdeas().catch(e => console.error('Load ideas error:', e)),
-        loadStats().catch(e => console.error('Load stats error:', e)),
         loadUsers().catch(e => console.error('Load users error:', e)),
         loadProjects().catch(e => console.error('Load projects error:', e)),
         loadMarketplaceProjects().catch(e => console.error('Load marketplace error:', e))
@@ -167,18 +174,11 @@ export default function AdminPanel() {
     }
   };
 
-  const loadStats = async () => {
-    try {
-      const platformStats = await getPlatformStats();
-      setStats(platformStats);
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  };
-
   const loadUsers = async () => {
     try {
+      console.log('Fetching all users...');
       const allUsers = await fetchAllUsers();
+      console.log('Users fetched:', allUsers);
       setUsers(allUsers);
     } catch (error) {
       console.error('Error loading users:', error);
@@ -224,6 +224,31 @@ export default function AdminPanel() {
     
     setFilteredIdeas(filtered);
   }, [ideas, statusFilter, searchQuery]);
+
+  // Calculate stats from loaded data
+  useEffect(() => {
+    const pendingIdeas = ideas.filter(i => i.status === 'pending').length;
+    const approvedIdeas = ideas.filter(i => i.status === 'approved').length;
+    const rejectedIdeas = ideas.filter(i => i.status === 'rejected').length;
+    const pendingMarketplace = allMarketplaceProjects.filter(p => p.status === 'pending_verification').length;
+    const publishedMarketplace = allMarketplaceProjects.filter(p => p.status === 'published').length;
+    
+    // Calculate total contributors from projects
+    const totalContributors = projects.reduce((sum, p) => sum + (p.memberCount || 1), 0);
+    
+    setStats({
+      totalUsers: users.length,
+      totalIdeas: ideas.length,
+      pendingIdeas,
+      approvedIdeas,
+      rejectedIdeas,
+      activeProjects: projects.length,
+      totalContributors,
+      totalMarketplace: allMarketplaceProjects.length,
+      pendingMarketplace,
+      publishedMarketplace
+    });
+  }, [users, ideas, projects, allMarketplaceProjects]);
 
   const approveIdea = async (ideaId: string) => {
     if (!reviewFeedback.trim()) {
@@ -292,11 +317,15 @@ export default function AdminPanel() {
 
     try {
       setDeletingProjectId(projectToDelete.id);
-      await deleteProject(projectToDelete.id);
+      
+      // Delete the idea (which will cascade delete the associated project)
+      // projectToDelete.id is the idea ID, projectToDelete.projectId is the actual project ID
+      await deleteIdea(projectToDelete.id);
       
       // Update local state - remove the deleted project
       setProjects(projects.filter(p => p.id !== projectToDelete.id));
       setIdeas(ideas.filter(i => i.id !== projectToDelete.id));
+      setFilteredIdeas(filteredIdeas.filter(i => i.id !== projectToDelete.id));
       
       alert(`Project "${projectToDelete.title}" has been deleted successfully`);
       setShowDeleteConfirm(false);
@@ -307,6 +336,35 @@ export default function AdminPanel() {
     } finally {
       setDeletingProjectId(null);
     }
+  };
+
+  const handleDeleteIdea = async () => {
+    if (!ideaToDelete) return;
+
+    try {
+      setDeletingIdeaId(ideaToDelete.id);
+      await deleteIdea(ideaToDelete.id);
+      
+      // Update local state - remove the deleted idea
+      setIdeas(ideas.filter(i => i.id !== ideaToDelete.id));
+      setFilteredIdeas(filteredIdeas.filter(i => i.id !== ideaToDelete.id));
+      // Also remove from projects if it was approved
+      setProjects(projects.filter(p => p.id !== ideaToDelete.id));
+      
+      alert(`Idea "${ideaToDelete.title}" and any associated project have been deleted successfully`);
+      setShowIdeaDeleteConfirm(false);
+      setIdeaToDelete(null);
+    } catch (error) {
+      console.error('Error deleting idea:', error);
+      alert('Failed to delete idea. Please try again.');
+    } finally {
+      setDeletingIdeaId(null);
+    }
+  };
+
+  const openIdeaDeleteConfirm = (idea: SubmittedIdea) => {
+    setIdeaToDelete(idea);
+    setShowIdeaDeleteConfirm(true);
   };
 
   const openDeleteConfirm = (project: any) => {
@@ -480,44 +538,67 @@ export default function AdminPanel() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                {/* Users Card */}
+                <div 
+                  onClick={() => setActiveTab('users')}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <Users className="w-12 h-12 text-blue-500" />
                     <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalUsers}</span>
                   </div>
                   <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total Users</h3>
+                  <p className="text-xs text-blue-500 mt-2">Click to view all users →</p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                {/* Ideas Card */}
+                <div 
+                  onClick={() => setActiveTab('ideas')}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <Lightbulb className="w-12 h-12 text-yellow-500" />
                     <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalIdeas}</span>
                   </div>
                   <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total Ideas</h3>
                   <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                    {stats.pendingIdeas} pending • {stats.approvedIdeas} approved
+                    <span className="text-yellow-500">{stats.pendingIdeas} pending</span> • <span className="text-green-500">{stats.approvedIdeas} approved</span> • <span className="text-red-500">{stats.rejectedIdeas} rejected</span>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                {/* Marketplace Card */}
+                <div 
+                  onClick={() => setActiveTab('marketplace')}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <ShoppingBag className="w-12 h-12 text-purple-500" />
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalMarketplace}</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Marketplace Listings</h3>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    <span className="text-yellow-500">{stats.pendingMarketplace} pending</span> • <span className="text-green-500">{stats.publishedMarketplace} published</span>
+                  </div>
+                </div>
+
+                {/* Projects Card */}
+                <div 
+                  onClick={() => setActiveTab('projects')}
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <FolderOpen className="w-12 h-12 text-[#00ADB5]" />
                     <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.activeProjects}</span>
                   </div>
                   <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Active Projects</h3>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <Users className="w-12 h-12 text-green-500" />
-                    <span className="text-3xl font-black text-gray-900 dark:text-white">{stats.totalContributors}</span>
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                    {stats.totalContributors} contributors
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Contributors</h3>
                 </div>
 
                 {/* Pending Ideas Alert */}
                 {stats.pendingIdeas > 0 && (
-                  <div className="lg:col-span-4 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-2xl p-6">
+                  <div className="lg:col-span-2 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-200 dark:border-yellow-700 rounded-2xl p-6">
                     <div className="flex items-center gap-4">
                       <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
                       <div className="flex-1">
@@ -525,39 +606,124 @@ export default function AdminPanel() {
                           {stats.pendingIdeas} Ideas Awaiting Review
                         </h3>
                         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                          Review pending project ideas to help users get started
+                          Review pending project ideas
                         </p>
                       </div>
                       <button
                         onClick={() => setActiveTab('ideas')}
-                        className="px-6 py-3 bg-yellow-600 text-white font-bold rounded-xl hover:bg-yellow-700 transition-colors"
+                        className="px-4 py-2 bg-yellow-600 text-white font-bold rounded-xl hover:bg-yellow-700 transition-colors text-sm"
                       >
-                        Review Now
+                        Review
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Recent Activity */}
-                <div className="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+                {/* Pending Marketplace Alert */}
+                {stats.pendingMarketplace > 0 && (
+                  <div className="lg:col-span-2 bg-purple-50 dark:bg-purple-900/30 border-2 border-purple-200 dark:border-purple-700 rounded-2xl p-6">
+                    <div className="flex items-center gap-4">
+                      <ShoppingBag className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100 mb-1">
+                          {stats.pendingMarketplace} Marketplace Listings Pending
+                        </h3>
+                        <p className="text-sm text-purple-700 dark:text-purple-300">
+                          Verify marketplace submissions
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('marketplace')}
+                        className="px-4 py-2 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors text-sm"
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Ideas */}
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" />
+                    Recent Ideas
+                  </h3>
                   <div className="space-y-3">
-                    {ideas.slice(0, 5).map((idea) => (
-                      <div key={idea.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Lightbulb className="w-5 h-5 text-yellow-500" />
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">{idea.title}</p>
+                    {ideas.length === 0 ? (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">No ideas submitted yet</p>
+                    ) : (
+                      ideas.slice(0, 5).map((idea) => (
+                        <div key={idea.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 dark:text-white truncate">{idea.title}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               by {idea.userName} • {new Date(idea.submittedAt).toLocaleDateString()}
                             </p>
                           </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ml-2 ${getStatusColor(idea.status)}`}>
+                            {idea.status.toUpperCase()}
+                          </span>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(idea.status)}`}>
-                          {idea.status.toUpperCase()}
-                        </span>
-                      </div>
-                    ))}
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Marketplace Listings */}
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-purple-500" />
+                    Recent Marketplace
+                  </h3>
+                  <div className="space-y-3">
+                    {allMarketplaceProjects.length === 0 ? (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">No marketplace listings yet</p>
+                    ) : (
+                      allMarketplaceProjects.slice(0, 5).map((project) => (
+                        <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 dark:text-white truncate">{project.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              ${project.price} • {project.category}
+                            </p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ml-2 ${
+                            project.status === 'published' ? 'bg-green-100 text-green-700' :
+                            project.status === 'pending_verification' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {project.status === 'pending_verification' ? 'PENDING' : project.status.toUpperCase()}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Users */}
+                <div className="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-500" />
+                    Recent Users
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {users.length === 0 ? (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4 col-span-4">No users registered yet</p>
+                    ) : (
+                      users.slice(0, 8).map((userData) => (
+                        <div key={userData.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold">
+                              {userData.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 dark:text-white truncate text-sm">{userData.name || 'No Name'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{userData.email}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -662,11 +828,11 @@ export default function AdminPanel() {
                           </button>
                         )}
                         <button
-                          onClick={() => openDeleteConfirm(idea)}
-                          disabled={deletingProjectId === idea.id}
+                          onClick={() => openIdeaDeleteConfirm(idea)}
+                          disabled={deletingIdeaId === idea.id}
                           className="px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
-                          {deletingProjectId === idea.id ? (
+                          {deletingIdeaId === idea.id ? (
                             <>
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               Deleting...
@@ -856,7 +1022,7 @@ export default function AdminPanel() {
 
                           {userData.last_active_date && (
                             <p className="text-xs text-gray-400 mt-2">
-                              Last active: {new Date(userData.last_active_date.toDate()).toLocaleDateString()}
+                              Last active: {new Date(userData.last_active_date).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -1375,7 +1541,7 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
+        {/* Delete Project Confirmation Modal */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
@@ -1388,7 +1554,7 @@ export default function AdminPanel() {
                   Are you sure you want to delete <span className="font-semibold">"{projectToDelete?.title}"</span>?
                 </p>
                 <p className="text-sm text-red-600 mt-2">
-                  This action cannot be undone. The project will be marked as deleted.
+                  This action cannot be undone. The project and all associated data will be permanently deleted.
                 </p>
               </div>
 
@@ -1409,6 +1575,56 @@ export default function AdminPanel() {
                   className="flex-1 px-4 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {deletingProjectId ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Idea Confirmation Modal */}
+        {showIdeaDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Idea?</h3>
+                <p className="text-gray-600">
+                  Are you sure you want to delete <span className="font-semibold">"{ideaToDelete?.title}"</span>?
+                </p>
+                <p className="text-sm text-red-600 mt-2">
+                  This action cannot be undone. The idea and any associated project will be permanently deleted.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowIdeaDeleteConfirm(false);
+                    setIdeaToDelete(null);
+                  }}
+                  disabled={deletingIdeaId !== null}
+                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteIdea}
+                  disabled={deletingIdeaId !== null}
+                  className="flex-1 px-4 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {deletingIdeaId ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Deleting...

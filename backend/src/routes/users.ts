@@ -6,6 +6,39 @@ import User from '../models/User';
 
 const router = Router();
 
+// Get all users (accessible to any authenticated user)
+router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { search, limit = 50, page = 1 } = req.query;
+    
+    let query: any = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip((Number(page) - 1) * Number(limit));
+    
+    const total = await User.countDocuments(query);
+    
+    res.json({ 
+      users, 
+      total, 
+      page: Number(page), 
+      pages: Math.ceil(total / Number(limit))
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get user's completed tasks count (MUST be before /:userId route)
 // Counts tasks that are verified completed and assigned to this user
 router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {

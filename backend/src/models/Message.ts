@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IMessage extends Document {
   senderId: string;
@@ -6,6 +6,8 @@ export interface IMessage extends Document {
   senderAvatar: string;
   receiverId?: string;
   groupId?: string;
+  projectId?: string;
+  text?: string;
   content: string;
   type: 'text' | 'image' | 'file';
   fileUrl?: string;
@@ -21,6 +23,8 @@ const MessageSchema: Schema = new Schema({
   senderAvatar: { type: String },
   receiverId: { type: String },
   groupId: { type: String },
+  projectId: { type: String },
+  text: { type: String },
   content: { type: String, required: true },
   type: { type: String, enum: ['text', 'image', 'file'], default: 'text' },
   fileUrl: { type: String },
