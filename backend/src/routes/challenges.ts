@@ -186,7 +186,7 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
       try {
         const fs = await import('fs/promises');
         const path = await import('path');
-        const questionsPath = path.join(__dirname, '../../../frontend/public/questions.json');
+       const questionsPath = path.join(__dirname, '../../../public/questions.json');;
         const questionsData = await fs.readFile(questionsPath, 'utf-8');
         const questionsJson = JSON.parse(questionsData);
         
