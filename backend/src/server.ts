@@ -38,7 +38,8 @@ const PORT = process.env.PORT || 5000;
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: [
-      process.env.FRONTEND_URL || 'https://dreakdemon.vercel.app',
+      process.env.FRONTEND_URL || 'https://skillupx.vercel.app',
+      "https://skillupx.vercel.app",
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:5175'
