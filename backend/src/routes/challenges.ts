@@ -373,12 +373,14 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       const result = submitResponse.data;
       const runResult = result.run || {};
       
-      const output = (runResult.stdout || '').trim();
+      // Get output - Piston uses stdout primarily, but fall back to output
+      const output = (runResult.stdout || runResult.output || '').trim();
       const stderr = runResult.stderr || '';
       const expected = expectedRaw.trim();
       
-      // Check for errors
-      const hasError = !!stderr || runResult.code !== 0;
+      // Check for CRITICAL errors only (compilation errors, crashes)
+      // Don't fail just because there's stderr output - some languages output warnings
+      const hasCriticalError = runResult.code !== 0 && !output && stderr;
       
       // Normalize output for comparison - handles whitespace variations consistently
       // 1. Normalizes line endings
@@ -396,10 +398,10 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       
       const normalizedOutput = normalizeOutput(output);
       const normalizedExpected = normalizeOutput(expected);
-      const passed = !hasError && normalizedOutput === normalizedExpected;
+      const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
       
-      console.log('Actual output:', JSON.stringify(output));
-      console.log('Expected:', JSON.stringify(expected));
+      console.log('Normalized output:', JSON.stringify(normalizedOutput));
+      console.log('Normalized expected:', JSON.stringify(normalizedExpected));
       console.log('Passed:', passed);
       
       results.push({
@@ -408,10 +410,10 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
         expected,
         output: output || stderr || 'No output',
         stderr,
-        status: passed ? 'Accepted' : (hasError ? 'Error' : 'Wrong Answer'),
+        status: passed ? 'Accepted' : (hasCriticalError ? 'Error' : 'Wrong Answer'),
         time: 0,
         memory: 0,
-        error: hasError ? stderr : undefined
+        error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
       console.error('Code execution error:', error.response?.data || error.message);

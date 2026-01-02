@@ -860,22 +860,24 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       const result = response.data;
       const runResult = result.run || {};
       
-      // Get output
-      let output = (runResult.stdout || '').trim();
+      // Get output - Piston uses stdout primarily, but fall back to output
+      let output = (runResult.stdout || runResult.output || '').trim();
       const stderr = runResult.stderr || '';
       const expected = expectedRaw.trim();
       
-      // Check for errors
-      const hasError = !!stderr || runResult.code !== 0;
+      // Check for CRITICAL errors only (compilation errors, crashes)
+      // Don't fail just because there's stderr output - some languages output warnings
+      const hasCriticalError = runResult.code !== 0 && !output && stderr;
       
       // Normalize output for comparison using helper function
       const normalizedOutput = normalizeOutputForComparison(output);
       const normalizedExpected = normalizeOutputForComparison(expected);
       
-      // Check if passed
-      const passed = !hasError && normalizedOutput === normalizedExpected;
+      // Check if passed: output matches expected (even if there's non-critical stderr)
+      const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
       
-      console.log(`Test result: expected="${expected}" got="${output}" passed=${passed}`);
+      console.log(`Test result: normalized_expected="${normalizedExpected}" normalized_got="${normalizedOutput}" passed=${passed}`);
+      console.log(`Raw: expected="${expected}" got="${output}"`);
       if (stderr) console.log(`Stderr: ${stderr}`);
       
       results.push({
@@ -884,7 +886,7 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
         expected,
         output: output || stderr || 'No output',
         time: 0,
-        error: hasError ? stderr : undefined
+        error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
       console.error('Code execution error:', error.response?.data || error.message);
