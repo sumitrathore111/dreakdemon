@@ -294,19 +294,24 @@ export async function runTestCases(
 }
 
 function normalizeOutput(output: string): string {
+  if (!output) return '';
+  
   // Normalize for comparison:
   // 1. Trim leading/trailing whitespace
   // 2. Normalize line endings (\r\n -> \n)
-  // 3. Trim trailing whitespace from each line
-  // 4. Collapse multiple spaces to single space within lines
-  // 5. Remove empty lines at the end
+  // 3. Handle escaped newlines in expected output
+  // 4. Trim trailing whitespace from each line
+  // 5. Collapse multiple spaces to single space within lines
+  // 6. Remove empty lines
   return output
+    .replace(/\\n/g, '\n')  // Handle escaped newlines
     .trim()
     .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
     .split('\n')
     .map(line => line.trim().replace(/\s+/g, ' '))
-    .join('\n')
-    .replace(/\n+$/, '');
+    .filter(line => line.length > 0)
+    .join('\n');
 }
 
 // Check if Piston API is available

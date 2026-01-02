@@ -923,22 +923,29 @@ const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
  */
 function normalizeExpectedOutput(testCase: any): string {
   const raw = testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '';
-  return String(raw).trim();
+  // Also handle escaped newlines in expected output
+  return String(raw).replace(/\\n/g, '\n').trim();
 }
 
 /**
  * Normalize output for comparison - handles whitespace variations consistently
- * 1. Normalizes line endings
- * 2. Trims each line and collapses multiple spaces
- * 3. Removes trailing empty lines
+ * This is critical for comparing Piston output with expected output
  */
 function normalizeOutputForComparison(output: string): string {
+  if (!output) return '';
+  
   return output
+    // Normalize line endings
     .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Split into lines
     .split('\n')
+    // Trim each line and collapse multiple spaces
     .map(line => line.trim().replace(/\s+/g, ' '))
+    // Remove empty lines
+    .filter(line => line.length > 0)
+    // Join back
     .join('\n')
-    .replace(/\n+$/, '')
     .trim();
 }
 
