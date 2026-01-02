@@ -922,9 +922,9 @@ const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
  * Normalize expected output from test case - handles all possible field names
  */
 function normalizeExpectedOutput(testCase: any): string {
+  // questions.json uses "output" field with real newlines (char code 10)
   const raw = testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '';
-  // Also handle escaped newlines in expected output
-  return String(raw).replace(/\\n/g, '\n').trim();
+  return String(raw).trim();
 }
 
 /**
@@ -966,8 +966,9 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
     console.log('Raw test case:', JSON.stringify(testCase));
     
     try {
-      // Convert escaped newlines to actual newlines
-      const stdin = (testCase.input || '').replace(/\\n/g, '\n');
+      // Input from questions.json already has real newlines (char code 10)
+      // No conversion needed - just use the input directly
+      const stdin = testCase.input || '';
       // Use normalized expected output
       const expectedRaw = normalizeExpectedOutput(testCase);
       

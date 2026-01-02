@@ -299,12 +299,10 @@ function normalizeOutput(output: string): string {
   // Normalize for comparison:
   // 1. Trim leading/trailing whitespace
   // 2. Normalize line endings (\r\n -> \n)
-  // 3. Handle escaped newlines in expected output
-  // 4. Trim trailing whitespace from each line
-  // 5. Collapse multiple spaces to single space within lines
-  // 6. Remove empty lines
+  // 3. Trim trailing whitespace from each line
+  // 4. Collapse multiple spaces to single space within lines
+  // 5. Remove empty lines
   return output
-    .replace(/\\n/g, '\n')  // Handle escaped newlines
     .trim()
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
