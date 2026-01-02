@@ -84,6 +84,16 @@ const BattleSchema: Schema = new Schema({
   winner: { type: String },
   forfeitedBy: { type: String },
   prizeAwarded: { type: Boolean, default: false },
+  ratingChanges: {
+    winner: {
+      oldRating: { type: Number },
+      newRating: { type: Number }
+    },
+    loser: {
+      oldRating: { type: Number },
+      newRating: { type: Number }
+    }
+  },
   rematchRequest: {
     from: { type: String },
     fromName: { type: String },

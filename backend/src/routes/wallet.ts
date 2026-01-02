@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import Wallet from '../models/Wallet';
+import User from '../models/User';
 import mongoose from 'mongoose';
 
 const router = express.Router();
@@ -42,7 +43,21 @@ router.get('/:userId', authenticate, async (req: Request, res: Response) => {
       await wallet.save();
     }
     
-    res.json({ wallet });
+    // Also fetch user's battle rating
+    const user = await User.findById(userId).select('battleRating battlesWon battlesLost');
+    const battleRating = user?.battleRating || 1000;
+    const battlesWon = user?.battlesWon || 0;
+    const battlesLost = user?.battlesLost || 0;
+    
+    res.json({ 
+      wallet: {
+        ...wallet.toObject(),
+        rating: battleRating,
+        battleRating,
+        battlesWon,
+        battlesLost
+      }
+    });
   } catch (error) {
     console.error('Error fetching wallet:', error);
     res.status(500).json({ error: 'Failed to fetch wallet' });

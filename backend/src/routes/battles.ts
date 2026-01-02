@@ -5,6 +5,60 @@ import Battle from '../models/Battle';
 
 const router = Router();
 
+// DEBUG: Test Piston API directly with a known problem
+router.get('/debug-piston', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    // Test with "Find Missing Number" problem - A003
+    const testInput = "3\n3 0 1"; // Expected output: "2"
+    const testCode = `
+n = int(input())
+nums = list(map(int, input().split()))
+total = n * (n + 1) // 2
+print(total - sum(nums))
+`;
+    
+    console.log('=== DEBUG PISTON TEST ===');
+    console.log('Input:', JSON.stringify(testInput));
+    console.log('Code:', testCode);
+    
+    const response = await axios.post(
+      'https://emkc.org/api/v2/piston/execute',
+      {
+        language: 'python',
+        version: '3.10.0',
+        files: [{ content: testCode }],
+        stdin: testInput
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15000
+      }
+    );
+    
+    console.log('Piston Response:', JSON.stringify(response.data, null, 2));
+    
+    const runResult = response.data.run || {};
+    const output = (runResult.stdout || runResult.output || '').trim();
+    const stderr = runResult.stderr || '';
+    
+    res.json({
+      success: true,
+      input: testInput,
+      expectedOutput: "2",
+      actualOutput: output,
+      passed: output === "2",
+      pistonResponse: response.data,
+      stderr: stderr
+    });
+  } catch (error: any) {
+    console.error('Debug Piston Error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.response?.data || error.message 
+    });
+  }
+});
+
 // Get list of battles (with optional filters)
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -433,6 +487,9 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
       battle.winner = winner.userId;
       (battle as any).winReason = isTie ? 'Faster submission' : 'Higher score';
       
+      // Find the loser
+      const loser = battle.participants.find(p => p.userId !== winner.userId);
+      
       // Award prize to winner - only if not already awarded (prevent double awarding)
       if (!(battle as any).prizeAwarded) {
         try {
@@ -455,6 +512,19 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
           );
           (battle as any).prizeAwarded = true;
           console.log(`Prize of ${battle.prize} coins awarded to winner ${winner.userId}`);
+          
+          // Update ELO ratings for both players
+          if (loser) {
+            const winnerRating = winner.rating || 1000;
+            const loserRating = loser.rating || 1000;
+            const ratingResult = await updateBattleRatings(winner.userId, loser.userId, winnerRating, loserRating);
+            
+            // Store rating changes in battle for display
+            (battle as any).ratingChanges = {
+              winner: { oldRating: winnerRating, newRating: ratingResult.winnerNewRating },
+              loser: { oldRating: loserRating, newRating: ratingResult.loserNewRating }
+            };
+          }
         } catch (walletError) {
           console.error('Error awarding prize:', walletError);
         }
@@ -920,6 +990,64 @@ function calculateScore(results: any[]): number {
   const passed = results.filter(r => r.passed).length;
   const score = Math.round((passed / results.length) * 100);
   return isNaN(score) ? 0 : score;
+}
+
+/**
+ * Calculate ELO rating change
+ * K-factor determines how much ratings change (higher = more volatile)
+ * Standard chess uses K=32 for beginners, K=16 for established players
+ */
+function calculateEloChange(winnerRating: number, loserRating: number, kFactor: number = 32): { winnerGain: number; loserLoss: number } {
+  // Expected score for winner (probability of winning based on ratings)
+  const expectedWinner = 1 / (1 + Math.pow(10, (loserRating - winnerRating) / 400));
+  const expectedLoser = 1 - expectedWinner;
+  
+  // Actual result: winner = 1, loser = 0
+  const winnerGain = Math.round(kFactor * (1 - expectedWinner));
+  const loserLoss = Math.round(kFactor * (0 - expectedLoser));
+  
+  return { winnerGain, loserLoss: Math.abs(loserLoss) };
+}
+
+/**
+ * Update user ratings after battle completion
+ */
+async function updateBattleRatings(winnerId: string, loserId: string, winnerOldRating: number, loserOldRating: number): Promise<{ winnerNewRating: number; loserNewRating: number }> {
+  const User = require('../models/User').default;
+  const mongoose = require('mongoose');
+  
+  const { winnerGain, loserLoss } = calculateEloChange(winnerOldRating, loserOldRating);
+  
+  const winnerNewRating = winnerOldRating + winnerGain;
+  const loserNewRating = Math.max(100, loserOldRating - loserLoss); // Minimum rating of 100
+  
+  console.log(`ELO Update: Winner ${winnerId} ${winnerOldRating} -> ${winnerNewRating} (+${winnerGain})`);
+  console.log(`ELO Update: Loser ${loserId} ${loserOldRating} -> ${loserNewRating} (-${loserLoss})`);
+  
+  try {
+    // Update winner's rating
+    await User.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(winnerId),
+      {
+        $set: { battleRating: winnerNewRating },
+        $inc: { battlesWon: 1 }
+      }
+    );
+    
+    // Update loser's rating
+    await User.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(loserId),
+      {
+        $set: { battleRating: loserNewRating },
+        $inc: { battlesLost: 1 }
+      }
+    );
+    
+    return { winnerNewRating, loserNewRating };
+  } catch (error) {
+    console.error('Error updating battle ratings:', error);
+    return { winnerNewRating: winnerOldRating, loserNewRating: loserOldRating };
+  }
 }
 
 // Request rematch - creates a new battle with rematch request

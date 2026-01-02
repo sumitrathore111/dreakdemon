@@ -45,6 +45,9 @@ export interface IUser extends Document {
   last_active_date: Date;
   githubUsername: string;
   avatar: string;
+  battleRating: number;
+  battlesWon: number;
+  battlesLost: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -93,7 +96,10 @@ const UserSchema: Schema = new Schema({
   challenges_solved: { type: Number, default: 0 },
   last_active_date: { type: Date },
   githubUsername: { type: String, default: '' },
-  avatar: { type: String, default: '' }
+  avatar: { type: String, default: '' },
+  battleRating: { type: Number, default: 1000 },
+  battlesWon: { type: Number, default: 0 },
+  battlesLost: { type: Number, default: 0 }
 }, {
   timestamps: true,
   toJSON: {
