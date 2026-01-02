@@ -1,5 +1,5 @@
-// API Configuration - Always use Render backend for Judge0 code execution
-const API_BASE_URL = 'https://nextstepbackend-qhxw.onrender.com/api';
+// API Configuration - Use local backend for development, Render for production
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {

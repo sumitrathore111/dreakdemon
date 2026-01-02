@@ -139,3 +139,70 @@ export const offJoinRequestUpdated = (callback?: (data: any) => void): void => {
     socket.off('join-request-updated', callback);
   }
 };
+
+// Chat-specific socket functions for Developer Connect
+export const joinChatRoom = (chatId: string): void => {
+  if (socket) {
+    socket.emit('join-chat', chatId);
+    console.log('💬 Joined chat room:', chatId);
+  }
+};
+
+export const leaveChatRoom = (chatId: string): void => {
+  if (socket) {
+    socket.emit('leave-chat', chatId);
+    console.log('💬 Left chat room:', chatId);
+  }
+};
+
+export const onChatMessage = (callback: (data: any) => void): void => {
+  if (socket) {
+    socket.on('newMessage', callback);
+  }
+};
+
+export const offChatMessage = (callback?: (data: any) => void): void => {
+  if (socket) {
+    socket.off('newMessage', callback);
+  }
+};
+
+// Group chat socket functions
+export const joinGroupRoom = (groupId: string): void => {
+  if (socket) {
+    socket.emit('join-group', groupId);
+    console.log('👥 Joined group room:', groupId);
+  }
+};
+
+export const leaveGroupRoom = (groupId: string): void => {
+  if (socket) {
+    socket.emit('leave-group', groupId);
+    console.log('👥 Left group room:', groupId);
+  }
+};
+
+export const onGroupMessage = (callback: (data: any) => void): void => {
+  if (socket) {
+    socket.on('newGroupMessage', callback);
+  }
+};
+
+export const offGroupMessage = (callback?: (data: any) => void): void => {
+  if (socket) {
+    socket.off('newGroupMessage', callback);
+  }
+};
+
+// Send message via socket (for faster real-time updates)
+export const emitChatMessage = (chatId: string, message: any): void => {
+  if (socket) {
+    socket.emit('sendMessage', { chatId, message });
+  }
+};
+
+export const emitGroupMessage = (groupId: string, message: any): void => {
+  if (socket) {
+    socket.emit('sendGroupMessage', { groupId, message });
+  }
+};

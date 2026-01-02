@@ -691,6 +691,25 @@ const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
   'c': { language: 'c', version: '10.2.0' },
 };
 
+/**
+ * Normalize expected output from test case - handles all possible field names
+ */
+function normalizeExpectedOutput(testCase: any): string {
+  const raw = testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '';
+  return String(raw).trim();
+}
+
+/**
+ * Normalize output for comparison - removes trailing whitespace per line and normalizes newlines
+ */
+function normalizeOutputForComparison(output: string): string {
+  return output
+    .split('\n')
+    .map(line => line.trimEnd())
+    .join('\n')
+    .trim();
+}
+
 // Helper function to execute code using Piston API
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
@@ -710,8 +729,8 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
     try {
       // Convert escaped newlines to actual newlines
       const stdin = (testCase.input || '').replace(/\\n/g, '\n');
-      // Check all possible field names for expected output
-      const expectedRaw = (testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '');
+      // Use normalized expected output
+      const expectedRaw = normalizeExpectedOutput(testCase);
       
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
@@ -744,13 +763,9 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       // Check for errors
       const hasError = !!stderr || runResult.code !== 0;
       
-      // Normalize output for comparison
-      const normalizeOutput = (s: string) => {
-        return s.split('\n').map(line => line.trim()).join('\n').trim();
-      };
-      
-      const normalizedOutput = normalizeOutput(output);
-      const normalizedExpected = normalizeOutput(expected);
+      // Normalize output for comparison using helper function
+      const normalizedOutput = normalizeOutputForComparison(output);
+      const normalizedExpected = normalizeOutputForComparison(expected);
       
       // Check if passed
       const passed = !hasError && normalizedOutput === normalizedExpected;

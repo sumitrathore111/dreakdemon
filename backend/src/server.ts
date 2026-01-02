@@ -48,9 +48,30 @@ const io = new SocketIOServer(httpServer, {
   }
 });
 
+// Track online users: Map<socketId, userId>
+const socketUserMap = new Map<string, string>();
+// Track online users: Set of userIds
+const onlineUsers = new Set<string>();
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('🔌 User connected:', socket.id);
+  
+  // Handle user coming online
+  socket.on('userOnline', (data: { userId: string }) => {
+    if (data.userId) {
+      socketUserMap.set(socket.id, data.userId);
+      onlineUsers.add(data.userId);
+      console.log(`🟢 User ${data.userId} is now online`);
+      // Broadcast to all clients that this user is online
+      io.emit('userOnline', { userId: data.userId });
+    }
+  });
+
+  // Handle request for online users list
+  socket.on('getOnlineUsers', () => {
+    socket.emit('onlineUsers', Array.from(onlineUsers));
+  });
   
   // Join a project room for real-time updates
   socket.on('join-project', (projectId: string) => {
@@ -113,6 +134,19 @@ io.on('connection', (socket) => {
   });
   
   socket.on('disconnect', () => {
+    // Handle user going offline
+    const userId = socketUserMap.get(socket.id);
+    if (userId) {
+      socketUserMap.delete(socket.id);
+      // Check if user has no more active sockets
+      const hasOtherSockets = Array.from(socketUserMap.values()).includes(userId);
+      if (!hasOtherSockets) {
+        onlineUsers.delete(userId);
+        console.log(`🔴 User ${userId} is now offline`);
+        // Broadcast to all clients that this user is offline
+        io.emit('userOffline', { userId });
+      }
+    }
     console.log('🔌 User disconnected:', socket.id);
   });
 });

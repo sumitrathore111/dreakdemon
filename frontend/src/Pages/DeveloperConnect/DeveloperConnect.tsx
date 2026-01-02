@@ -96,6 +96,15 @@ export default function DeveloperConnect() {
   const [groupMessage, setGroupMessage] = useState('');
   const [groupMessages, setGroupMessages] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // WebSocket connection status
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [messageStatus, setMessageStatus] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -105,6 +114,98 @@ export default function DeveloperConnect() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Track WebSocket connection status and typing indicators
+  useEffect(() => {
+    initializeSocket();
+    const socket = getSocket();
+    
+    if (socket) {
+      // Initial status check
+      setSocketConnected(socket.connected);
+      
+      const handleConnect = () => {
+        console.log('🟢 Socket connected');
+        setSocketConnected(true);
+        // Emit user online status when connected
+        if (user?.id) {
+          socket.emit('userOnline', { userId: user.id });
+        }
+      };
+      
+      const handleDisconnect = () => {
+        console.log('🔴 Socket disconnected');
+        setSocketConnected(false);
+      };
+      
+      // Handle online users list
+      const handleOnlineUsers = (users: string[]) => {
+        console.log('👥 Online users:', users);
+        setOnlineUsers(new Set(users));
+      };
+      
+      // Handle user coming online
+      const handleUserOnline = (data: { userId: string }) => {
+        console.log('🟢 User online:', data.userId);
+        setOnlineUsers(prev => new Set([...prev, data.userId]));
+      };
+      
+      // Handle user going offline
+      const handleUserOffline = (data: { userId: string }) => {
+        console.log('🔴 User offline:', data.userId);
+        setOnlineUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(data.userId);
+          return newSet;
+        });
+      };
+      
+      const handleTyping = (data: { chatId: string; userId: string; userName: string }) => {
+        if (data.chatId === chatId && data.userId !== user?.id) {
+          setTypingUser(data.userName);
+          // Clear typing after 3 seconds
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
+        }
+      };
+      
+      const handleStopTyping = (data: { chatId: string; userId: string }) => {
+        if (data.chatId === chatId && data.userId !== user?.id) {
+          setTypingUser(null);
+        }
+      };
+      
+      const handleMessageRead = (data: { messageId: string; readBy: string }) => {
+        if (data.readBy !== user?.id) {
+          setMessageStatus(prev => ({ ...prev, [data.messageId]: 'read' }));
+        }
+      };
+      
+      socket.on('connect', handleConnect);
+      socket.on('disconnect', handleDisconnect);
+      socket.on('userTyping', handleTyping);
+      socket.on('userStopTyping', handleStopTyping);
+      socket.on('messageRead', handleMessageRead);
+      socket.on('onlineUsers', handleOnlineUsers);
+      socket.on('userOnline', handleUserOnline);
+      socket.on('userOffline', handleUserOffline);
+      
+      // Request current online users list
+      socket.emit('getOnlineUsers');
+      
+      return () => {
+        socket.off('connect', handleConnect);
+        socket.off('disconnect', handleDisconnect);
+        socket.off('userTyping', handleTyping);
+        socket.off('userStopTyping', handleStopTyping);
+        socket.off('messageRead', handleMessageRead);
+        socket.off('onlineUsers', handleOnlineUsers);
+        socket.off('userOnline', handleUserOnline);
+        socket.off('userOffline', handleUserOffline);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      };
+    }
+  }, [chatId, user?.id]);
 
   // Fetch ALL initial data in one optimized call
   useEffect(() => {
@@ -791,88 +892,236 @@ export default function DeveloperConnect() {
     // Get selected developer info
     const selectedDev = selectedChat ? developers.find(d => d.userId === selectedChat) : null;
 
+    // Emit typing indicator
+    const emitTyping = () => {
+      const socket = getSocket();
+      if (socket && chatId && user) {
+        socket.emit('typing', { 
+          chatId, 
+          userId: user.id, 
+          userName: userprofile?.displayName || user.name || 'User' 
+        });
+      }
+    };
+
+    // Emit stop typing
+    const emitStopTyping = () => {
+      const socket = getSocket();
+      if (socket && chatId && user) {
+        socket.emit('stopTyping', { chatId, userId: user.id });
+      }
+    };
+
+    // Mark messages as read when viewing (called directly, not in useEffect)
+    const markMessagesAsRead = () => {
+      const socket = getSocket();
+      if (socket && chatId && user) {
+        const unreadMessages = messages.filter(m => m.senderId !== user.id && !m.isRead);
+        unreadMessages.forEach(msg => {
+          socket.emit('markAsRead', { messageId: msg.id, chatId, readBy: user.id });
+        });
+        // Clear unread count for this conversation
+        if (selectedChat) {
+          setUnreadCounts(prev => ({ ...prev, [selectedChat]: 0 }));
+        }
+      }
+    };
+
+    // Call markMessagesAsRead when there are messages and a chat is selected
+    if (selectedChat && messages.length > 0 && chatId) {
+      // Use setTimeout to avoid calling during render
+      setTimeout(() => markMessagesAsRead(), 100);
+    }
+
     const handleSendMessage = async () => {
       if (!newMessage.trim() || !user || !chatId) return;
       
+      emitStopTyping();
       const messageContent = newMessage;
+      const tempId = `temp-${Date.now()}`;
       setNewMessage('');
       
-      // Optimistically add message to UI
+      // Set initial status as 'sent'
+      setMessageStatus(prev => ({ ...prev, [tempId]: 'sent' }));
+      
+      // Optimistically add message to UI immediately
       const optimisticMessage = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         senderId: user.id,
-        senderName: userprofile?.displayName || user.name || 'User',
-        senderAvatar: userprofile?.avatrUrl || '',
+        senderName: userprofile?.displayName || userprofile?.name || user.name || 'User',
+        senderAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
         message: messageContent,
+        text: messageContent,
+        createdAt: new Date().toISOString(),
         timestamp: new Date(),
         isRead: false
       };
       setMessages(prev => [...prev, optimisticMessage]);
       
       try {
-        await apiRequest(`/chats/${chatId}/messages`, {
+        // Send message to server - socket will broadcast to other users
+        const response = await apiRequest(`/chats/${chatId}/messages`, {
           method: 'POST',
           body: JSON.stringify({
             senderId: user.id,
-            senderName: userprofile?.displayName || user.name || 'User',
-            senderAvatar: userprofile?.avatrUrl || '',
+            senderName: userprofile?.displayName || userprofile?.name || user.name || 'User',
+            senderAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
             message: messageContent,
           }),
         });
         
-        // Fetch updated messages to get the real message with ID
-        const loadedMessages = await apiRequest(`/chats/${chatId}/messages`);
-        setMessages(loadedMessages);
+        // Update the optimistic message with the real ID from server
+        if (response?.id) {
+          setMessages(prev => prev.map(m => 
+            m.id === tempId ? { ...m, id: response.id } : m
+          ));
+          // Update status to delivered
+          setMessageStatus(prev => {
+            const newStatus = { ...prev };
+            delete newStatus[tempId];
+            newStatus[response.id] = 'delivered';
+            return newStatus;
+          });
+        }
       } catch (error) {
         console.error('Error sending message:', error);
+        // Restore message to input and remove from list on error
         setNewMessage(messageContent);
-        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        toast.error('Failed to send message. Please try again.');
+      }
+    };
+
+    // Handle input change with typing indicator
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setNewMessage(e.target.value);
+      if (e.target.value.trim()) {
+        emitTyping();
+      } else {
+        emitStopTyping();
       }
     };
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[650px]">
         {/* Left Side - Users/Conversations List */}
-        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" style={{ color: '#00ADB5' }} />
-              Messages
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{conversations.length} conversations</p>
+        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-lg">
+          {/* Header with gradient */}
+          <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-cyan-50/50 via-white to-cyan-50/50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-base">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
+                    <MessageSquare className="w-4 h-4 text-white" />
+                  </div>
+                  Chats
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-10">{conversations.length} active</p>
+              </div>
+              {/* Connection Status */}
+              <motion.div 
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold ${
+                  socketConnected 
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
+                }`}
+              >
+                <motion.div 
+                  animate={{ scale: socketConnected ? [1, 1.4, 1] : 1 }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                />
+                {socketConnected ? 'Live' : 'Offline'}
+              </motion.div>
+            </div>
           </div>
           
+          {/* Conversation list */}
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm font-medium">No conversations yet</p>
-                <p className="text-xs mt-2 text-gray-400">Go to Developer Directory to start chatting</p>
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ADB5]/10 to-[#00ADB5]/5 dark:from-[#00ADB5]/20 dark:to-[#00ADB5]/10 border border-[#00ADB5]/20 flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-[#00ADB5]" />
+                </div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No conversations yet</p>
+                <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">Visit Developer Directory to start chatting</p>
               </div>
             ) : (
               conversations.map(conv => (
                 <motion.button
                   key={conv.participantId}
-                  whileHover={{ backgroundColor: 'rgba(0, 173, 181, 0.05)' }}
+                  whileHover={{ x: 4, backgroundColor: 'rgba(0,173,181,0.05)' }}
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => setSelectedChat(conv.participantId)}
-                  className={`w-full p-3 border-b border-gray-100 dark:border-gray-700 transition-all text-left`}
-                  style={selectedChat === conv.participantId ? { 
-                    backgroundColor: 'rgba(0, 173, 181, 0.1)', 
-                    borderLeft: '3px solid #00ADB5' 
-                  } : {}}
+                  className={`w-full p-4 transition-all text-left relative overflow-hidden ${
+                    selectedChat === conv.participantId 
+                      ? 'bg-gradient-to-r from-[#00ADB5]/10 to-transparent dark:from-[#00ADB5]/15 dark:to-transparent' 
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
                 >
+                  {/* Selected indicator */}
+                  {selectedChat === conv.participantId && (
+                    <motion.div 
+                      layoutId="selectedConv"
+                      className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
+                      style={{ background: 'linear-gradient(180deg, #00ADB5 0%, #00d4ff 100%)' }}
+                    />
+                  )}
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <img
                         src={conv.participantAvatar}
                         alt={conv.participantName}
-                        className="w-12 h-12 rounded-full ring-2 ring-white dark:ring-gray-700 shadow-sm"
+                        className={`w-12 h-12 rounded-full shadow-md transition-all ${
+                          selectedChat === conv.participantId 
+                            ? 'ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800' 
+                            : 'ring-1 ring-gray-200 dark:ring-gray-600'
+                        }`}
                       />
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+                      {/* Online status indicator */}
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                        onlineUsers.has(conv.participantId) ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500'
+                      }`}></div>
+                      {/* Unread badge */}
+                      {unreadCounts[conv.participantId] > 0 && (
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg"
+                          style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                        >
+                          {unreadCounts[conv.participantId] > 9 ? '9+' : unreadCounts[conv.participantId]}
+                        </motion.div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-white truncate text-sm">{conv.participantName}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{conv.lastMessage || 'No messages yet'}</p>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <p className={`font-semibold truncate text-sm ${
+                          unreadCounts[conv.participantId] > 0
+                            ? 'text-gray-900 dark:text-white font-bold'
+                            : selectedChat === conv.participantId 
+                              ? 'text-[#00ADB5]' 
+                              : 'text-gray-900 dark:text-white'
+                        }`}>{conv.participantName}</p>
+                        {conv.lastMessageAt && (
+                          <span className={`text-[10px] flex-shrink-0 ml-2 ${
+                            unreadCounts[conv.participantId] > 0 
+                              ? 'text-[#00ADB5] font-semibold' 
+                              : 'text-gray-400 dark:text-gray-500'
+                          }`}>
+                            {new Date(conv.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs truncate flex items-center gap-1 ${
+                        unreadCounts[conv.participantId] > 0 
+                          ? 'text-gray-700 dark:text-gray-200 font-medium' 
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {conv.lastMessage || <span className="italic text-gray-400">Start a conversation...</span>}
+                      </p>
                     </div>
                   </div>
                 </motion.button>
@@ -882,57 +1131,128 @@ export default function DeveloperConnect() {
         </div>
 
         {/* Right Side - Chat Area */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden">
           {!selectedChat || !selectedDev ? (
-            // No chat selected - show welcome message
-            <div className="flex-1 flex items-center justify-center">
+            // No chat selected - show premium welcome message
+            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-cyan-50/30 via-white to-cyan-50/30 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center p-6"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, type: 'spring' }}
+                className="text-center p-8 max-w-md"
               >
-                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(135deg, rgba(0, 173, 181, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%)' }}>
-                  <MessageSquare className="w-10 h-10" style={{ color: '#00ADB5' }} />
+                {/* Animated icon */}
+                <motion.div 
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                  className="w-28 h-28 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 50%, #00ADB5 100%)',
+                    backgroundSize: '200% 200%'
+                  }}
+                >
+                  <MessageSquare className="w-14 h-14 text-white" />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Start a Conversation</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                  Select a developer from the list to connect and collaborate in real-time
+                </p>
+                <div className="flex items-center justify-center gap-4 text-sm text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    Real-time chat
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-[#00ADB5] rounded-full"></span>
+                    Instant delivery
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Select a Conversation</h3>
-                <p className="text-gray-500 dark:text-gray-400">Choose a user from the left to start chatting</p>
               </motion.div>
             </div>
           ) : (
             <>
-              {/* Chat Header */}
+              {/* Chat Header - Enhanced */}
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img src={selectedDev.avatar} alt={selectedDev.name} className="w-10 h-10 rounded-full ring-2 ring-cyan-500" />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img src={selectedDev.avatar} alt={selectedDev.name} className="w-11 h-11 rounded-full ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800 shadow-md" />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                        onlineUsers.has(selectedDev.userId) ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500'
+                      }`}></div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-base">{selectedDev.name}</h3>
+                      {typingUser ? (
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-xs text-[#00ADB5] font-medium flex items-center gap-1"
+                        >
+                          <span className="flex gap-0.5">
+                            <motion.span 
+                              animate={{ y: [0, -3, 0] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
+                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
+                            />
+                            <motion.span 
+                              animate={{ y: [0, -3, 0] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
+                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
+                            />
+                            <motion.span 
+                              animate={{ y: [0, -3, 0] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
+                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
+                            />
+                          </span>
+                          typing...
+                        </motion.p>
+                      ) : (
+                        <p className={`text-xs flex items-center gap-1 ${
+                          onlineUsers.has(selectedDev.userId) 
+                            ? 'text-emerald-600 dark:text-emerald-400' 
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            onlineUsers.has(selectedDev.userId) ? 'bg-emerald-500' : 'bg-gray-400'
+                          }`}></span>
+                          {onlineUsers.has(selectedDev.userId) ? 'Online' : 'Offline'}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{selectedDev.name}</h3>
-                    <p className="text-xs text-green-500 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                      Online
-                    </p>
+                  {/* Connection Status Badge */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm ${
+                    socketConnected 
+                      ? 'bg-emerald-50/80 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700' 
+                      : 'bg-amber-50/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700'
+                  }`}>
+                    <motion.div 
+                      animate={{ scale: socketConnected ? [1, 1.3, 1] : 1 }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    />
+                    <span className={`${socketConnected ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                      {socketConnected ? 'Live' : 'Connecting'}
+                    </span>
                   </div>
                 </div>
               </div>
               
-              {/* Messages Container */}
-              <div 
-                className="flex-1 overflow-y-auto p-4 space-y-3"
-                style={{
-                  backgroundImage: 'radial-gradient(circle at 25px 25px, rgba(0, 173, 181, 0.03) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(0, 173, 181, 0.03) 2%, transparent 0%)',
-                  backgroundSize: '100px 100px'
-                }}
-              >
+              {/* Messages Container - Enhanced */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900">
                 {loadingMessages ? (
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex flex-col items-center justify-center h-full"
                   >
-                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-transparent mb-3" style={{ borderTopColor: '#00ADB5', borderRightColor: '#00d4ff' }}></div>
-                    <div className="text-gray-500 text-sm">Loading messages...</div>
+                    <div className="relative">
+                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700" style={{ borderTopColor: '#00ADB5' }}></div>
+                      <MessageSquare className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500" />
+                    </div>
+                    <div className="text-gray-500 text-sm mt-4">Loading messages...</div>
                   </motion.div>
                 ) : messages.length === 0 ? (
                   <motion.div 
@@ -940,49 +1260,76 @@ export default function DeveloperConnect() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col items-center justify-center h-full"
                   >
-                    <p className="text-gray-500">No messages yet. Say hello! 👋</p>
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00ADB5]/20 to-[#00ADB5]/10 dark:from-[#00ADB5]/20 dark:to-[#00ADB5]/10 flex items-center justify-center mb-4 border border-[#00ADB5]/20">
+                      <span className="text-4xl">👋</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Start the conversation!</h4>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Say hello to {selectedDev?.name || 'your new connection'}</p>
                   </motion.div>
                 ) : (
                   <>
-                    {messages.map((msg) => {
+                    {/* Date separator for first message */}
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        {messages[0]?.createdAt 
+                          ? new Date(messages[0].createdAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+                          : 'Today'}
+                      </div>
+                    </div>
+                    {messages.map((msg, idx) => {
                       const isMe = msg.senderId === user?.id || msg.senderId === user?.id?.toString() || msg.userId === user?.id;
+                      const status = messageStatus[msg.id] || (msg.isRead ? 'read' : 'delivered');
                       return (
                         <motion.div
                           key={msg.id}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, type: 'spring', stiffness: 500, damping: 30 }}
+                          initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.25, type: 'spring', stiffness: 400, damping: 25 }}
                           className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
                         >
                           {!isMe && (
                             <img 
                               src={msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderName?.replace(/\s+/g, '') || 'User'}`} 
                               alt={msg.senderName || 'User'} 
-                              className="w-8 h-8 rounded-full flex-shrink-0 mr-2 shadow-sm" 
+                              className="w-8 h-8 rounded-full flex-shrink-0 mr-2 shadow-md ring-2 ring-white dark:ring-gray-800" 
                             />
                           )}
                           
                           <div className={`max-w-[70%] ${isMe ? 'mr-2' : ''}`}>
                             <motion.div 
-                              whileHover={{ scale: 1.01 }}
-                              className={`px-4 py-2.5 ${
+                              whileHover={{ scale: 1.01, y: -1 }}
+                              className={`px-4 py-2.5 relative group ${
                                 isMe 
-                                  ? 'rounded-tl-2xl rounded-tr-md rounded-bl-2xl rounded-br-2xl text-white' 
-                                  : 'rounded-tl-md rounded-tr-2xl rounded-bl-2xl rounded-br-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
+                                  ? 'rounded-2xl rounded-tr-md text-white' 
+                                  : 'rounded-2xl rounded-tl-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
                               }`}
                               style={isMe ? { 
                                 background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
-                                boxShadow: '0 4px 15px rgba(0, 173, 181, 0.3)'
+                                boxShadow: '0 4px 20px rgba(0, 173, 181, 0.25)'
                               } : {
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+                                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
                               }}
                             >
                               <p className="text-sm leading-relaxed">{msg.message || msg.content || msg.text}</p>
-                              <p className={`text-[10px] mt-1 ${isMe ? 'text-cyan-100 text-right' : 'text-gray-400'}`}>
-                                {msg.createdAt 
-                                  ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                  : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                              <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
+                                <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
+                                  {msg.createdAt 
+                                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                    : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                {/* Read receipt indicators for sent messages */}
+                                {isMe && (
+                                  <span className="text-[10px] text-cyan-100 ml-1">
+                                    {status === 'read' ? (
+                                      <span title="Read">✓✓</span>
+                                    ) : status === 'delivered' ? (
+                                      <span title="Delivered" className="opacity-70">✓✓</span>
+                                    ) : (
+                                      <span title="Sent" className="opacity-50">✓</span>
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </motion.div>
                           </div>
                           
@@ -990,47 +1337,116 @@ export default function DeveloperConnect() {
                             <img 
                               src={userprofile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name?.replace(/\s+/g, '') || 'Me'}`} 
                               alt="Me" 
-                              className="w-8 h-8 rounded-full flex-shrink-0 ml-2 shadow-sm" 
+                              className="w-8 h-8 rounded-full flex-shrink-0 ml-2 shadow-md ring-2 ring-white dark:ring-gray-800" 
                             />
                           )}
                         </motion.div>
                       );
                     })}
                     <div ref={messagesEndRef} />
+                    
+                    {/* Typing indicator at bottom */}
+                    {typingUser && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center gap-2 pl-10"
+                      >
+                        <div className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-md shadow-sm">
+                          <div className="flex items-center gap-1">
+                            <motion.div 
+                              animate={{ scale: [1, 1.2, 1] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
+                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
+                            />
+                            <motion.div 
+                              animate={{ scale: [1, 1.2, 1] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
+                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
+                            />
+                            <motion.div 
+                              animate={{ scale: [1, 1.2, 1] }} 
+                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
+                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </>
                 )}
               </div>
 
-              {/* Message Input */}
+              {/* Message Input - Premium Design */}
               <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="flex gap-3 items-center">
+                {/* Typing indicator above input */}
+                {newMessage.trim() && (
+                  <motion.p 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="text-[11px] text-[#00ADB5] mb-2 ml-2"
+                  >
+                    Press Enter to send
+                  </motion.p>
+                )}
+                <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-900 rounded-2xl p-2 shadow-sm border border-gray-200 dark:border-gray-700 transition-all focus-within:border-[#00ADB5] focus-within:ring-2 focus-within:ring-[#00ADB5]/20">
+                  {/* Emoji button placeholder */}
+                  <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
                   <input
                     type="text"
-                    placeholder="Type your message..."
+                    placeholder="Type a message..."
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newMessage.trim()) {
                         handleSendMessage();
                       }
                     }}
-                    className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all"
-                    style={{ '--tw-ring-color': 'rgba(0, 173, 181, 0.5)' } as React.CSSProperties}
+                    onBlur={() => emitStopTyping()}
+                    className="flex-1 px-2 py-2 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none text-sm"
                   />
+                  {/* Attachment button placeholder */}
+                  <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                  </button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
-                    className="p-3 text-white rounded-xl disabled:opacity-50 transition-all shadow-lg"
-                    style={{ 
-                      background: newMessage.trim() 
-                        ? 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' 
-                        : '#9ca3af'
-                    }}
+                    className={`p-2.5 rounded-xl transition-all ${
+                      newMessage.trim() 
+                        ? 'text-white shadow-lg' 
+                        : 'text-gray-400 bg-gray-100 dark:bg-gray-800'
+                    }`}
+                    style={newMessage.trim() ? { 
+                      background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
+                      boxShadow: '0 4px 12px rgba(0, 173, 181, 0.4)'
+                    } : {}}
                   >
                     <Send className="w-5 h-5" />
                   </motion.button>
+                </div>
+                {/* Status footer */}
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  {socketConnected ? (
+                    <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                      Real-time messaging active
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-amber-500 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                      Connecting to real-time...
+                    </p>
+                  )}
                 </div>
               </div>
             </>
@@ -1203,12 +1619,18 @@ export default function DeveloperConnect() {
                     ) : (
                       <div className="space-y-3">
                         {groupMessages.map((msg: any, idx: number) => (
-                          <div key={idx} className="flex gap-2">
-                            <img src={msg.avatar} alt={msg.name} className="w-8 h-8 rounded-full" />
+                          <div key={msg.id || idx} className="flex gap-2">
+                            <img 
+                              src={msg.avatar || msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.name || msg.senderName}`} 
+                              alt={msg.name || msg.senderName} 
+                              className="w-8 h-8 rounded-full flex-shrink-0" 
+                            />
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-semibold text-sm text-gray-900 dark:text-white">{msg.name}</span>
-                                <span className="text-xs text-gray-400">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                                <span className="font-semibold text-sm text-gray-900 dark:text-white">{msg.name || msg.senderName}</span>
+                                <span className="text-xs text-gray-400">
+                                  {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now'}
+                                </span>
                               </div>
                               <p className="text-sm text-gray-700 dark:text-white">{msg.message}</p>
                             </div>
@@ -1225,54 +1647,92 @@ export default function DeveloperConnect() {
                       onChange={(e) => setGroupMessage(e.target.value)}
                       onKeyPress={async (e) => {
                         if (e.key === 'Enter' && groupMessage.trim()) {
+                          const messageText = groupMessage.trim();
+                          const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
+                          const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
+                          const tempId = `temp-${Date.now()}`;
+                          
+                          // Optimistically add message immediately
+                          const optimisticMsg = {
+                            id: tempId,
+                            name: senderName,
+                            senderName,
+                            avatar: senderAvatar,
+                            senderAvatar,
+                            message: messageText,
+                            timestamp: new Date().toISOString()
+                          };
+                          setGroupMessages(prev => [...prev, optimisticMsg]);
+                          setGroupMessage('');
+                          
                           try {
-                            const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
-                            const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
-                            
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
                               body: JSON.stringify({
-                                message: groupMessage.trim(),
+                                message: messageText,
                                 senderName,
                                 senderAvatar
                               })
                             });
                             
+                            // Update with real ID
                             if (response.message) {
-                              setGroupMessages(prev => [...prev, response.message]);
+                              setGroupMessages(prev => prev.map(m => 
+                                m.id === tempId ? response.message : m
+                              ));
                             }
-                            setGroupMessage('');
                           } catch (error) {
                             console.error('Error sending group message:', error);
+                            setGroupMessages(prev => prev.filter(m => m.id !== tempId));
+                            setGroupMessage(messageText);
                             toast.error('Failed to send message');
                           }
                         }
                       }}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                      className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none"
                     />
                     <button
                       onClick={async () => {
                         if (groupMessage.trim()) {
+                          const messageText = groupMessage.trim();
+                          const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
+                          const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
+                          const tempId = `temp-${Date.now()}`;
+                          
+                          // Optimistically add message immediately
+                          const optimisticMsg = {
+                            id: tempId,
+                            name: senderName,
+                            senderName,
+                            avatar: senderAvatar,
+                            senderAvatar,
+                            message: messageText,
+                            timestamp: new Date().toISOString()
+                          };
+                          setGroupMessages(prev => [...prev, optimisticMsg]);
+                          setGroupMessage('');
+                          
                           try {
-                            const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
-                            const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
-                            
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
                               body: JSON.stringify({
-                                message: groupMessage.trim(),
+                                message: messageText,
                                 senderName,
                                 senderAvatar
                               })
                             });
                             
+                            // Update with real ID
                             if (response.message) {
-                              setGroupMessages(prev => [...prev, response.message]);
+                              setGroupMessages(prev => prev.map(m => 
+                                m.id === tempId ? response.message : m
+                              ));
                             }
-                            setGroupMessage('');
                           } catch (error) {
                             console.error('Error sending group message:', error);
+                            setGroupMessages(prev => prev.filter(m => m.id !== tempId));
+                            setGroupMessage(messageText);
                             toast.error('Failed to send message');
                           }
                         }
@@ -1471,28 +1931,37 @@ export default function DeveloperConnect() {
                 onClick={async () => {
                   if (newGroupData.name && newGroupData.topic && user) {
                     try {
-                      await createStudyGroup({
+                      const newGroup = await createStudyGroup({
                         ...newGroupData,
                         creatorId: user.id,
-                        creatorName: userprofile?.displayName || user.name || 'User',
-                        creatorAvatar: userprofile?.avatrUrl || '',
+                        creatorName: userprofile?.displayName || userprofile?.name || user.name || 'User',
+                        creatorAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
                         members: [{
                           userId: user.id,
-                          name: userprofile?.displayName || user.name || 'User',
-                          avatar: userprofile?.avatrUrl || '',
+                          name: userprofile?.displayName || userprofile?.name || user.name || 'User',
+                          avatar: userprofile?.avatar || userprofile?.avatrUrl || '',
                           joinedAt: new Date(),
                           role: 'creator' as const
                         }]
                       });
                       
-                      // Reload groups
+                      // Immediately add the new group to state for instant visibility
+                      if (newGroup) {
+                        setStudyGroups(prev => [newGroup, ...prev]);
+                      }
+                      
+                      // Also reload groups from server to ensure sync
                       const groups = await getAllStudyGroups();
-                      setStudyGroups(groups);
+                      if (groups && groups.length > 0) {
+                        setStudyGroups(groups);
+                      }
+                      
                       setShowCreateGroup(false);
                       setNewGroupData({name: '', description: '', topic: '', level: 'Beginner', maxMembers: 10});
+                      toast.success('Study group created successfully!');
                     } catch (error) {
                       console.error('Error creating group:', error);
-                      alert('Failed to create group. Please try again.');
+                      toast.error('Failed to create group. Please try again.');
                     }
                   }
                 }}
@@ -1513,11 +1982,15 @@ export default function DeveloperConnect() {
       
         {/* Study Groups Grid */}
         {(() => {
-          const filteredGroups = studyGroups.filter(group => 
-            group.name?.toLowerCase().includes(studyGroupSearch.toLowerCase()) ||
-            group.topic?.toLowerCase().includes(studyGroupSearch.toLowerCase()) ||
-            group.description?.toLowerCase().includes(studyGroupSearch.toLowerCase())
-          );
+          const searchTerm = studyGroupSearch.trim().toLowerCase();
+          const filteredGroups = searchTerm 
+            ? studyGroups.filter(group => 
+                (group.name || '').toLowerCase().includes(searchTerm) ||
+                (group.topic || '').toLowerCase().includes(searchTerm) ||
+                (group.description || '').toLowerCase().includes(searchTerm) ||
+                (group.creatorName || '').toLowerCase().includes(searchTerm)
+              )
+            : studyGroups;
           
           if (filteredGroups.length === 0) {
             return (

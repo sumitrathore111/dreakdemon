@@ -816,7 +816,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error polling wallet:', error);
       }
       if (isSubscribed) {
-        setTimeout(pollWallet, 30000); // Poll every 30 seconds
+        setTimeout(pollWallet, 10000); // Poll every 10 seconds for more responsive updates
       }
     };
     

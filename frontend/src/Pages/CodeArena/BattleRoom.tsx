@@ -366,10 +366,15 @@ rl.on('close', () => {
             (Array.isArray(battleData.challenge.testCases) || Array.isArray(battleData.challenge.test_cases))
           ) {
             setChallenge(battleData.challenge as any);
-            // Prefer testCases, fallback to test_cases
-            const cases = (battleData.challenge.testCases && battleData.challenge.testCases.length > 0)
-              ? battleData.challenge.testCases.map((tc: any) => ({ input: tc.input, output: tc.expectedOutput || tc.output || tc.expected_output || '' }))
-              : (battleData.challenge.test_cases || []).map((tc: any) => ({ input: tc.input, output: tc.expected_output || tc.output || '' }));
+            // Prefer testCases, fallback to test_cases - normalize all output field names
+            const rawCases = (battleData.challenge.testCases && battleData.challenge.testCases.length > 0)
+              ? battleData.challenge.testCases
+              : (battleData.challenge.test_cases || []);
+            const cases = rawCases.map((tc: any) => ({ 
+              input: tc.input || '', 
+              output: tc.expectedOutput || tc.expected_output || tc.output || '' 
+            }));
+            console.log('BattleRoom: Loaded test cases:', cases.length);
             setTestCases(cases);
           }
         }
@@ -487,7 +492,7 @@ rl.on('close', () => {
   // Reset countdown when battle status changes to countdown
   useEffect(() => {
     if (battle?.status === 'countdown') {
-      setCountdown(3); // Start from 3
+      setCountdown(5); // Start from 5 for better preparation
     }
   }, [battle?.status]);
 
@@ -558,18 +563,48 @@ rl.on('close', () => {
 
     // Check if we have test cases
     if (!testCases || testCases.length === 0) {
-      // Set error in result instead of alert
-      setMyResult({
-        success: false,
-        passed: false,
-        status: 'Error',
-        error: 'No test cases available. Please try again.',
-        passedCount: 0,
-        totalCount: 0,
-        totalTime: 0,
-        executionTime: 0
-      });
-      return;
+      console.error('BattleRoom: No test cases available for submission');
+      // Try to reload test cases from battle data
+      try {
+        const battleData = await apiRequest(`/battles/${battleId}`);
+        if (battleData?.challenge) {
+          const rawCases = battleData.challenge.testCases || battleData.challenge.test_cases || [];
+          if (rawCases.length > 0) {
+            const cases = rawCases.map((tc: any) => ({ 
+              input: tc.input || '', 
+              output: tc.expectedOutput || tc.expected_output || tc.output || '' 
+            }));
+            setTestCases(cases);
+            console.log('BattleRoom: Reloaded test cases:', cases.length);
+            // Continue with submission after reloading
+          } else {
+            setMyResult({
+              success: false,
+              passed: false,
+              status: 'Error',
+              error: 'No test cases available. Please try refreshing the page.',
+              passedCount: 0,
+              totalCount: 0,
+              totalTime: 0,
+              executionTime: 0
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('BattleRoom: Failed to reload test cases:', err);
+        setMyResult({
+          success: false,
+          passed: false,
+          status: 'Error',
+          error: 'Failed to load test cases. Please try refreshing the page.',
+          passedCount: 0,
+          totalCount: 0,
+          totalTime: 0,
+          executionTime: 0
+        });
+        return;
+      }
     }
 
     isSubmittingRef.current = true;

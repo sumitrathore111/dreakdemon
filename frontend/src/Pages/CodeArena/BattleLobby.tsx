@@ -167,7 +167,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     const cancelBattle = async () => {
       try {
         // Use sendBeacon for reliable delivery on page unload
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         navigator.sendBeacon(
           `https://nextstepbackend-qhxw.onrender.com/api/battles/${myBattleId}/cancel`,
           JSON.stringify({ token })

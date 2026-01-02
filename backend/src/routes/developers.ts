@@ -263,11 +263,11 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
         .limit(50)
         .sort({ createdAt: -1 }),
       
-      // Get study groups
+      // Get study groups (remove isActive filter since field may not exist)
       (async () => {
         try {
           const StudyGroup = require('../models/StudyGroup').default;
-          return await StudyGroup.find({ isActive: true })
+          return await StudyGroup.find({})
             .sort({ createdAt: -1 })
             .limit(20);
         } catch {
@@ -295,17 +295,34 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
       joinedDate: user.createdAt || new Date()
     }));
     
-    // Transform study groups
+    // Transform study groups - include ALL fields needed by frontend
     const studyGroups = (studyGroupsData || []).map((group: any) => ({
       id: group._id.toString(),
       name: group.name,
       description: group.description,
       topic: group.topic,
       level: group.level,
+      members: (group.members || []).map((m: any) => ({
+        userId: m.userId,
+        name: m.userName,
+        avatar: m.userAvatar,
+        role: m.role,
+        joinedAt: m.joinedAt
+      })),
       memberCount: group.members?.length || 0,
-      maxMembers: group.maxMembers,
-      createdBy: group.createdBy,
-      creatorName: group.creatorName
+      maxMembers: group.maxMembers || 10,
+      creatorId: group.createdBy,
+      creatorName: group.creatorName || group.members?.[0]?.userName || 'Unknown',
+      creatorAvatar: group.creatorAvatar || group.members?.[0]?.userAvatar || '',
+      joinRequests: (group.joinRequests || []).filter((r: any) => r.status === 'pending').map((r: any) => ({
+        userId: r.userId,
+        userName: r.userName,
+        userAvatar: r.userAvatar,
+        requestedAt: r.requestedAt,
+        status: r.status
+      })),
+      createdAt: group.createdAt,
+      isActive: true
     }));
     
     // Transform endorsements
