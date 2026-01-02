@@ -800,13 +800,18 @@ function normalizeExpectedOutput(testCase: any): string {
 }
 
 /**
- * Normalize output for comparison - removes trailing whitespace per line and normalizes newlines
+ * Normalize output for comparison - handles whitespace variations consistently
+ * 1. Normalizes line endings
+ * 2. Trims each line and collapses multiple spaces
+ * 3. Removes trailing empty lines
  */
 function normalizeOutputForComparison(output: string): string {
   return output
+    .replace(/\r\n/g, '\n')
     .split('\n')
-    .map(line => line.trimEnd())
+    .map(line => line.trim().replace(/\s+/g, ' '))
     .join('\n')
+    .replace(/\n+$/, '')
     .trim();
 }
 

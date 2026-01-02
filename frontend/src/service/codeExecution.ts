@@ -294,12 +294,19 @@ export async function runTestCases(
 }
 
 function normalizeOutput(output: string): string {
-  // Remove extra whitespace, normalize line endings
+  // Normalize for comparison:
+  // 1. Trim leading/trailing whitespace
+  // 2. Normalize line endings (\r\n -> \n)
+  // 3. Trim trailing whitespace from each line
+  // 4. Collapse multiple spaces to single space within lines
+  // 5. Remove empty lines at the end
   return output
     .trim()
     .replace(/\r\n/g, '\n')
-    .replace(/\s+/g, ' ')
-    .toLowerCase();
+    .split('\n')
+    .map(line => line.trim().replace(/\s+/g, ' '))
+    .join('\n')
+    .replace(/\n+$/, '');
 }
 
 // Check if Piston API is available
