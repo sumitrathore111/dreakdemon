@@ -182,8 +182,31 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
     // Get random question (you'll need to load questions.json)
     const fs = await import('fs/promises');
     const path = await import('path');
-    const questionsPath = path.join(__dirname, '../../../public/questions.json');
-    const questionsData = await fs.readFile(questionsPath, 'utf-8');
+    
+    // Try multiple possible paths
+    const possiblePaths = [
+      path.join(__dirname, '../../../public/questions.json'),
+      path.join(__dirname, '../../public/questions.json'),
+      path.join(process.cwd(), 'public/questions.json'),
+      path.join(process.cwd(), 'backend/public/questions.json')
+    ];
+    
+    let questionsData: string | null = null;
+    for (const questionsPath of possiblePaths) {
+      try {
+        questionsData = await fs.readFile(questionsPath, 'utf-8');
+        console.log('Loaded questions from:', questionsPath);
+        break;
+      } catch (pathErr) {
+        // Try next path
+      }
+    }
+    
+    if (!questionsData) {
+      res.status(500).json({ error: 'Could not load questions database' });
+      return;
+    }
+    
     const questionsJson = JSON.parse(questionsData);
     
     // Handle both array format and object with problems/questions property
@@ -423,23 +446,46 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
       try {
         const fs = await import('fs/promises');
         const path = await import('path');
-        const questionsPath = path.join(__dirname, '../../../public/questions.json');
-        const questionsData = await fs.readFile(questionsPath, 'utf-8');
-        const questionsJson = JSON.parse(questionsData);
         
-        let questions: any[] = [];
-        if (Array.isArray(questionsJson)) {
-          questions = questionsJson;
-        } else if (questionsJson.problems) {
-          questions = questionsJson.problems;
-        } else if (questionsJson.questions) {
-          questions = questionsJson.questions;
+        // Try multiple possible paths
+        const possiblePaths = [
+          path.join(__dirname, '../../../public/questions.json'),
+          path.join(__dirname, '../../public/questions.json'),
+          path.join(process.cwd(), 'public/questions.json'),
+          path.join(process.cwd(), 'backend/public/questions.json')
+        ];
+        
+        let questionsData: string | null = null;
+        for (const questionsPath of possiblePaths) {
+          try {
+            console.log('Trying path:', questionsPath);
+            questionsData = await fs.readFile(questionsPath, 'utf-8');
+            console.log('Successfully loaded from:', questionsPath);
+            break;
+          } catch (pathErr) {
+            // Try next path
+          }
         }
         
-        const foundQuestion = questions.find((q: any) => q.id === challengeData.id);
-        if (foundQuestion) {
-          testCases = foundQuestion.testCases || foundQuestion.test_cases || [];
-          console.log('Loaded test cases from questions.json:', testCases.length);
+        if (!questionsData) {
+          console.error('Could not find questions.json in any expected location');
+        } else {
+          const questionsJson = JSON.parse(questionsData);
+          
+          let questions: any[] = [];
+          if (Array.isArray(questionsJson)) {
+            questions = questionsJson;
+          } else if (questionsJson.problems) {
+            questions = questionsJson.problems;
+          } else if (questionsJson.questions) {
+            questions = questionsJson.questions;
+          }
+          
+          const foundQuestion = questions.find((q: any) => q.id === challengeData.id);
+          if (foundQuestion) {
+            testCases = foundQuestion.testCases || foundQuestion.test_cases || [];
+            console.log('Loaded test cases from questions.json:', testCases.length);
+          }
         }
       } catch (err) {
         console.error('Error loading questions.json for test cases:', err);
@@ -558,7 +604,17 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
 // Get battle by ID
 router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const battle = await Battle.findById(req.params.battleId);
+    const { battleId } = req.params;
+    
+    // Validate battleId format before querying
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(battleId)) {
+      console.log(`Invalid battle ID format: ${battleId}`);
+      res.status(400).json({ error: 'Invalid battle ID format' });
+      return;
+    }
+    
+    const battle = await Battle.findById(battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
@@ -593,6 +649,7 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
     
     res.json(transformedBattle);
   } catch (error: any) {
+    console.error(`Error fetching battle ${req.params.battleId}:`, error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1076,8 +1133,30 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
     // Get a new random question for the rematch
     const fs = await import('fs/promises');
     const path = await import('path');
-    const questionsPath = path.join(__dirname, '../../../public/questions.json');
-    const questionsData = await fs.readFile(questionsPath, 'utf-8');
+    
+    // Try multiple possible paths
+    const possiblePaths = [
+      path.join(__dirname, '../../../public/questions.json'),
+      path.join(__dirname, '../../public/questions.json'),
+      path.join(process.cwd(), 'public/questions.json'),
+      path.join(process.cwd(), 'backend/public/questions.json')
+    ];
+    
+    let questionsData: string | null = null;
+    for (const questionsPath of possiblePaths) {
+      try {
+        questionsData = await fs.readFile(questionsPath, 'utf-8');
+        break;
+      } catch (pathErr) {
+        // Try next path
+      }
+    }
+    
+    if (!questionsData) {
+      res.status(500).json({ error: 'Could not load questions database' });
+      return;
+    }
+    
     const questionsJson = JSON.parse(questionsData);
     
     let questions: any[] = [];
