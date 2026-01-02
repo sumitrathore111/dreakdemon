@@ -96,11 +96,10 @@ export default function DeveloperConnect() {
   const [groupMessage, setGroupMessage] = useState('');
   const [groupMessages, setGroupMessages] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // WebSocket connection status
   const [socketConnected, setSocketConnected] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [messageStatus, setMessageStatus] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
@@ -1276,7 +1275,7 @@ export default function DeveloperConnect() {
                           : 'Today'}
                       </div>
                     </div>
-                    {messages.map((msg, idx) => {
+                    {messages.map((msg) => {
                       const isMe = msg.senderId === user?.id || msg.senderId === user?.id?.toString() || msg.userId === user?.id;
                       const status = messageStatus[msg.id] || (msg.isRead ? 'read' : 'delivered');
                       return (
