@@ -30,13 +30,14 @@ import { secureCodeExecutionService } from '../../service/secureCodeExecution_ne
 /**
  * Map test cases from Question format to Challenge format
  * Handles both snake_case and camelCase field names
+ * Also handles 'output' field from questions.json
  */
 const mapTestCases = (testCases: any[]): any[] => {
   if (!Array.isArray(testCases)) return [];
   
   return testCases.map(tc => ({
     input: tc.input || '',
-    expectedOutput: tc.expectedOutput || tc.expected_output || '',
+    expectedOutput: tc.expectedOutput || tc.expected_output || tc.output || '',
     isHidden: tc.isHidden || false,
     points: tc.points || 0
   }));

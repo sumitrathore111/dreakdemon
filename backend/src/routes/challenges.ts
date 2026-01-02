@@ -380,9 +380,18 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       // Check for errors
       const hasError = !!stderr || runResult.code !== 0;
       
-      // Normalize output for comparison
+      // Normalize output for comparison - handles whitespace variations consistently
+      // 1. Normalizes line endings
+      // 2. Trims each line and collapses multiple spaces
+      // 3. Removes trailing empty lines
       const normalizeOutput = (s: string) => {
-        return s.split('\n').map(line => line.trim()).join('\n').trim();
+        return s
+          .replace(/\r\n/g, '\n')
+          .split('\n')
+          .map(line => line.trim().replace(/\s+/g, ' '))
+          .join('\n')
+          .replace(/\n+$/, '')
+          .trim();
       };
       
       const normalizedOutput = normalizeOutput(output);
