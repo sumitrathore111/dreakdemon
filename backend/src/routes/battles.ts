@@ -85,6 +85,16 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
     const { difficulty, entryFee, userName, userAvatar, rating } = req.body;
     const userId = req.user!.id;
     
+    // Check if user has enough coins
+    const Wallet = require('../models/Wallet').default;
+    const mongoose = require('mongoose');
+    const wallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    
+    if (!wallet || wallet.coins < entryFee) {
+      res.status(400).json({ error: 'Insufficient coins to create battle' });
+      return;
+    }
+    
     // Cancel any existing waiting battles from this user (prevent duplicates)
     await Battle.deleteMany({
       'participants.userId': userId,
@@ -97,6 +107,23 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       status: 'waiting',
       createdAt: { $lt: fiveMinutesAgo }
     });
+    
+    // Deduct entry fee from creator
+    await Wallet.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId) },
+      {
+        $inc: { coins: -entryFee },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount: entryFee,
+            reason: `Battle entry fee (${difficulty})`,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    console.log(`Entry fee of ${entryFee} coins deducted from player ${userId} (creating)`);
     
     // Get random question (you'll need to load questions.json)
     const fs = await import('fs/promises');
@@ -214,6 +241,33 @@ router.post('/:battleId/join', authenticate, async (req: AuthRequest, res: Respo
       res.status(400).json({ error: 'Battle is full' });
       return;
     }
+    
+    // Check if user has enough coins and deduct entry fee
+    const Wallet = require('../models/Wallet').default;
+    const mongoose = require('mongoose');
+    const wallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    
+    if (!wallet || wallet.coins < battle.entryFee) {
+      res.status(400).json({ error: 'Insufficient coins to join battle' });
+      return;
+    }
+    
+    // Deduct entry fee from joining player
+    await Wallet.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId) },
+      {
+        $inc: { coins: -battle.entryFee },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount: battle.entryFee,
+            reason: `Battle entry fee (${battle.difficulty})`,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    console.log(`Entry fee of ${battle.entryFee} coins deducted from player ${userId} (joining)`);
     
     battle.participants.push({
       userId,
@@ -493,6 +547,29 @@ router.delete('/:battleId', authenticate, async (req: AuthRequest, res: Response
       return;
     }
     
+    // Refund entry fee to creator when cancelling
+    try {
+      const Wallet = require('../models/Wallet').default;
+      const mongoose = require('mongoose');
+      await Wallet.findOneAndUpdate(
+        { userId: new mongoose.Types.ObjectId(req.user!.id) },
+        {
+          $inc: { coins: battle.entryFee },
+          $push: {
+            transactions: {
+              type: 'credit',
+              amount: battle.entryFee,
+              reason: 'Battle cancelled - refund',
+              createdAt: new Date()
+            }
+          }
+        }
+      );
+      console.log(`Refunded ${battle.entryFee} coins to ${req.user!.id} for cancelled battle`);
+    } catch (walletError) {
+      console.error('Error refunding entry fee:', walletError);
+    }
+    
     await Battle.findByIdAndDelete(req.params.battleId);
     res.json({ success: true, message: 'Battle cancelled' });
   } catch (error: any) {
@@ -518,6 +595,29 @@ router.post('/:battleId/cancel', async (req, res): Promise<void> => {
     if (!battle || battle.createdBy !== userId || battle.status !== 'waiting') {
       res.status(400).json({ error: 'Cannot cancel' });
       return;
+    }
+    
+    // Refund entry fee to creator when cancelling via beacon
+    try {
+      const Wallet = require('../models/Wallet').default;
+      const mongoose = require('mongoose');
+      await Wallet.findOneAndUpdate(
+        { userId: new mongoose.Types.ObjectId(userId) },
+        {
+          $inc: { coins: battle.entryFee },
+          $push: {
+            transactions: {
+              type: 'credit',
+              amount: battle.entryFee,
+              reason: 'Battle cancelled - refund',
+              createdAt: new Date()
+            }
+          }
+        }
+      );
+      console.log(`Refunded ${battle.entryFee} coins to ${userId} for cancelled battle (beacon)`);
+    } catch (walletError) {
+      console.error('Error refunding entry fee:', walletError);
     }
     
     await Battle.findByIdAndDelete(req.params.battleId);

@@ -617,13 +617,13 @@ const BattleResults = () => {
           <div className={`p-6 rounded-2xl border ${
             isWinner 
               ? 'bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30' 
-              : 'bg-gray-800/50 border-gray-700/50'
+              : 'bg-gradient-to-br from-red-500/10 to-gray-800/50 border-red-500/20'
           }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm mb-1">Coins Earned</p>
-                <p className={`text-3xl font-bold ${isWinner ? 'text-yellow-400' : 'text-gray-400'}`}>
-                  {isWinner ? `+${battle?.prize || battle?.prizePool || 0}` : '+0'}
+                <p className="text-gray-400 text-sm mb-1">{isWinner ? 'Coins Earned' : 'Entry Fee Lost'}</p>
+                <p className={`text-3xl font-bold ${isWinner ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {isWinner ? `+${battle?.prize || battle?.prizePool || 0}` : `-${battle?.entryFee || 0}`}
                 </p>
                 {updatedCoins !== null && (
                   <p className="text-xs text-gray-500 mt-1">
@@ -632,9 +632,9 @@ const BattleResults = () => {
                 )}
               </div>
               <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                isWinner ? 'bg-yellow-500/20' : 'bg-gray-700/50'
+                isWinner ? 'bg-yellow-500/20' : 'bg-red-500/20'
               }`}>
-                <Coins className={`w-7 h-7 ${isWinner ? 'text-yellow-400' : 'text-gray-500'}`} />
+                <Coins className={`w-7 h-7 ${isWinner ? 'text-yellow-400' : 'text-red-400'}`} />
               </div>
             </div>
           </div>
