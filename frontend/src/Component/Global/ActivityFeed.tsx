@@ -140,8 +140,9 @@ export default function ActivityFeed({ isOpen, onClose }: ActivityFeedProps) {
 
       // Fetch recent marketplace activity
       try {
-        const listings = await apiRequest('/marketplace/listings');
-        (listings || [])
+        const response = await apiRequest('/marketplace');
+        const listings = response?.listings || response || [];
+        (Array.isArray(listings) ? listings : [])
           .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 5)
           .forEach((listing: any) => {

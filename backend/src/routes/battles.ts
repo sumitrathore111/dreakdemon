@@ -59,6 +59,33 @@ print(total - sum(nums))
   }
 });
 
+// Get recent completed battles (for activity feed - no auth required)
+router.get('/recent', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    
+    const battles = await Battle.find({ status: 'completed' })
+      .sort({ completedAt: -1, updatedAt: -1 })
+      .limit(limit);
+    
+    const formattedBattles = battles.map(battle => {
+      const winner = battle.participants.find((p: any) => p.status === 'completed');
+      return {
+        _id: battle._id,
+        status: battle.status,
+        winnerName: winner?.userName || 'A player',
+        prize: battle.prize,
+        completedAt: battle.completedAt || battle.updatedAt
+      };
+    });
+    
+    res.json(formattedBattles);
+  } catch (error: any) {
+    console.error('Error fetching recent battles:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get list of battles (with optional filters)
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -1189,6 +1216,23 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
     const randomQuestion = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
     const prize = Math.floor(actualEntryFee * 2 * 0.9);
     const timeLimit = actualDifficulty === 'easy' ? 900 : actualDifficulty === 'medium' ? 1200 : 1800;
+    
+    // Deduct entry fee from requester NOW (consistent with regular battle creation)
+    await Wallet.findOneAndUpdate(
+      { userId: from },
+      {
+        $inc: { coins: -actualEntryFee },
+        $push: {
+          transactions: {
+            type: 'debit',
+            amount: actualEntryFee,
+            reason: `Battle entry fee (Rematch request)`,
+            createdAt: new Date()
+          }
+        }
+      }
+    );
+    console.log(`Entry fee of ${actualEntryFee} coins deducted from player ${from} (rematch request)`);
     
     // Create new battle with rematch request
     const rematchBattle = await Battle.create({
