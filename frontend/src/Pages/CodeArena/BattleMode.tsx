@@ -16,7 +16,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
 import { apiRequest } from '../../service/api';
-import { calculateScore, runAllTestCases } from './api';
+import { runAllTestCases } from './api';
 import CodeEditor, { LanguageSelector } from './CodeEditor';
 import type { Battle, ExecutionResult, Language } from './types';
 import { DIFFICULTY_COLORS, ENTRY_FEES, LANGUAGE_CONFIG } from './types';
