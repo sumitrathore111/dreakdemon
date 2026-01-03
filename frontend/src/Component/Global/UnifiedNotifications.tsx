@@ -46,8 +46,15 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
   const handleToggle = () => {
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const panelHeight = 400; // Approximate panel height
+      
+      // Check if button is in bottom half of screen - if so, open upward
+      const isBottomHalf = rect.top > window.innerHeight / 2;
+      
       setPanelPosition({
-        top: rect.bottom + 8,
+        top: isBottomHalf 
+          ? Math.max(16, rect.top - panelHeight - 8) // Open upward
+          : rect.bottom + 8, // Open downward
         left: Math.max(16, Math.min(rect.left, window.innerWidth - 400))
       });
     }
