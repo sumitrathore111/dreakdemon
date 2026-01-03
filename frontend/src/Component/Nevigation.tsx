@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+    Activity,
     AlertTriangle,
     BookOpen,
     ChevronsLeft,
@@ -10,6 +11,7 @@ import {
     Menu,
     MessageSquare,
     Moon,
+    Search,
     Store,
     Sun,
     Trophy,
@@ -22,6 +24,9 @@ import { useBattleGuard } from '../Context/BattleGuardContext';
 import { useTheme } from "../Context/ThemeContext";
 import { useDataContext } from "../Context/UserDataContext";
 import { logout } from "../service/auth";
+import ActivityFeed from './Global/ActivityFeed';
+import GlobalSearch, { useGlobalSearch } from './Global/GlobalSearch';
+import UnifiedNotifications from './Global/UnifiedNotifications';
 
 export default function DashboardLayout() {
   const [isMinimized, setIsMinimized] = useState(false);
@@ -33,6 +38,10 @@ export default function DashboardLayout() {
   const navigation = useNavigate();
   const { isBattleActive, activeBattleId, forfeitBattle } = useBattleGuard();
   const [showBattleBlockModal, setShowBattleBlockModal] = useState(false);
+  const [showActivityFeed, setShowActivityFeed] = useState(false);
+  
+  // Global search hook
+  const { isOpen: isSearchOpen, openSearch, closeSearch } = useGlobalSearch();
   
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
@@ -135,6 +144,40 @@ export default function DashboardLayout() {
 
         {/* Navigation Links - Scrollable */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3">
+          {/* Quick Actions Bar */}
+          <div className={`flex items-center gap-2 mb-4 ${isMinimized ? 'flex-col' : ''}`}>
+            {/* Search Button */}
+            <button
+              onClick={openSearch}
+              className={`flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors ${isMinimized ? 'w-full justify-center' : 'flex-1'}`}
+              title="Search (Ctrl+K)"
+            >
+              <Search size={18} className="text-gray-500 dark:text-gray-400" />
+              {!isMinimized && (
+                <span className="text-sm text-gray-500 dark:text-gray-400">Search...</span>
+              )}
+            </button>
+            
+            {/* Notifications */}
+            <UnifiedNotifications isMinimized={isMinimized} />
+            
+            {/* Activity Feed */}
+            <button
+              onClick={() => setShowActivityFeed(true)}
+              className={`p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group relative ${isMinimized ? 'w-full justify-center flex' : ''}`}
+              title="Activity Feed"
+            >
+              <Activity size={18} className="text-gray-500 dark:text-gray-400" />
+              {isMinimized && (
+                <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
+                  style={{ left: '80px' }}
+                >
+                  Activity Feed
+                </div>
+              )}
+            </button>
+          </div>
+
           <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -391,6 +434,27 @@ export default function DashboardLayout() {
 
           {/* Theme toggle and Avatar on right side */}
           <div className="ml-auto flex items-center gap-2">
+            {/* Search Button */}
+            <button
+              onClick={openSearch}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
+            
+            {/* Notifications */}
+            <UnifiedNotifications isMinimized={false} />
+            
+            {/* Activity Feed */}
+            <button
+              onClick={() => setShowActivityFeed(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Activity Feed"
+            >
+              <Activity className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
+            
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -430,6 +494,10 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </div>
+
+      {/* Global Components */}
+      <GlobalSearch isOpen={isSearchOpen} onClose={closeSearch} />
+      <ActivityFeed isOpen={showActivityFeed} onClose={() => setShowActivityFeed(false)} />
     </div>
   );
 }
