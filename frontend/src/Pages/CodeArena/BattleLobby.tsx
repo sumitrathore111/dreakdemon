@@ -621,7 +621,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
                     onClick={async () => {
                       if (wallet?.coins >= battle.entryFee) {
                         // Coins are deducted inside joinBattle after successful join
-                        await joinBattle(battle, true);
+                        await joinBattle(battle);
                       }
                     }}
                     disabled={wallet?.coins < battle.entryFee}

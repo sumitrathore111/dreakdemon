@@ -220,14 +220,6 @@ const BattleResults = () => {
     fetchBattleResults();
   }, [battleId, user, navigate]);
 
-
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
-  };
-
   // Handle rematch - send request to opponent
   const handleRematch = async () => {
     if (!user || !opponentData || !battle || isRequestingRematch || rematchSent) return;
