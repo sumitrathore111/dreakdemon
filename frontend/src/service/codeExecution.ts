@@ -65,7 +65,9 @@ export async function executeCode(
     });
     
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error('Piston API error:', response.status, errorText);
+      throw new Error(`Code execution failed: ${response.status}`);
     }
 
     const result = await response.json();
@@ -80,8 +82,8 @@ export async function executeCode(
       };
     }
 
-    // Check for runtime errors
-    if (result.run.code !== 0 && result.run.signal) {
+    // Check for runtime errors - only if there's an actual error
+    if (result.run.code !== 0 && result.run.stderr && !result.run.stdout) {
       return {
         success: false,
         error: result.run.stderr || result.run.output || 'Runtime error',
@@ -89,7 +91,7 @@ export async function executeCode(
       };
     }
 
-    // Success - return output
+    // Success - return output (even if there's stderr, prioritize stdout)
     return {
       success: true,
       output: (result.run.stdout || result.run.output || '').trim(),

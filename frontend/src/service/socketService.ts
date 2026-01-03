@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://nextstepbackend-qhxw.onrender.com';
+const SOCKET_URL = (import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api').replace('/api', '');
 
 let socket: Socket | null = null;
 

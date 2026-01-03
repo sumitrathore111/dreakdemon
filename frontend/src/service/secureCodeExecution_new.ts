@@ -44,7 +44,7 @@ interface _BattleResult {
 export type { _BattleResult as BattleResult };
 
 class SecureCodeExecutionService {
-  private readonly BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  private readonly BACKEND_URL = (import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api').replace('/api', '');
 
   // Execute code securely through backend proxy
   async executeCode(code: string, language: string, input?: string): Promise<ExecutionResult> {
