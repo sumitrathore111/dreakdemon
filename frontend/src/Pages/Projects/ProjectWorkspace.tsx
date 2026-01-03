@@ -10,6 +10,7 @@ import {
     Upload,
     User,
     UserCheck,
+    UserMinus,
     UserPlus,
     UserX
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
+import { removeMemberFromProject } from '../../service/projectsService';
 import {
     initializeSocket,
     joinProjectRoom,
@@ -77,7 +79,7 @@ interface JoinRequest {
 export default function ProjectWorkspace() {
   const { projectId } = useParams();
   const { user } = useAuth();
-  const { 
+  const {
     fetchAllIdeas, checkUserRole, getProjectMembers, fetchJoinRequests, fetchAllJoinRequestsDebug, fixJoinRequestProjectId,
     approveJoinRequest, rejectJoinRequest,
     addTask: addTaskToDb, fetchTasks: fetchTasksFromDb, updateTask: updateTaskInDb, deleteTask: deleteTaskFromDb,
@@ -85,7 +87,7 @@ export default function ProjectWorkspace() {
     uploadFile: uploadFileToDb, fetchFiles: fetchFilesFromDb, deleteFile: deleteFileFromDb
   } = useDataContext();
   const navigate = useNavigate();
-  
+
   const [activeTab, setActiveTab] = useState<'tasks' | 'chat' | 'files' | 'members' | 'activity'>('tasks');
   const [userRole, setUserRole] = useState<'creator' | 'contributor' | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function ProjectWorkspace() {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [verificationFeedbacks, setVerificationFeedbacks] = useState<Record<string, string>>({});
-  
+
   // Task form
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -110,7 +112,7 @@ export default function ProjectWorkspace() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Files
   const [files, setFiles] = useState<any[]>([]);
 
@@ -125,13 +127,13 @@ export default function ProjectWorkspace() {
   // Initialize socket and join project room
   useEffect(() => {
     if (!actualProjectId) return;
-    
+
     // Initialize socket connection
     initializeSocket();
-    
+
     // Join the project room
     joinProjectRoom(actualProjectId);
-    
+
     // Cleanup on unmount or when project changes
     return () => {
       leaveProjectRoom(actualProjectId);
@@ -269,22 +271,22 @@ export default function ProjectWorkspace() {
       // Get project from ideas
       const allIdeas = await fetchAllIdeas();
       const projectData = allIdeas.find((idea: any) => idea.id === projectId);
-      
+
       console.log('🔍 All ideas:', allIdeas);
       console.log('🔍 Found project data:', projectData);
-      
+
       if (!projectData) {
         alert('Project not found');
         navigate('/dashboard/projects');
         return;
       }
-      
+
       if (projectData.status !== 'approved') {
         alert('This project is not approved yet');
         navigate('/dashboard/projects');
         return;
       }
-      
+
       setProject(projectData);
       // Set the actual Project document ID (different from idea ID)
       const realProjectId = projectData.projectId?._id || projectData.projectId || projectId;
@@ -292,33 +294,33 @@ export default function ProjectWorkspace() {
       console.log('📋 Idea ID:', projectId);
       console.log('📋 projectData.projectId:', projectData.projectId);
       console.log('📋 Actual Project ID to use:', realProjectId);
-      
+
       // Check user role using actual project ID
       const role = await checkUserRole(realProjectId);
       console.log('👤 User role:', role);
-      
+
       if (!role) {
         console.log('❌ NO ACCESS - Redirecting to diagnostics page');
         navigate(`/dashboard/projects/access-diagnostic?projectId=${projectId}`);
         return;
       }
-      
+
       setUserRole(role as 'creator' | 'contributor');
-      
+
       // Load members using actual project ID
       console.log('🔍 Loading members for realProjectId:', realProjectId);
       const membersList = await getProjectMembers(realProjectId);
       console.log('🔍 LOADED MEMBERS FROM BACKEND:', membersList);
-      
+
       // Get creator userId as string for comparison
       const creatorUserId = String(projectData.userId);
       console.log('🔍 Creator userId:', creatorUserId);
-      
+
       // Filter out the creator from membersList to avoid showing twice
       // Also filter out duplicates
       const seenUserIds = new Set<string>();
       seenUserIds.add(creatorUserId); // Add creator first to prevent duplicates
-      
+
       const nonCreatorMembers = membersList.filter((member: any) => {
         const memberId = String(member.userId);
         console.log('🔍 Checking member:', memberId, 'vs creator:', creatorUserId, 'equal:', memberId === creatorUserId);
@@ -328,9 +330,9 @@ export default function ProjectWorkspace() {
         seenUserIds.add(memberId);
         return true;
       });
-      
+
       console.log('🔍 Non-creator members:', nonCreatorMembers);
-      
+
       // Add creator as first member
       const allMembers: Member[] = [
         {
@@ -342,29 +344,29 @@ export default function ProjectWorkspace() {
         },
         ...nonCreatorMembers
       ];
-      
+
       console.log('👥 ALL MEMBERS (including creator):', allMembers);
       setMembers(allMembers);
-      
+
       // Load join requests (only for creator) using actual project ID
       if (role === 'creator') {
         console.log('📋 Loading join requests for project:', realProjectId);
         console.log('📋 Current user ID:', user!.id);
         console.log('📋 Project creator ID:', projectData.userId);
-        
+
         const requests = await fetchJoinRequests(realProjectId);
         console.log('📋 Fetched join requests:', requests);
         setJoinRequests(requests);
-        
+
         // Auto-fix mismatched project IDs
         if (requests.length === 0) {
           const allRequests = await fetchAllJoinRequestsDebug();
-          const needFix = allRequests.filter((r: any) => 
-            r.status === 'pending' && 
+          const needFix = allRequests.filter((r: any) =>
+            r.status === 'pending' &&
             r.creatorId === user!.id &&
             r.projectId !== realProjectId
           );
-          
+
           if (needFix.length > 0 && realProjectId) {
             for (const req of needFix) {
               await fixJoinRequestProjectId(req.id, realProjectId);
@@ -374,12 +376,12 @@ export default function ProjectWorkspace() {
           }
         }
       }
-      
+
       // Load tasks, messages, files from backend using actual project ID
       loadTasks(realProjectId);
       loadMessages();
       loadFiles();
-      
+
     } catch (error) {
       console.error('Error loading project:', error);
       alert('Failed to load project');
@@ -408,7 +410,7 @@ export default function ProjectWorkspace() {
       console.error('Error loading messages:', error);
     }
   };
-  
+
   const loadFiles = async () => {
     try {
       const projectIdToUse = actualProjectId || projectId;
@@ -424,18 +426,18 @@ export default function ProjectWorkspace() {
       const projectIdToUse = actualProjectId || projectId;
       await approveJoinRequest(requestId, projectIdToUse!, userId, userName);
       setJoinRequests(joinRequests.filter(req => req.id !== requestId));
-      
+
       // Reload members using actual project ID
       const membersList = await getProjectMembers(projectIdToUse!);
-      
+
       // Get creator userId as string for comparison
       const creatorUserId = String(project.userId);
-      
+
       // Filter out the creator from membersList to avoid showing twice
-      const nonCreatorMembers = membersList.filter((member: any) => 
+      const nonCreatorMembers = membersList.filter((member: any) =>
         String(member.userId) !== creatorUserId
       );
-      
+
       const allMembers: Member[] = [
         {
           id: 'creator',
@@ -447,7 +449,7 @@ export default function ProjectWorkspace() {
         ...nonCreatorMembers
       ];
       setMembers(allMembers);
-      
+
       alert(`${userName} has been added to the project!`);
     } catch (error) {
       console.error('Error approving request:', error);
@@ -471,7 +473,7 @@ export default function ProjectWorkspace() {
     if (!taskAssignedTo || !user) return false;
     const currentUserName = user.name || user.email?.split('@')[0] || '';
     // Check if assignedTo matches user's name or derived username
-    return taskAssignedTo === user.name || 
+    return taskAssignedTo === user.name ||
            taskAssignedTo === user.email?.split('@')[0] ||
            taskAssignedTo.toLowerCase() === currentUserName.toLowerCase();
   };
@@ -514,7 +516,7 @@ export default function ProjectWorkspace() {
         assignedTo: newTask.assignedTo,
         dueDate: newTask.dueDate
       });
-      
+
       await loadTasks();
       setNewTask({ title: '', description: '', priority: 'medium', assignedTo: '', dueDate: '' });
       setShowTaskForm(false);
@@ -527,7 +529,7 @@ export default function ProjectWorkspace() {
   const updateTaskStatus = async (taskId: string, newStatus: 'todo' | 'inprogress' | 'completed') => {
     try {
       await updateTaskInDb(actualProjectId || projectId!, taskId, { status: newStatus });
-      setTasks(tasks.map(task => 
+      setTasks(tasks.map(task =>
         task.id === taskId ? { ...task, status: newStatus } : task
       ));
     } catch (error) {
@@ -541,7 +543,7 @@ export default function ProjectWorkspace() {
       alert('Only the project creator can delete tasks');
       return;
     }
-    
+
     try {
       await deleteTaskFromDb(actualProjectId || projectId!, taskId);
       setTasks(tasks.filter(task => task.id !== taskId));
@@ -562,12 +564,12 @@ export default function ProjectWorkspace() {
         pendingVerification: true
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { 
-        ...t, 
-        completedBy: user.id, 
-        completedByName: completerName, 
-        completedAt: new Date().toISOString(), 
-        pendingVerification: true 
+      setTasks(tasks.map(t => t.id === taskId ? {
+        ...t,
+        completedBy: user.id,
+        completedByName: completerName,
+        completedAt: new Date().toISOString(),
+        pendingVerification: true
       } : t));
     } catch (error) {
       console.error('Error marking task completed:', error);
@@ -594,13 +596,13 @@ export default function ProjectWorkspace() {
         status: 'completed'
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { 
-        ...t, 
-        verified: true, 
+      setTasks(tasks.map(t => t.id === taskId ? {
+        ...t,
+        verified: true,
         verifiedBy: user?.id || null,
         verifiedByName: verifierName,
-        verificationFeedback: feedback, 
-        pendingVerification: false, 
+        verificationFeedback: feedback,
+        pendingVerification: false,
         status: 'completed' as const
       } : t));
       setVerificationFeedbacks(prev => ({ ...prev, [taskId]: '' }));
@@ -629,13 +631,13 @@ export default function ProjectWorkspace() {
         completedByName: null
       });
 
-      setTasks(tasks.map(t => t.id === taskId ? { 
-        ...t, 
-        verified: false, 
-        verificationFeedback: feedback, 
-        pendingVerification: false, 
-        status: 'inprogress' as const, 
-        completedBy: null, 
+      setTasks(tasks.map(t => t.id === taskId ? {
+        ...t,
+        verified: false,
+        verificationFeedback: feedback,
+        pendingVerification: false,
+        status: 'inprogress' as const,
+        completedBy: null,
         completedAt: undefined,
         completedByName: null
       } : t));
@@ -713,7 +715,7 @@ export default function ProjectWorkspace() {
                 </span>
               </div>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">{project?.description}</p>
-              
+
               <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <User className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -725,7 +727,7 @@ export default function ProjectWorkspace() {
                 </div>
               </div>
             </div>
-            
+
             <div className="text-left sm:text-right w-full sm:w-auto">
               <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">Progress</div>
               <div className="text-2xl sm:text-3xl font-black text-[#00ADB5]">{calculateProgress()}%</div>
@@ -939,7 +941,7 @@ export default function ProjectWorkspace() {
                       >
                         {getStatusIcon(task.status)}
                       </button>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row items-start justify-between gap-2 mb-2">
                           <div className="flex-1 min-w-0">
@@ -962,7 +964,7 @@ export default function ProjectWorkspace() {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                           {task.assignedTo && (
                             <div className="flex items-center gap-1">
@@ -1030,7 +1032,7 @@ export default function ProjectWorkspace() {
         {activeTab === 'chat' && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
             <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 sm:mb-4">Team Chat</h2>
-            
+
             <div className="h-64 sm:h-80 md:h-96 overflow-y-auto mb-3 sm:mb-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
               {messages.length === 0 ? (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-8 sm:py-12">
@@ -1109,7 +1111,7 @@ export default function ProjectWorkspace() {
                 />
               </label>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {files.length === 0 ? (
                 <div className="col-span-2 text-center py-8 sm:py-12 text-gray-500 dark:text-gray-400">
@@ -1154,7 +1156,7 @@ export default function ProjectWorkspace() {
                 ))
               )}
             </div>
-            
+
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
               Note: Full file upload/download requires Firebase Storage setup. Currently storing metadata only.
             </p>
@@ -1170,7 +1172,7 @@ export default function ProjectWorkspace() {
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
                   Pending Join Requests {joinRequests.length > 0 && `(${joinRequests.length})`}
                 </h2>
-                
+
                 {joinRequests.length === 0 ? (
                   <div className="bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
                     <UserPlus className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
@@ -1205,26 +1207,26 @@ export default function ProjectWorkspace() {
                           </button>
                         </div>
                       </div>
-                      
+
                       {/* Application Details */}
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
                         <div>
                           <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Skills</p>
                           <p className="text-sm text-gray-900 dark:text-white">{request.skills || 'Not provided'}</p>
                         </div>
-                        
+
                         {request.experience && (
                           <div>
                             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Experience</p>
                             <p className="text-sm text-gray-900 dark:text-white">{request.experience}</p>
                           </div>
                         )}
-                        
+
                         <div>
                           <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Why they want to join</p>
                           <p className="text-sm text-gray-900 dark:text-white">{request.motivation || 'Not provided'}</p>
                         </div>
-                        
+
                         {request.availability && (
                           <div>
                             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Availability</p>
@@ -1259,17 +1261,40 @@ export default function ProjectWorkspace() {
                           </p>
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        member.role === 'creator' 
-                          ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400' 
-                          : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
-                      }`}>
-                        {member.role === 'creator' ? (
-                          <><Shield className="w-3 h-3 inline mr-1" />CREATOR</>
-                        ) : (
-                          <><UserCheck className="w-3 h-3 inline mr-1" />CONTRIBUTOR</>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          member.role === 'creator'
+                            ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400'
+                            : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'
+                        }`}>
+                          {member.role === 'creator' ? (
+                            <><Shield className="w-3 h-3 inline mr-1" />CREATOR</>
+                          ) : (
+                            <><UserCheck className="w-3 h-3 inline mr-1" />CONTRIBUTOR</>
+                          )}
+                        </span>
+                        {/* Remove member button - only for creator, can't remove creator */}
+                        {userRole === 'creator' && member.role !== 'creator' && (
+                          <button
+                            onClick={async () => {
+                              if (window.confirm(`Remove ${member.userName} from the project?`)) {
+                                try {
+                                  if (actualProjectId) {
+                                    await removeMemberFromProject(actualProjectId, member.userId);
+                                    setMembers(members.filter(m => m.userId !== member.userId));
+                                  }
+                                } catch (error: any) {
+                                  alert(error?.message || 'Failed to remove member');
+                                }
+                              }
+                            }}
+                            title="Remove member"
+                            className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                          >
+                            <UserMinus className="w-4 h-4" />
+                          </button>
                         )}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 ))}

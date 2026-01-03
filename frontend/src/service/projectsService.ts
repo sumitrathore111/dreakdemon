@@ -65,10 +65,10 @@ export async function getAllProjects(filters?: {
     if (filters?.category) params.append('category', filters.category);
     if (filters?.visibility) params.append('visibility', filters.visibility);
     if (filters?.search) params.append('search', filters.search);
-    
+
     const queryString = params.toString();
     const url = `/projects${queryString ? `?${queryString}` : ''}`;
-    
+
     const response = await apiRequest(url);
     return response.projects || [];
   } catch (error) {
@@ -219,6 +219,19 @@ export async function getProjectMembers(projectId: string): Promise<ProjectMembe
   } catch (error) {
     console.error('Error fetching members:', error);
     return [];
+  }
+}
+
+// Remove a member from project (creator only)
+export async function removeMemberFromProject(projectId: string, memberId: string): Promise<boolean> {
+  try {
+    await apiRequest(`/projects/${projectId}/members/${memberId}`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch (error) {
+    console.error('Error removing member:', error);
+    throw error;
   }
 }
 
