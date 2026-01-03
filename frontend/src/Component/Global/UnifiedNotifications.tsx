@@ -10,7 +10,8 @@ import {
   UserPlus,
   X
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { apiRequest } from '../../service/api';
@@ -36,8 +37,23 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [panelPosition, setPanelPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Update panel position when opening
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPanelPosition({
+        top: rect.bottom + 8,
+        left: Math.max(16, Math.min(rect.left, window.innerWidth - 400))
+      });
+    }
+    setIsOpen(!isOpen);
+    if (!isOpen) fetchNotifications();
+  };
 
   // Fetch notifications on mount
   useEffect(() => {
@@ -300,10 +316,8 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
     <div className="relative">
       {/* Notification Bell Button */}
       <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen) fetchNotifications();
-        }}
+        ref={buttonRef}
+        onClick={handleToggle}
         className={`relative p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 transition-colors group ${isMinimized ? 'w-full justify-center flex' : ''}`}
         title="Notifications"
       >
@@ -326,24 +340,30 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
         )}
       </button>
 
-      {/* Dropdown Panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 z-[100]"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Notification Panel */}
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="fixed left-4 sm:left-auto sm:right-4 top-16 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[101] overflow-hidden"
-            >
+      {/* Dropdown Panel - Rendered via Portal */}
+      {createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 z-[9998]"
+                onClick={() => setIsOpen(false)}
+              />
+              
+              {/* Notification Panel */}
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="fixed w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[9999] overflow-hidden"
+                style={{
+                  top: panelPosition.top,
+                  left: panelPosition.left,
+                  maxHeight: 'calc(100vh - 100px)'
+                }}
+              >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
                 <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -430,7 +450,9 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }
