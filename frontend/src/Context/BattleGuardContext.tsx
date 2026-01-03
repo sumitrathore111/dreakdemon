@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { apiRequest } from '../service/api';
 
 interface BattleGuardContextType {
   isBattleActive: boolean;
@@ -22,14 +23,7 @@ export const BattleGuardProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!activeBattleId) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`https://nextstepbackend-qhxw.onrender.com/api/battles/${activeBattleId}/forfeit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      await apiRequest(`/battles/${activeBattleId}/forfeit`, { method: 'POST' });
     } catch (error) {
       console.error('Error forfeiting battle:', error);
     } finally {
