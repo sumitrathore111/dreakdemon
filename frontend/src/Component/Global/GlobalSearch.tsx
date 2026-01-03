@@ -202,8 +202,6 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     localStorage.removeItem('recentSearches');
   };
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -213,7 +211,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -223,7 +221,7 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-[10%] left-1/2 -translate-x-1/2 z-[101] w-full max-w-2xl mx-4"
+            className="fixed top-[10%] left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-2xl"
           >
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Search Input */}
