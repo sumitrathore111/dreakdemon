@@ -1,15 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ChevronRight,
-    Clock,
-    Coins,
-    Search,
-    Shield,
-    Swords,
-    Trophy,
-    Users,
-    X,
-    Zap
+  ChevronRight,
+  Clock,
+  Coins,
+  Search,
+  Shield,
+  Swords,
+  Trophy,
+  Users,
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -63,8 +63,8 @@ const entryOptions = [
 const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userprofile, deductCoins } = useDataContext();
-  
+  const { userprofile } = useDataContext();
+
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('medium');
   const [selectedEntry, setSelectedEntry] = useState(entryOptions[1]);
   const [isSearching, setIsSearching] = useState(false);
@@ -104,7 +104,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         const battle = await apiRequest(`/battles/${myBattleId}`);
         // Check if opponent joined (status becomes 'active' or participants.length > 1)
         if (battle && (
-          battle.status === 'countdown' || 
+          battle.status === 'countdown' ||
           battle.status === 'active' ||
           (battle.participants && battle.participants.length >= 2)
         )) {
@@ -116,7 +116,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         // Auto-match: Check if there are other battles we can join instead of waiting
         const response = await apiRequest(`/battles?status=waiting&difficulty=${selectedDifficulty}`);
         const availableBattles = (response.battles || []).filter(
-          (b: WaitingBattle) => b.creatorId !== user.id && 
+          (b: WaitingBattle) => b.creatorId !== user.id &&
                                b.id !== myBattleId &&
                                b.entryFee === selectedEntry.fee
         );
@@ -125,14 +125,14 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
           // Found another battle! Cancel our battle and join theirs
           const targetBattle = availableBattles[0];
           console.log('Auto-match: Found existing battle, joining...', targetBattle.id);
-          
+
           // Cancel our waiting battle (refund already handled)
           try {
             await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
           } catch (e) {
             console.log('Could not delete own battle, may already be matched');
           }
-          
+
           // Join the other battle
           await apiRequest(`/battles/${targetBattle.id}/join`, {
             method: 'POST',
@@ -179,7 +179,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
     // Handle tab close/refresh only
     window.addEventListener('beforeunload', cancelBattle);
-    
+
     // Handle navigation within app
     return () => {
       window.removeEventListener('beforeunload', cancelBattle);
@@ -203,17 +203,17 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
   const handleFindMatch = async () => {
     console.log('handleFindMatch called', { user, wallet, selectedEntry });
-    
+
     if (!user) {
       alert('Please log in to find a match');
       return;
     }
-    
+
     if (!wallet) {
       alert('Wallet not loaded. Please wait or refresh the page.');
       return;
     }
-    
+
     if ((wallet.coins || 0) < selectedEntry.fee) {
       alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
       return;
@@ -225,17 +225,17 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     try {
       // First check for existing battles to join immediately
       const matchingBattle = waitingBattles.find(
-        (b) => b.difficulty === selectedDifficulty && 
+        (b) => b.difficulty === selectedDifficulty &&
                b.entryFee === selectedEntry.fee &&
                b.creatorId !== user.id
       );
 
       if (matchingBattle) {
-        // Join existing battle - coins deducted inside joinBattle on success
-        await joinBattle(matchingBattle, true);
+        // Join existing battle - backend handles coin deduction
+        await joinBattle(matchingBattle);
       } else {
-        // Create new battle - coins deducted inside createBattle on success
-        await createBattle(true);
+        // Create new battle - backend handles coin deduction
+        await createBattle();
       }
     } catch (error) {
       console.error('Error finding match:', error);
@@ -244,24 +244,24 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     }
   };
 
-  const createBattle = async (shouldDeductCoins: boolean = false) => {
+  const createBattle = async () => {
     try {
       setIsCreating(true);
-      
+
       // Ensure wallet exists before verification
       if (!wallet) {
         alert('Wallet not initialized. Please refresh the page.');
         setIsSearching(false);
         return;
       }
-      
+
       // Simple coin check
       if ((wallet.coins || 0) < selectedEntry.fee) {
         alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${selectedEntry.fee} coins.`);
         setIsSearching(false);
         return;
       }
-      
+
       const battleRequest = {
         difficulty: selectedDifficulty as 'easy' | 'medium' | 'hard',
         entryFee: selectedEntry.fee,
@@ -270,18 +270,14 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         userAvatar: userprofile?.profilePic || '',
         rating: wallet?.rating || 1000
       };
-      
+
       console.log('Creating battle with request:', battleRequest);
       const battleId = await joinOrCreateBattle(battleRequest);
       console.log('Battle created with ID:', battleId);
-      
-      // Deduct coins ONLY after successful battle creation
-      if (shouldDeductCoins) {
-        await deductCoins(user!.id, selectedEntry.fee, 'Battle entry fee');
-      }
-      
+      // Backend handles coin deduction
+
       setMyBattleId(battleId);
-      
+
     } catch (error: unknown) {
       console.error('Error creating battle:', error);
       alert(error instanceof Error ? error.message : 'Failed to create battle');
@@ -291,7 +287,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
     }
   };
 
-  const joinBattle = async (battle: WaitingBattle, shouldDeductCoins: boolean = false) => {
+  const joinBattle = async (battle: WaitingBattle) => {
     try {
       // Ensure wallet exists before verification
       if (!wallet) {
@@ -299,14 +295,14 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         setIsSearching(false);
         return;
       }
-      
+
       // Simple coin check
       if ((wallet.coins || 0) < battle.entryFee) {
         alert(`Insufficient coins! You have ${wallet.coins || 0} coins but need ${battle.entryFee} coins.`);
         setIsSearching(false);
         return;
       }
-      
+
       console.log('Joining battle:', battle.id);
       await apiRequest(`/battles/${battle.id}/join`, {
         method: 'POST',
@@ -317,15 +313,11 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
           rating: wallet?.rating || 1000
         })
       });
-
-      // Deduct coins ONLY after successful join
-      if (shouldDeductCoins) {
-        await deductCoins(user!.id, battle.entryFee, 'Battle entry fee');
-      }
+      // Backend handles coin deduction
 
       // Navigate to battle room
       navigate(`/dashboard/codearena/battle/${battle.id}`);
-      
+
     } catch (error: unknown) {
       console.error('Error joining battle:', error);
       alert(error instanceof Error ? error.message : 'Failed to join battle. Battle may have been taken by another player.');
@@ -336,16 +328,13 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   const handleCancelSearch = async () => {
     if (myBattleId) {
       try {
-        // Refund entry fee
-        await deductCoins(user!.id, -selectedEntry.fee, 'Battle cancelled - refund');
-        
-        // Delete the battle document so it doesn't show to other users
+        // Delete the battle document - backend handles refund automatically
         await apiRequest(`/battles/${myBattleId}`, { method: 'DELETE' });
       } catch (error) {
         console.error('Error cancelling battle:', error);
       }
     }
-    
+
     setIsSearching(false);
     setMyBattleId(null);
     setSearchTime(0);
@@ -426,7 +415,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               </div>
 
               <div className="flex items-center justify-center gap-6 text-sm text-gray-600 mb-8">
-                <motion.span 
+                <motion.span
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full"
@@ -457,7 +446,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       {/* Battle Configuration */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-3">Select Difficulty</h3>
-        
+
         <div className="grid grid-cols-3 gap-3 mb-6">
           {difficulties.map((diff) => (
             <motion.button
@@ -488,7 +477,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
         <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
           <span className="text-lg">💰</span> Entry Fee & Prize
         </h3>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {entryOptions.map((option) => (
             <motion.button
@@ -576,7 +565,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
 
       {/* Available Battles */}
       {waitingBattles.length > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 rounded-xl border border-green-200 dark:border-green-700 shadow p-4 relative overflow-hidden"
@@ -586,7 +575,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               <Users className="w-4 h-4 text-white" />
             </div>
             Open Battles
-            <motion.span 
+            <motion.span
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
               className="text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-0.5 rounded-full font-semibold"
@@ -654,7 +643,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       {/* How It Works */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-3">How Battles Work</h3>
-        
+
         <div className="grid md:grid-cols-3 gap-3">
           {[
             {

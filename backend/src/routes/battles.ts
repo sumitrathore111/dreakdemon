@@ -16,11 +16,11 @@ nums = list(map(int, input().split()))
 total = n * (n + 1) // 2
 print(total - sum(nums))
 `;
-    
+
     console.log('=== DEBUG PISTON TEST ===');
     console.log('Input:', JSON.stringify(testInput));
     console.log('Code:', testCode);
-    
+
     const response = await axios.post(
       'https://emkc.org/api/v2/piston/execute',
       {
@@ -34,13 +34,13 @@ print(total - sum(nums))
         timeout: 15000
       }
     );
-    
+
     console.log('Piston Response:', JSON.stringify(response.data, null, 2));
-    
+
     const runResult = response.data.run || {};
     const output = (runResult.stdout || runResult.output || '').trim();
     const stderr = runResult.stderr || '';
-    
+
     res.json({
       success: true,
       input: testInput,
@@ -52,9 +52,9 @@ print(total - sum(nums))
     });
   } catch (error: any) {
     console.error('Debug Piston Error:', error.response?.data || error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: error.response?.data || error.message 
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
     });
   }
 });
@@ -63,11 +63,11 @@ print(total - sum(nums))
 router.get('/recent', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
-    
+
     const battles = await Battle.find({ status: 'completed' })
       .sort({ completedAt: -1, updatedAt: -1 })
       .limit(limit);
-    
+
     const formattedBattles = battles.map(battle => {
       const winner = battle.participants.find((p: any) => p.status === 'completed');
       return {
@@ -78,7 +78,7 @@ router.get('/recent', async (req: AuthRequest, res: Response): Promise<void> => 
         completedAt: battle.completedAt || battle.updatedAt
       };
     });
-    
+
     res.json(formattedBattles);
   } catch (error: any) {
     console.error('Error fetching recent battles:', error);
@@ -90,28 +90,28 @@ router.get('/recent', async (req: AuthRequest, res: Response): Promise<void> => 
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status, difficulty } = req.query;
-    
+
     // Clean up stale waiting battles (older than 15 minutes)
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     await Battle.deleteMany({
       status: 'waiting',
       createdAt: { $lt: fifteenMinutesAgo }
     });
-    
+
     // Build query
     const query: any = {};
     if (status) query.status = status;
     if (difficulty) query.difficulty = difficulty;
-    
+
     // If filtering for waiting battles, only show fresh ones
     if (status === 'waiting') {
       query.createdAt = { $gte: fifteenMinutesAgo };
     }
-    
+
     const battles = await Battle.find(query)
       .sort({ createdAt: -1 })
       .limit(50);
-    
+
     // Transform to frontend expected format - filter out battles without proper creator names
     const formattedBattles = battles
       .filter(battle => {
@@ -152,7 +152,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
         createdAt: battle.createdAt
       };
     });
-    
+
     res.json({ battles: formattedBattles });
   } catch (error: any) {
     console.error('Error fetching battles:', error);
@@ -165,30 +165,30 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
   try {
     const { difficulty, entryFee, userName, userAvatar, rating } = req.body;
     const userId = req.user!.id;
-    
+
     // Check if user has enough coins
     const Wallet = require('../models/Wallet').default;
     const mongoose = require('mongoose');
     const wallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
-    
+
     if (!wallet || wallet.coins < entryFee) {
       res.status(400).json({ error: 'Insufficient coins to create battle' });
       return;
     }
-    
+
     // Cancel any existing waiting battles from this user (prevent duplicates)
     await Battle.deleteMany({
       'participants.userId': userId,
       status: 'waiting'
     });
-    
+
     // Also clean up stale battles (older than 15 minutes and still waiting)
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     await Battle.deleteMany({
       status: 'waiting',
       createdAt: { $lt: fifteenMinutesAgo }
     });
-    
+
     // Deduct entry fee from creator
     await Wallet.findOneAndUpdate(
       { userId: new mongoose.Types.ObjectId(userId) },
@@ -205,11 +205,11 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       }
     );
     console.log(`Entry fee of ${entryFee} coins deducted from player ${userId} (creating)`);
-    
+
     // Get random question (you'll need to load questions.json)
     const fs = await import('fs/promises');
     const path = await import('path');
-    
+
     // Try multiple possible paths
     const possiblePaths = [
       path.join(__dirname, '../../../public/questions.json'),
@@ -217,7 +217,7 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       path.join(process.cwd(), 'public/questions.json'),
       path.join(process.cwd(), 'backend/public/questions.json')
     ];
-    
+
     let questionsData: string | null = null;
     for (const questionsPath of possiblePaths) {
       try {
@@ -228,14 +228,14 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
         // Try next path
       }
     }
-    
+
     if (!questionsData) {
       res.status(500).json({ error: 'Could not load questions database' });
       return;
     }
-    
+
     const questionsJson = JSON.parse(questionsData);
-    
+
     // Handle both array format and object with problems/questions property
     let questions: any[] = [];
     if (Array.isArray(questionsJson)) {
@@ -245,24 +245,24 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
     } else if (questionsJson.questions) {
       questions = questionsJson.questions;
     }
-    
-    const difficultyQuestions = questions.filter((q: any) => 
+
+    const difficultyQuestions = questions.filter((q: any) =>
       q.difficulty && q.difficulty.toLowerCase() === difficulty.toLowerCase()
     );
     if (difficultyQuestions.length === 0) {
       res.status(400).json({ error: `No ${difficulty} questions available` });
       return;
     }
-    
+
     const randomQuestion = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
-    
+
     console.log('Selected question:', randomQuestion.id, randomQuestion.title);
     console.log('Question testCases:', randomQuestion.testCases?.length || 0);
     console.log('Question test_cases:', randomQuestion.test_cases?.length || 0);
-    
+
     const prize = Math.floor(entryFee * 2 * 0.9);
     const timeLimit = difficulty === 'easy' ? 900 : difficulty === 'medium' ? 1200 : 1800;
-    
+
     // Ensure testCases are properly included in the challenge object
     const challengeData = {
       id: randomQuestion.id,
@@ -274,9 +274,9 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       testCases: randomQuestion.testCases || randomQuestion.test_cases || [],
       test_cases: randomQuestion.test_cases || randomQuestion.testCases || []
     };
-    
+
     console.log('Challenge testCases being saved:', challengeData.testCases.length);
-    
+
     const battle = await Battle.create({
       status: 'waiting',
       difficulty,
@@ -295,7 +295,7 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       createdBy: userId,
       version: 'v2.0-custom'
     });
-    
+
     res.status(201).json({ battleId: battle._id, battle });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -306,10 +306,10 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
 router.get('/find', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { difficulty, entryFee } = req.query;
-    
+
     // Only find battles created within the last 15 minutes (not stale)
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-    
+
     const battle = await Battle.findOne({
       status: 'waiting',
       difficulty,
@@ -317,7 +317,7 @@ router.get('/find', authenticate, async (req: AuthRequest, res: Response): Promi
       'participants.userId': { $ne: req.user!.id },
       createdAt: { $gte: fifteenMinutesAgo } // Only fresh battles
     }).sort({ createdAt: 1 }); // Oldest first (FIFO)
-    
+
     res.json({ battle });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -329,33 +329,33 @@ router.post('/:battleId/join', authenticate, async (req: AuthRequest, res: Respo
   try {
     const { userName, userAvatar, rating } = req.body;
     const userId = req.user!.id;
-    
+
     const battle = await Battle.findById(req.params.battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     if (battle.status !== 'waiting') {
       res.status(400).json({ error: 'Battle is not available' });
       return;
     }
-    
+
     if (battle.participants.length >= battle.maxParticipants) {
       res.status(400).json({ error: 'Battle is full' });
       return;
     }
-    
+
     // Check if user has enough coins and deduct entry fee
     const Wallet = require('../models/Wallet').default;
     const mongoose = require('mongoose');
     const wallet = await Wallet.findOne({ userId: new mongoose.Types.ObjectId(userId) });
-    
+
     if (!wallet || wallet.coins < battle.entryFee) {
       res.status(400).json({ error: 'Insufficient coins to join battle' });
       return;
     }
-    
+
     // Deduct entry fee from joining player
     await Wallet.findOneAndUpdate(
       { userId: new mongoose.Types.ObjectId(userId) },
@@ -372,7 +372,7 @@ router.post('/:battleId/join', authenticate, async (req: AuthRequest, res: Respo
       }
     );
     console.log(`Entry fee of ${battle.entryFee} coins deducted from player ${userId} (joining)`);
-    
+
     battle.participants.push({
       userId,
       userName,
@@ -380,11 +380,11 @@ router.post('/:battleId/join', authenticate, async (req: AuthRequest, res: Respo
       rating: rating || 1000,
       hasSubmitted: false
     });
-    
+
     // Set to countdown first, then frontend will trigger start after countdown
     battle.status = 'countdown';
     await battle.save();
-    
+
     res.json({ battle });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -399,14 +399,14 @@ router.post('/:battleId/start', authenticate, async (req: AuthRequest, res: Resp
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     // Only start if currently in countdown status
     if (battle.status === 'countdown') {
       battle.status = 'active';
       battle.startedAt = new Date();
       await battle.save();
     }
-    
+
     res.json({ battle, success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -417,18 +417,18 @@ router.post('/:battleId/start', authenticate, async (req: AuthRequest, res: Resp
 router.get('/rematch-requests', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.query;
-    
+
     if (!userId) {
       res.json({ battles: [] });
       return;
     }
-    
+
     // Find battles where a rematch was requested involving this user
     const battles = await Battle.find({
       'rematchRequest.to': userId,
       'rematchRequest.status': 'pending'
     });
-    
+
     res.json({ battles: battles || [] });
   } catch (error: any) {
     console.error('Error fetching rematch requests:', error);
@@ -441,39 +441,39 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
   try {
     const { code, language } = req.body;
     const userId = req.user!.id;
-    
+
     const battle = await Battle.findById(req.params.battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     const participant = battle.participants.find(p => p.userId === userId);
     if (!participant) {
       res.status(403).json({ error: 'Not a participant' });
       return;
     }
-    
+
     // Check if already submitted
     if (participant.hasSubmitted) {
       res.status(400).json({ error: 'Already submitted', alreadySubmitted: true });
       return;
     }
-    
+
     // Get test cases from either field (testCases is used in questions.json)
     const challengeData = battle.challenge as any;
     let testCases = challengeData.testCases || challengeData.test_cases || [];
-    
+
     console.log('Battle challenge data:', JSON.stringify(challengeData, null, 2));
     console.log('Test cases found:', testCases.length);
-    
+
     // If no test cases in battle, try to load from questions.json
     if (testCases.length === 0 && challengeData.id) {
       console.log('No test cases in battle, loading from questions.json...');
       try {
         const fs = await import('fs/promises');
         const path = await import('path');
-        
+
         // Try multiple possible paths
         const possiblePaths = [
           path.join(__dirname, '../../../public/questions.json'),
@@ -481,7 +481,7 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
           path.join(process.cwd(), 'public/questions.json'),
           path.join(process.cwd(), 'backend/public/questions.json')
         ];
-        
+
         let questionsData: string | null = null;
         for (const questionsPath of possiblePaths) {
           try {
@@ -493,12 +493,12 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
             // Try next path
           }
         }
-        
+
         if (!questionsData) {
           console.error('Could not find questions.json in any expected location');
         } else {
           const questionsJson = JSON.parse(questionsData);
-          
+
           let questions: any[] = [];
           if (Array.isArray(questionsJson)) {
             questions = questionsJson;
@@ -507,7 +507,7 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
           } else if (questionsJson.questions) {
             questions = questionsJson.questions;
           }
-          
+
           const foundQuestion = questions.find((q: any) => q.id === challengeData.id);
           if (foundQuestion) {
             testCases = foundQuestion.testCases || foundQuestion.test_cases || [];
@@ -518,51 +518,67 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
         console.error('Error loading questions.json for test cases:', err);
       }
     }
-    
+
     if (testCases.length === 0) {
       res.status(400).json({ error: 'No test cases available', challenge: challengeData });
       return;
     }
-    
+
     // Execute code against test cases
     const testResults = await executeCode(code, language, testCases);
     const score = calculateScore(testResults);
-    
+
+    // Calculate passed count and total time
+    const passedCount = testResults.filter((r: any) => r.passed).length;
+    const totalCount = testResults.length;
+    const totalTime = testResults.reduce((sum: number, r: any) => {
+      const timeValue = typeof r.time === 'number' ? r.time : parseFloat(r.time) || 0;
+      return sum + (isNaN(timeValue) ? 0 : timeValue);
+    }, 0);
+
+    console.log(`[Battle] User ${userId}: ${passedCount}/${totalCount} passed, time: ${totalTime}ms`);
+
     participant.hasSubmitted = true;
     participant.code = code;
     participant.score = score;
     participant.submissionTime = new Date();
-    
+    participant.passedCount = passedCount;
+    participant.totalCount = totalCount;
+    participant.totalTime = Math.round(totalTime);
+
+    // Mark participants as modified to ensure Mongoose saves subdocument changes
+    battle.markModified('participants');
+
     // Check if battle is complete
     if (battle.participants.every(p => p.hasSubmitted)) {
       battle.status = 'completed';
       battle.completedAt = new Date();
-      
+
       // Determine winner - higher score wins, tie goes to faster submission
       const winner = battle.participants.reduce((prev, current) => {
         const prevScore = prev.score || 0;
         const currentScore = current.score || 0;
-        
+
         // Higher score wins
         if (currentScore > prevScore) return current;
         if (currentScore < prevScore) return prev;
-        
+
         // Same score - faster submission wins
         const prevTime = prev.submissionTime ? new Date(prev.submissionTime).getTime() : Infinity;
         const currentTime = current.submissionTime ? new Date(current.submissionTime).getTime() : Infinity;
         return currentTime < prevTime ? current : prev;
       });
-      
+
       // Check for true tie (same score, same time - very unlikely)
-      const isTie = battle.participants.length === 2 && 
+      const isTie = battle.participants.length === 2 &&
         battle.participants[0].score === battle.participants[1].score;
-      
+
       battle.winner = winner.userId;
       (battle as any).winReason = isTie ? 'Faster submission' : 'Higher score';
-      
+
       // Find the loser
       const loser = battle.participants.find(p => p.userId !== winner.userId);
-      
+
       // Award prize to winner - only if not already awarded (prevent double awarding)
       if (!(battle as any).prizeAwarded) {
         try {
@@ -585,13 +601,13 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
           );
           (battle as any).prizeAwarded = true;
           console.log(`Prize of ${battle.prize} coins awarded to winner ${winner.userId}`);
-          
+
           // Update ELO ratings for both players
           if (loser) {
             const winnerRating = winner.rating || 1000;
             const loserRating = loser.rating || 1000;
             const ratingResult = await updateBattleRatings(winner.userId, loser.userId, winnerRating, loserRating);
-            
+
             // Store rating changes in battle for display
             (battle as any).ratingChanges = {
               winner: { oldRating: winnerRating, newRating: ratingResult.winnerNewRating },
@@ -603,24 +619,16 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
         }
       }
     }
-    
+
     await battle.save();
-    
-    const passedCount = testResults.filter((r: any) => r.passed).length;
-    
-    // Calculate total time properly (ensure it's a valid number)
-    const totalTime = testResults.reduce((sum: number, r: any) => {
-      const timeValue = typeof r.time === 'number' ? r.time : 0;
-      return sum + (isNaN(timeValue) ? 0 : timeValue);
-    }, 0);
-    
-    res.json({ 
-      passed: passedCount === testResults.length,
+
+    res.json({
+      passed: passedCount === totalCount,
       passedCount,
-      totalCount: testResults.length,
-      totalTime: Math.round(totalTime * 1000) / 1000, // Round to 3 decimal places
+      totalCount,
+      totalTime,
       score,
-      testResults 
+      testResults
     });
   } catch (error: any) {
     console.error('Submit error:', error);
@@ -632,7 +640,7 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
 router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { battleId } = req.params;
-    
+
     // Validate battleId format before querying
     const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(battleId)) {
@@ -640,13 +648,13 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
       res.status(400).json({ error: 'Invalid battle ID format' });
       return;
     }
-    
+
     const battle = await Battle.findById(battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     // Transform participants to frontend expected format
     const transformedBattle = {
       id: battle._id,
@@ -669,11 +677,17 @@ router.get('/:battleId', authenticate, async (req: AuthRequest, res: Response): 
         odProfilePic: p.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`,
         rating: p.rating || 1000,
         hasSubmitted: p.hasSubmitted || false,
-        submissionResult: p.submissionResult,
-        score: p.score || 0
+        score: p.score || 0,
+        // Build submissionResult from stored participant fields
+        submissionResult: p.hasSubmitted ? {
+          passedCount: p.passedCount || 0,
+          totalCount: p.totalCount || 0,
+          totalTime: p.totalTime || 0,
+          passed: (p.passedCount || 0) === (p.totalCount || 0) && (p.totalCount || 0) > 0
+        } : null
       }))
     };
-    
+
     res.json(transformedBattle);
   } catch (error: any) {
     console.error(`Error fetching battle ${req.params.battleId}:`, error.message);
@@ -689,18 +703,18 @@ router.delete('/:battleId', authenticate, async (req: AuthRequest, res: Response
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     // Only allow deletion if user is the creator and battle is still waiting
     if (battle.createdBy !== req.user!.id) {
       res.status(403).json({ error: 'Not authorized to delete this battle' });
       return;
     }
-    
+
     if (battle.status !== 'waiting') {
       res.status(400).json({ error: 'Cannot delete battle that has already started' });
       return;
     }
-    
+
     // Refund entry fee to creator when cancelling
     try {
       const Wallet = require('../models/Wallet').default;
@@ -723,7 +737,7 @@ router.delete('/:battleId', authenticate, async (req: AuthRequest, res: Response
     } catch (walletError) {
       console.error('Error refunding entry fee:', walletError);
     }
-    
+
     await Battle.findByIdAndDelete(req.params.battleId);
     res.json({ success: true, message: 'Battle cancelled' });
   } catch (error: any) {
@@ -739,18 +753,18 @@ router.post('/:battleId/cancel', async (req, res): Promise<void> => {
       res.status(401).json({ error: 'No token provided' });
       return;
     }
-    
+
     // Verify token manually
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key');
     const userId = decoded.id;
-    
+
     const battle = await Battle.findById(req.params.battleId);
     if (!battle || battle.createdBy !== userId || battle.status !== 'waiting') {
       res.status(400).json({ error: 'Cannot cancel' });
       return;
     }
-    
+
     // Refund entry fee to creator when cancelling via beacon
     try {
       const Wallet = require('../models/Wallet').default;
@@ -773,7 +787,7 @@ router.post('/:battleId/cancel', async (req, res): Promise<void> => {
     } catch (walletError) {
       console.error('Error refunding entry fee:', walletError);
     }
-    
+
     await Battle.findByIdAndDelete(req.params.battleId);
     res.json({ success: true });
   } catch (error: any) {
@@ -789,28 +803,28 @@ router.post('/:battleId/forfeit', authenticate, async (req: AuthRequest, res: Re
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     if (battle.status !== 'active' && battle.status !== 'countdown') {
       res.status(400).json({ error: 'Battle is not active' });
       return;
     }
-    
+
     const userId = req.user!.id;
-    
+
     // Find the opponent (winner)
     const opponent = battle.participants.find((p: any) => p.userId !== userId);
     if (!opponent) {
       res.status(400).json({ error: 'No opponent found' });
       return;
     }
-    
+
     // Update battle status
     battle.status = 'forfeited';
     battle.winner = opponent.userId;
     battle.forfeitedBy = userId;
     (battle as any).winReason = 'Opponent left the battle or switched tabs';
     battle.completedAt = new Date();
-    
+
     // Award prize to winner - only if not already awarded
     if (!(battle as any).prizeAwarded) {
       const Wallet = require('../models/Wallet').default;
@@ -832,9 +846,9 @@ router.post('/:battleId/forfeit', authenticate, async (req: AuthRequest, res: Re
       (battle as any).prizeAwarded = true;
       console.log(`Prize of ${battle.prize} coins awarded to winner ${opponent.userId} (forfeit)`);
     }
-    
+
     await battle.save();
-    
+
     res.json({
       success: true,
       message: 'Battle forfeited',
@@ -852,7 +866,7 @@ router.get('/user/my-battles', authenticate, async (req: AuthRequest, res: Respo
     const battles = await Battle.find({
       'participants.userId': req.user!.id
     }).sort({ createdAt: -1 });
-    
+
     // Transform battles for frontend
     const transformedBattles = battles.map(battle => ({
       id: battle._id,
@@ -878,7 +892,7 @@ router.get('/user/my-battles', authenticate, async (req: AuthRequest, res: Respo
         score: p.score || 0
       }))
     }));
-    
+
     res.json({ battles: transformedBattles });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -889,16 +903,16 @@ router.get('/user/my-battles', authenticate, async (req: AuthRequest, res: Respo
 router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    
+
     if (!userId || userId === 'undefined') {
       res.status(400).json({ error: 'Invalid user ID' });
       return;
     }
-    
+
     const battles = await Battle.find({
       'participants.userId': userId
     }).sort({ createdAt: -1 });
-    
+
     // Transform battles for frontend
     const transformedBattles = battles.map(battle => ({
       id: battle._id,
@@ -924,7 +938,7 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
         score: p.score || 0
       }))
     }));
-    
+
     res.json({ battles: transformedBattles });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -960,7 +974,7 @@ function normalizeExpectedOutput(testCase: any): string {
  */
 function normalizeOutputForComparison(output: string): string {
   if (!output) return '';
-  
+
   return output
     // Normalize line endings
     .replace(/\r\n/g, '\n')
@@ -980,28 +994,31 @@ function normalizeOutputForComparison(output: string): string {
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
   const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
-  
+
   console.log('=== BATTLE PISTON EXECUTION START ===');
   console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
   console.log(`Test cases count: ${testCases.length}`);
   console.log('Code length:', code.length);
   console.log('Code preview:', code.substring(0, 200));
-  
+
   for (let i = 0; i < testCases.length; i++) {
     const testCase = testCases[i];
     console.log(`\n--- Battle Test Case ${i + 1} ---`);
     console.log('Raw test case:', JSON.stringify(testCase));
-    
+
     try {
       // Input from questions.json already has real newlines (char code 10)
       // No conversion needed - just use the input directly
       const stdin = testCase.input || '';
       // Use normalized expected output
       const expectedRaw = normalizeExpectedOutput(testCase);
-      
+
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
-      
+
+      // Measure execution time ourselves
+      const startTime = Date.now();
+
       // Use Piston API for code execution
       const response = await axios.post(
         `${PISTON_API_URL}/execute`,
@@ -1018,36 +1035,41 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
           timeout: 15000
         }
       );
-      
+
+      const executionTime = Date.now() - startTime;
+
       const result = response.data;
       const runResult = result.run || {};
-      
+
+      console.log('[Battle] Piston run result:', JSON.stringify(runResult));
+      console.log('[Battle] Execution time:', executionTime, 'ms');
+
       // Get output - Piston uses stdout primarily, but fall back to output
       let output = (runResult.stdout || runResult.output || '').trim();
       const stderr = runResult.stderr || '';
       const expected = expectedRaw.trim();
-      
+
       // Check for CRITICAL errors only (compilation errors, crashes)
       // Don't fail just because there's stderr output - some languages output warnings
       const hasCriticalError = runResult.code !== 0 && !output && stderr;
-      
+
       // Normalize output for comparison using helper function
       const normalizedOutput = normalizeOutputForComparison(output);
       const normalizedExpected = normalizeOutputForComparison(expected);
-      
+
       // Check if passed: output matches expected (even if there's non-critical stderr)
       const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
-      
+
       console.log(`Test result: normalized_expected="${normalizedExpected}" normalized_got="${normalizedOutput}" passed=${passed}`);
       console.log(`Raw: expected="${expected}" got="${output}"`);
       if (stderr) console.log(`Stderr: ${stderr}`);
-      
+
       results.push({
         passed,
         input: testCase.input,
         expected,
         output: output || stderr || 'No output',
-        time: 0,
+        time: executionTime,
         error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
@@ -1062,7 +1084,7 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       });
     }
   }
-  
+
   return results;
 }
 
@@ -1093,11 +1115,11 @@ function calculateEloChange(winnerRating: number, loserRating: number, kFactor: 
   // Expected score for winner (probability of winning based on ratings)
   const expectedWinner = 1 / (1 + Math.pow(10, (loserRating - winnerRating) / 400));
   const expectedLoser = 1 - expectedWinner;
-  
+
   // Actual result: winner = 1, loser = 0
   const winnerGain = Math.round(kFactor * (1 - expectedWinner));
   const loserLoss = Math.round(kFactor * (0 - expectedLoser));
-  
+
   return { winnerGain, loserLoss: Math.abs(loserLoss) };
 }
 
@@ -1107,15 +1129,15 @@ function calculateEloChange(winnerRating: number, loserRating: number, kFactor: 
 async function updateBattleRatings(winnerId: string, loserId: string, winnerOldRating: number, loserOldRating: number): Promise<{ winnerNewRating: number; loserNewRating: number }> {
   const User = require('../models/User').default;
   const mongoose = require('mongoose');
-  
+
   const { winnerGain, loserLoss } = calculateEloChange(winnerOldRating, loserOldRating);
-  
+
   const winnerNewRating = winnerOldRating + winnerGain;
   const loserNewRating = Math.max(100, loserOldRating - loserLoss); // Minimum rating of 100
-  
+
   console.log(`ELO Update: Winner ${winnerId} ${winnerOldRating} -> ${winnerNewRating} (+${winnerGain})`);
   console.log(`ELO Update: Loser ${loserId} ${loserOldRating} -> ${loserNewRating} (-${loserLoss})`);
-  
+
   try {
     // Update winner's rating
     await User.findByIdAndUpdate(
@@ -1125,7 +1147,7 @@ async function updateBattleRatings(winnerId: string, loserId: string, winnerOldR
         $inc: { battlesWon: 1 }
       }
     );
-    
+
     // Update loser's rating
     await User.findByIdAndUpdate(
       new mongoose.Types.ObjectId(loserId),
@@ -1134,7 +1156,7 @@ async function updateBattleRatings(winnerId: string, loserId: string, winnerOldR
         $inc: { battlesLost: 1 }
       }
     );
-    
+
     return { winnerNewRating, loserNewRating };
   } catch (error) {
     console.error('Error updating battle ratings:', error);
@@ -1148,27 +1170,27 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
     const { battleId } = req.params;
     const { to, toName, fromName, difficulty, entryFee, userName, userAvatar, rating } = req.body;
     const from = req.user!.id;
-    
+
     const originalBattle = await Battle.findById(battleId);
     if (!originalBattle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     // Check if requester has enough coins
     const Wallet = require('../models/Wallet').default;
     const wallet = await Wallet.findOne({ userId: from });
     const actualEntryFee = entryFee || originalBattle.entryFee;
-    
+
     if (!wallet || wallet.coins < actualEntryFee) {
       res.status(400).json({ error: 'Insufficient coins for rematch' });
       return;
     }
-    
+
     // Get a new random question for the rematch
     const fs = await import('fs/promises');
     const path = await import('path');
-    
+
     // Try multiple possible paths
     const possiblePaths = [
       path.join(__dirname, '../../../public/questions.json'),
@@ -1176,7 +1198,7 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
       path.join(process.cwd(), 'public/questions.json'),
       path.join(process.cwd(), 'backend/public/questions.json')
     ];
-    
+
     let questionsData: string | null = null;
     for (const questionsPath of possiblePaths) {
       try {
@@ -1186,14 +1208,14 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
         // Try next path
       }
     }
-    
+
     if (!questionsData) {
       res.status(500).json({ error: 'Could not load questions database' });
       return;
     }
-    
+
     const questionsJson = JSON.parse(questionsData);
-    
+
     let questions: any[] = [];
     if (Array.isArray(questionsJson)) {
       questions = questionsJson;
@@ -1202,21 +1224,21 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
     } else if (questionsJson.questions) {
       questions = questionsJson.questions;
     }
-    
+
     const actualDifficulty = difficulty || originalBattle.difficulty;
-    const difficultyQuestions = questions.filter((q: any) => 
+    const difficultyQuestions = questions.filter((q: any) =>
       q.difficulty && q.difficulty.toLowerCase() === actualDifficulty.toLowerCase()
     );
-    
+
     if (difficultyQuestions.length === 0) {
       res.status(400).json({ error: `No ${actualDifficulty} questions available` });
       return;
     }
-    
+
     const randomQuestion = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
     const prize = Math.floor(actualEntryFee * 2 * 0.9);
     const timeLimit = actualDifficulty === 'easy' ? 900 : actualDifficulty === 'medium' ? 1200 : 1800;
-    
+
     // Deduct entry fee from requester NOW (consistent with regular battle creation)
     await Wallet.findOneAndUpdate(
       { userId: from },
@@ -1233,7 +1255,7 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
       }
     );
     console.log(`Entry fee of ${actualEntryFee} coins deducted from player ${from} (rematch request)`);
-    
+
     // Create new battle with rematch request
     const rematchBattle = await Battle.create({
       status: 'waiting',
@@ -1270,11 +1292,11 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
       createdBy: from,
       version: 'v2.0-rematch'
     });
-    
-    res.json({ 
-      message: 'Rematch requested', 
+
+    res.json({
+      message: 'Rematch requested',
       battleId: rematchBattle._id,
-      battle: rematchBattle 
+      battle: rematchBattle
     });
   } catch (error: any) {
     console.error('Error creating rematch:', error);
@@ -1287,34 +1309,34 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
   try {
     const { battleId } = req.params;
     const { userId, userName, userProfilePic, rating } = req.body;
-    
+
     const battle = await Battle.findById(battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     if (battle.status !== 'waiting') {
       res.status(400).json({ error: 'Battle is no longer available' });
       return;
     }
-    
+
     // Check if this user is the target of the rematch request
     const rematchRequest = battle.rematchRequest;
     if (!rematchRequest || rematchRequest.to !== userId) {
       res.status(403).json({ error: 'You are not the target of this rematch request' });
       return;
     }
-    
+
     // Check if user has enough coins
     const Wallet = require('../models/Wallet').default;
     const wallet = await Wallet.findOne({ userId });
-    
+
     if (!wallet || wallet.coins < battle.entryFee) {
       res.status(400).json({ error: 'Insufficient coins to accept rematch' });
       return;
     }
-    
+
     // Deduct entry fee from both players
     await Wallet.findOneAndUpdate(
       { userId },
@@ -1330,7 +1352,7 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
         }
       }
     );
-    
+
     await Wallet.findOneAndUpdate(
       { userId: rematchRequest.from },
       {
@@ -1345,7 +1367,7 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
         }
       }
     );
-    
+
     // Add second participant and update status
     battle.participants.push({
       userId,
@@ -1354,15 +1376,15 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
       rating: rating || 1000,
       hasSubmitted: false
     });
-    
+
     battle.rematchRequest!.status = 'accepted';
     battle.status = 'countdown';
     await battle.save();
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: 'Rematch accepted',
-      battle 
+      battle
     });
   } catch (error: any) {
     console.error('Error accepting rematch:', error);
@@ -1374,7 +1396,7 @@ router.post('/:battleId/accept-rematch', authenticate, async (req: AuthRequest, 
 router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    
+
     // Use aggregation pipeline for fast stats calculation
     const stats = await Battle.aggregate([
       // Match battles where user is a participant
@@ -1393,9 +1415,9 @@ router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: Re
         }
       }
     ]);
-    
+
     const result = stats[0] || { totalBattles: 0, battlesWon: 0, completedBattles: 0 };
-    
+
     // Calculate win streak from recent battles
     const recentBattles = await Battle.find({
       'participants.userId': userId,
@@ -1404,7 +1426,7 @@ router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: Re
     .sort({ createdAt: -1 })
     .limit(20)
     .select('winner createdAt');
-    
+
     let currentStreak = 0;
     for (const battle of recentBattles) {
       if (battle.winner === userId) {
@@ -1413,7 +1435,7 @@ router.get('/user-stats/:userId', authenticate, async (req: AuthRequest, res: Re
         break;
       }
     }
-    
+
     res.json({
       battlesWon: result.battlesWon,
       totalBattles: result.totalBattles,
@@ -1431,23 +1453,23 @@ router.post('/:battleId/reject-rematch', authenticate, async (req: AuthRequest, 
   try {
     const { battleId } = req.params;
     const { rejectedBy } = req.body;
-    
+
     const battle = await Battle.findById(battleId);
     if (!battle) {
       res.status(404).json({ error: 'Battle not found' });
       return;
     }
-    
+
     if (battle.rematchRequest) {
       battle.rematchRequest.status = 'rejected';
     }
     battle.status = 'rejected';
     await battle.save();
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: 'Rematch rejected',
-      rejectedBy 
+      rejectedBy
     });
   } catch (error: any) {
     console.error('Error rejecting rematch:', error);

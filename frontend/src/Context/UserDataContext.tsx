@@ -6,7 +6,7 @@ import { useAuth } from "./AuthContext";
 interface DataContextType {
   loading: boolean;
   userprofile: any;
-  
+
   // Note: Many of these functions need to be implemented with your custom backend
   // For now, they are placeholder functions that throw "not implemented" errors
   writeQueryOnDate: (question_data: Query) => void;
@@ -18,11 +18,11 @@ interface DataContextType {
   pushDataWithId: (data: any) => Promise<void>;
   calculateResumeCompletion: (userProfile: any) => number;
   calculateCategoryCompletion: (userProfile: any) => object;
-  
+
   // Add custom backend functions as needed
   updateUserProfile: (userId: string, updates: any) => Promise<void>;
   getUserProfile: (userId: string) => Promise<any>;
-  
+
   // Additional functions for components
   fetchAllIdeas: () => Promise<any[]>;
   fetchJoinRequests: (projectId?: string) => Promise<any[]>;
@@ -30,7 +30,7 @@ interface DataContextType {
   submitIdea: (formData: { title: string; description: string; category: string; expectedTimeline: string }) => Promise<any>;
   triggerIdeasRefresh: () => void;
   ideasRefreshSignal: number;
-  
+
   // Project functions
   sendJoinRequest: (projectId: string, message?: string) => Promise<any>;
   approveJoinRequest: (requestId: string, projectId: string, userId: string, userName: string) => Promise<void>;
@@ -45,20 +45,20 @@ interface DataContextType {
   fetchCompletedTasksData: (userId: string) => Promise<{ count: number; completedTasks: any[] }>;
   fetchAllJoinRequestsDebug: () => Promise<any[]>;
   fixJoinRequestProjectId: (requestId: string, projectId: string) => Promise<void>;
-  
+
   // Project Chat & Files functions
   sendMessage: (projectId: string, messageData: { text: string }) => Promise<any>;
   fetchMessages: (projectId: string) => Promise<any[]>;
   uploadFile: (projectId: string, fileData: { name: string; size: number; url: string }) => Promise<any>;
   fetchFiles: (projectId: string) => Promise<any[]>;
   deleteFile: (projectId: string, fileId: string) => Promise<void>;
-  
+
   // Dashboard functions
   fetchUserSubmissions: (userId: string) => Promise<any[]>;
-  
+
   // Wallet functions
   fetchUserTransactions: (userId: string) => Promise<any[]>;
-  
+
   // Admin functions
   updateIdeaStatus: (ideaId: string, status: string, feedback?: string, reviewedBy?: string) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
@@ -68,7 +68,7 @@ interface DataContextType {
   getPlatformStats: () => Promise<any>;
   deductCoins: (userId: string, amount: number, reason: string) => Promise<void>;
   addCoins: (userId: string, amount: number, reason: string) => Promise<void>;
-  
+
   // CodeArena functions
   getUserWallet: (userId: string) => Promise<any>;
   initializeWallet: (userId: string) => Promise<any>;
@@ -151,7 +151,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       method: 'PUT',
       body: JSON.stringify(updates)
     });
-    
+
     // Refresh local profile if updating current user
     if (userId === user?.id) {
       const response = await apiRequest(`/users/${userId}`);
@@ -182,11 +182,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       console.error("No user ID available for profile update");
       throw new Error("No user ID available");
     }
-    
+
     try {
       // Clean the data - only include fields that the backend accepts
       const cleanedData: any = {};
-      
+
       // Only add fields that exist and are allowed
       if (data.name) cleanedData.name = data.name;
       if (data.phone) cleanedData.phone = String(data.phone);
@@ -198,12 +198,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       if (data.githubUsername) cleanedData.githubUsername = data.githubUsername;
       if (data.yearOfStudy !== undefined) cleanedData.yearOfStudy = Number(data.yearOfStudy) || 0;
       if (data.profileCompletion !== undefined) cleanedData.profileCompletion = Number(data.profileCompletion) || 0;
-      
+
       // Boolean fields
       if (data.isprofileComplete !== undefined || data.isProfileComplete !== undefined) {
         cleanedData.isProfileComplete = Boolean(data.isprofileComplete ?? data.isProfileComplete);
       }
-      
+
       // Arrays - ensure they are arrays
       if (Array.isArray(data.skills)) cleanedData.skills = data.skills;
       if (Array.isArray(data.languages)) cleanedData.languages = data.languages;
@@ -212,22 +212,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       if (Array.isArray(data.education)) cleanedData.education = data.education;
       if (Array.isArray(data.experience)) cleanedData.experience = data.experience;
       if (Array.isArray(data.links)) cleanedData.links = data.links;
-      
+
       // Avatar/Emoji field
       if (data.avatar !== undefined) cleanedData.avatar = data.avatar;
       if (data.profilePic !== undefined) cleanedData.profilePic = data.profilePic;
-      
+
       console.log("Sending profile update:", cleanedData);
-      
+
       await apiRequest(`/users/${user.id}`, {
         method: 'PUT',
         body: JSON.stringify(cleanedData)
       });
-      
+
       // Refresh the user profile after update
       const response = await apiRequest(`/users/${user.id}`);
       setUserProfile(response.user);
-      
+
       console.log("Profile updated successfully");
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -247,7 +247,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           // If projectId is populated (object with _id or id), extract it
           actualProjectId = idea.projectId.id || idea.projectId._id || idea.projectId;
         }
-        
+
         // Extract userId as string - handle populated object (with id or _id) and plain string
         let userId = idea.userId;
         if (idea.submittedBy) {
@@ -263,9 +263,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             userId = String(idea.submittedBy);
           }
         }
-        
+
         console.log('Idea mapping:', { ideaTitle: idea.title, submittedBy: idea.submittedBy, extractedUserId: userId });
-        
+
         return {
           ...idea,
           id: idea._id || idea.id,
@@ -417,7 +417,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       return members.map((member: any) => {
         // Backend now returns userId as a string directly
         const userId = String(member.userId);
-        
+
         return {
           id: member._id || member.id,
           userId: userId,
@@ -469,7 +469,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('🔧 Adding task to project:', projectId);
       console.log('🔧 Task data:', taskData);
-      
+
       // Send assignedTo as username string (like Firebase)
       const issueData: any = {
         title: taskData.title,
@@ -477,12 +477,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         priority: taskData.priority || 'medium',
         assignedTo: taskData.assignedTo || undefined  // Store as username string
       };
-      
+
       const response = await apiRequest(`/projects/${projectId}/issues`, {
         method: 'POST',
         body: JSON.stringify(issueData)
       });
-      
+
       console.log('🔧 Task created response:', response);
       const issue = response.issue;
       return {
@@ -512,7 +512,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       if (updates.description) mappedUpdates.description = updates.description;
       if (updates.title) mappedUpdates.title = updates.title;
       if (updates.assignedTo !== undefined) mappedUpdates.assignedTo = updates.assignedTo;
-      
+
       // Completion/Verification fields
       if (updates.completedBy !== undefined) mappedUpdates.completedBy = updates.completedBy;
       if (updates.completedByName !== undefined) mappedUpdates.completedByName = updates.completedByName;
@@ -739,10 +739,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const calculateResumeCompletion = (userProfile: any): number => {
     if (!userProfile) return 0;
-    
+
     let completion = 0;
     const totalFields = 10;
-    
+
     if (userProfile.name) completion++;
     if (userProfile.email) completion++;
     if (userProfile.phone && userProfile.phone !== '9999999999') completion++;
@@ -753,7 +753,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     if (userProfile.projects && userProfile.projects.length > 0) completion++;
     if (userProfile.links && userProfile.links.length > 0) completion++;
     if (userProfile.portfolio) completion++;
-    
+
     return Math.round((completion / totalFields) * 100);
   };
 
@@ -801,10 +801,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       console.warn('subscribeToWallet called with undefined userId');
       return () => {};
     }
-    
-    // For REST API, we'll poll for wallet updates every 10 seconds
+
+    // For REST API, we'll poll for wallet updates every 3 seconds for real-time feel
     let isSubscribed = true;
-    
+    let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const pollWallet = async () => {
       if (!isSubscribed || !userId) return;
       try {
@@ -816,16 +817,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error polling wallet:', error);
       }
       if (isSubscribed) {
-        setTimeout(pollWallet, 10000); // Poll every 10 seconds for more responsive updates
+        pollTimeout = setTimeout(pollWallet, 3000); // Poll every 3 seconds for real-time updates
       }
     };
-    
-    // Initial fetch
+
+    // Initial fetch immediately
     pollWallet();
-    
+
     // Return unsubscribe function
     return () => {
       isSubscribed = false;
+      if (pollTimeout) {
+        clearTimeout(pollTimeout);
+      }
     };
   };
 

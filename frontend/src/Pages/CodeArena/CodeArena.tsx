@@ -86,7 +86,7 @@ const CodeArenaContent = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { getUserWallet, initializeWallet, subscribeToWallet, fetchGlobalLeaderboard, getUserProgress } = useDataContext();
-  
+
   const [activeTab, setActiveTab] = useState('home');
   const [wallet, setWallet] = useState<any>(null);
   const [userStats, setUserStats] = useState({
@@ -109,21 +109,21 @@ const CodeArenaContent = () => {
         getUserProgress?.(userId).catch(() => null),
         fetchGlobalLeaderboard?.().catch(() => null)
       ]);
-      
+
       // Get problems solved from user progress
       const solvedCount = userProgress?.solvedChallenges?.length || walletData?.achievements?.problemsSolved || 0;
-      
+
       // Get battles stats from optimized endpoint
       const battlesWon = battleStatsResponse?.battlesWon || walletData?.achievements?.battlesWon || 0;
       const currentStreak = battleStatsResponse?.currentStreak || walletData?.streak?.current || 0;
-      
+
       // Get global rank from leaderboard
       let globalRank: string | number = '-';
       if (leaderboard) {
         const userRanking = leaderboard.find((p: any) => p.odId === userId);
         if (userRanking) globalRank = userRanking.rank;
       }
-      
+
       setUserStats({
         problemsSolved: solvedCount,
         battlesWon: battlesWon,
@@ -147,22 +147,27 @@ const CodeArenaContent = () => {
         try {
           // Show UI immediately, fetch data in parallel
           setLoading(false);
-          
+
           // Start fetching stats immediately (don't wait for wallet)
           fetchUserStats(user.id, null);
-          
-          // Initialize wallet in background
-          const existingWallet = await getUserWallet(user.id);
-          
+
+          // Initialize wallet and set immediately
+          let existingWallet = await getUserWallet(user.id);
+
           if (!existingWallet) {
-            await initializeWallet(user.id);
+            existingWallet = await initializeWallet(user.id);
           }
-          
+
+          // Set wallet immediately for instant display
+          if (existingWallet) {
+            setWallet(existingWallet);
+          }
+
           const unsubscribe = subscribeToWallet(user.id, async (walletData) => {
             setWallet(walletData);
             // Update stats with wallet data (but don't refetch from API)
           });
-          
+
           return () => unsubscribe();
         } catch (error) {
           console.error('Error initializing wallet:', error);
@@ -174,7 +179,7 @@ const CodeArenaContent = () => {
         setLoading(false);
       }
     };
-    
+
     initWallet();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -327,9 +332,9 @@ const CodeArenaContent = () => {
       <main className="max-w-6xl mx-auto px-4 py-6">
         <Routes>
           <Route path="/" element={
-            <HomeContent 
-              stats={stats} 
-              quickActions={quickActions} 
+            <HomeContent
+              stats={stats}
+              quickActions={quickActions}
               navigate={navigate}
             />
           } />
@@ -348,9 +353,9 @@ const CodeArenaContent = () => {
       {/* Wallet Panel */}
       <AnimatePresence>
         {showWallet && (
-          <WalletPanel 
-            wallet={wallet} 
-            onClose={() => setShowWallet(false)} 
+          <WalletPanel
+            wallet={wallet}
+            onClose={() => setShowWallet(false)}
           />
         )}
       </AnimatePresence>
@@ -396,11 +401,11 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
         const response = await apiRequest('/battles?status=active');
         const waitingResponse = await apiRequest('/battles?status=waiting');
         const countdownResponse = await apiRequest('/battles?status=countdown');
-        
+
         const activeBattles = response.battles || [];
         const waitingBattles = waitingResponse.battles || [];
         const countdownBattles = countdownResponse.battles || [];
-        
+
         // Combine and show the most recent battles
         const allBattles = [...activeBattles, ...countdownBattles, ...waitingBattles]
           .slice(0, 5) // Show max 5 battles
@@ -411,21 +416,21 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             entryFee: battle.entryFee,
             prize: battle.prize,
             // Use participants if available, otherwise construct from creator fields
-            participants: battle.participants?.length > 0 
+            participants: battle.participants?.length > 0
               ? battle.participants.map((p: any) => ({
                   odId: p.odId || p.userId,
                   userName: p.userName || p.odName || 'Player',
                   userAvatar: p.userAvatar || p.odProfilePic
                 }))
               : [
-                  { 
-                    odId: battle.creatorId, 
-                    userName: battle.creatorName || 'Player', 
-                    userAvatar: battle.creatorProfilePic 
+                  {
+                    odId: battle.creatorId,
+                    userName: battle.creatorName || 'Player',
+                    userAvatar: battle.creatorProfilePic
                   }
                 ]
           }));
-        
+
         setLiveBattles(allBattles);
       } catch (error) {
         console.error('Error loading battles:', error);
@@ -454,7 +459,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
 
     // Refresh live battles every 30 seconds (reduced from 10 for better performance)
     const battlesInterval = setInterval(loadLiveBattles, 30000);
-    
+
     // Refresh top players every 60 seconds (reduced from 30)
     const playersInterval = setInterval(loadTopPlayers, 60000);
 
@@ -528,10 +533,10 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             <div className={`inline-flex p-3 rounded-lg ${action.color} mb-4`}>
               <action.icon className="w-5 h-5 text-white" />
             </div>
-            
+
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
             <p className="text-sm text-gray-500 dark:text-white mb-4">{action.description}</p>
-            
+
             <div className="flex items-center gap-1 text-[#00ADB5] dark:text-[#00ADB5] text-sm font-medium group-hover:gap-2 transition-all">
               <span>Get Started</span>
               <ChevronRight className="w-4 h-4" />
@@ -554,7 +559,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               Live
             </span>
           </div>
-          
+
           {loadingBattles ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
@@ -617,14 +622,14 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Crown className="w-4 h-4 text-amber-500" />
               Top Players
             </h3>
-            <button 
+            <button
               onClick={() => navigate('/dashboard/codearena/leaderboard')}
               className="text-sm text-[#00ADB5] dark:text-[#00ADB5] hover:underline"
             >
               View All
             </button>
           </div>
-          
+
           {loadingPlayers ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />

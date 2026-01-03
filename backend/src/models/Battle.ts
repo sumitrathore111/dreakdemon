@@ -16,6 +16,9 @@ export interface IBattle extends Document {
     score?: number;
     submissionTime?: Date;
     code?: string;
+    passedCount?: number;
+    totalCount?: number;
+    totalTime?: number;
   }>;
   challenge: {
     id: string;
@@ -47,15 +50,15 @@ export interface IBattle extends Document {
 }
 
 const BattleSchema: Schema = new Schema({
-  status: { 
-    type: String, 
-    enum: ['waiting', 'countdown', 'active', 'completed', 'cancelled', 'forfeited', 'rejected'], 
-    default: 'waiting' 
+  status: {
+    type: String,
+    enum: ['waiting', 'countdown', 'active', 'completed', 'cancelled', 'forfeited', 'rejected'],
+    default: 'waiting'
   },
-  difficulty: { 
-    type: String, 
-    enum: ['easy', 'medium', 'hard'], 
-    required: true 
+  difficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    required: true
   },
   entryFee: { type: Number, required: true },
   prize: { type: Number, required: true },
@@ -69,7 +72,10 @@ const BattleSchema: Schema = new Schema({
     hasSubmitted: { type: Boolean, default: false },
     score: { type: Number },
     submissionTime: { type: Date },
-    code: { type: String }
+    code: { type: String },
+    passedCount: { type: Number, default: 0 },
+    totalCount: { type: Number, default: 0 },
+    totalTime: { type: Number, default: 0 }
   }],
   challenge: {
     id: { type: String, required: true },

@@ -1,20 +1,20 @@
 import { motion } from 'framer-motion';
 import {
-  CheckCircle,
-  Clock,
-  Coins,
-  Crown,
-  Home,
-  Loader2,
-  Medal,
-  RotateCcw,
-  Star,
-  Swords,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
-  X
+    CheckCircle,
+    Clock,
+    Coins,
+    Crown,
+    Home,
+    Loader2,
+    Medal,
+    RotateCcw,
+    Star,
+    Swords,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Trophy,
+    X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -58,7 +58,7 @@ interface Battle {
 const triggerConfetti = () => {
   const colors = ['#00ADB5', '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'];
   const confettiCount = 100;
-  
+
   for (let i = 0; i < confettiCount; i++) {
     const confetti = document.createElement('div');
     confetti.style.cssText = `
@@ -98,7 +98,7 @@ const BattleResults = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { userprofile, getUserWallet } = useDataContext();
-  
+
   const [battle, setBattle] = useState<Battle | null>(null);
   const [loading, setLoading] = useState(true);
   const [isWinner, setIsWinner] = useState(false);
@@ -143,7 +143,7 @@ const BattleResults = () => {
         // Find my data and opponent data using odId field
         const me = battleData.participants?.find((p: Participant) => p.odId === user?.id);
         const opp = battleData.participants?.find((p: Participant) => p.odId !== user?.id);
-        
+
         setMyData(me || null);
         setOpponentData(opp || null);
 
@@ -171,7 +171,7 @@ const BattleResults = () => {
           const oppPassed = opp.submissionResult?.passedCount || 0;
           const myTime = me.submissionResult?.totalTime || Infinity;
           const oppTime = opp.submissionResult?.totalTime || Infinity;
-          
+
           if (won) {
             if (myPassed > oppPassed) {
               reason = `You passed more test cases (${myPassed} vs ${oppPassed})`;
@@ -254,13 +254,13 @@ const BattleResults = () => {
 
       if (rematchBattleId) {
         setRematchSent(true);
-        
+
         // Show toast that rematch request was sent
         toast.success(`⚔️ Rematch request sent to ${opponentData.odName}! Waiting for response...`, {
           duration: 5000,
           icon: '⚔️'
         });
-        
+
         // Poll for opponent to accept or reject
         const pollRematchStatus = async () => {
           try {
@@ -353,7 +353,7 @@ const BattleResults = () => {
         <div className="absolute top-40 right-20 w-60 h-60 bg-gradient-to-br from-purple-500/15 to-transparent rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-20 w-32 h-32 bg-gradient-to-br from-yellow-500/20 to-transparent rounded-full blur-2xl"></div>
       </div>
-      
+
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Result Header */}
         <motion.div
@@ -364,7 +364,7 @@ const BattleResults = () => {
           {isWinner ? (
             <>
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: [0, -10, 10, -10, 10, 0],
                   scale: [1, 1.1, 1]
                 }}
@@ -374,7 +374,7 @@ const BattleResults = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/30 to-orange-300/30 rounded-full animate-pulse"></div>
                 <Trophy className="w-20 h-20 text-white relative z-10" />
               </motion.div>
-              <motion.h1 
+              <motion.h1
                 initial={{ y: 20 }}
                 animate={{ y: 0 }}
                 transition={{ delay: 0.5 }}
@@ -382,14 +382,14 @@ const BattleResults = () => {
               >
                 🏆 Victory!
               </motion.h1>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
                 className="text-2xl text-gray-300 mb-4"
               >
-                {winByForfeit 
-                  ? '🚪 Your opponent left the battle!' 
+                {winByForfeit
+                  ? '🚪 Your opponent left the battle!'
                   : '✨ Congratulations! You won the battle! ✨'}
               </motion.p>
               {winByForfeit && (
@@ -411,14 +411,14 @@ const BattleResults = () => {
                 transition={{ type: "spring", stiffness: 200 }}
                 className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 rounded-full flex items-center justify-center shadow-2xl shadow-gray-500/30 relative overflow-hidden"
               >
-                <motion.div 
+                <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-gray-500/20 to-gray-400/20 rounded-full"
                   animate={{ opacity: [0.3, 0.5, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <Medal className="w-18 h-18 text-gray-400 relative z-10" />
               </motion.div>
-              <motion.h1 
+              <motion.h1
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
@@ -426,7 +426,7 @@ const BattleResults = () => {
               >
                 💔 Defeat
               </motion.h1>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
@@ -452,8 +452,8 @@ const BattleResults = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
               className={`mt-6 px-6 py-3 rounded-xl border ${
-                isWinner 
-                  ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                isWinner
+                  ? 'bg-green-500/10 border-green-500/30 text-green-400'
                   : 'bg-red-500/10 border-red-500/30 text-red-400'
               }`}
             >
@@ -472,20 +472,20 @@ const BattleResults = () => {
           className="bg-gradient-to-br from-gray-800/60 via-gray-900/60 to-black/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 mb-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-cyan-500/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
-          
+
           <div className="grid grid-cols-3 gap-6 items-center">
             {/* Player 1 (You) */}
-            <motion.div 
+            <motion.div
               initial={{ x: -30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
               className="text-center"
             >
-              <motion.div 
+              <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg ${
-                  isWinner 
-                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30' 
+                  isWinner
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30'
                     : 'bg-gradient-to-br from-cyan-400 to-blue-500 ring-2 ring-cyan-500/30 shadow-cyan-500/20'
                 }`}
               >
@@ -494,7 +494,7 @@ const BattleResults = () => {
               <p className="text-white font-bold text-lg">{userprofile?.name || 'You'}</p>
               <p className="text-sm text-gray-400 mb-2">Level {myData?.level || 1}</p>
               {isWinner && (
-                <motion.div 
+                <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.8, type: "spring" }}
@@ -508,7 +508,7 @@ const BattleResults = () => {
 
             {/* VS */}
             <div className="text-center">
-              <motion.div 
+              <motion.div
                 animate={{ rotateY: [0, 180, 360] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
@@ -518,17 +518,17 @@ const BattleResults = () => {
             </div>
 
             {/* Player 2 (Opponent) */}
-            <motion.div 
+            <motion.div
               initial={{ x: 30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
               className="text-center"
             >
-              <motion.div 
+              <motion.div
                 whileHover={{ scale: 1.1, rotate: -5 }}
                 className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg ${
-                  !isWinner 
-                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30' 
+                  !isWinner
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 ring-4 ring-yellow-500/50 shadow-yellow-500/30'
                     : 'bg-gradient-to-br from-red-400 to-orange-500 ring-2 ring-red-500/30 shadow-red-500/20'
                 }`}
               >
@@ -537,7 +537,7 @@ const BattleResults = () => {
               <p className="text-white font-bold text-lg">{opponentData?.odName || 'Opponent'}</p>
               <p className="text-sm text-gray-400 mb-2">Level {opponentData?.level || 1}</p>
               {!isWinner && (
-                <motion.div 
+                <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.8, type: "spring" }}
@@ -588,7 +588,7 @@ const BattleResults = () => {
             <div className="grid grid-cols-3 gap-4 items-center">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
-                  {formatTime(Math.round((myData?.submissionResult?.totalTime || 0) / 1000))}
+                  {myData?.submissionResult?.totalTime || 0}ms
                 </p>
               </div>
               <div className="text-center">
@@ -599,7 +599,7 @@ const BattleResults = () => {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">
-                  {formatTime(Math.round((opponentData?.submissionResult?.totalTime || 0) / 1000))}
+                  {opponentData?.submissionResult?.totalTime || 0}ms
                 </p>
               </div>
             </div>
@@ -615,8 +615,8 @@ const BattleResults = () => {
         >
           {/* Coins */}
           <div className={`p-6 rounded-2xl border ${
-            isWinner 
-              ? 'bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30' 
+            isWinner
+              ? 'bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-yellow-500/30'
               : 'bg-gradient-to-br from-red-500/10 to-gray-800/50 border-red-500/20'
           }`}>
             <div className="flex items-center justify-between">
@@ -641,8 +641,8 @@ const BattleResults = () => {
 
           {/* Rating Change */}
           <div className={`p-6 rounded-2xl border ${
-            ratingChange > 0 
-              ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30' 
+            ratingChange > 0
+              ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30'
               : 'bg-gradient-to-br from-red-500/20 to-orange-500/20 border-red-500/30'
           }`}>
             <div className="flex items-center justify-between">
@@ -704,8 +704,8 @@ const BattleResults = () => {
             onClick={handleRematch}
             disabled={isRequestingRematch || rematchSent}
             className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 text-white font-bold text-lg rounded-xl shadow-lg transition-all relative overflow-hidden group disabled:cursor-not-allowed ${
-              rematchSent 
-                ? 'bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 shadow-yellow-500/30' 
+              rematchSent
+                ? 'bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 shadow-yellow-500/30'
                 : 'bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 shadow-red-500/30 hover:shadow-red-500/50'
             }`}
           >

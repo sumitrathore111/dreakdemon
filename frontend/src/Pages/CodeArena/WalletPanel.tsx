@@ -1,19 +1,19 @@
 import { motion } from 'framer-motion';
 import {
-    ArrowDownRight,
-    ArrowUpRight,
-    Coins,
-    Gift,
-    History,
-    Star,
-    Swords,
-    Target,
-    TrendingDown,
-    TrendingUp,
-    Trophy,
-    Wallet as WalletIcon,
-    X,
-    Zap
+  ArrowDownRight,
+  ArrowUpRight,
+  Coins,
+  Gift,
+  History,
+  Star,
+  Swords,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  Wallet as WalletIcon,
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
@@ -27,41 +27,35 @@ interface WalletPanelProps {
 const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
   const { user } = useAuth();
   const { fetchUserTransactions, getUserProgress } = useDataContext();
-  
+
+  // Debug: Log wallet data
+  console.log('WalletPanel received wallet:', wallet);
+
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
+
+  // Initialize stats from wallet data immediately
   const [realStats, setRealStats] = useState({
-    problemsSolved: 0,
-    battlesWon: 0,
-    currentStreak: 0
+    problemsSolved: wallet?.achievements?.problemsSolved || 0,
+    battlesWon: wallet?.achievements?.battlesWon || wallet?.battlesWon || 0,
+    currentStreak: wallet?.achievements?.currentStreak || 0
   });
 
   // Fetch real stats from backend
   useEffect(() => {
     const fetchRealStats = async () => {
       if (!user) return;
-      
+
       try {
         // Get problems solved from user progress
         const userProgress = await getUserProgress?.(user.id);
         const solvedCount = userProgress?.solvedChallenges?.length || wallet?.achievements?.problemsSolved || 0;
-        
-        // Get battles won and streak from backend
-        let battlesWon = 0;
-        let currentStreak = 0;
-        
-        try {
-          // TODO: Implement backend API for battles
-          // For now, use wallet data
-          battlesWon = wallet?.achievements?.battlesWon || 0;
-          currentStreak = wallet?.streak?.current || 0;
-        } catch (e) {
-          console.error('Error fetching battles for wallet:', e);
-          battlesWon = wallet?.achievements?.battlesWon || 0;
-          currentStreak = wallet?.streak?.current || 0;
-        }
-        
+
+        // Get battles won and streak from wallet achievements
+        const battlesWon = wallet?.achievements?.battlesWon || wallet?.battlesWon || 0;
+        const currentStreak = wallet?.achievements?.currentStreak || 0;
+
         setRealStats({
           problemsSolved: solvedCount,
           battlesWon: battlesWon,
@@ -71,25 +65,50 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
         console.error('Error fetching real stats:', error);
         setRealStats({
           problemsSolved: wallet?.achievements?.problemsSolved || 0,
-          battlesWon: wallet?.achievements?.battlesWon || 0,
-          currentStreak: wallet?.streak?.current || 0
+          battlesWon: wallet?.achievements?.battlesWon || wallet?.battlesWon || 0,
+          currentStreak: wallet?.achievements?.currentStreak || 0
         });
       }
     };
-    
+
     fetchRealStats();
   }, [user, wallet, getUserProgress]);
 
   useEffect(() => {
     const loadTransactions = async () => {
-      if (!user) return;
-      
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Try to fetch from transactions collection
+        // Transactions are embedded in the wallet object
+        // Use wallet.transactions if available, otherwise fetch from API
+        if (wallet?.transactions && Array.isArray(wallet.transactions)) {
+          console.log('Using wallet transactions:', wallet.transactions.length, 'items');
+          // Sort by createdAt descending (newest first)
+          const sortedTx = [...wallet.transactions].sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA;
+          });
+          setTransactions(sortedTx);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback: Try to fetch from API
         const data = await fetchUserTransactions(user.id);
-        
-        // If no transactions, use empty array
-        setTransactions(data || []);
+        console.log('Fetched transactions from API:', data?.length || 0, 'items');
+
+        // Sort by createdAt descending (newest first)
+        const sortedData = Array.isArray(data) ? [...data].sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA;
+        }) : [];
+
+        setTransactions(sortedData);
       } catch (error) {
         console.error('Error loading transactions:', error);
         setTransactions([]);
@@ -99,30 +118,27 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
     };
 
     loadTransactions();
-  }, [user, fetchUserTransactions]);
+  }, [user, wallet, fetchUserTransactions]);
 
-  const getTransactionIcon = (type: string, category: string) => {
-    if (type === 'earn') {
-      switch (category) {
-        case 'challenge': return Target;
-        case 'battle': return Swords;
-        case 'tournament': return Trophy;
-        default: return Gift;
-      }
+  const getTransactionIcon = (type: string, reason: string) => {
+    // Backend uses 'credit' for earned and 'debit' for spent
+    if (type === 'credit') {
+      if (reason?.toLowerCase().includes('challenge')) return Target;
+      if (reason?.toLowerCase().includes('battle') || reason?.toLowerCase().includes('prize')) return Swords;
+      if (reason?.toLowerCase().includes('tournament')) return Trophy;
+      return Gift;
     } else {
-      switch (category) {
-        case 'hint': return Star;
-        case 'entry_fee': return Swords;
-        default: return Coins;
-      }
+      if (reason?.toLowerCase().includes('hint')) return Star;
+      if (reason?.toLowerCase().includes('entry') || reason?.toLowerCase().includes('battle')) return Swords;
+      return Coins;
     }
   };
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -224,21 +240,21 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
         <div className="flex-1 overflow-y-auto p-4">
           {activeTab === 'overview' ? (
             <div className="space-y-4">
-              {/* Level & XP */}
+              {/* Battle Rating */}
               <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-purple-400" />
-                    <span className="text-white font-medium">Level {wallet?.level || 1}</span>
+                    <span className="text-white font-medium">Rating: {wallet?.battleRating || wallet?.rating || 1000}</span>
                   </div>
                   <span className="text-sm text-gray-400">
-                    {wallet?.experience || 0} / {(wallet?.level || 1) * 100} XP
+                    W: {wallet?.battlesWon || 0} / L: {wallet?.battlesLost || 0}
                   </span>
                 </div>
                 <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${((wallet?.experience || 0) / ((wallet?.level || 1) * 100)) * 100}%` }}
+                    animate={{ width: `${Math.min(((wallet?.battleRating || 1000) / 2000) * 100, 100)}%` }}
                     className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
                   />
                 </div>
@@ -261,11 +277,11 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                   <p className="text-sm text-gray-400">Battles Won</p>
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Trophy className="w-5 h-5 text-yellow-400 mb-2" />
+                  <Coins className="w-5 h-5 text-yellow-400 mb-2" />
                   <p className="text-2xl font-bold text-white">
-                    {wallet?.achievements?.tournamentsWon || 0}
+                    {wallet?.coins || 0}
                   </p>
-                  <p className="text-sm text-gray-400">Tournaments</p>
+                  <p className="text-sm text-gray-400">Total Coins</p>
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
                   <Zap className="w-5 h-5 text-orange-400 mb-2" />
@@ -275,28 +291,6 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                   <p className="text-sm text-gray-400">Win Streak</p>
                 </div>
               </div>
-
-              {/* Badges */}
-              {wallet?.badges && wallet.badges.length > 0 && (
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-pink-400" />
-                    Badges
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {wallet.badges.map((badge: any, i: number) => (
-                      <div
-                        key={i}
-                        className="px-3 py-1.5 bg-gray-700/50 rounded-lg text-sm text-white flex items-center gap-2"
-                        title={badge.description}
-                      >
-                        <span>{badge.icon}</span>
-                        <span>{badge.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -315,12 +309,12 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                 </div>
               ) : (
                 transactions.map((tx, i) => {
-                  const Icon = getTransactionIcon(tx.type, tx.category);
-                  const isEarn = tx.type === 'earn';
-                  
+                  const Icon = getTransactionIcon(tx.type, tx.reason);
+                  const isCredit = tx.type === 'credit';
+
                   return (
                     <motion.div
-                      key={tx.id || i}
+                      key={tx._id || tx.id || i}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
@@ -328,24 +322,24 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
                     >
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
-                          isEarn ? 'bg-green-500/20' : 'bg-red-500/20'
+                          isCredit ? 'bg-green-500/20' : 'bg-red-500/20'
                         }`}>
-                          <Icon className={`w-4 h-4 ${isEarn ? 'text-green-400' : 'text-red-400'}`} />
+                          <Icon className={`w-4 h-4 ${isCredit ? 'text-green-400' : 'text-red-400'}`} />
                         </div>
                         <div>
-                          <p className="text-white text-sm font-medium">{tx.description}</p>
+                          <p className="text-white text-sm font-medium">{tx.reason || tx.description || 'Transaction'}</p>
                           <p className="text-xs text-gray-400">{formatDate(tx.createdAt)}</p>
                         </div>
                       </div>
                       <div className={`flex items-center gap-1 font-bold ${
-                        isEarn ? 'text-green-400' : 'text-red-400'
+                        isCredit ? 'text-green-400' : 'text-red-400'
                       }`}>
-                        {isEarn ? (
+                        {isCredit ? (
                           <ArrowUpRight className="w-4 h-4" />
                         ) : (
                           <ArrowDownRight className="w-4 h-4" />
                         )}
-                        <span>{isEarn ? '+' : '-'}{tx.amount}</span>
+                        <span>{isCredit ? '+' : '-'}{Math.abs(tx.amount)}</span>
                       </div>
                     </motion.div>
                   );
