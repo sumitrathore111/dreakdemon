@@ -10,9 +10,7 @@ import {
     LogOut,
     Menu,
     MessageSquare,
-    Moon,
     Store,
-    Sun,
     Trophy,
     UserCircle,
 } from "lucide-react";
@@ -20,7 +18,6 @@ import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useBattleGuard } from '../Context/BattleGuardContext';
-import { useTheme } from "../Context/ThemeContext";
 import { useDataContext } from "../Context/UserDataContext";
 import { logout } from "../service/auth";
 import ActivityFeed from './Global/ActivityFeed';
@@ -50,7 +47,6 @@ export default function DashboardLayout() {
 
   const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   
   // Load pending requests count for projects where user is the creator
   useEffect(() => {
@@ -139,28 +135,6 @@ export default function DashboardLayout() {
 
         {/* Navigation Links - Scrollable */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3">
-          {/* Quick Actions Bar */}
-          <div className={`flex items-center gap-2 mb-4 ${isMinimized ? 'flex-col' : ''}`}>
-            {/* Notifications */}
-            <UnifiedNotifications isMinimized={isMinimized} />
-            
-            {/* Activity Feed */}
-            <button
-              onClick={() => setShowActivityFeed(true)}
-              className={`p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group relative ${isMinimized ? 'w-full justify-center flex' : ''}`}
-              title="Activity Feed"
-            >
-              <Activity size={18} className="text-gray-500 dark:text-gray-400" />
-              {isMinimized && (
-                <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
-                  style={{ left: '80px' }}
-                >
-                  Activity Feed
-                </div>
-              )}
-            </button>
-          </div>
-
           <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -278,25 +252,27 @@ export default function DashboardLayout() {
 
         {/* Fixed Profile Section at Bottom */}
         <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 overflow-visible">
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className={`flex items-center w-full mb-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-              isMinimized ? "justify-center" : "gap-3"
-            }`}
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-5 h-5 text-yellow-500" />
-            ) : (
-              <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            )}
-            {!isMinimized && (
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </span>
-            )}
-          </button>
+          {/* Notifications & Activity Feed */}
+          <div className={`flex items-center gap-2 mb-3 ${isMinimized ? 'flex-col' : ''}`}>
+            {/* Notifications */}
+            <UnifiedNotifications isMinimized={isMinimized} />
+            
+            {/* Activity Feed */}
+            <button
+              onClick={() => setShowActivityFeed(true)}
+              className={`p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group relative ${isMinimized ? 'w-full justify-center flex' : ''}`}
+              title="Activity Feed"
+            >
+              <Activity size={18} className="text-gray-500 dark:text-gray-400" />
+              {isMinimized && (
+                <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
+                  style={{ left: '80px' }}
+                >
+                  Activity Feed
+                </div>
+              )}
+            </button>
+          </div>
 
           <div className="relative">
             <button
@@ -415,7 +391,7 @@ export default function DashboardLayout() {
             />
           </Link>
 
-          {/* Theme toggle and Avatar on right side */}
+          {/* Notifications and Activity on right side */}
           <div className="ml-auto flex items-center gap-2">
             {/* Notifications */}
             <UnifiedNotifications isMinimized={false} />
@@ -429,17 +405,6 @@ export default function DashboardLayout() {
               <Activity className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </button>
             
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700" />
-              )}
-            </button>
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: "#00ADB5" }}
