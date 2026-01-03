@@ -49,8 +49,20 @@ export default function ActivityFeed({ isOpen, onClose }: ActivityFeedProps) {
   useEffect(() => {
     if (!isOpen) return;
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    const socket: Socket = io(API_URL);
+    // Get base URL without /api suffix for socket.io
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+    const socketUrl = apiUrl.replace('/api', '');
+    const socket: Socket = io(socketUrl, { 
+      transports: ['polling', 'websocket'],
+      timeout: 10000,
+      reconnection: true,
+      reconnectionAttempts: 3
+    });
+
+    socket.on('connect_error', () => {
+      // Silently handle connection errors - socket is optional feature
+      console.log('Socket connection not available - live updates disabled');
+    });
 
     // Listen for various events
     socket.on('battle_completed', (data) => {

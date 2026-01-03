@@ -91,11 +91,11 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
   try {
     const { status, difficulty } = req.query;
     
-    // Clean up stale waiting battles (older than 5 minutes)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    // Clean up stale waiting battles (older than 15 minutes)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     await Battle.deleteMany({
       status: 'waiting',
-      createdAt: { $lt: fiveMinutesAgo }
+      createdAt: { $lt: fifteenMinutesAgo }
     });
     
     // Build query
@@ -105,7 +105,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
     
     // If filtering for waiting battles, only show fresh ones
     if (status === 'waiting') {
-      query.createdAt = { $gte: fiveMinutesAgo };
+      query.createdAt = { $gte: fifteenMinutesAgo };
     }
     
     const battles = await Battle.find(query)
@@ -182,11 +182,11 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       status: 'waiting'
     });
     
-    // Also clean up stale battles (older than 5 minutes and still waiting)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    // Also clean up stale battles (older than 15 minutes and still waiting)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     await Battle.deleteMany({
       status: 'waiting',
-      createdAt: { $lt: fiveMinutesAgo }
+      createdAt: { $lt: fifteenMinutesAgo }
     });
     
     // Deduct entry fee from creator
@@ -307,15 +307,15 @@ router.get('/find', authenticate, async (req: AuthRequest, res: Response): Promi
   try {
     const { difficulty, entryFee } = req.query;
     
-    // Only find battles created within the last 5 minutes (not stale)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    // Only find battles created within the last 15 minutes (not stale)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     
     const battle = await Battle.findOne({
       status: 'waiting',
       difficulty,
       entryFee: Number(entryFee),
       'participants.userId': { $ne: req.user!.id },
-      createdAt: { $gte: fiveMinutesAgo } // Only fresh battles
+      createdAt: { $gte: fifteenMinutesAgo } // Only fresh battles
     }).sort({ createdAt: 1 }); // Oldest first (FIFO)
     
     res.json({ battle });
