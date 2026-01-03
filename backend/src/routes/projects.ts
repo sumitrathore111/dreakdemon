@@ -416,7 +416,13 @@ router.delete('/:projectId/members/:memberId', authenticate, async (req: AuthReq
     // Emit socket event for real-time update
     const io = getIO(req);
     if (io) {
+      // Emit to project room for other members
       io.to(`project:${req.params.projectId}`).emit('member-removed', {
+        projectId: req.params.projectId,
+        memberId: memberIdToRemove
+      });
+      // Also emit to the removed user's personal room so they get notified
+      io.to(`user:${memberIdToRemove}`).emit('member-removed', {
         projectId: req.params.projectId,
         memberId: memberIdToRemove
       });

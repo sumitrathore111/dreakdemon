@@ -13,7 +13,7 @@ export default function IdeaSubmission() {
   const location = useLocation();
 
   const ideaToEdit = (location && (location as any).state && (location as any).state.ideaToEdit) ? (location as any).state.ideaToEdit : null;
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -173,7 +173,7 @@ export default function IdeaSubmission() {
                 <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                 Description *
               </label>
-              
+
               {/* Rich Text Toolbar */}
               <div className="flex items-center gap-0.5 sm:gap-1 p-1.5 sm:p-2 bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-t-lg sm:rounded-t-xl border-b-0 overflow-x-auto">
                 <button

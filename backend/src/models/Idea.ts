@@ -25,8 +25,8 @@ const IdeaSchema: Schema = new Schema({
   submittedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   submittedByName: { type: String, required: true },
   submittedByEmail: { type: String, required: true },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['pending', 'approved', 'rejected', 'in-progress', 'completed'],
     default: 'pending'
   },

@@ -1,15 +1,15 @@
 import jsPDF from 'jspdf';
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Code2,
-  Filter,
-  Lightbulb,
-  Search,
-  Star,
-  TrendingUp,
-  Users
+    Calendar,
+    CheckCircle,
+    Clock,
+    Code2,
+    Filter,
+    Lightbulb,
+    Search,
+    Star,
+    TrendingUp,
+    Users
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -131,11 +131,11 @@ export default function BrowseProjects() {
   // projectTaskCounts removed (was unused) — completed tasks tracked in `completedTasks`
   const [completedTasks, setCompletedTasks] = useState<any[]>([]);
   const [myProjectsView, setMyProjectsView] = useState<'projects' | 'ideas'>('projects');
-  
+
   // Track user's join requests and memberships
   const [userJoinRequests, setUserJoinRequests] = useState<Record<string, any>>({});
   const [userMemberships, setUserMemberships] = useState<Set<string>>(new Set());
-  
+
   // Application Modal State
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -145,7 +145,7 @@ export default function BrowseProjects() {
     motivation: '',
     availability: ''
   });
-  
+
   // Project Details Modal State
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<Project | null>(null);
@@ -163,27 +163,27 @@ export default function BrowseProjects() {
     loadMyProjects();
     loadUserAccessStatus();
     loadCompletedData();
-    
+
     // Refresh user access status every 10 seconds as fallback
     const refreshInterval = setInterval(() => {
       loadUserAccessStatus();
     }, 10000);
-    
+
     return () => clearInterval(refreshInterval);
   }, [user]);
 
   // Real-time socket listener for join request updates
   useEffect(() => {
     if (!user) return;
-    
+
     // Initialize socket connection
     initializeSocket();
     const socket = getSocket();
-    
+
     if (socket) {
       // Join user's personal room for real-time notifications
       joinUserRoom(user.id);
-      
+
       // Listen for join request status changes (approved/rejected)
       const handleJoinRequestUpdate = (data: { requestId: string; status: string; userId: string }) => {
         console.log('🔔 Real-time join request update:', data);
@@ -193,7 +193,7 @@ export default function BrowseProjects() {
           refreshAccessStatus();
         }
       };
-      
+
       // Listen for member joined events
       const handleMemberJoined = (data: { userId: string; userName: string }) => {
         console.log('🔔 Real-time member joined:', data);
@@ -202,13 +202,31 @@ export default function BrowseProjects() {
           refreshAccessStatus();
         }
       };
-      
+
+      // Listen for member removed events
+      const handleMemberRemoved = (data: { projectId: string; memberId: string }) => {
+        console.log('🔔 Real-time member removed:', data);
+        if (String(data.memberId) === String(user.id)) {
+          console.log('🔔 Current user was removed from project, refreshing...');
+          // Remove project from memberships immediately
+          setUserMemberships(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(data.projectId);
+            return newSet;
+          });
+          // Also refresh access status to ensure UI is up to date
+          refreshAccessStatus();
+        }
+      };
+
       socket.on('join-request-updated', handleJoinRequestUpdate);
       socket.on('member-joined', handleMemberJoined);
-      
+      socket.on('member-removed', handleMemberRemoved);
+
       return () => {
         socket.off('join-request-updated', handleJoinRequestUpdate);
         socket.off('member-joined', handleMemberJoined);
+        socket.off('member-removed', handleMemberRemoved);
         leaveUserRoom(user.id);
       };
     }
@@ -264,7 +282,7 @@ export default function BrowseProjects() {
       const allIdeas = await fetchAllIdeas();
       // Convert approved ideas to projects
       const approvedIdeas = allIdeas.filter((idea: any) => idea.status === 'approved');
-      
+
       // Get member count for each project
       const approvedProjects = await Promise.all(
         approvedIdeas.map(async (idea: any) => {
@@ -307,7 +325,7 @@ export default function BrowseProjects() {
           }
         })
       );
-      
+
       setProjects(approvedProjects);
     } catch (error) {
       console.error('Error loading approved projects:', error);
@@ -318,7 +336,7 @@ export default function BrowseProjects() {
 
   const loadMyIdeas = async () => {
     if (!user) return;
-    
+
     try {
       const allIdeas = await fetchAllIdeas();
       // Filter to show only current user's ideas
@@ -331,12 +349,12 @@ export default function BrowseProjects() {
 
   const loadMyProjects = async () => {
     if (!user) return;
-    
+
     try {
       const allIdeas = await fetchAllIdeas();
       // Show projects where user is the creator (their approved ideas)
       const userApprovedIdeas = allIdeas.filter((idea: any) => String(idea.userId) === String(user.id) && idea.status === 'approved');
-      
+
       // Get member count for each project
       const userProjects = await Promise.all(
         userApprovedIdeas.map(async (idea: any) => {
@@ -379,7 +397,7 @@ export default function BrowseProjects() {
           }
         })
       );
-      
+
       setMyProjects(userProjects);
     } catch (error) {
       console.error('Error loading user projects:', error);
@@ -388,7 +406,7 @@ export default function BrowseProjects() {
 
   const loadUserAccessStatus = async () => {
     if (!user) return;
-    
+
     try {
       // Get all join requests by current user
       const allRequests = await fetchAllJoinRequests();
@@ -398,11 +416,11 @@ export default function BrowseProjects() {
         return String(reqUserId) === String(user.id);
       });
       console.log('User requests found:', userRequests.length, 'for user:', user.id);
-      
+
       // Get all ideas to create a mapping between idea IDs and project IDs
       const allIdeas = await fetchAllIdeas();
       const approvedProjects = allIdeas.filter((idea: any) => idea.status === 'approved');
-      
+
       // Create maps: ideaId -> projectId and projectId -> ideaId
       const ideaToProjectMap: Record<string, string> = {};
       const projectToIdeaMap: Record<string, string> = {};
@@ -412,14 +430,14 @@ export default function BrowseProjects() {
           projectToIdeaMap[idea.projectId] = idea.id;
         }
       });
-      
+
       // Create a map of ideaId -> request data (since UI uses idea IDs)
       const requestsMap: Record<string, any> = {};
       userRequests.forEach((req: any) => {
         // Extract projectId - could be populated object or plain string, handle null
         if (!req.projectId) return; // Skip if projectId is null/undefined
-        const reqProjectId = typeof req.projectId === 'object' 
-          ? (req.projectId?.id || req.projectId?._id || req.projectId) 
+        const reqProjectId = typeof req.projectId === 'object'
+          ? (req.projectId?.id || req.projectId?._id || req.projectId)
           : req.projectId;
         if (!reqProjectId) return; // Skip if we couldn't extract a valid projectId
         // Map the project ID back to idea ID for UI lookup
@@ -431,22 +449,22 @@ export default function BrowseProjects() {
       });
       console.log('Final requestsMap:', requestsMap);
       setUserJoinRequests(requestsMap);
-      
+
       const membershipSet = new Set<string>();
-      
+
       // Check each project for membership using actual project ID
       for (const project of approvedProjects) {
         const actualProjectId = project.projectId || project.id;
         const members = await getProjectMembers(actualProjectId);
         // Use string comparison for userId - add null check for m.userId
         const isMember = members.some((m: any) => m.userId && String(m.userId) === String(user.id));
-        console.log('Member check for project:', { 
-          ideaId: project.id, 
-          projectId: actualProjectId, 
+        console.log('Member check for project:', {
+          ideaId: project.id,
+          projectId: actualProjectId,
           membersCount: members.length,
           memberUserIds: members.filter((m: any) => m.userId).map((m: any) => String(m.userId)),
           currentUserId: String(user.id),
-          isMember 
+          isMember
         });
         if (isMember) {
           // Store BOTH the idea ID and project ID in memberships to ensure lookup works
@@ -456,7 +474,7 @@ export default function BrowseProjects() {
           }
         }
       }
-      
+
       console.log('Final membershipSet:', Array.from(membershipSet));
       setUserMemberships(membershipSet);
     } catch (error) {
@@ -469,22 +487,22 @@ export default function BrowseProjects() {
       alert('Please login to join projects');
       return;
     }
-    
+
     try {
       // Get project details
       const allIdeas = await fetchAllIdeas();
       const project = allIdeas.find((idea: any) => idea.id === _projectId);
-      
+
       if (!project) {
         alert('Project not found');
         return;
       }
-      
+
       if (project.userId === user.id) {
         alert('You cannot join your own project');
         return;
       }
-      
+
       // Convert to Project type and open modal
       const projectData: Project = {
         id: project.id,
@@ -499,17 +517,17 @@ export default function BrowseProjects() {
         tags: [project.category],
         createdAt: project.submittedAt || new Date().toISOString()
       };
-      
+
       setSelectedProject(projectData);
       setShowApplicationModal(true);
     } catch (error: any) {
       alert(error.message || 'Failed to open application form');
     }
   };
-  
+
   const joinProject = async (ideaId: string) => {
     if (!user) return;
-    
+
     try {
       // Navigate using idea ID - workspace page looks up project by idea ID
       navigate(`/dashboard/projects/workspace/${ideaId}`);
@@ -517,22 +535,22 @@ export default function BrowseProjects() {
       console.error('Error joining project:', error);
     }
   };
-  
+
   const getProjectButtonState = (ideaId: string, actualProjectId: string | undefined, creatorId: string) => {
     // Check using both ideaId AND actualProjectId for membership and requests
     const isMemberByIdeaId = userMemberships.has(ideaId);
     const isMemberByProjectId = actualProjectId ? userMemberships.has(actualProjectId) : false;
     const isMember = isMemberByIdeaId || isMemberByProjectId;
-    
+
     const requestByIdeaId = userJoinRequests[ideaId];
     const requestByProjectId = actualProjectId ? userJoinRequests[actualProjectId] : undefined;
     const request = requestByIdeaId || requestByProjectId;
-    
-    console.log('Button state check:', { 
+
+    console.log('Button state check:', {
       ideaId,
       actualProjectId,
-      creatorId, 
-      userId: user?.id, 
+      creatorId,
+      userId: user?.id,
       isCreator: String(creatorId) === String(user?.id),
       isMemberByIdeaId,
       isMemberByProjectId,
@@ -547,7 +565,7 @@ export default function BrowseProjects() {
     // Use String() comparison for consistent matching
     if (String(creatorId) === String(user.id)) return { text: 'Manage →', disabled: false, action: 'manage' };
     if (isMember) return { text: 'Open Workspace ', disabled: false, action: 'open' };
-    
+
     if (request) {
       console.log('Found request:', request.status);
       if (request.status === 'approved') {
@@ -559,67 +577,67 @@ export default function BrowseProjects() {
         return { text: 'Request Again', disabled: false, action: 'request' };
       }
     }
-    
+
     return { text: 'Request to Join', disabled: false, action: 'request' };
   };
-  
+
   const showProjectDetails = (project: Project) => {
     setSelectedProjectForDetails(project);
     setShowDetailsModal(true);
   };
-  
+
   const submitApplication = async () => {
     if (!selectedProject || !user) return;
-    
+
     // Validate application
     if (!application.skills.trim()) {
       alert('Please enter your skills');
       return;
     }
-    
+
     if (!application.motivation.trim()) {
       alert('Please explain why you want to join this project');
       return;
     }
-    
+
     try {
       const allIdeas = await fetchAllIdeas();
       const project = allIdeas.find((idea: any) => idea.id === selectedProject.id);
-      
+
       console.log('🔍 APPLYING TO PROJECT:');
       console.log('Selected Project ID:', selectedProject.id);
       console.log('Found project:', project);
       console.log('Project Idea ID:', project?.id);
       console.log('Project Actual ID:', project?.projectId);
       console.log('Project Creator ID:', project?.userId);
-      
+
       if (!project) {
         alert('Project not found');
         return;
       }
-      
+
       // Use the actual project ID (not the idea ID) for join requests
       const actualProjectId = project.projectId || project.id;
-      
+
       // Send join request with application details
       console.log('📤 Sending join request with:');
       console.log('  actualProjectId:', actualProjectId);
       console.log('  projectTitle:', selectedProject.title);
       console.log('  creatorId:', project.userId);
-      
+
       // Create message with application details
       const applicationMessage = `Skills: ${application.skills}\nExperience: ${application.experience}\nMotivation: ${application.motivation}\nAvailability: ${application.availability}`;
-      
+
       await sendJoinRequest(
         actualProjectId,
         applicationMessage
       );
-      
+
       alert(`✅ Application submitted successfully!\n\nProject: ${selectedProject.title}\nCreator will review in the Members tab of their project.`);
       setShowApplicationModal(false);
       setApplication({ skills: '', experience: '', motivation: '', availability: '' });
       setSelectedProject(null);
-      
+
       // Reload access status to show pending state
       await loadUserAccessStatus();
     } catch (error: any) {
@@ -751,7 +769,7 @@ export default function BrowseProjects() {
                   className="w-full sm:min-w-[180px] sm:w-auto"
                 />
               </div>
-              
+
               {/* Stats Bar */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm mt-4">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -850,7 +868,7 @@ export default function BrowseProjects() {
                       </button>
                       {(() => {
                         const buttonState = getProjectButtonState(project.id, project.projectId, project.creatorId);
-                        
+
                         return (
                           <button
                             onClick={() => {
@@ -966,7 +984,7 @@ export default function BrowseProjects() {
                 <div className="mb-6 bg-gradient-to-r from-cyan-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 border-2 border-cyan-200 dark:border-cyan-800 rounded-2xl p-6 sm:p-8 shadow-lg">
                   <div className="flex flex-col items-start justify-between gap-6">
                     <div className="flex items-center gap-3 mb-3">
-                      
+
                       <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">Certification Progress</h3>
                     </div>
                     {completedCount >= TASKS_REQUIRED ? (
@@ -1006,7 +1024,7 @@ export default function BrowseProjects() {
                       </div>
                     )}
                     <div className="hidden sm:flex flex-col items-center justify-center">
-                
+
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-cyan-200 dark:border-cyan-800 text-sm text-gray-600 dark:text-white flex items-center gap-2">
@@ -1205,7 +1223,7 @@ export default function BrowseProjects() {
           </div>
         )}
       </div>
-      
+
       {/* Application Modal */}
       {showApplicationModal && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1214,7 +1232,7 @@ export default function BrowseProjects() {
               <h2 className="text-2xl font-black text-gray-900 dark:text-white">Apply to Join Project</h2>
               <p className="text-gray-600 dark:text-white mt-1">{selectedProject.title}</p>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Skills */}
               <div>
@@ -1229,7 +1247,7 @@ export default function BrowseProjects() {
                   rows={3}
                 />
               </div>
-              
+
               {/* Experience */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
@@ -1243,7 +1261,7 @@ export default function BrowseProjects() {
                   rows={3}
                 />
               </div>
-              
+
               {/* Motivation */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
@@ -1257,7 +1275,7 @@ export default function BrowseProjects() {
                   rows={4}
                 />
               </div>
-              
+
               {/* Availability */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
@@ -1276,7 +1294,7 @@ export default function BrowseProjects() {
                 </select>
               </div>
             </div>
-            
+
             <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-6 rounded-b-2xl flex gap-3">
               <button
                 onClick={() => {
@@ -1298,7 +1316,7 @@ export default function BrowseProjects() {
           </div>
         </div>
       )}
-      
+
       {/* Project Details Modal */}
       {showDetailsModal && selectedProjectForDetails && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1320,7 +1338,7 @@ export default function BrowseProjects() {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* Project Status */}
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-xl">
@@ -1332,7 +1350,7 @@ export default function BrowseProjects() {
                   Active Project
                 </span>
               </div>
-              
+
               {/* Project Description */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Description</h3>
@@ -1340,7 +1358,7 @@ export default function BrowseProjects() {
                   {selectedProjectForDetails.description}
                 </p>
               </div>
-              
+
               {/* Project Info Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
@@ -1359,7 +1377,7 @@ export default function BrowseProjects() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-[#00ADB5]" />
@@ -1379,7 +1397,7 @@ export default function BrowseProjects() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Progress Bar */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Progress</h3>
@@ -1391,15 +1409,15 @@ export default function BrowseProjects() {
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                     <div
                       className="h-full rounded-full transition-all"
-                      style={{ 
-                        width: `${selectedProjectForDetails.progress}%`, 
-                        backgroundColor: '#00ADB5' 
+                      style={{
+                        width: `${selectedProjectForDetails.progress}%`,
+                        backgroundColor: '#00ADB5'
                       }}
                     />
                   </div>
                 </div>
               </div>
-              
+
               {/* Category & Tags */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Category & Tags</h3>
@@ -1423,7 +1441,7 @@ export default function BrowseProjects() {
                 </div>
               </div>
             </div>
-            
+
             <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-6 rounded-b-2xl">
               <button
                 onClick={() => {
