@@ -1,32 +1,34 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
-  BookOpen,
   ChevronRight,
   Code2,
   Coins,
   Crown,
+  History,
   Loader2,
-  Play,
   Swords,
+  Star,
   Target,
-  TrendingUp,
   Trophy,
-  Users,
-  Wallet,
-  Zap
+  Users
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { Component, useEffect, useState } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
+import { useDataContext } from '../../Context/UserDataContext';
 import { apiRequest } from '../../service/api';
 import BattleMode from './BattleMode';
 import Leaderboard from './Leaderboard';
 import PracticeMode from './PracticeMode';
 import WalletPanel from './WalletPanel';
 
-// Error Boundary
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error?: Error }> {
+// Error Boundary Component
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error?: Error }
+> {
   constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -34,6 +36,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('CodeArena Error:', error, errorInfo);
   }
 
   render() {
@@ -44,8 +50,13 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {this.state.error?.message || 'An error occurred'}
+              There was an error loading CodeArena. Please refresh the page or try again later.
             </p>
+            <div className="bg-red-50 dark:bg-red-900/30 p-3 rounded-lg mb-4 text-left">
+              <pre className="text-xs text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                {this.state.error?.message || 'Unknown error'}
+              </pre>
+            </div>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
@@ -56,324 +67,603 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
         </div>
       );
     }
+
     return this.props.children;
   }
 }
 
-type View = 'home' | 'practice' | 'battle' | 'leaderboard' | 'wallet';
-
-function CodeArenaContent() {
+const CodeArenaContent = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  const [currentView, setCurrentView] = useState<View>('home');
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const { getUserWallet, initializeWallet, subscribeToWallet, fetchGlobalLeaderboard, getUserProgress } = useDataContext();
+  const [activeTab, setActiveTab] = useState('home');
+  const [wallet, setWallet] = useState<any>(null);
+  const [userStats, setUserStats] = useState({
     problemsSolved: 0,
     battlesWon: 0,
     currentStreak: 0,
-    rank: '-' as string | number
+    globalRank: '-' as string | number
   });
+  const [loading, setLoading] = useState(true);
+  const [showWallet, setShowWallet] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch user data
-  useEffect(() => {
-    if (user?.id) {
-      fetchUserData();
-    }
-  }, [user?.id]);
-
-  const fetchUserData = async () => {
-    setLoading(true);
+  // Fetch real user stats
+  const fetchUserStats = async (userId: string, walletData: any) => {
     try {
-      // Fetch wallet and stats in parallel
-      const [walletRes, statsRes] = await Promise.all([
-        apiRequest(`/wallet/${user?.id}`).catch(() => ({ coins: 0 })),
-        apiRequest(`/battles/user-stats/${user?.id}`).catch(() => null)
+      const [battleStatsResponse, userProgress, leaderboard] = await Promise.all([
+        apiRequest(`/battles/user-stats/${userId}`).catch(() => null),
+        getUserProgress?.(userId).catch(() => null),
+        fetchGlobalLeaderboard?.().catch(() => null)
       ]);
 
-      setWalletBalance(walletRes.coins || 0);
-      
-      if (statsRes) {
-        setStats({
-          problemsSolved: statsRes.problemsSolved || 0,
-          battlesWon: statsRes.battlesWon || 0,
-          currentStreak: statsRes.currentStreak || 0,
-          rank: statsRes.rank || '-'
-        });
+      const solvedCount = userProgress?.solvedChallenges?.length || walletData?.achievements?.problemsSolved || 0;
+      const battlesWon = battleStatsResponse?.battlesWon || walletData?.achievements?.battlesWon || 0;
+      const currentStreak = battleStatsResponse?.currentStreak || walletData?.streak?.current || 0;
+
+      let globalRank: string | number = '-';
+      if (leaderboard) {
+        const userRanking = leaderboard.find((p: any) => p.odId === userId);
+        if (userRanking) globalRank = userRanking.rank;
       }
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-    } finally {
-      setLoading(false);
+
+      setUserStats({
+        problemsSolved: solvedCount,
+        battlesWon: battlesWon,
+        currentStreak: currentStreak,
+        globalRank: globalRank
+      });
+    } catch (err) {
+      console.error('Error fetching user stats:', err);
+      setUserStats({
+        problemsSolved: walletData?.achievements?.problemsSolved || 0,
+        battlesWon: walletData?.achievements?.battlesWon || 0,
+        currentStreak: walletData?.streak?.current || 0,
+        globalRank: '-'
+      });
     }
   };
 
-  // Handle wallet balance update
-  const handleWalletUpdate = () => {
-    apiRequest(`/wallet/${user?.id}`)
-      .then(res => setWalletBalance(res.coins || 0))
-      .catch(() => {});
-  };
+  useEffect(() => {
+    const initWallet = async () => {
+      if (user && user.id) {
+        try {
+          setLoading(false);
+          fetchUserStats(user.id, null);
 
-  // Quick action cards
-  const actionCards = [
-    {
-      id: 'practice',
-      title: 'Practice',
-      description: 'Solve coding challenges',
-      icon: BookOpen,
-      color: 'from-green-500 to-emerald-600',
-      iconBg: 'bg-green-100 dark:bg-green-900/30',
-      iconColor: 'text-green-600'
-    },
-    {
-      id: 'battle',
-      title: '1v1 Battle',
-      description: 'Compete for coins',
-      icon: Swords,
-      color: 'from-orange-500 to-red-600',
-      iconBg: 'bg-orange-100 dark:bg-orange-900/30',
-      iconColor: 'text-orange-600'
-    },
-    {
-      id: 'leaderboard',
-      title: 'Leaderboard',
-      description: 'See top players',
-      icon: Trophy,
-      color: 'from-yellow-500 to-amber-600',
-      iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
-      iconColor: 'text-yellow-600'
-    },
-    {
-      id: 'wallet',
-      title: 'Wallet',
-      description: 'View your coins',
-      icon: Wallet,
-      color: 'from-[#00ADB5] to-cyan-600',
-      iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
-      iconColor: 'text-[#00ADB5]'
-    }
+          const existingWallet = await getUserWallet(user.id);
+
+          if (!existingWallet) {
+            await initializeWallet(user.id);
+          }
+
+          const unsubscribe = subscribeToWallet(user.id, async (walletData) => {
+            setWallet(walletData);
+          });
+
+          return () => unsubscribe();
+        } catch (error) {
+          console.error('Error initializing wallet:', error);
+          setError('Failed to initialize wallet. Please check your connection and try again.');
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initWallet();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/battle/history')) setActiveTab('history');
+    else if (path.includes('/battle')) setActiveTab('battle');
+    else if (path.includes('/practice')) setActiveTab('practice');
+    else if (path.includes('/leaderboard')) setActiveTab('leaderboard');
+    else setActiveTab('home');
+  }, [location]);
+
+  const stats = [
+    { label: 'Problems Solved', value: userStats.problemsSolved, icon: Code2, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+    { label: 'Battles Won', value: userStats.battlesWon, icon: Swords, color: 'text-[#00ADB5] bg-[#00ADB5]/10' },
+    { label: 'Current Streak', value: userStats.currentStreak, icon: Star, color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' },
+    { label: 'Global Rank', value: userStats.globalRank, icon: Trophy, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30' },
   ];
 
-  // Render current view
-  const renderView = () => {
-    switch (currentView) {
-      case 'practice':
-        return <PracticeMode onBack={() => setCurrentView('home')} />;
-      case 'battle':
-        return (
-          <BattleMode
-            onBack={() => setCurrentView('home')}
-            walletBalance={walletBalance}
-            onWalletUpdate={handleWalletUpdate}
-          />
-        );
-      case 'leaderboard':
-        return <Leaderboard onBack={() => setCurrentView('home')} />;
-      case 'wallet':
-        return <WalletPanel onBack={() => setCurrentView('home')} onBalanceUpdate={setWalletBalance} />;
-      default:
-        return null;
-    }
-  };
+  const quickActions = [
+    {
+      title: 'Quick Battle',
+      description: 'Compete in a 1v1 coding duel',
+      icon: Swords,
+      color: 'bg-red-500',
+      path: 'battle'
+    },
+    {
+      title: 'Practice Mode',
+      description: 'Solve coding challenges',
+      icon: Target,
+      color: 'bg-[#00ADB5]',
+      path: 'practice'
+    },
+    {
+      title: 'Leaderboard',
+      description: 'View global rankings',
+      icon: Trophy,
+      color: 'bg-amber-500',
+      path: 'leaderboard'
+    },
+  ];
 
-  // Home view
-  if (currentView !== 'home') {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto">
-          {renderView()}
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading CodeArena...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-8 max-w-md w-full text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading CodeArena</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              window.location.reload();
+            }}
+            className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 max-w-md w-full text-center">
+          <Code2 className="w-12 h-12 text-[#00ADB5] mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Login Required</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Please log in to access CodeArena.</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-[#00ADB5] text-white rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
+          >
+            Go to Login
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-[#00d4ff] flex items-center justify-center">
-                <Code2 className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-[#00ADB5] rounded-lg">
+                <Code2 className="w-5 h-5 text-white" />
               </div>
-              CodeArena
-            </h1>
-            <p className="text-gray-500 mt-1">Master coding through practice and competitive battles</p>
-          </div>
-
-          {/* Wallet balance */}
-          <motion.button
-            onClick={() => setCurrentView('wallet')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow"
-          >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-              <Coins className="w-5 h-5 text-white" />
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">CodeArena</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Battle. Code. Win.</p>
+              </div>
             </div>
-            <div className="text-left">
-              <p className="text-xs text-gray-500">Balance</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : walletBalance}
-              </p>
-            </div>
-          </motion.button>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            icon={Target}
-            label="Problems Solved"
-            value={stats.problemsSolved}
-            color="text-green-600"
-            bgColor="bg-green-100 dark:bg-green-900/30"
-          />
-          <StatCard
-            icon={Trophy}
-            label="Battles Won"
-            value={stats.battlesWon}
-            color="text-yellow-600"
-            bgColor="bg-yellow-100 dark:bg-yellow-900/30"
-          />
-          <StatCard
-            icon={Zap}
-            label="Current Streak"
-            value={stats.currentStreak}
-            color="text-orange-600"
-            bgColor="bg-orange-100 dark:bg-orange-900/30"
-          />
-          <StatCard
-            icon={Crown}
-            label="Global Rank"
-            value={stats.rank}
-            color="text-purple-600"
-            bgColor="bg-purple-100 dark:bg-purple-900/30"
-          />
-        </div>
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {[
+                { id: 'home', label: 'Home', icon: Code2, path: '' },
+                { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
+                { id: 'history', label: 'History', icon: History, path: 'battle/history' },
+                { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
+                { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 text-[#00ADB5]'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              ))}
+            </nav>
 
-        {/* Action cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {actionCards.map((card, index) => (
-            <motion.button
-              key={card.id}
-              onClick={() => setCurrentView(card.id as View)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.03, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 text-left group shadow-sm hover:shadow-lg transition-all"
+            {/* Wallet */}
+            <button
+              onClick={() => setShowWallet(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all"
             >
-              {/* Gradient overlay on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
-              
-              <div className={`w-12 h-12 rounded-xl ${card.iconBg} flex items-center justify-center mb-4`}>
-                <card.icon className={`w-6 h-6 ${card.iconColor}`} />
-              </div>
-              
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{card.title}</h3>
-              <p className="text-sm text-gray-500">{card.description}</p>
-              
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-[#00ADB5] group-hover:translate-x-1 transition-all" />
-            </motion.button>
+              <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-amber-700 dark:text-amber-300 font-semibold">{wallet?.coins?.toLocaleString() || 0}</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-6">
+        <Routes>
+          <Route path="/" element={
+            <HomeContent
+              stats={stats}
+              quickActions={quickActions}
+              navigate={navigate}
+            />
+          } />
+          <Route path="/battle" element={
+            <BattleMode
+              onBack={() => navigate('/dashboard/codearena')}
+              walletBalance={wallet?.coins || 0}
+              onWalletUpdate={() => {}}
+            />
+          } />
+          <Route path="/battle/history" element={
+            <div className="text-center py-12">
+              <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Battle History</h2>
+              <p className="text-gray-500">Your past battles will appear here</p>
+            </div>
+          } />
+          <Route path="/battle/:battleId" element={
+            <BattleMode
+              onBack={() => navigate('/dashboard/codearena')}
+              walletBalance={wallet?.coins || 0}
+              onWalletUpdate={() => {}}
+            />
+          } />
+          <Route path="/practice" element={
+            <PracticeMode onBack={() => navigate('/dashboard/codearena')} />
+          } />
+          <Route path="/practice/:challengeId" element={
+            <PracticeMode onBack={() => navigate('/dashboard/codearena')} />
+          } />
+          <Route path="/leaderboard" element={
+            <Leaderboard onBack={() => navigate('/dashboard/codearena')} />
+          } />
+        </Routes>
+      </main>
+
+      {/* Wallet Panel */}
+      <AnimatePresence>
+        {showWallet && (
+          <WalletPanel
+            onBack={() => setShowWallet(false)}
+            onBalanceUpdate={(balance) => setWallet({ ...wallet, coins: balance })}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
+        <div className="flex justify-around">
+          {[
+            { id: 'home', label: 'Home', icon: Code2, path: '' },
+            { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
+            { id: 'history', label: 'History', icon: History, path: 'battle/history' },
+            { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => navigate(`/dashboard/codearena/${tab.path}`)}
+              className={`flex flex-col items-center gap-1 p-2 ${
+                activeTab === tab.id ? 'text-[#00ADB5]' : 'text-gray-400'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="text-xs">{tab.label}</span>
+            </button>
           ))}
         </div>
+      </nav>
+    </div>
+  );
+};
 
-        {/* Quick start battle */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-to-br from-[#00ADB5] to-[#00d4ff] rounded-2xl p-6 text-white"
-        >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                <Swords className="w-7 h-7" />
-                Ready for a Challenge?
-              </h2>
-              <p className="text-white/80">
-                Jump into a 1v1 coding battle and win coins by solving problems faster than your opponent!
-              </p>
+// Home Content
+const HomeContent = ({ stats, quickActions, navigate }: any) => {
+  const { fetchGlobalLeaderboard } = useDataContext();
+  const [liveBattles, setLiveBattles] = useState<any[]>([]);
+  const [topPlayers, setTopPlayers] = useState<any[]>([]);
+  const [loadingBattles, setLoadingBattles] = useState(true);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+
+  useEffect(() => {
+    const loadLiveBattles = async () => {
+      try {
+        const response = await apiRequest('/battles?status=active');
+        const waitingResponse = await apiRequest('/battles?status=waiting');
+        const countdownResponse = await apiRequest('/battles?status=countdown');
+
+        const activeBattles = response.battles || [];
+        const waitingBattles = waitingResponse.battles || [];
+        const countdownBattles = countdownResponse.battles || [];
+
+        const allBattles = [...activeBattles, ...countdownBattles, ...waitingBattles]
+          .slice(0, 5)
+          .map((battle: any) => ({
+            id: battle.id || battle._id,
+            status: battle.status,
+            difficulty: battle.difficulty,
+            entryFee: battle.entryFee,
+            prize: battle.prize,
+            participants: battle.participants?.length > 0
+              ? battle.participants.map((p: any) => ({
+                  odId: p.odId || p.userId,
+                  userName: p.userName || p.odName || 'Player',
+                  userAvatar: p.userAvatar || p.odProfilePic
+                }))
+              : [
+                  {
+                    odId: battle.creatorId,
+                    userName: battle.creatorName || 'Player',
+                    userAvatar: battle.creatorProfilePic
+                  }
+                ]
+          }));
+
+        setLiveBattles(allBattles);
+      } catch (error) {
+        console.error('Error loading battles:', error);
+        setLiveBattles([]);
+      } finally {
+        setLoadingBattles(false);
+      }
+    };
+
+    const loadTopPlayers = async () => {
+      try {
+        if (fetchGlobalLeaderboard) {
+          const rankings = await fetchGlobalLeaderboard();
+          setTopPlayers(rankings?.slice(0, 3) || []);
+        }
+      } catch (error) {
+        console.error('Error loading top players:', error);
+        setTopPlayers([]);
+      } finally {
+        setLoadingPlayers(false);
+      }
+    };
+
+    loadLiveBattles();
+    loadTopPlayers();
+
+    const battlesInterval = setInterval(loadLiveBattles, 30000);
+    const playersInterval = setInterval(loadTopPlayers, 60000);
+
+    return () => {
+      clearInterval(battlesInterval);
+      clearInterval(playersInterval);
+    };
+  }, [fetchGlobalLeaderboard]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      {/* Hero */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back! 👊</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Ready to test your coding skills? Battle other developers or practice with coding problems.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate('/dashboard/codearena/battle')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#00ADB5] text-white font-medium rounded-lg hover:bg-[#00ADB5]/80 transition-colors"
+          >
+            <Swords className="w-4 h-4" />
+            Find Match
+          </button>
+          <button
+            onClick={() => navigate('/dashboard/codearena/practice')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+          >
+            <Target className="w-4 h-4" />
+            Practice
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((stat: any, index: number) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+          >
+            <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3`}>
+              <stat.icon className="w-4 h-4" />
             </div>
-            <motion.button
-              onClick={() => setCurrentView('battle')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-6 py-3 bg-white text-[#00ADB5] font-bold rounded-xl shadow-lg hover:shadow-xl transition-shadow whitespace-nowrap"
-            >
-              <Play className="w-5 h-5" />
-              Start Battle
-            </motion.button>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {quickActions.map((action: any, index: number) => (
+          <motion.button
+            key={action.title}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+            onClick={() => navigate(`/dashboard/codearena/${action.path}`)}
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 text-left hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all group"
+          >
+            <div className={`inline-flex p-3 rounded-lg ${action.color} mb-4`}>
+              <action.icon className="w-5 h-5 text-white" />
+            </div>
+
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{action.title}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{action.description}</p>
+
+            <div className="flex items-center gap-1 text-[#00ADB5] text-sm font-medium group-hover:gap-2 transition-all">
+              <span>Get Started</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Activity Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Live Battles */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Users className="w-4 h-4 text-green-600" />
+              Live Battles
+            </h3>
+            <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              Live
+            </span>
           </div>
-        </motion.div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-4">
-          <FeatureCard
-            icon={Code2}
-            title="100+ Problems"
-            description="From easy warm-ups to challenging algorithms"
-          />
-          <FeatureCard
-            icon={Users}
-            title="Real-time Battles"
-            description="Compete against developers worldwide"
-          />
-          <FeatureCard
-            icon={TrendingUp}
-            title="Skill Tracking"
-            description="Track your progress and climb the ranks"
-          />
+          {loadingBattles ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+            </div>
+          ) : liveBattles.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No active battles</p>
+              <button
+                onClick={() => navigate('/dashboard/codearena/battle')}
+                className="mt-2 text-xs text-[#00ADB5] hover:underline"
+              >
+                Start a battle
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {liveBattles.map((battle, i) => (
+                <div
+                  key={battle.id || i}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                      {battle.participants?.slice(0, 2).map((participant: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className={`w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-white ${
+                            idx === 0 ? 'bg-[#00ADB5]' : 'bg-purple-500'
+                          }`}
+                        >
+                          {participant.userName?.[0] || '?'}
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {battle.participants?.[0]?.userName || 'Player'} vs {battle.participants?.[1]?.userName || 'Waiting...'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{battle.difficulty || 'Medium'}</p>
+                    </div>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    battle.status === 'waiting'
+                      ? 'text-[#00ADB5] bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20'
+                      : 'text-orange-600 bg-orange-50 dark:bg-orange-900/30'
+                  }`}>
+                    {battle.status === 'waiting' ? 'Waiting' : 'In Progress'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Top Players */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Crown className="w-4 h-4 text-amber-500" />
+              Top Players
+            </h3>
+            <button
+              onClick={() => navigate('/dashboard/codearena/leaderboard')}
+              className="text-sm text-[#00ADB5] hover:underline"
+            >
+              View All
+            </button>
+          </div>
+
+          {loadingPlayers ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+            </div>
+          ) : topPlayers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No rankings yet</p>
+              <button
+                onClick={() => navigate('/dashboard/codearena/practice')}
+                className="mt-2 text-xs text-[#00ADB5] hover:underline"
+              >
+                Start solving challenges
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topPlayers.map((player) => {
+                const rankColors = [
+                  'text-amber-500 bg-amber-50 dark:bg-amber-900/30',
+                  'text-gray-400 bg-gray-100 dark:bg-gray-700',
+                  'text-orange-500 bg-orange-50 dark:bg-orange-900/30'
+                ];
+                return (
+                  <div
+                    key={player.odId}
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${rankColors[player.rank - 1] || rankColors[2]}`}>
+                      {player.rank}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{player.odName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{player.totalPoints} pts</p>
+                    </div>
+                    {player.rank === 1 && <Crown className="w-4 h-4 text-amber-500" />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
-}
-
-// Stat card component
-function StatCard({ icon: Icon, label, value, color, bgColor }: {
-  icon: any;
-  label: string;
-  value: string | number;
-  color: string;
-  bgColor: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${color}`} />
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-          <p className="text-xs text-gray-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Feature card component
-function FeatureCard({ icon: Icon, title, description }: {
-  icon: any;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex items-start gap-3">
-      <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-5 h-5 text-[#00ADB5]" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
-        <p className="text-sm text-gray-500">{description}</p>
-      </div>
-    </div>
-  );
-}
+};
 
 // Main export with error boundary
 export default function CodeArena() {

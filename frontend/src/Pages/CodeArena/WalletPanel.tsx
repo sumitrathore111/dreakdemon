@@ -2,14 +2,14 @@ import { motion } from 'framer-motion';
 import {
   ArrowDownRight,
   ArrowUpRight,
-  ChevronRight,
   Coins,
   Gift,
   History,
   Loader2,
   Plus,
   Trophy,
-  Wallet
+  Wallet,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
@@ -102,27 +102,46 @@ export default function WalletPanel({ onBack, onBalanceUpdate }: WalletPanelProp
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00ADB5]" />
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        onClick={onBack}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8" onClick={e => e.stopPropagation()}>
+          <Loader2 className="w-8 h-8 animate-spin text-[#00ADB5]" />
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-          <ChevronRight className="w-5 h-5 rotate-180 text-gray-500" />
-        </button>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Wallet className="w-6 h-6 text-[#00ADB5]" />
-            Your Wallet
-          </h2>
-          <p className="text-gray-500">Manage your CodeArena coins</p>
-        </div>
-      </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={onBack}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wallet className="w-6 h-6 text-[#00ADB5]" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Wallet</h2>
+            </div>
+            <button onClick={onBack} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
 
       {/* Balance card */}
       <motion.div
@@ -228,6 +247,8 @@ export default function WalletPanel({ onBack, onBalanceUpdate }: WalletPanelProp
           </div>
         )}
       </div>
-    </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
