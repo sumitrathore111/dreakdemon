@@ -20,7 +20,10 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}): P
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  // Ensure endpoint starts with /api (backend routes are prefixed with /api)
+  const apiEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+
+  const response = await fetch(`${API_BASE_URL}${apiEndpoint}`, {
     ...options,
     headers,
     cache: 'no-store', // Prevent caching for real-time data
