@@ -1,364 +1,233 @@
 import { motion } from 'framer-motion';
 import {
-    ArrowDownRight,
-    ArrowUpRight,
-    Coins,
-    Gift,
-    History,
-    Star,
-    Swords,
-    Target,
-    TrendingDown,
-    TrendingUp,
-    Trophy,
-    Wallet as WalletIcon,
-    X,
-    Zap
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronRight,
+  Coins,
+  Gift,
+  History,
+  Loader2,
+  Plus,
+  Trophy,
+  Wallet
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
-import { useDataContext } from '../../Context/UserDataContext';
+import { apiRequest } from '../../service/api';
+import type { WalletData } from './types';
 
 interface WalletPanelProps {
-  wallet: any;
-  onClose: () => void;
+  onBack: () => void;
+  onBalanceUpdate?: (balance: number) => void;
 }
 
-const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
+export default function WalletPanel({ onBack, onBalanceUpdate }: WalletPanelProps) {
   const { user } = useAuth();
-  const { fetchUserTransactions, getUserProgress } = useDataContext();
-  
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'history'>('overview');
-  const [realStats, setRealStats] = useState({
-    problemsSolved: 0,
-    battlesWon: 0,
-    currentStreak: 0
-  });
+  const [claiming, setClaiming] = useState(false);
+  const [showClaimSuccess, setShowClaimSuccess] = useState(false);
 
-  // Fetch real stats from backend
   useEffect(() => {
-    const fetchRealStats = async () => {
-      if (!user) return;
-      
-      try {
-        // Get problems solved from user progress
-        const userProgress = await getUserProgress?.(user.id);
-        const solvedCount = userProgress?.solvedChallenges?.length || wallet?.achievements?.problemsSolved || 0;
-        
-        // Get battles won and streak from backend
-        let battlesWon = 0;
-        let currentStreak = 0;
-        
-        try {
-          // TODO: Implement backend API for battles
-          // For now, use wallet data
-          battlesWon = wallet?.achievements?.battlesWon || 0;
-          currentStreak = wallet?.streak?.current || 0;
-        } catch (e) {
-          console.error('Error fetching battles for wallet:', e);
-          battlesWon = wallet?.achievements?.battlesWon || 0;
-          currentStreak = wallet?.streak?.current || 0;
-        }
-        
-        setRealStats({
-          problemsSolved: solvedCount,
-          battlesWon: battlesWon,
-          currentStreak: currentStreak
-        });
-      } catch (error) {
-        console.error('Error fetching real stats:', error);
-        setRealStats({
-          problemsSolved: wallet?.achievements?.problemsSolved || 0,
-          battlesWon: wallet?.achievements?.battlesWon || 0,
-          currentStreak: wallet?.streak?.current || 0
-        });
-      }
-    };
+    fetchWallet();
+  }, [user?.id]);
+
+  const fetchWallet = async () => {
+    if (!user?.id) return;
     
-    fetchRealStats();
-  }, [user, wallet, getUserProgress]);
-
-  useEffect(() => {
-    const loadTransactions = async () => {
-      if (!user) return;
-      
-      try {
-        // Try to fetch from transactions collection
-        const data = await fetchUserTransactions(user.id);
-        
-        // If no transactions, use empty array
-        setTransactions(data || []);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-        setTransactions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTransactions();
-  }, [user, fetchUserTransactions]);
-
-  const getTransactionIcon = (type: string, category: string) => {
-    if (type === 'earn') {
-      switch (category) {
-        case 'challenge': return Target;
-        case 'battle': return Swords;
-        case 'tournament': return Trophy;
-        default: return Gift;
-      }
-    } else {
-      switch (category) {
-        case 'hint': return Star;
-        case 'entry_fee': return Swords;
-        default: return Coins;
-      }
+    try {
+      const response = await apiRequest(`/wallet/${user.id}`);
+      setWallet({
+        odId: user.id,
+        coins: response.coins || 0,
+        transactions: (response.transactions || []).map((t: any) => ({
+          id: t._id || t.id || Math.random().toString(),
+          type: t.type,
+          amount: t.amount,
+          reason: t.reason,
+          createdAt: new Date(t.createdAt)
+        })),
+        achievements: {
+          problemsSolved: response.achievements?.problemsSolved || 0,
+          battlesWon: response.achievements?.battlesWon || 0,
+          battlesPlayed: response.achievements?.battlesPlayed || 0
+        }
+      });
+      onBalanceUpdate?.(response.coins || 0);
+    } catch (error) {
+      console.error('Failed to fetch wallet:', error);
+      // Initialize with defaults if wallet doesn't exist
+      setWallet({
+        odId: user.id,
+        coins: 0,
+        transactions: [],
+        achievements: { problemsSolved: 0, battlesWon: 0, battlesPlayed: 0 }
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const handleClaimDaily = async () => {
+    if (claiming) return;
+    
+    setClaiming(true);
+    try {
+      const response = await apiRequest(`/wallet/${user?.id}/daily`, { method: 'POST' });
+      if (response.success) {
+        setShowClaimSuccess(true);
+        await fetchWallet();
+        setTimeout(() => setShowClaimSuccess(false), 3000);
+      }
+    } catch (error: any) {
+      console.error('Failed to claim daily reward:', error);
+    } finally {
+      setClaiming(false);
+    }
   };
 
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-[#00ADB5]" />
+      </div>
+    );
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-end"
-      onClick={onClose}
-    >
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+          <ChevronRight className="w-5 h-5 rotate-180 text-gray-500" />
+        </button>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Wallet className="w-6 h-6 text-[#00ADB5]" />
+            Your Wallet
+          </h2>
+          <p className="text-gray-500">Manage your CodeArena coins</p>
+        </div>
+      </div>
+
+      {/* Balance card */}
       <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        onClick={(e) => e.stopPropagation()}
-        className="h-full w-full max-w-sm bg-gray-900 border-l border-gray-700/50 overflow-hidden flex flex-col"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-[#00ADB5] to-[#00d4ff] rounded-2xl p-6 text-white"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-500/20 rounded-lg">
-              <WalletIcon className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-white">My Wallet</h2>
-              <p className="text-sm text-gray-400">Manage your coins & rewards</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-white/80 mb-1">Available Balance</p>
+            <div className="flex items-center gap-3">
+              <Coins className="w-10 h-10" />
+              <span className="text-4xl font-bold">{wallet?.coins || 0}</span>
             </div>
           </div>
+          
           <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+            onClick={handleClaimDaily}
+            disabled={claiming}
+            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            {claiming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+            Daily Reward
           </button>
         </div>
 
-        {/* Balance Card */}
-        <div className="p-4">
-          <div className="bg-gradient-to-br from-yellow-500/20 via-amber-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-6">
-            <p className="text-gray-400 text-sm mb-1">Total Balance</p>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
-                <span className="text-xl font-bold text-gray-900">₿</span>
-              </div>
-              <span className="text-4xl font-bold text-white">
-                {wallet?.coins?.toLocaleString() || 0}
-              </span>
-            </div>
+        {showClaimSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 bg-white/20 rounded-lg p-3 text-center"
+          >
+            🎉 You claimed your daily reward!
+          </motion.div>
+        )}
+      </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-800/50 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-green-400 mb-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="text-sm">Earned</span>
-                </div>
-                <p className="text-white font-bold">
-                  {wallet?.totalEarned?.toLocaleString() || 0}
-                </p>
-              </div>
-              <div className="bg-gray-800/50 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-red-400 mb-1">
-                  <TrendingDown className="w-4 h-4" />
-                  <span className="text-sm">Spent</span>
-                </div>
-                <p className="text-white font-bold">
-                  {wallet?.totalSpent?.toLocaleString() || 0}
-                </p>
-              </div>
-            </div>
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{wallet?.achievements.battlesWon || 0}</p>
+          <p className="text-xs text-gray-500">Battles Won</p>
         </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 px-4">
-          {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'history', label: 'History' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-cyan-500/20 text-cyan-400'
-                  : 'bg-gray-800/50 text-gray-400 hover:text-white'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <History className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{wallet?.achievements.battlesPlayed || 0}</p>
+          <p className="text-xs text-gray-500">Battles Played</p>
         </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <Plus className="w-6 h-6 text-green-500 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{wallet?.achievements.problemsSolved || 0}</p>
+          <p className="text-xs text-gray-500">Problems Solved</p>
+        </div>
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'overview' ? (
-            <div className="space-y-4">
-              {/* Level & XP */}
-              <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-purple-400" />
-                    <span className="text-white font-medium">Level {wallet?.level || 1}</span>
+      {/* Transactions */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <History className="w-5 h-5 text-[#00ADB5]" />
+          Transaction History
+        </h3>
+
+        {wallet?.transactions && wallet.transactions.length > 0 ? (
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {wallet.transactions
+              .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+              .slice(0, 20)
+              .map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      tx.type === 'credit'
+                        ? 'bg-green-100 dark:bg-green-900/30'
+                        : 'bg-red-100 dark:bg-red-900/30'
+                    }`}>
+                      {tx.type === 'credit' ? (
+                        <ArrowDownRight className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <ArrowUpRight className="w-4 h-4 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{tx.reason}</p>
+                      <p className="text-xs text-gray-500">{formatDate(tx.createdAt)}</p>
+                    </div>
                   </div>
-                  <span className="text-sm text-gray-400">
-                    {wallet?.experience || 0} / {(wallet?.level || 1) * 100} XP
+                  <span className={`font-semibold ${
+                    tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
                   </span>
                 </div>
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${((wallet?.experience || 0) / ((wallet?.level || 1) * 100)) * 100}%` }}
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                  />
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Target className="w-5 h-5 text-green-400 mb-2" />
-                  <p className="text-2xl font-bold text-white">
-                    {realStats.problemsSolved}
-                  </p>
-                  <p className="text-sm text-gray-400">Problems Solved</p>
-                </div>
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Swords className="w-5 h-5 text-[#00ADB5] mb-2" />
-                  <p className="text-2xl font-bold text-white">
-                    {realStats.battlesWon}
-                  </p>
-                  <p className="text-sm text-gray-400">Battles Won</p>
-                </div>
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Trophy className="w-5 h-5 text-yellow-400 mb-2" />
-                  <p className="text-2xl font-bold text-white">
-                    {wallet?.achievements?.tournamentsWon || 0}
-                  </p>
-                  <p className="text-sm text-gray-400">Tournaments</p>
-                </div>
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <Zap className="w-5 h-5 text-orange-400 mb-2" />
-                  <p className="text-2xl font-bold text-white">
-                    {realStats.currentStreak}
-                  </p>
-                  <p className="text-sm text-gray-400">Win Streak</p>
-                </div>
-              </div>
-
-              {/* Badges */}
-              {wallet?.badges && wallet.badges.length > 0 && (
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-                  <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-pink-400" />
-                    Badges
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {wallet.badges.map((badge: any, i: number) => (
-                      <div
-                        key={i}
-                        className="px-3 py-1.5 bg-gray-700/50 rounded-lg text-sm text-white flex items-center gap-2"
-                        title={badge.description}
-                      >
-                        <span>{badge.icon}</span>
-                        <span>{badge.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full"
-                  />
-                </div>
-              ) : transactions.length === 0 ? (
-                <div className="text-center py-8">
-                  <History className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400">No transactions yet</p>
-                </div>
-              ) : (
-                transactions.map((tx, i) => {
-                  const Icon = getTransactionIcon(tx.type, tx.category);
-                  const isEarn = tx.type === 'earn';
-                  
-                  return (
-                    <motion.div
-                      key={tx.id || i}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex items-center justify-between p-3 bg-gray-800/50 border border-gray-700/50 rounded-xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          isEarn ? 'bg-green-500/20' : 'bg-red-500/20'
-                        }`}>
-                          <Icon className={`w-4 h-4 ${isEarn ? 'text-green-400' : 'text-red-400'}`} />
-                        </div>
-                        <div>
-                          <p className="text-white text-sm font-medium">{tx.description}</p>
-                          <p className="text-xs text-gray-400">{formatDate(tx.createdAt)}</p>
-                        </div>
-                      </div>
-                      <div className={`flex items-center gap-1 font-bold ${
-                        isEarn ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {isEarn ? (
-                          <ArrowUpRight className="w-4 h-4" />
-                        ) : (
-                          <ArrowDownRight className="w-4 h-4" />
-                        )}
-                        <span>{isEarn ? '+' : '-'}{tx.amount}</span>
-                      </div>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
+              ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Coins className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            <p>No transactions yet</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
-};
-
-export default WalletPanel;
-
-
+}

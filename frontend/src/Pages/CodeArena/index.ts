@@ -1,12 +1,14 @@
-export { default as BattleHistory } from './BattleHistory';
-export { default as BattleLobby } from './BattleLobby';
-export { default as BattleResults } from './BattleResults';
-export { default as BattleRoom } from './BattleRoom';
-export { default as ChallengeEditor } from './ChallengeEditor';
+// CodeArena exports
 export { default as CodeArena } from './CodeArena';
+export { default as BattleMode } from './BattleMode';
+export { default as PracticeMode } from './PracticeMode';
 export { default as Leaderboard } from './Leaderboard';
-export { default as LocalChallengeEditor } from './LocalChallengeEditor';
-export { default as PracticeChallenges } from './PracticeChallenges';
-export { default as SeedChallenges } from './SeedChallenges';
 export { default as WalletPanel } from './WalletPanel';
+export { default as CodeEditor, LanguageSelector } from './CodeEditor';
+
+// API helpers
+export * from './api';
+
+// Types
+export * from './types';
 
