@@ -7,6 +7,7 @@ import {
   Code2,
   DoorOpen,
   Loader2,
+  Play,
   Send,
   Shield,
   Trophy,
@@ -22,6 +23,7 @@ import { apiRequest } from '../../service/api';
 import { type Challenge } from '../../service/challenges';
 import {
   getPistonSupportedLanguages,
+  quickRunPiston,
   type PistonBattleSubmissionResult
 } from '../../service/codeExecution';
 
@@ -97,6 +99,8 @@ const BattleRoom = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [quickRunResult, setQuickRunResult] = useState<{ output: string; error: string | null; time: string | null; status: string } | null>(null);
 
   // Set battle guard context when battle is active or in countdown
   useEffect(() => {
@@ -677,6 +681,31 @@ rl.on('close', () => {
     }
   };
 
+  // Quick run to test code with first test case
+  const handleRun = async () => {
+    if (!code || isRunning || hasSubmitted) return;
+
+    setIsRunning(true);
+    setQuickRunResult(null);
+
+    try {
+      // Get first test case input
+      const input = testCases.length > 0 ? testCases[0].input : '';
+      
+      const result = await quickRunPiston(code, language, input);
+      setQuickRunResult(result);
+    } catch (error: any) {
+      setQuickRunResult({
+        output: '',
+        error: error?.message || 'Failed to run code. Please try again.',
+        time: null,
+        status: 'Error'
+      });
+    }
+
+    setIsRunning(false);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -1120,7 +1149,45 @@ rl.on('close', () => {
           </div>
 
           {/* Results / Opponent Status */}
-          <div className="h-32 bg-gray-800/50 p-4 overflow-y-auto">
+          <div className="h-40 bg-gray-800/50 p-4 overflow-y-auto">
+            {/* Quick Run Result */}
+            {quickRunResult && !myResult && (
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${
+                    quickRunResult.error ? 'text-red-400' : 'text-green-400'
+                  }`}>
+                    {quickRunResult.status}
+                  </span>
+                  {quickRunResult.time && (
+                    <span className="text-xs text-gray-400">
+                      <Clock className="w-3 h-3 inline mr-1" />
+                      {quickRunResult.time}s
+                    </span>
+                  )}
+                </div>
+                
+                {quickRunResult.output && (
+                  <div className="bg-gray-900 rounded p-3">
+                    <p className="text-xs text-gray-400 mb-1">Output:</p>
+                    <pre className="text-sm text-white font-mono whitespace-pre-wrap">
+                      {quickRunResult.output}
+                    </pre>
+                  </div>
+                )}
+                
+                {quickRunResult.error && (
+                  <div className="bg-red-900/20 border border-red-500/30 rounded p-3">
+                    <p className="text-xs text-red-400 mb-1">Error:</p>
+                    <pre className="text-sm text-red-300 font-mono whitespace-pre-wrap">
+                      {quickRunResult.error}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Submission Result */}
             {myResult ? (
               <div className={`p-3 rounded-lg ${myResult.passed
                 ? 'bg-green-900/20 border border-green-500/30'
@@ -1151,16 +1218,16 @@ rl.on('close', () => {
                   </p>
                 )}
               </div>
-            ) : (
+            ) : !quickRunResult ? (
               <div className="text-center text-gray-400">
-                <p className="text-sm">Submit your code to see results</p>
+                <p className="text-sm">Click "Run" to test your code, or "Submit" to finalize</p>
                 {opponent?.hasSubmitted && (
                   <p className="text-xs text-yellow-400 mt-2">
                     ⚠️ Opponent has already submitted!
                   </p>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -1222,33 +1289,52 @@ rl.on('close', () => {
           </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleSubmit}
-          disabled={isSubmitting || hasSubmitted}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${hasSubmitted
-            ? 'bg-green-600 text-white cursor-not-allowed'
-            : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-            } disabled:opacity-70`}
-        >
-          {isSubmitting ? (
-            <>
+        <div className="flex items-center gap-3">
+          {/* Run Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleRun}
+            disabled={isRunning || isSubmitting || hasSubmitted}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {isRunning ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-              Submitting...
-            </>
-          ) : hasSubmitted ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              Submitted
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              Submit Solution
-            </>
-          )}
-        </motion.button>
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+            Run
+          </motion.button>
+
+          {/* Submit Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSubmit}
+            disabled={isSubmitting || hasSubmitted}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all ${hasSubmitted
+              ? 'bg-green-600 text-white cursor-not-allowed'
+              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+              } disabled:opacity-70`}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Submitting...
+              </>
+            ) : hasSubmitted ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Submitted
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Submit Solution
+              </>
+            )}
+          </motion.button>
+        </div>
       </div>
 
       {/* Problem Statement Styles */}
