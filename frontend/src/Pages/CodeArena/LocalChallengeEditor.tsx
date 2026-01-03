@@ -33,14 +33,20 @@ import { secureCodeExecutionService } from '../../service/secureCodeExecution_ne
  * Also handles 'output' field from questions.json
  */
 const mapTestCases = (testCases: any[]): any[] => {
-  if (!Array.isArray(testCases)) return [];
+  console.log('[mapTestCases] Input:', testCases);
+  if (!Array.isArray(testCases)) {
+    console.log('[mapTestCases] Not an array, returning empty');
+    return [];
+  }
   
-  return testCases.map(tc => ({
+  const result = testCases.map(tc => ({
     input: tc.input || '',
     expectedOutput: tc.expectedOutput || tc.expected_output || tc.output || '',
     isHidden: tc.isHidden || false,
     points: tc.points || 0
   }));
+  console.log('[mapTestCases] Output:', result);
+  return result;
 };
 
 const LocalChallengeEditor = () => {
@@ -86,6 +92,9 @@ const LocalChallengeEditor = () => {
       try {
           // First check if challenge was passed via navigation state
           let challengeData: Challenge | null | undefined = (location.state as any)?.challenge as Challenge | undefined;
+          console.log('[LocalChallengeEditor] Raw challenge from state:', challengeData);
+          console.log('[LocalChallengeEditor] testCases:', (challengeData as any)?.testCases);
+          console.log('[LocalChallengeEditor] test_cases:', (challengeData as any)?.test_cases);
         
         // If challenge came from PracticeChallenges, it has different field names
         // Map it to Challenge interface format
@@ -242,7 +251,13 @@ rl.on('close', () => {
 
   // Quick run code
   const handleRun = async () => {
-    if (!challenge) return;
+    if (!challenge) {
+      console.log('[handleRun] No challenge loaded');
+      return;
+    }
+    
+    console.log('[handleRun] Challenge:', challenge);
+    console.log('[handleRun] Challenge testCases:', challenge.testCases);
     
     setIsRunning(true);
     setQuickRunResult(null);
@@ -251,11 +266,15 @@ rl.on('close', () => {
     try {
       // Get visible test cases
       const visibleTestCases = challenge.testCases.filter(tc => !tc.isHidden);
+      console.log('[handleRun] Visible test cases:', visibleTestCases);
       const input = showCustomInput ? customInput : (visibleTestCases[0]?.input || '');
+      console.log('[handleRun] Input being used:', input);
       
       const result = await quickRunPiston(code, language, input);
+      console.log('[handleRun] Execution result:', result);
       setQuickRunResult(result);
     } catch (error: any) {
+      console.error('[handleRun] Error:', error);
       setQuickRunResult({
         output: '',
         error: error?.message || 'Failed to run code. Please try again.',

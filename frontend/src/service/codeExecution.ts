@@ -34,41 +34,52 @@ export async function executeCode(
   input: string = ''
 ): Promise<ExecutionResult> {
   const startTime = Date.now();
+  console.log('[executeCode] Starting execution');
+  console.log('[executeCode] Language:', language);
+  console.log('[executeCode] Input:', input);
+  console.log('[executeCode] Code length:', code.length);
 
   try {
     const langConfig = languageMap[language.toLowerCase()];
     if (!langConfig) {
       throw new Error(`Unsupported language: ${language}`);
     }
+    console.log('[executeCode] Lang config:', langConfig);
+
+    const requestBody = {
+      language: langConfig.language,
+      version: langConfig.version,
+      files: [
+        {
+          name: getFileName(language),
+          content: code
+        }
+      ],
+      stdin: input,
+      args: [],
+      compile_timeout: 10000,
+      run_timeout: 3000,
+      compile_memory_limit: -1,
+      run_memory_limit: -1
+    };
+    console.log('[executeCode] Request body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(`${PISTON_API_URL}/execute`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        language: langConfig.language,
-        version: langConfig.version,
-        files: [
-          {
-            name: getFileName(language),
-            content: code
-          }
-        ],
-        stdin: input,
-        args: [],
-        compile_timeout: 10000,
-        run_timeout: 3000,
-        compile_memory_limit: -1,
-        run_memory_limit: -1
-      })
+      body: JSON.stringify(requestBody)
     });
 
+    console.log('[executeCode] Response status:', response.status);
+    
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
     const result = await response.json();
+    console.log('[executeCode] Piston API result:', result);
     const executionTime = Date.now() - startTime;
 
     // Check for compilation errors
@@ -234,15 +245,19 @@ export async function quickRunPiston(
   memory: number | null;
   status: string;
 }> {
+  console.log('[quickRunPiston] Starting...');
   const result = await executeCode(code, language, input);
+  console.log('[quickRunPiston] executeCode result:', result);
   
-  return {
+  const returnValue = {
     output: result.output || '',
     error: result.error || null,
     time: result.executionTime ? `${(result.executionTime / 1000).toFixed(3)}` : null,
     memory: null,
     status: result.success ? 'Accepted' : (result.error ? 'Error' : 'Unknown')
   };
+  console.log('[quickRunPiston] Returning:', returnValue);
+  return returnValue;
 }
 
 // Get supported languages list
