@@ -1336,6 +1336,25 @@ router.post('/:battleId/rematch', authenticate, async (req: AuthRequest, res: Re
       version: 'v2.0-rematch'
     });
 
+    // Emit socket event to notify opponent instantly
+    try {
+      const io = req.app.get('io');
+      if (io && to) {
+        io.to(`user:${to}`).emit('rematch-requested', {
+          battleId: rematchBattle._id,
+          from,
+          fromName: userName || fromName || 'Player',
+          to,
+          toName: toName || 'Opponent',
+          message: 'Rematch requested',
+          createdAt: rematchBattle.rematchRequest?.createdAt || new Date()
+        });
+        console.log(`[Socket] Rematch notification sent to user:${to}`);
+      }
+    } catch (err) {
+      console.error('Socket rematch notification error:', err);
+    }
+
     res.json({
       message: 'Rematch requested',
       battleId: rematchBattle._id,
