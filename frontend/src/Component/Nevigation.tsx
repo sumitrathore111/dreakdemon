@@ -90,12 +90,12 @@ export default function DashboardLayout() {
         {/* Sidebar Header */}
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
           <div className="relative flex items-center justify-between p-4">
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
               <Link to="/" className="flex-shrink-0 flex items-center justify-start">
                 <img
-                  src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb"
+                  src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
                   alt="App Logo"
-                  className="w-14 h-10 object-contain"
+                  className="w-8 h-8 object-contain"
                 />
               </Link>
 

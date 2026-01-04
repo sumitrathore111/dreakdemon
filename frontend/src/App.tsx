@@ -71,9 +71,9 @@ function PublicLayout() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid md:grid-cols-4 gap-8">
               <div className="space-y-4">
-                <div className="flex items-center space-x-0">
-                  <div className="w-16 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <img src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb" />
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
                   </div>
                   <span className="text-lg font-semibold dark:text-white">SkillUpX</span>
                 </div>

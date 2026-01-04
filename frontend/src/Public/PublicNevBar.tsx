@@ -38,9 +38,9 @@ const PublicNavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-0">
-                        <div className="w-16 h-10 bg-primary rounded-lg flex items-center justify-center">
-                            <img src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb" alt="logo" />
+                   <Link to="/" className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                         </div>
                         <span className="font-semibold text-lg dark:text-white">SkillUpX</span>
                     </Link>
