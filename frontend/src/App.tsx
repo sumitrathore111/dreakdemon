@@ -71,11 +71,11 @@ function PublicLayout() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid md:grid-cols-4 gap-8">
               <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
+                <div className="flex items-center space-x-0">
+                  <div className="w-16 h-10 bg-primary rounded-lg flex items-center justify-center">
+                    <img src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb" />
                   </div>
-                  <span className="text-lg font-semibold dark:text-white">NextStep</span>
+                  <span className="text-lg font-semibold dark:text-white">SkillUpX</span>
                 </div>
                 <p className="text-sm text-muted-foreground dark:text-gray-400">
                   Empowering the next generation of tech professionals through
@@ -115,7 +115,7 @@ function PublicLayout() {
             </div>
 
             <div className="border-t border-border dark:border-gray-700 mt-8 pt-8 text-center text-sm text-muted-foreground dark:text-gray-400">
-              <p>&copy; 2024 NextStep. All rights reserved.</p>
+              <p>&copy; 2024 SkillUpX. All rights reserved.</p>
             </div>
           </div>
         </footer>
@@ -161,8 +161,8 @@ const App: React.FC = () => {
                   <Route path="/*" element={<PublicLayout />} />
 
                 {/* Private Routes */}
-                <Route 
-                  path="dashboard/*" 
+                <Route
+                  path="dashboard/*"
                   element={
                     <ProtectedRoute>
                       <Navigation />
@@ -183,7 +183,7 @@ const App: React.FC = () => {
                   <Route path="profile" element={<ProfileInfo />} />
                   <Route path="codearena/*" element={<CodeArena />} />
                   <Route path="company_req" element={<Company_Req />} />
-                  
+
                   {/* Marketplace Routes */}
                   <Route path="marketplace" element={<MarketplaceBazaar />} />
                   <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
