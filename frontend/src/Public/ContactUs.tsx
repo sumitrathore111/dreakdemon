@@ -17,10 +17,10 @@ export function ContactUs() {
                 <span style={{ color: "#00ADB5" }}> Conversation</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                Have questions about NextStep? Want to learn more about how we can help you grow? 
+                Have questions about SkillUpX? Want to learn more about how we can help you grow?
                 We'd love to hear from you. Reach out and let's make something amazing together.
               </p>
-              
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-6 pt-6">
                 <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
@@ -80,8 +80,8 @@ export function ContactUs() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Speak directly with our team
               </p>
-              <a 
-                href="tel:8756824350" 
+              <a
+                href="tel:8756824350"
                 className="font-semibold hover:opacity-80 transition-colors text-lg"
                 style={{ color: "#00ADB5" }}
               >
@@ -98,12 +98,12 @@ export function ContactUs() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Send us a detailed message
               </p>
-              <a 
-                href="mailto:contact@nextstep.com" 
+              <a
+                href="mailto:contact@SkillUpX.com"
                 className="font-semibold hover:opacity-80 transition-colors break-all"
                 style={{ color: "#00ADB5" }}
               >
-                contact@nextstep.com
+                contact@SkillUpX.com
               </a>
             </div>
 
@@ -179,7 +179,7 @@ export function ContactUs() {
                 </div>
                 <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong style={{ color: "#00ADB5" }}>Note:</strong> WhatsApp support is available 24/7 
+                    <strong style={{ color: "#00ADB5" }}>Note:</strong> WhatsApp support is available 24/7
                     for urgent queries. We'll respond as quickly as possible!
                   </p>
                 </div>
@@ -196,7 +196,7 @@ export function ContactUs() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Don't wait! Join NextStep today and start building your future
+            Don't wait! Join SkillUpX today and start building your future
           </p>
           <a
             href="/commingsoon"
@@ -204,7 +204,7 @@ export function ContactUs() {
             style={{ backgroundColor: "#00ADB5" }}
           >
             <Send className="w-5 h-5 mr-2" />
-            Join NextStep Now
+            Join SkillUpX Now
           </a>
         </div>
       </section>

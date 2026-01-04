@@ -1,27 +1,27 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    Activity,
-    AlertTriangle,
-    BookOpen,
-    ChevronsLeft,
-    DoorOpen,
-    Folder,
-    Home,
-    LogOut,
-    Menu,
-    MessageSquare,
-    Store,
-    Trophy,
-    UserCircle,
+  AlertTriangle,
+  BookOpen,
+  ChevronsLeft,
+  DoorOpen,
+  Folder,
+  Home,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Moon,
+  Store,
+  Sun,
+  Trophy,
+  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useBattleGuard } from '../Context/BattleGuardContext';
+import { useTheme } from "../Context/ThemeContext";
 import { useDataContext } from "../Context/UserDataContext";
 import { logout } from "../service/auth";
-import ActivityFeed from './Global/ActivityFeed';
-import UnifiedNotifications from './Global/UnifiedNotifications';
 
 export default function DashboardLayout() {
   const [isMinimized, setIsMinimized] = useState(false);
@@ -33,8 +33,8 @@ export default function DashboardLayout() {
   const navigation = useNavigate();
   const { isBattleActive, activeBattleId, forfeitBattle } = useBattleGuard();
   const [showBattleBlockModal, setShowBattleBlockModal] = useState(false);
-  const [showActivityFeed, setShowActivityFeed] = useState(false);
-  
+  const { theme, toggleTheme } = useTheme();
+
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
@@ -47,17 +47,17 @@ export default function DashboardLayout() {
 
   const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
   const { user } = useAuth();
-  
+
   // Load pending requests count for projects where user is the creator
   useEffect(() => {
     const loadPendingRequests = async () => {
       if (!user) return;
-      
+
       try {
         const ideas = await fetchAllIdeas();
         // Get only approved projects where the current user is the creator
         const myProjects = ideas.filter((idea: any) => idea.userId === user.id && idea.status === 'approved');
-        
+
         let totalPending = 0;
         for (const project of myProjects) {
           // Fetch join requests for each project
@@ -66,13 +66,13 @@ export default function DashboardLayout() {
           const pendingRequests = requests.filter((req: any) => req.status === 'pending');
           totalPending += pendingRequests.length;
         }
-        
+
         setPendingRequestsCount(totalPending);
       } catch (error) {
         console.error('Error loading pending requests:', error);
       }
     };
-    
+
     loadPendingRequests();
     // Refresh every 30 seconds
     const interval = setInterval(loadPendingRequests, 30000);
@@ -84,18 +84,18 @@ export default function DashboardLayout() {
       {/* Left Sidebar */}
       <div
         className={`fixed lg:static top-0 left-0 h-full bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 z-[60] shadow-lg lg:shadow-none border-r border-gray-200 dark:border-gray-700 overflow-visible
-          ${isMinimized ? "w-20" : "w-64"} 
+          ${isMinimized ? "w-20" : "w-64"}
           ${isDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Sidebar Header */}
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
           <div className="relative flex items-center justify-between p-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <Link to="/" className="flex-shrink-0">
+            <div className="flex items-center gap-1 min-w-0">
+              <Link to="/" className="flex-shrink-0 flex items-center justify-start">
                 <img
-                  src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+                  src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb"
                   alt="App Logo"
-                  className="w-8 h-8"
+                  className="w-14 h-10 object-contain"
                 />
               </Link>
 
@@ -104,7 +104,7 @@ export default function DashboardLayout() {
                   to="/"
                   className="text-xl font-bold text-gray-800 dark:text-white transition-all duration-300 truncate"
                 >
-                  NextStep
+                  SkillUpX
                 </Link>
               )}
             </div>
@@ -112,7 +112,7 @@ export default function DashboardLayout() {
             {/* Minimize Button - Desktop Only */}
             <button
               className="hidden lg:flex flex-shrink-0 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              
+
               onClick={() => setIsMinimized(!isMinimized)}
             >
               <ChevronsLeft
@@ -210,7 +210,7 @@ export default function DashboardLayout() {
                           <p className="text-gray-300 mb-6">
                             You have an active battle in progress. If you leave now, you will <span className="text-red-400 font-semibold">forfeit</span> and your opponent will win the prize!
                           </p>
-                          
+
                           <div className="flex gap-3">
                             <button
                               onClick={async () => {
@@ -252,23 +252,46 @@ export default function DashboardLayout() {
 
         {/* Fixed Profile Section at Bottom */}
         <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 overflow-visible">
-          {/* Notifications & Activity Feed */}
-          <div className={`flex items-center gap-2 mb-3 ${isMinimized ? 'flex-col' : ''}`}>
-            {/* Notifications */}
-            <UnifiedNotifications isMinimized={isMinimized} />
-            
-            {/* Activity Feed */}
+          {/* Theme Toggle */}
+          <div className={`flex items-center gap-2 mb-3 ${isMinimized ? 'justify-center' : ''}`}>
             <button
-              onClick={() => setShowActivityFeed(true)}
-              className={`p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group relative ${isMinimized ? 'w-full justify-center flex' : ''}`}
-              title="Activity Feed"
+              onClick={toggleTheme}
+              className={`p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group relative ${isMinimized ? '' : 'flex items-center gap-2'}`}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <Activity size={18} className="text-gray-500 dark:text-gray-400" />
+              <AnimatePresence mode="wait" initial={false}>
+                {theme === 'dark' ? (
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Sun size={18} className="text-yellow-500" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Moon size={18} className="text-gray-500 dark:text-gray-400" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {!isMinimized && (
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </span>
+              )}
               {isMinimized && (
                 <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-50"
                   style={{ left: '80px' }}
                 >
-                  Activity Feed
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </div>
               )}
             </button>
@@ -323,7 +346,7 @@ export default function DashboardLayout() {
                   </p>
                 </div>
               )}
-              
+
               {/* Tooltip for minimized state */}
               {isMinimized && (
                 <div className="hidden lg:block fixed ml-3 px-3 py-2 rounded-lg shadow-xl bg-gray-900 text-white text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none z-[9999]"
@@ -385,26 +408,27 @@ export default function DashboardLayout() {
           {/* Logo in center */}
           <Link to="/" className="absolute left-1/2 -translate-x-1/2">
             <img
-              src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+              src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb"
               alt="App Logo"
               className="w-8 h-8"
             />
           </Link>
 
-          {/* Notifications and Activity on right side */}
+          {/* Theme Toggle on right side */}
           <div className="ml-auto flex items-center gap-2">
-            {/* Notifications */}
-            <UnifiedNotifications isMinimized={false} />
-            
-            {/* Activity Feed */}
+            {/* Theme Toggle */}
             <button
-              onClick={() => setShowActivityFeed(true)}
+              onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Activity Feed"
+              aria-label="Toggle theme"
             >
-              <Activity className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              {theme === 'dark' ? (
+                <Sun className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              )}
             </button>
-            
+
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: "#00ADB5" }}
@@ -433,9 +457,6 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </div>
-
-      {/* Global Components */}
-      <ActivityFeed isOpen={showActivityFeed} onClose={() => setShowActivityFeed(false)} />
     </div>
   );
 }

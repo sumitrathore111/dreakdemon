@@ -17,13 +17,13 @@ const NextStepDocumentation = () => {
 
   const content = {
     'getting-started': {
-      title: 'Getting Started with NextStep',
+      title: 'Getting Started with SkillUpX',
       icon: Compass,
       gradient: 'from-blue-500 to-cyan-500',
       sections: [
         {
-          heading: '🌟 Welcome to NextStep',
-          text: 'NextStep is the ultimate platform for developers who want to level up! Whether you\'re a beginner starting your coding journey or an experienced developer looking to sharpen your skills, NextStep has everything you need.\n\n🎮 Battle in CodeArena & earn coins\n💡 Collaborate on exciting projects\n🛒 Buy & sell templates in Project Bazaar\n📚 Learn from curated courses\n🏆 Earn certificates & climb leaderboards',
+          heading: '🌟 Welcome to SkillUpX',
+          text: 'SkillUpX is the ultimate platform for developers who want to level up! Whether you\'re a beginner starting your coding journey or an experienced developer looking to sharpen your skills, SkillUpX has everything you need.\n\n🎮 Battle in CodeArena & earn coins\n💡 Collaborate on exciting projects\n🛒 Buy & sell templates in Project Bazaar\n📚 Learn from curated courses\n🏆 Earn certificates & climb leaderboards',
           image: '🌟'
         },
         {
@@ -33,7 +33,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '💰 Coins & Rewards System',
-          text: 'Coins are the heart of NextStep! Earn and use them across the platform.\n\n💎 How to Earn Coins:\n• 🎁 1000 coins on signup (Welcome Bonus)\n• ⚔️ Win 1v1 coding battles (50-500 coins)\n• ✅ Solve practice problems (10-100 coins)\n• 🔥 Daily login streaks (25-200 coins)\n• 🏆 Leaderboard positions (500-5000 coins)\n\n🛒 Use Coins For:\n• Enter premium battles\n• Purchase from Project Bazaar\n• Unlock exclusive features',
+          text: 'Coins are the heart of SkillUpX! Earn and use them across the platform.\n\n💎 How to Earn Coins:\n• 🎁 1000 coins on signup (Welcome Bonus)\n• ⚔️ Win 1v1 coding battles (50-500 coins)\n• ✅ Solve practice problems (10-100 coins)\n• 🔥 Daily login streaks (25-200 coins)\n• 🏆 Leaderboard positions (500-5000 coins)\n\n🛒 Use Coins For:\n• Enter premium battles\n• Purchase from Project Bazaar\n• Unlock exclusive features',
           image: '💰'
         },
         {
@@ -48,7 +48,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '🤝 Join Our Community',
-          text: 'NextStep is more than a platform - it\'s a community of passionate developers!\n\n🌍 What You Get:\n• Connect with 12,000+ active developers\n• Find mentors and collaborators\n• Share knowledge and learn together\n• Participate in community events\n• Get help when you\'re stuck\n\n🚀 Ready to begin?\nCreate your account now and take your first step towards becoming a better developer!',
+          text: 'SkillUpX is more than a platform - it\'s a community of passionate developers!\n\n🌍 What You Get:\n• Connect with 12,000+ active developers\n• Find mentors and collaborators\n• Share knowledge and learn together\n• Participate in community events\n• Get help when you\'re stuck\n\n🚀 Ready to begin?\nCreate your account now and take your first step towards becoming a better developer!',
           image: '🤝'
         }
       ]
@@ -85,7 +85,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '🎓 Earn Your Verified Certificate',
-          text: 'Your hard work deserves recognition! Complete 50 verified tasks across any projects to earn your official NextStep Verified Collaborator Certificate.\n\n📋 Certificate Includes:\n• Your name and profile photo\n• Total tasks completed\n• Projects contributed to\n• Skills demonstrated\n• Unique verification QR code\n• Shareable LinkedIn badge\n\n🌟 This certificate validates your real-world collaboration experience!',
+          text: 'Your hard work deserves recognition! Complete 50 verified tasks across any projects to earn your official SkillUpX Verified Collaborator Certificate.\n\n📋 Certificate Includes:\n• Your name and profile photo\n• Total tasks completed\n• Projects contributed to\n• Skills demonstrated\n• Unique verification QR code\n• Shareable LinkedIn badge\n\n🌟 This certificate validates your real-world collaboration experience!',
           image: '🎓'
         }
       ]
@@ -228,15 +228,15 @@ const NextStepDocumentation = () => {
       {/* Main Content */}
       <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-20 md:pt-24 lg:pt-28 pb-12">
         <div className="max-w-6xl mx-auto">
-          
+
           {/* Hero Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg mb-6">
               <Sparkles className="w-4 h-4 text-[#00ADB5]" />
-              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">📚 NextStep Documentation</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">📚 SkillUpX Documentation</span>
             </div>
             <h1 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-4 leading-tight">
-              Your Complete Guide to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">NextStep</span>
+              Your Complete Guide to <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">SkillUpX</span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-medium">
               Explore our features, master the platform, and accelerate your developer journey
@@ -463,12 +463,12 @@ const NextStepDocumentation = () => {
                 <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">🎓 Your Verified Certificate</h3>
                 <p className="text-gray-600 dark:text-gray-400 font-medium">Complete 50 tasks to unlock this certificate</p>
               </div>
-              
+
               {/* Certificate Card */}
               <div className="relative max-w-2xl mx-auto">
                 {/* Decorative glow */}
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-rose-500/30 blur-3xl -z-10" />
-                
+
                 {/* Certificate */}
                 <div className="bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-4 border-amber-400 dark:border-amber-600 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                   {/* Corner decorations */}
@@ -476,22 +476,22 @@ const NextStepDocumentation = () => {
                   <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-amber-500 rounded-tr-xl" />
                   <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-amber-500 rounded-bl-xl" />
                   <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-amber-500 rounded-br-xl" />
-                  
+
                   {/* Watermark pattern */}
                   <div className="absolute inset-0 opacity-5 dark:opacity-10">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[150px] font-black text-amber-900 dark:text-amber-400 select-none">
                       NS
                     </div>
                   </div>
-                  
+
                   <div className="relative text-center">
                     {/* Logo & Header */}
                     <div className="flex items-center justify-center gap-3 mb-3">
-                      {/* NextStep Logo */}
+                      {/* SkillUpX Logo */}
                       <div className="relative">
-                        <img 
-                          src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" 
-                          alt="NextStep Logo"
+                        <img
+                          src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+                          alt="SkillUpX Logo"
                           className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
                         />
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
@@ -499,46 +499,46 @@ const NextStepDocumentation = () => {
                         </div>
                       </div>
                       <div className="text-left">
-                        <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">NextStep</span>
+                        <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">SkillUpX</span>
                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Building Tomorrow's Developers</p>
                       </div>
                     </div>
-                    
+
                     <h4 className="text-xs sm:text-sm text-amber-600 dark:text-amber-400 font-bold tracking-[0.3em] uppercase mb-4">Certificate of Achievement</h4>
-                    
+
                     <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-4" />
-                    
+
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">This is to certify that</p>
-                    
+
                     {/* Name */}
                     <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-1 font-serif italic">
                       John Doe
                     </h3>
-                    
+
                     {/* Email */}
                     <p className="text-sm text-[#00ADB5] dark:text-cyan-400 font-medium mb-3">
                       ✉️ johndoe@example.com
                     </p>
-                    
+
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">has successfully completed</p>
-                    
+
                     {/* Achievement */}
                     <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full font-bold mb-4">
                       <CheckCircle className="w-5 h-5" />
                       <span>50 Verified Tasks</span>
                     </div>
-                    
+
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                       and is hereby recognized as a
                     </p>
-                    
+
                     {/* Title */}
                     <h4 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 mb-4">
                       Verified Collaborator
                     </h4>
-                    
+
                     <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-4" />
-                    
+
                     {/* Stats Row */}
                     <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-4">
                       <div className="text-center">
@@ -554,14 +554,14 @@ const NextStepDocumentation = () => {
                         <div className="text-xs text-gray-500 dark:text-gray-400">Skills</div>
                       </div>
                     </div>
-                    
+
                     {/* Date & Verification */}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-amber-200 dark:border-amber-800">
                       <div className="text-left">
                         <p className="text-xs text-gray-500 dark:text-gray-400">Issue Date</p>
                         <p className="text-sm font-bold text-gray-700 dark:text-gray-300">December 22, 2025</p>
                       </div>
-                      
+
                       {/* QR Code placeholder */}
                       <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg flex items-center justify-center border-2 border-gray-300 dark:border-gray-600">
                         <div className="grid grid-cols-3 gap-0.5">
@@ -570,20 +570,20 @@ const NextStepDocumentation = () => {
                           ))}
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <p className="text-xs text-gray-500 dark:text-gray-400">Certificate ID</p>
                         <p className="text-sm font-bold text-gray-700 dark:text-gray-300 font-mono">NS-2025-XXXXX</p>
                       </div>
                     </div>
-                    
+
                     {/* Signature */}
                     <div className="mt-4 pt-4">
                       <div className="w-24 h-0.5 bg-gray-400 mx-auto mb-1" />
-                      <p className="text-xs text-gray-500 dark:text-gray-400">NextStep Team</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">SkillUpX Team</p>
                     </div>
                   </div>
-                  
+
                   {/* Gold seal */}
                   <div className="absolute -bottom-4 -right-4 sm:bottom-4 sm:right-4">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-full flex items-center justify-center shadow-xl border-4 border-amber-300">
@@ -591,7 +591,7 @@ const NextStepDocumentation = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Download hint */}
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
                   📥 Download and share on LinkedIn to showcase your skills!
@@ -656,12 +656,12 @@ const NextStepDocumentation = () => {
           <div className="mt-12 relative rounded-3xl overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5] via-cyan-600 to-blue-600" />
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-            
+
             <div className="relative p-6 sm:p-8 lg:p-12 text-center text-white">
               <Compass className="w-12 h-12 sm:w-16 sm:h-16 text-white mx-auto mb-4 sm:mb-6 animate-pulse" />
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-3 sm:mb-4">Ready to Take Your Next Step?</h3>
               <p className="text-base sm:text-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto font-medium">
-                Join thousands of developers building their dream careers with NextStep.
+                Join thousands of developers building their dream careers with SkillUpX.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <button onClick={() => navigate('/signup')} className="group px-6 sm:px-8 py-3 sm:py-4 bg-white text-[#00ADB5] rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 inline-flex items-center justify-center">

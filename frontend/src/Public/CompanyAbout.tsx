@@ -90,7 +90,7 @@ export function AboutPage() {
           <p className="text-gray-700 dark:text-gray-300">
             As students ourselves, we wanted to learn, build projects, and grow
             — but we didn’t always have the right support or structure. That’s
-            why we created NextStep — a place where learning isn’t just about
+            why we created SkillUpX — a place where learning isn’t just about
             theory, but about action, collaboration, and growth.
           </p>
         </div>

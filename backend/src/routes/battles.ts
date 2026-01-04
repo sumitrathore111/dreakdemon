@@ -464,8 +464,14 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
     const challengeData = battle.challenge as any;
     let testCases = challengeData.testCases || challengeData.test_cases || [];
 
-    console.log('Battle challenge data:', JSON.stringify(challengeData, null, 2));
-    console.log('Test cases found:', testCases.length);
+    console.log('=== SUBMIT ENDPOINT DEBUG ===');
+    console.log('Battle ID:', req.params.battleId);
+    console.log('Challenge ID:', challengeData.id);
+    console.log('Challenge Title:', challengeData.title);
+    console.log('testCases array length:', challengeData.testCases?.length || 0);
+    console.log('test_cases array length:', challengeData.test_cases?.length || 0);
+    console.log('Final test cases count:', testCases.length);
+    console.log('Test cases data:', JSON.stringify(testCases, null, 2));
 
     // If no test cases in battle, try to load from questions.json
     if (testCases.length === 0 && challengeData.id) {
@@ -991,6 +997,50 @@ function normalizeOutputForComparison(output: string): string {
     .trim();
 }
 
+// Helper function to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to execute code with retry logic for rate limiting
+async function executePistonWithRetry(
+  code: string,
+  langConfig: { language: string; version: string },
+  stdin: string,
+  maxRetries: number = 3
+): Promise<any> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await axios.post(
+        `${PISTON_API_URL}/execute`,
+        {
+          language: langConfig.language,
+          version: langConfig.version,
+          files: [{ content: code }],
+          stdin: stdin
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 20000 // Increased timeout for production
+        }
+      );
+      return response;
+    } catch (error: any) {
+      const status = error.response?.status;
+      console.log(`[Piston] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
+
+      // If rate limited (429) or server error (5xx), retry with backoff
+      if ((status === 429 || status >= 500) && attempt < maxRetries) {
+        const backoffTime = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
+        console.log(`[Piston] Rate limited or server error. Waiting ${backoffTime}ms before retry...`);
+        await delay(backoffTime);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
 // Helper function to execute code using Piston API
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
@@ -1004,7 +1054,7 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
 
   for (let i = 0; i < testCases.length; i++) {
     const testCase = testCases[i];
-    console.log(`\n--- Battle Test Case ${i + 1} ---`);
+    console.log(`\n--- Battle Test Case ${i + 1}/${testCases.length} ---`);
     console.log('Raw test case:', JSON.stringify(testCase));
 
     try {
@@ -1016,25 +1066,17 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
 
+      // Add small delay between test cases to avoid rate limiting (except first one)
+      if (i > 0) {
+        console.log('[Piston] Waiting 300ms before next test case...');
+        await delay(300);
+      }
+
       // Measure execution time ourselves
       const startTime = Date.now();
 
-      // Use Piston API for code execution
-      const response = await axios.post(
-        `${PISTON_API_URL}/execute`,
-        {
-          language: langConfig.language,
-          version: langConfig.version,
-          files: [{ content: code }],
-          stdin: stdin
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          timeout: 15000
-        }
-      );
+      // Use Piston API for code execution with retry logic
+      const response = await executePistonWithRetry(code, langConfig, stdin);
 
       const executionTime = Date.now() - startTime;
 
@@ -1073,18 +1115,19 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
         error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
-      console.error('Code execution error:', error.response?.data || error.message);
+      console.error(`[Battle] Test case ${i + 1} execution error:`, error.response?.data || error.message);
       results.push({
         passed: false,
         input: testCase.input,
         expected: testCase.expectedOutput || testCase.expected_output || testCase.expected || testCase.output || '',
         output: '',
-        error: error.response?.data?.message || error.message || 'Execution error',
+        error: error.response?.data?.message || error.message || 'Execution error (rate limit or timeout)',
         time: 0
       });
     }
   }
 
+  console.log(`=== BATTLE EXECUTION COMPLETE: ${results.filter(r => r.passed).length}/${results.length} passed ===`);
   return results;
 }
 

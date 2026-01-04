@@ -38,11 +38,11 @@ const PublicNavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
+                    <Link to="/" className="flex items-center space-x-0">
+                        <div className="w-16 h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <img src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb" alt="logo" />
                         </div>
-                        <span className="font-semibold text-lg dark:text-white">NextStep</span>
+                        <span className="font-semibold text-lg dark:text-white">SkillUpX</span>
                     </Link>
 
                     {/* Desktop Menu - Centered */}
@@ -68,7 +68,7 @@ const PublicNavBar = () => {
                         ))}
                         </div>
                     </div>
-                        
+
                     {/* Theme Toggle Button */}
                     <div className="hidden md:flex items-center">
                         <motion.button
@@ -144,11 +144,11 @@ const PublicNavBar = () => {
                             onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
                         >
                             <div className="flex justify-between items-center mb-6">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1">
                                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                                         <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                                     </div>
-                                    <span className="font-semibold text-lg dark:text-white">NextStep</span>
+                                    <span className="font-semibold text-lg dark:text-white">SkillUpX</span>
                                 </div>
                                 <button onClick={() => setIsOpen(false)} className="p-2 rounded-md hover:bg-accent dark:hover:bg-gray-800 dark:text-white">
                                     <X size={24} />

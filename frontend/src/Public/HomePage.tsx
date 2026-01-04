@@ -14,20 +14,20 @@ import {
 // Custom Hook for Parallax Scroll Effect
 const useParallax = () => {
   const [scrollY, setScrollY] = useState(0);
-  
+
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   return scrollY;
 };
 
 // Custom Hook for Mouse Position
 const useMousePosition = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -35,7 +35,7 @@ const useMousePosition = () => {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-  
+
   return mousePosition;
 };
 
@@ -44,7 +44,7 @@ const AnimatedCounter = ({ target, suffix = "", duration = 2000 }: { target: num
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -65,11 +65,11 @@ const AnimatedCounter = ({ target, suffix = "", duration = 2000 }: { target: num
       },
       { threshold: 0.5 }
     );
-    
+
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [target, duration, hasAnimated]);
-  
+
   return <div ref={ref}>{count}{suffix}</div>;
 };
 
@@ -77,7 +77,7 @@ const AnimatedCounter = ({ target, suffix = "", duration = 2000 }: { target: num
 const FloatingElement = ({ children, className, intensity = 20 }: { children: React.ReactNode; className?: string; intensity?: number }) => {
   const mousePosition = useMousePosition();
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  
+
   useEffect(() => {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
@@ -86,7 +86,7 @@ const FloatingElement = ({ children, className, intensity = 20 }: { children: Re
       y: (mousePosition.y - centerY) / intensity
     });
   }, [mousePosition, intensity]);
-  
+
   return (
     <div
       className={className}
@@ -103,7 +103,7 @@ const FloatingElement = ({ children, className, intensity = 20 }: { children: Re
 // Statistics Card Component
 const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: number }) => {
   const { ref, isVisible } = useRevealAnimation(index * 100);
-  
+
   return (
     <div
       ref={ref}
@@ -117,7 +117,7 @@ const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: num
       <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-30 transition-opacity">
         <stat.icon className="w-16 h-16" />
       </div>
-      
+
       {/* Content */}
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-4">
@@ -126,7 +126,7 @@ const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: num
           </div>
           <TrendingUp className="w-5 h-5 text-white/80" />
         </div>
-        
+
         <div className="space-y-2">
           <div className="text-4xl font-black mb-1 group-hover:scale-110 transition-transform duration-300 origin-left">
             {stat.number}
@@ -135,7 +135,7 @@ const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: num
           <div className="text-sm text-white/70">{stat.sublabel}</div>
         </div>
       </div>
-      
+
       {/* Hover Effect */}
       <div className="absolute inset-0 bg-white/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </div>
@@ -148,7 +148,7 @@ StatCard.displayName = 'StatCard';
 const HeroSection = memo(() => {
   const { ref, isVisible } = useRevealAnimation();
   const scrollY = useParallax();
-  
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Enhanced Animated Background with Morphing Shapes */}
@@ -156,15 +156,15 @@ const HeroSection = memo(() => {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
         <div className="absolute inset-0">
           {/* Morphing Blob Shapes */}
-          <div 
+          <div
             className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/20 dark:from-blue-500/20 dark:to-cyan-500/10 animate-blob animate-morph"
             style={{ transform: `translateY(${scrollY * 0.1}px)` }}
           />
-          <div 
+          <div
             className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/25 to-blue-400/15 dark:from-cyan-500/15 dark:to-blue-500/10 animate-blob animate-morph"
             style={{ animationDelay: '2s', transform: `translateY(${scrollY * -0.15}px)` }}
           />
-          <div 
+          <div
             className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/15 dark:from-purple-500/15 dark:to-pink-500/10 animate-blob animate-morph"
             style={{ animationDelay: '4s', transform: `translate(-50%, -50%) translateY(${scrollY * 0.08}px)` }}
           />
@@ -198,9 +198,9 @@ const HeroSection = memo(() => {
                   Grow by Contributing
                 </span>
               </h1>
-              
+
               <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
-                NextStep is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
+                SkillUpX is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
               </p>
 
               {/* Feature Highlights with Stagger Animation */}
@@ -210,7 +210,7 @@ const HeroSection = memo(() => {
                   { text: "Battle", desc: "in CodeArena & practice coding", delay: "0.4s" },
                   { text: "Gain", desc: "real-world experience instantly", delay: "0.6s" }
                 ].map((item, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 group hover:translate-x-2 transition-all duration-300 opacity-0 animate-slide-left"
                     style={{ animationDelay: item.delay, animationFillMode: 'forwards' }}
@@ -231,7 +231,7 @@ const HeroSection = memo(() => {
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Link>
-              
+
               <button className="group flex items-center gap-2 px-6 py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2 border-[#00ADB5]/20 hover:border-[#00ADB5] rounded-xl font-semibold text-sm lg:text-base text-gray-900 dark:text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ripple-effect">
                 <div className="w-9 h-9 rounded-full bg-[#00ADB5]/10 flex items-center justify-center group-hover:bg-[#00ADB5] group-hover:scale-110 transition-all duration-300">
                   <Play className="w-3 h-3 text-[#00ADB5] group-hover:text-white ml-0.5 transition-colors" />
@@ -274,17 +274,17 @@ const HeroSection = memo(() => {
             {/* Decorative Animated Frame with Glow */}
             <div className="absolute -inset-4 bg-gradient-to-br from-[#00ADB5]/20 via-purple-500/10 to-cyan-500/20 rounded-3xl blur-2xl animate-pulse-slow" />
             <div className="absolute -inset-2 bg-gradient-to-r from-[#00ADB5]/30 via-transparent to-purple-500/30 rounded-3xl blur-xl animate-magnetic" />
-            
+
             <FloatingElement intensity={40}>
               <div className="relative group" style={{ perspective: '1000px' }}>
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/40 to-cyan-600/30 rounded-3xl blur-3xl animate-magnetic" />
-                
+
                 {/* Animated Border Glow */}
                 <div className="absolute -inset-[2px] bg-gradient-to-r from-[#00ADB5] via-purple-500 to-[#00ADB5] rounded-3xl opacity-75 blur-sm animate-gradient" style={{ backgroundSize: '200% 200%' }} />
-                
+
                 {/* Main Animated Container with 3D effect */}
                 <div className="relative w-full h-[420px] rounded-3xl shadow-2xl overflow-hidden border border-white/20 dark:border-gray-700/40 backdrop-blur-sm bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 group-hover:scale-[1.02] transition-transform duration-700">
-                  
+
                   {/* Animated Grid Background */}
                   <div className="absolute inset-0 opacity-30">
                     <div className="absolute inset-0" style={{
@@ -292,12 +292,12 @@ const HeroSection = memo(() => {
                       backgroundSize: '30px 30px'
                     }} />
                   </div>
-                  
+
                   {/* Scanning Line Effect */}
                   <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent animate-scan-line" />
                   </div>
-                  
+
                   {/* Floating Particles */}
                   <div className="absolute inset-0 overflow-hidden">
                     {[...Array(12)].map((_, i) => (
@@ -313,13 +313,13 @@ const HeroSection = memo(() => {
                       />
                     ))}
                   </div>
-                  
+
                   {/* Floating Orbs - Enhanced */}
                   <div className="absolute top-6 left-6 w-24 h-24 bg-gradient-to-br from-[#00ADB5] to-cyan-400 rounded-full blur-2xl opacity-70 animate-blob" />
                   <div className="absolute bottom-10 right-10 w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-2xl opacity-50 animate-blob" style={{ animationDelay: '2s' }} />
                   <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full blur-2xl opacity-60 animate-blob" style={{ animationDelay: '4s' }} />
                   <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full blur-xl opacity-50 animate-blob" style={{ animationDelay: '3s' }} />
-                  
+
                   {/* Code Terminal Animation - Enhanced */}
                   <div className="absolute top-5 left-5 right-5 bg-gray-800/95 rounded-xl p-4 border border-[#00ADB5]/30 shadow-2xl shadow-[#00ADB5]/10 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-700/50">
@@ -376,7 +376,7 @@ const HeroSection = memo(() => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Floating Tech Icons - More Icons with Glow */}
                   <div className="absolute bottom-24 left-8 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 animate-float border border-blue-400/30">
                     <Code className="w-7 h-7 text-white" />
@@ -393,7 +393,7 @@ const HeroSection = memo(() => {
                   <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-xl shadow-yellow-500/30 animate-float-delayed border border-yellow-400/30">
                     <Award className="w-5 h-5 text-white" />
                   </div>
-                  
+
                   {/* Multiple Orbiting Rings */}
                   <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-44 h-44">
                     <div className="absolute inset-0 border-2 border-dashed border-[#00ADB5]/40 rounded-full animate-spin-slow" />
@@ -401,16 +401,16 @@ const HeroSection = memo(() => {
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#00ADB5] rounded-full shadow-lg shadow-[#00ADB5]/50" />
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full shadow-lg shadow-purple-500/50" />
                   </div>
-                  
+
                   {/* Glowing Corner Accents */}
                   <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#00ADB5]/30 to-transparent rounded-br-full" />
                   <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-purple-500/30 to-transparent rounded-tl-full" />
-                  
+
                   {/* Glowing Lines - Enhanced */}
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent opacity-80" />
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00ADB5]/50 to-transparent" />
                 </div>
-                
+
                 {/* Floating Success Card with Animation */}
                 <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 group animate-float">
                   <div className="flex items-center gap-3">
@@ -423,7 +423,7 @@ const HeroSection = memo(() => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Floating Stats Card */}
                 <div className="absolute -top-4 -right-4 bg-gradient-to-br from-white to-cyan-50/50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 animate-float-delayed">
                   <div className="text-center">
@@ -432,7 +432,7 @@ const HeroSection = memo(() => {
                     <div className="text-xs text-[#00ADB5] font-semibold">Real experience</div>
                   </div>
                 </div>
-                
+
                 {/* Animated Trophy Card */}
                 <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-3 shadow-xl animate-float-slow">
                   <Trophy className="w-6 h-6 text-white" />
@@ -488,14 +488,14 @@ export default function HomePage() {
               <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#00ADB5]/20 rounded-full blur-3xl animate-blob" />
               <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
               <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
-              
+
               {/* Main Content */}
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/20 border border-[#00ADB5]/30 mb-6">
                   <Rocket className="w-4 h-4 text-[#00ADB5]" />
                   <span className="text-sm font-bold text-[#00ADB5]">YOUR JOURNEY</span>
                 </div>
-                
+
                 <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
                   Transform Your
                   <br />
@@ -503,11 +503,11 @@ export default function HomePage() {
                     Career Path
                   </span>
                 </h2>
-                
+
                 <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
                   Scroll down to discover how NextStep takes you from beginner to industry-ready developer through our unique approach.
                 </p>
-                
+
                 {/* Animated Image Container */}
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
                   <img
@@ -516,7 +516,7 @@ export default function HomePage() {
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  
+
                   {/* Floating Badge */}
                   <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                     <div className="text-white">
@@ -531,7 +531,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           {/* RIGHT SIDE - SCROLLING CONTENT */}
           <div className="lg:w-1/2 py-20 lg:py-40 px-8 lg:px-16">
             <div className="space-y-32">
@@ -542,7 +542,7 @@ export default function HomePage() {
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     01
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center flex-shrink-0">
                       <BookOpen className="w-10 h-10 text-[#00ADB5]" />
@@ -563,7 +563,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Image */}
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
@@ -574,14 +574,14 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Journey Step 2 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
                 <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     02
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center flex-shrink-0">
                       <Code className="w-10 h-10 text-purple-400" />
@@ -602,7 +602,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80"
@@ -612,14 +612,14 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Journey Step 3 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
                 <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-orange-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     03
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0">
                       <Users className="w-10 h-10 text-orange-400" />
@@ -640,7 +640,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&q=80"
@@ -650,14 +650,14 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Journey Step 4 */}
               <div className="group opacity-0 animate-fade-in" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
                 <div className="relative p-8 bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl border border-gray-200 dark:border-white/10 hover:border-green-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10 shadow-lg">
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center font-black text-xl text-white shadow-lg">
                     04
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
                       <Award className="w-10 h-10 text-green-400" />
@@ -678,7 +678,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80"
@@ -702,11 +702,11 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700">
                 <span className="text-sm font-bold text-blue-700 dark:text-blue-400">👥 COLLABORATE</span>
               </div>
-              
+
               <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
                 Form Teams & <span className="text-[#00ADB5]">Collaborate on Projects</span>
               </h2>
-              
+
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                 NextStep enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
               </p>
@@ -752,7 +752,7 @@ export default function HomePage() {
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#00ADB5]/20 rounded-full blur-3xl animate-blob" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '3s' }} />
           <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl animate-blob" style={{ animationDelay: '5s' }} />
-          
+
           {/* Animated Code Rain Effect */}
           <div className="absolute inset-0 opacity-5">
             {[...Array(20)].map((_, i) => (
@@ -783,7 +783,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
+
                 {/* Floating Code Elements */}
                 <div className="absolute top-4 left-4 px-3 py-1 bg-[#00ADB5]/80 rounded-lg text-xs font-mono animate-float">
                   function battle() {'{}'}
@@ -791,20 +791,20 @@ export default function HomePage() {
                 <div className="absolute bottom-4 right-4 px-3 py-1 bg-purple-500/80 rounded-lg text-xs font-mono animate-float-delayed">
                   {'<CodeArena />'}
                 </div>
-                
+
                 {/* Live Battle Indicator */}
                 <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 bg-red-500/90 rounded-full animate-pulse">
                   <div className="w-2 h-2 bg-white rounded-full" />
                   <span className="text-xs font-bold">LIVE</span>
                 </div>
               </div>
-              
+
               {/* Floating Stats */}
               <div className="absolute -bottom-6 -left-6 bg-gradient-to-br from-[#00ADB5] to-cyan-600 rounded-xl p-4 shadow-xl animate-float">
                 <div className="text-3xl font-black">⚔️</div>
                 <div className="text-sm font-bold mt-1">1v1 Battles</div>
               </div>
-              
+
               <div className="absolute -top-6 -right-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-4 shadow-xl animate-float-delayed">
                 <div className="text-3xl font-black">🏆</div>
                 <div className="text-sm font-bold mt-1">Leaderboard</div>
@@ -816,11 +816,11 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00ADB5]/20 border border-[#00ADB5]/50 animate-magnetic">
                 <span className="text-sm font-bold text-[#00ADB5]">⚔️ CODE ARENA</span>
               </div>
-              
+
               <h2 className="text-3xl lg:text-4xl font-black">
                 Battle in <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">CodeArena</span> & Master Coding
               </h2>
-              
+
               <p className="text-sm lg:text-base text-gray-300 leading-relaxed">
                 Challenge yourself and compete against other developers in real-time coding battles. Practice with thousands of DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
               </p>
@@ -832,8 +832,8 @@ export default function HomePage() {
                   { icon: "🎯", label: "3000+ Problems", desc: "DSA to interview prep", color: "from-blue-400 to-cyan-500" },
                   { icon: "💰", label: "Win Coins", desc: "Rewards & recognition", color: "from-green-400 to-emerald-500" }
                 ].map((item, idx) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#00ADB5]/50 hover:bg-white/10 transition-all duration-500 group cursor-pointer hover:-translate-y-2 hover:shadow-xl spotlight"
                     style={{ animationDelay: `${idx * 0.1}s` }}
                   >
@@ -847,7 +847,7 @@ export default function HomePage() {
               </div>
 
               <Link to="/codearena" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 hover:from-cyan-600 hover:to-blue-600 text-white rounded-xl font-bold text-sm transition-all duration-300 hover:shadow-xl hover:shadow-[#00ADB5]/30 hover:-translate-y-1 spotlight group">
-                Join CodeArena 
+                Join CodeArena
                 <Zap className="w-4 h-4 group-hover:animate-pulse" />
               </Link>
             </div>
@@ -904,7 +904,7 @@ export default function HomePage() {
                 <div className="absolute bottom-2 left-2 right-2 text-white opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                   <p className="text-xs font-semibold line-clamp-1">{image.caption}</p>
                 </div>
-                
+
                 {/* Hover Effect Overlay */}
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#00ADB5] rounded-xl transition-all duration-500" />
               </div>
@@ -919,12 +919,12 @@ export default function HomePage() {
           <h3 className="text-xl font-bold text-white mb-2">Technologies You'll Master</h3>
           <p className="text-gray-400 text-sm">Learn the most in-demand tech skills</p>
         </div>
-        
+
         <div className="relative">
           {/* Gradient Overlays */}
           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-slate-900 to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-slate-900 to-transparent z-10" />
-          
+
           {/* Scrolling Container */}
           <div className="flex animate-scroll-x">
             {[...Array(2)].map((_, setIndex) => (
@@ -1009,15 +1009,15 @@ export default function HomePage() {
                 gradient: "from-[#00ADB5] to-cyan-600"
               }
             ].map((benefit, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="group relative p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-100 dark:border-gray-700 hover:border-transparent shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 overflow-hidden spotlight"
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
                 {/* Gradient Border on Hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
                 <div className="absolute inset-[2px] bg-white dark:bg-gray-800 rounded-2xl z-0 group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-gray-800 group-hover:to-gray-50 dark:group-hover:to-gray-900" />
-                
+
                 <div className="relative z-10">
                   <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-3xl mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
                     {benefit.icon}
@@ -1047,7 +1047,7 @@ export default function HomePage() {
               Hear from developers who landed their dream jobs after completing NextStep
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {homePageTestimonials.map((testimonial, index) => (
               <TestimonialCard key={index} testimonial={testimonial} index={index} />
@@ -1083,8 +1083,8 @@ export default function HomePage() {
               { icon: "🎯", milestone: "Solve 100+ DSA Problems", reward: "Coding Master", color: "from-cyan-400 to-cyan-600", shadow: "shadow-cyan-500/30" },
               { icon: "🚀", milestone: "Deploy 1 Live Project", reward: "Full Stack Badge", color: "from-indigo-400 to-indigo-600", shadow: "shadow-indigo-500/30" }
             ].map((achievement, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={`group relative rounded-2xl p-6 bg-gradient-to-br ${achievement.color} text-white shadow-xl ${achievement.shadow} hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 hover:scale-105 overflow-hidden spotlight`}
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
@@ -1093,7 +1093,7 @@ export default function HomePage() {
                   <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full blur-2xl animate-float" />
                   <div className="absolute bottom-0 right-0 w-16 h-16 bg-white rounded-full blur-2xl animate-float-delayed" />
                 </div>
-                
+
                 <div className="relative z-10">
                   <div className="text-5xl mb-3 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">{achievement.icon}</div>
                   <h3 className="font-black text-sm mb-2">{achievement.milestone}</h3>
@@ -1101,7 +1101,7 @@ export default function HomePage() {
                     {achievement.reward}
                   </div>
                 </div>
-                
+
                 {/* Shine Effect on Hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </div>
@@ -1169,23 +1169,23 @@ export default function HomePage() {
           <div className="relative rounded-3xl overflow-hidden shadow-2xl">
             {/* Animated Dark background with multiple layers */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900" />
-            
+
             {/* Animated Orbs */}
             <div className="absolute inset-0">
               <div className="absolute top-0 left-0 w-72 h-72 bg-[#00ADB5]/30 rounded-full blur-3xl animate-blob" />
               <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
               <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
             </div>
-            
+
             {/* Background Image with Parallax */}
             <div className="absolute inset-0 opacity-20">
-              <img 
-                src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80" 
+              <img
+                src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80"
                 alt="Dark tech background"
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {/* Grid Pattern Overlay */}
             <div className="absolute inset-0 opacity-5" style={{
               backgroundImage: 'linear-gradient(#00ADB5 1px, transparent 1px), linear-gradient(90deg, #00ADB5 1px, transparent 1px)',
@@ -1200,7 +1200,7 @@ export default function HomePage() {
                   <Rocket className="w-4 h-4 text-[#00ADB5] animate-bounce" />
                   <span className="text-sm font-bold text-[#00ADB5]">START TODAY</span>
                 </div>
-                
+
                 <div>
                   <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
                     Ready to Transform Your
@@ -1210,7 +1210,7 @@ export default function HomePage() {
                     </span>
                   </h2>
                   <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                    Join thousands of successful developers who started their journey with NextStep. 
+                    Join thousands of successful developers who started their journey with NextStep.
                     Your future in tech starts today.
                   </p>
                 </div>
@@ -1222,11 +1222,11 @@ export default function HomePage() {
                       <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
+
                     {/* Shine Effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </Link>
-                  
+
                   <div className="text-center">
                     <div className="text-sm text-gray-400 mb-1">Join 12,000+ students</div>
                     <div className="flex items-center justify-center gap-1">

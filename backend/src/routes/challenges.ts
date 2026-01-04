@@ -11,9 +11,9 @@ const router = Router();
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { difficulty, category, search, limit = 50, page = 1 } = req.query;
-    
+
     let query: any = {};
-    
+
     if (difficulty) query.difficulty = difficulty;
     if (category) query.category = category;
     if (search) {
@@ -23,18 +23,18 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
         { tags: { $in: [new RegExp(search as string, 'i')] } }
       ];
     }
-    
+
     const challenges = await Challenge.find(query)
       .sort({ difficulty: 1, createdAt: -1 })
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit));
-    
+
     const total = await Challenge.countDocuments(query);
-    
-    res.json({ 
-      challenges, 
-      total, 
-      page: Number(page), 
+
+    res.json({
+      challenges,
+      total,
+      page: Number(page),
       limit: Number(limit),
       totalPages: Math.ceil(total / Number(limit))
     });
@@ -49,15 +49,15 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
 router.get('/submissions/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    
+
     // Get user progress which contains solved challenges
     const progress = await UserProgress.findOne({ userId });
-    
+
     if (!progress) {
       res.json({ submissions: [] });
       return;
     }
-    
+
     // Transform solved challenges into submissions format
     const submissions = progress.solvedChallenges.map((solved: any) => ({
       challengeId: solved.challengeId,
@@ -65,7 +65,7 @@ router.get('/submissions/:userId', authenticate, async (req: AuthRequest, res: R
       submittedAt: solved.solvedAt,
       points: solved.points
     }));
-    
+
     res.json({ submissions });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -76,9 +76,9 @@ router.get('/submissions/:userId', authenticate, async (req: AuthRequest, res: R
 router.get('/progress/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    
+
     let progress = await UserProgress.findOne({ userId });
-    
+
     // If no progress exists, create an empty one
     if (!progress) {
       progress = new UserProgress({
@@ -88,7 +88,7 @@ router.get('/progress/:userId', authenticate, async (req: AuthRequest, res: Resp
       });
       await progress.save();
     }
-    
+
     res.json({ progress });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -99,17 +99,17 @@ router.get('/progress/:userId', authenticate, async (req: AuthRequest, res: Resp
 router.get('/random/:difficulty', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { difficulty } = req.params;
-    
+
     const challenges = await Challenge.aggregate([
       { $match: { difficulty } },
       { $sample: { size: 1 } }
     ]);
-    
+
     if (challenges.length === 0) {
       res.status(404).json({ error: 'No challenges found for this difficulty' });
       return;
     }
-    
+
     res.json({ challenge: challenges[0] });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -132,7 +132,7 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
     const { challengeId } = req.params;
     const { code, language, source_code, language_id, testCases: requestTestCases, difficulty: requestDifficulty, title: requestTitle, coinReward: requestCoinReward } = req.body;
     const userId = req.user!.id;
-    
+
     console.log('=== CHALLENGE SUBMIT ===');
     console.log('Challenge ID:', challengeId);
     console.log('Language:', language);
@@ -140,29 +140,29 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
     if (requestTestCases && requestTestCases.length > 0) {
       console.log('First test case:', JSON.stringify(requestTestCases[0]));
     }
-    
+
     // Support both formats (direct or secureCodeExecution format)
     const actualCode = code || source_code;
     const actualLanguage = language || getLanguageFromId(language_id);
-    
+
     if (!actualCode) {
       res.status(400).json({ error: 'Code is required', success: false });
       return;
     }
-    
+
     // Try to find the challenge in database, but also support local challenges
     let challenge: any = null;
     let testCases: any[] = [];
     let challengeTitle = requestTitle || 'Practice Challenge';
     let coinReward = requestCoinReward || 10;
     let difficulty = requestDifficulty || 'Easy';
-    
+
     // Try MongoDB first (if challengeId looks like an ObjectId)
     const mongoose = require('mongoose');
     if (mongoose.Types.ObjectId.isValid(challengeId)) {
       challenge = await Challenge.findById(challengeId);
     }
-    
+
     if (challenge) {
       // Use challenge from database
       testCases = challenge.testCases || [];
@@ -175,10 +175,10 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
         input: tc.input,
         expectedOutput: tc.expected_output || tc.expectedOutput || tc.output || ''
       }));
-      
+
       // Calculate coin reward based on difficulty
       if (requestDifficulty) {
-        coinReward = requestDifficulty.toLowerCase() === 'easy' ? 10 : 
+        coinReward = requestDifficulty.toLowerCase() === 'easy' ? 10 :
                      requestDifficulty.toLowerCase() === 'medium' ? 20 : 30;
       }
     } else {
@@ -189,7 +189,7 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
        const questionsPath = path.join(__dirname, '../../../public/questions.json');;
         const questionsData = await fs.readFile(questionsPath, 'utf-8');
         const questionsJson = JSON.parse(questionsData);
-        
+
         // Handle different formats
         let questions: any[] = [];
         if (Array.isArray(questionsJson)) {
@@ -199,7 +199,7 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
         } else if (questionsJson.questions) {
           questions = questionsJson.questions;
         }
-        
+
         const found = questions.find((q: any) => q.id === challengeId);
         if (found) {
           testCases = (found.test_cases || found.testCases || []).map((tc: any) => ({
@@ -214,33 +214,33 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
         console.error('Error loading questions.json:', err);
       }
     }
-    
+
     if (testCases.length === 0) {
       res.status(400).json({ error: 'No test cases available for this challenge', success: false });
       return;
     }
-    
+
     // Check if user has already solved this challenge
     const existingProgress = await UserProgress.findOne({ userId });
     const alreadySolved = existingProgress?.solvedChallenges.some(
       (sc: any) => sc.challengeId.toString() === challengeId
     );
-    
+
     // Execute code against test cases
     const testResults = await executeCodeAgainstTests(actualCode, actualLanguage, testCases);
     const passedCount = testResults.filter(r => r.passed).length;
     const totalCount = testResults.length;
     const allPassed = passedCount === totalCount;
-    
+
     let coinsChanged = 0;
     let message = '';
-    
+
     if (allPassed) {
       if (!alreadySolved) {
         // Award coins for first-time solve
         coinsChanged = coinReward;
         message = `Congratulations! All test cases passed. You earned ${coinReward} coins!`;
-        
+
         // Update wallet
         await Wallet.findOneAndUpdate(
           { userId },
@@ -257,13 +257,13 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
           },
           { upsert: true }
         );
-        
+
         // Calculate total execution time properly (ensure it's a valid number)
         const totalExecutionTime = testResults.reduce((sum: number, r: any) => {
           const timeValue = typeof r.time === 'string' ? parseFloat(r.time) : (r.time || 0);
           return sum + (isNaN(timeValue) ? 0 : timeValue);
         }, 0);
-        
+
         // Update progress
         await UserProgress.findOneAndUpdate(
           { userId },
@@ -287,7 +287,7 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
       // Wrong answer - no coin penalty for practice
       message = `Wrong answer. ${passedCount}/${totalCount} test cases passed.`;
     }
-    
+
     res.json({
       success: allPassed,
       passed: passedCount,
@@ -328,33 +328,19 @@ const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
   'typescript': { language: 'typescript', version: '5.0.3' },
 };
 
-// Helper function to execute code against test cases using Piston API
-async function executeCodeAgainstTests(code: string, language: string, testCases: any[]): Promise<any[]> {
-  const results: any[] = [];
-  
-  const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
-  
-  console.log('=== PISTON EXECUTION START ===');
-  console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
-  console.log(`Test cases count: ${testCases.length}`);
-  console.log('Code length:', code.length);
-  console.log('Code preview:', code.substring(0, 200));
-  
-  for (let i = 0; i < testCases.length; i++) {
-    const testCase = testCases[i];
-    console.log(`\n--- Test Case ${i + 1} ---`);
-    console.log('Raw test case:', JSON.stringify(testCase));
-    
+// Helper function to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to execute code with retry logic for rate limiting
+async function executePistonWithRetry(
+  code: string,
+  langConfig: { language: string; version: string },
+  stdin: string,
+  maxRetries: number = 3
+): Promise<any> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Convert escaped newlines to actual newlines
-      const stdin = (testCase.input || '').replace(/\\n/g, '\n');
-      const expectedRaw = (testCase.expectedOutput || testCase.output || testCase.expected || '');
-      
-      console.log('Input (stdin):', JSON.stringify(stdin));
-      console.log('Expected output:', JSON.stringify(expectedRaw));
-      
-      // Use Piston API for code execution
-      const submitResponse = await axios.post(
+      const response = await axios.post(
         `${PISTON_API_URL}/execute`,
         {
           language: langConfig.language,
@@ -366,22 +352,72 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 15000
+          timeout: 20000 // Increased timeout for production
         }
       );
-      
+      return response;
+    } catch (error: any) {
+      const status = error.response?.status;
+      console.log(`[Piston] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
+
+      // If rate limited (429) or server error (5xx), retry with backoff
+      if ((status === 429 || status >= 500) && attempt < maxRetries) {
+        const backoffTime = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
+        console.log(`[Piston] Rate limited or server error. Waiting ${backoffTime}ms before retry...`);
+        await delay(backoffTime);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+// Helper function to execute code against test cases using Piston API
+async function executeCodeAgainstTests(code: string, language: string, testCases: any[]): Promise<any[]> {
+  const results: any[] = [];
+
+  const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
+
+  console.log('=== PISTON EXECUTION START ===');
+  console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
+  console.log(`Test cases count: ${testCases.length}`);
+  console.log('Code length:', code.length);
+  console.log('Code preview:', code.substring(0, 200));
+
+  for (let i = 0; i < testCases.length; i++) {
+    const testCase = testCases[i];
+    console.log(`\n--- Test Case ${i + 1}/${testCases.length} ---`);
+    console.log('Raw test case:', JSON.stringify(testCase));
+
+    try {
+      // Convert escaped newlines to actual newlines
+      const stdin = (testCase.input || '').replace(/\\n/g, '\n');
+      const expectedRaw = (testCase.expectedOutput || testCase.output || testCase.expected || '');
+
+      console.log('Input (stdin):', JSON.stringify(stdin));
+      console.log('Expected output:', JSON.stringify(expectedRaw));
+
+      // Add small delay between test cases to avoid rate limiting (except first one)
+      if (i > 0) {
+        console.log('[Piston] Waiting 300ms before next test case...');
+        await delay(300);
+      }
+
+      // Use Piston API for code execution with retry logic
+      const submitResponse = await executePistonWithRetry(code, langConfig, stdin);
+
       const result = submitResponse.data;
       const runResult = result.run || {};
-      
+
       // Get output - Piston uses stdout primarily, but fall back to output
       const output = (runResult.stdout || runResult.output || '').trim();
       const stderr = runResult.stderr || '';
       const expected = expectedRaw.trim();
-      
+
       // Check for CRITICAL errors only (compilation errors, crashes)
       // Don't fail just because there's stderr output - some languages output warnings
       const hasCriticalError = runResult.code !== 0 && !output && stderr;
-      
+
       // Normalize output for comparison - handles whitespace variations consistently
       // 1. Normalizes line endings
       // 2. Trims each line and collapses multiple spaces
@@ -395,15 +431,15 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
           .replace(/\n+$/, '')
           .trim();
       };
-      
+
       const normalizedOutput = normalizeOutput(output);
       const normalizedExpected = normalizeOutput(expected);
       const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
-      
+
       console.log('Normalized output:', JSON.stringify(normalizedOutput));
       console.log('Normalized expected:', JSON.stringify(normalizedExpected));
       console.log('Passed:', passed);
-      
+
       results.push({
         passed,
         input: testCase.input,
@@ -416,18 +452,19 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
         error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
-      console.error('Code execution error:', error.response?.data || error.message);
+      console.error(`[Piston] Test case ${i + 1} execution error:`, error.response?.data || error.message);
       results.push({
         passed: false,
         input: testCase.input,
         expected: testCase.expectedOutput || testCase.output || '',
         output: '',
-        error: error.response?.data?.message || error.message || 'Execution error',
+        error: error.response?.data?.message || error.message || 'Execution error (rate limit or timeout)',
         time: 0
       });
     }
   }
-  
+
+  console.log(`=== EXECUTION COMPLETE: ${results.filter(r => r.passed).length}/${results.length} passed ===`);
   return results;
 }
 
@@ -471,22 +508,22 @@ function getLanguageFromId(languageId: number): string {
 router.get('/:challengeId/testcases', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const challenge = await Challenge.findById(req.params.challengeId);
-    
+
     if (!challenge) {
       res.status(404).json({ error: 'Challenge not found', testCases: [] });
       return;
     }
-    
+
     // Return only visible test cases (not hidden ones)
     const visibleTestCases = (challenge.testCases || []).filter((tc: any) => !tc.isHidden);
-    
+
     // Format for frontend
     const testCases = visibleTestCases.map((tc: any) => ({
       input: tc.input,
       output: tc.expectedOutput || tc.output || tc.expected,
       expectedOutput: tc.expectedOutput || tc.output || tc.expected
     }));
-    
+
     res.json({ testCases });
   } catch (error: any) {
     res.status(500).json({ error: error.message, testCases: [] });
@@ -497,12 +534,12 @@ router.get('/:challengeId/testcases', authenticate, async (req: AuthRequest, res
 router.get('/:challengeId/validation-testcases', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const challenge = await Challenge.findById(req.params.challengeId);
-    
+
     if (!challenge) {
       res.status(404).json({ error: 'Challenge not found', testCases: [] });
       return;
     }
-    
+
     // Return all test cases for validation
     const testCases = (challenge.testCases || []).map((tc: any) => ({
       input: tc.input,
@@ -510,7 +547,7 @@ router.get('/:challengeId/validation-testcases', authenticate, async (req: AuthR
       expectedOutput: tc.expectedOutput || tc.output || tc.expected,
       isHidden: tc.isHidden || false
     }));
-    
+
     res.json({ testCases });
   } catch (error: any) {
     res.status(500).json({ error: error.message, testCases: [] });
@@ -521,12 +558,12 @@ router.get('/:challengeId/validation-testcases', authenticate, async (req: AuthR
 router.get('/:challengeId', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const challenge = await Challenge.findById(req.params.challengeId);
-    
+
     if (!challenge) {
       res.status(404).json({ error: 'Challenge not found' });
       return;
     }
-    
+
     res.json({ challenge });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -537,18 +574,18 @@ router.get('/:challengeId', async (req: AuthRequest, res: Response): Promise<voi
 router.post('/', authenticate, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const challengeData = req.body;
-    
+
     if (!challengeData.title || !challengeData.description || !challengeData.difficulty) {
       res.status(400).json({ error: 'Title, description, and difficulty are required' });
       return;
     }
-    
+
     const challenge = new Challenge(challengeData);
     await challenge.save();
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'Challenge created successfully',
-      challenge 
+      challenge
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -563,15 +600,15 @@ router.put('/:challengeId', authenticate, adminOnly, async (req: AuthRequest, re
       { $set: req.body },
       { new: true }
     );
-    
+
     if (!challenge) {
       res.status(404).json({ error: 'Challenge not found' });
       return;
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Challenge updated successfully',
-      challenge 
+      challenge
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -582,12 +619,12 @@ router.put('/:challengeId', authenticate, adminOnly, async (req: AuthRequest, re
 router.delete('/:challengeId', authenticate, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const challenge = await Challenge.findByIdAndDelete(req.params.challengeId);
-    
+
     if (!challenge) {
       res.status(404).json({ error: 'Challenge not found' });
       return;
     }
-    
+
     res.json({ message: 'Challenge deleted successfully' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -598,15 +635,15 @@ router.delete('/:challengeId', authenticate, adminOnly, async (req: AuthRequest,
 router.post('/bulk', authenticate, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { challenges } = req.body;
-    
+
     if (!challenges || !Array.isArray(challenges)) {
       res.status(400).json({ error: 'Challenges array is required' });
       return;
     }
-    
+
     const result = await Challenge.insertMany(challenges);
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: `${result.length} challenges created successfully`,
       count: result.length
     });
@@ -620,13 +657,13 @@ router.post('/progress/:userId/solve', authenticate, async (req: AuthRequest, re
   try {
     const { userId } = req.params;
     const { challengeId, language, executionTime } = req.body;
-    
+
     // Get challenge points
     const challenge = await Challenge.findById(challengeId);
     const points = challenge ? (challenge.difficulty === 'Easy' ? 10 : challenge.difficulty === 'Medium' ? 20 : 30) : 10;
-    
+
     let progress = await UserProgress.findOne({ userId });
-    
+
     if (!progress) {
       progress = new UserProgress({
         userId,
@@ -634,12 +671,12 @@ router.post('/progress/:userId/solve', authenticate, async (req: AuthRequest, re
         totalPoints: 0
       });
     }
-    
+
     // Check if already solved
     const alreadySolved = progress.solvedChallenges.some(
       (sc) => sc.challengeId.toString() === challengeId
     );
-    
+
     if (!alreadySolved) {
       progress.solvedChallenges.push({
         challengeId,
@@ -650,7 +687,7 @@ router.post('/progress/:userId/solve', authenticate, async (req: AuthRequest, re
       progress.totalPoints += points;
       await progress.save();
     }
-    
+
     res.json({ progress, pointsEarned: alreadySolved ? 0 : points });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -661,21 +698,21 @@ router.post('/progress/:userId/solve', authenticate, async (req: AuthRequest, re
 router.post('/seed-battles', authenticate, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { challenges } = req.body;
-    
+
     if (!challenges || !Array.isArray(challenges)) {
       res.status(400).json({ error: 'Challenges array is required' });
       return;
     }
-    
+
     // Add battle-specific flags to challenges
     const battleChallenges = challenges.map((c: any) => ({
       ...c,
       isBattleChallenge: true
     }));
-    
+
     const result = await Challenge.insertMany(battleChallenges);
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: `${result.length} battle challenges seeded successfully`,
       count: result.length
     });
