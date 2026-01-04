@@ -46,7 +46,7 @@ export default function DashboardLayout() {
   ];
 
   const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
-  const { user } = useAuth();
+  const { user, clearUser } = useAuth();
 
   // Load pending requests count for projects where user is the creator
   useEffect(() => {
@@ -375,6 +375,7 @@ export default function DashboardLayout() {
               }`}
               onClick={() => {
                 logout();
+                clearUser();
                 navigation("/");
               }}
             >
