@@ -28,7 +28,7 @@ import type { DeveloperProfile } from '../../types/developerConnect';
 // Helper function to format timestamps
 const formatTimestamp = (timestamp: any): string => {
   if (!timestamp) return 'Unknown date';
-  
+
   try {
     // Handle date object with toDate method
     if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
@@ -52,7 +52,7 @@ const formatTimestamp = (timestamp: any): string => {
 export default function DeveloperConnect() {
   const { user } = useAuth();
   const { userprofile } = useDataContext();
-  
+
   const [activeTab, setActiveTab] = useState<'directory' | 'messages' | 'groups' | 'endorsements'>('directory');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -66,10 +66,10 @@ export default function DeveloperConnect() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<any[]>([]);
-  
+
   // Pagination
   const [displayLimit, setDisplayLimit] = useState(12);
-  
+
   // Study Groups state
   const [studyGroups, setStudyGroups] = useState<any[]>([]);
   const [studyGroupSearch, setStudyGroupSearch] = useState('');
@@ -81,7 +81,7 @@ export default function DeveloperConnect() {
     level: 'Beginner' as const,
     maxMembers: 10
   });
-  
+
   // Endorsements state
   const [endorsements, setEndorsements] = useState<any[]>([]);
   const [showEndorseModal, setShowEndorseModal] = useState(false);
@@ -90,14 +90,14 @@ export default function DeveloperConnect() {
     skill: '',
     message: ''
   });
-  
+
   // Group details state
   const [selectedGroup, setSelectedGroup] = useState<any | null>(null);
   const [groupMessage, setGroupMessage] = useState('');
   const [groupMessages, setGroupMessages] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   // WebSocket connection status
   const [socketConnected, setSocketConnected] = useState(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
@@ -118,11 +118,11 @@ export default function DeveloperConnect() {
   useEffect(() => {
     initializeSocket();
     const socket = getSocket();
-    
+
     if (socket) {
       // Initial status check
       setSocketConnected(socket.connected);
-      
+
       const handleConnect = () => {
         console.log('🟢 Socket connected');
         setSocketConnected(true);
@@ -131,24 +131,24 @@ export default function DeveloperConnect() {
           socket.emit('userOnline', { userId: user.id });
         }
       };
-      
+
       const handleDisconnect = () => {
         console.log('🔴 Socket disconnected');
         setSocketConnected(false);
       };
-      
+
       // Handle online users list
       const handleOnlineUsers = (users: string[]) => {
         console.log('👥 Online users:', users);
         setOnlineUsers(new Set(users));
       };
-      
+
       // Handle user coming online
       const handleUserOnline = (data: { userId: string }) => {
         console.log('🟢 User online:', data.userId);
         setOnlineUsers(prev => new Set([...prev, data.userId]));
       };
-      
+
       // Handle user going offline
       const handleUserOffline = (data: { userId: string }) => {
         console.log('🔴 User offline:', data.userId);
@@ -158,7 +158,7 @@ export default function DeveloperConnect() {
           return newSet;
         });
       };
-      
+
       const handleTyping = (data: { chatId: string; userId: string; userName: string }) => {
         if (data.chatId === chatId && data.userId !== user?.id) {
           setTypingUser(data.userName);
@@ -167,19 +167,19 @@ export default function DeveloperConnect() {
           typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
         }
       };
-      
+
       const handleStopTyping = (data: { chatId: string; userId: string }) => {
         if (data.chatId === chatId && data.userId !== user?.id) {
           setTypingUser(null);
         }
       };
-      
+
       const handleMessageRead = (data: { messageId: string; readBy: string }) => {
         if (data.readBy !== user?.id) {
           setMessageStatus(prev => ({ ...prev, [data.messageId]: 'read' }));
         }
       };
-      
+
       socket.on('connect', handleConnect);
       socket.on('disconnect', handleDisconnect);
       socket.on('userTyping', handleTyping);
@@ -188,10 +188,10 @@ export default function DeveloperConnect() {
       socket.on('onlineUsers', handleOnlineUsers);
       socket.on('userOnline', handleUserOnline);
       socket.on('userOffline', handleUserOffline);
-      
+
       // Request current online users list
       socket.emit('getOnlineUsers');
-      
+
       return () => {
         socket.off('connect', handleConnect);
         socket.off('disconnect', handleDisconnect);
@@ -212,16 +212,16 @@ export default function DeveloperConnect() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Use optimized endpoint that fetches everything in parallel
         const data = await apiRequest('/developers/init/page-data');
-        
+
         console.log('Developer Connect data loaded:', data);
-        
+
         setDevelopers(data.developers || []);
         setStudyGroups(data.studyGroups || []);
         setEndorsements(data.endorsements || []);
-        
+
         if (!data.developers || data.developers.length === 0) {
           setError('No developers found. The community is waiting for you!');
         }
@@ -234,7 +234,7 @@ export default function DeveloperConnect() {
             apiRequest('/study-groups').catch(() => ({ groups: [] })),
             apiRequest('/developers/endorsements/me').catch(() => ({ endorsements: [] }))
           ]);
-          
+
           setDevelopers(developersData || []);
           setStudyGroups(groupsData.groups || []);
           setEndorsements(endorsementsData.endorsements || []);
@@ -282,7 +282,7 @@ export default function DeveloperConnect() {
             participantAvatars: [userprofile?.avatrUrl || '', selectedDev.avatar]
           })
         });
-        
+
         if (!isMounted) return;
         setChatId(chat.id);
         currentChatId = chat.id;
@@ -303,7 +303,7 @@ export default function DeveloperConnect() {
             // Join chat room
             socket.emit('join-chat', chat.id);
             console.log('📡 Joined chat room:', chat.id);
-            
+
             // Listen for new messages
             const messageHandler = (payload: any) => {
               console.log('📩 Received new message:', payload);
@@ -316,9 +316,9 @@ export default function DeveloperConnect() {
                 });
               }
             };
-            
+
             socket.on('newMessage', messageHandler);
-            
+
             // Store handler for cleanup
             (socket as any)._chatMessageHandler = messageHandler;
           }
@@ -553,7 +553,7 @@ export default function DeveloperConnect() {
     };
 
     loadGroupMessages();
-    
+
     // Set up real-time message listener
     try {
       const socket = getSocket();
@@ -569,9 +569,9 @@ export default function DeveloperConnect() {
             });
           }
         };
-        
+
         socket.on('newGroupMessage', handleNewGroupMessage);
-        
+
         return () => {
           socket.off('newGroupMessage', handleNewGroupMessage);
         };
@@ -585,13 +585,13 @@ export default function DeveloperConnect() {
   const filteredDevelopers = developers.filter(dev => {
     const devSkills = dev.skills || [];
     const devLookingFor = dev.lookingFor || '';
-    
+
     const matchesSearch = (dev.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          devSkills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesSkills = selectedSkills.length === 0 || 
+    const matchesSkills = selectedSkills.length === 0 ||
                          selectedSkills.some(s => devSkills.includes(s));
     const matchesLookingFor = !lookingForFilter || devLookingFor.includes(lookingForFilter);
-    
+
     return matchesSearch && matchesSkills && matchesLookingFor;
   });
 
@@ -636,7 +636,7 @@ export default function DeveloperConnect() {
             <div>
               <h3 className="text-lg font-semibold text-red-900 dark:text-red-300 mb-2">Unable to Load Developers</h3>
               <p className="text-red-700 dark:text-red-400">{error}</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
@@ -772,8 +772,8 @@ export default function DeveloperConnect() {
                   <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
                   <p className="text-xs text-gray-500 dark:text-white">
                     {dev.institute || dev.college || 'Not specified'} • {
-                      dev.yearOfStudy ? 
-                        (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`) 
+                      dev.yearOfStudy ?
+                        (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`)
                         : (dev.year || 'Student')
                     }
                   </p>
@@ -839,7 +839,7 @@ export default function DeveloperConnect() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-2">
-              <button 
+              <button
                 onClick={() => {
                   setSelectedChat(dev.userId);
                   setActiveTab('messages');
@@ -849,7 +849,7 @@ export default function DeveloperConnect() {
                 <MessageSquare className="w-4 h-4" />
                 Message
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setSelectedUserToEndorse(dev);
                   setShowEndorseModal(true);
@@ -895,10 +895,10 @@ export default function DeveloperConnect() {
     const emitTyping = () => {
       const socket = getSocket();
       if (socket && chatId && user) {
-        socket.emit('typing', { 
-          chatId, 
-          userId: user.id, 
-          userName: userprofile?.displayName || user.name || 'User' 
+        socket.emit('typing', {
+          chatId,
+          userId: user.id,
+          userName: userprofile?.displayName || user.name || 'User'
         });
       }
     };
@@ -934,15 +934,15 @@ export default function DeveloperConnect() {
 
     const handleSendMessage = async () => {
       if (!newMessage.trim() || !user || !chatId) return;
-      
+
       emitStopTyping();
       const messageContent = newMessage;
       const tempId = `temp-${Date.now()}`;
       setNewMessage('');
-      
+
       // Set initial status as 'sent'
       setMessageStatus(prev => ({ ...prev, [tempId]: 'sent' }));
-      
+
       // Optimistically add message to UI immediately
       const optimisticMessage = {
         id: tempId,
@@ -956,7 +956,7 @@ export default function DeveloperConnect() {
         isRead: false
       };
       setMessages(prev => [...prev, optimisticMessage]);
-      
+
       try {
         // Send message to server - socket will broadcast to other users
         const response = await apiRequest(`/chats/${chatId}/messages`, {
@@ -968,10 +968,10 @@ export default function DeveloperConnect() {
             message: messageContent,
           }),
         });
-        
+
         // Update the optimistic message with the real ID from server
         if (response?.id) {
-          setMessages(prev => prev.map(m => 
+          setMessages(prev => prev.map(m =>
             m.id === tempId ? { ...m, id: response.id } : m
           ));
           // Update status to delivered
@@ -1002,9 +1002,9 @@ export default function DeveloperConnect() {
     };
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[650px]">
-        {/* Left Side - Users/Conversations List */}
-        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px] lg:h-[650px]">
+        {/* Left Side - Users/Conversations List - Hidden on mobile when chat is selected */}
+        <div className={`lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-lg ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
           {/* Header with gradient */}
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-cyan-50/50 via-white to-cyan-50/50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
             <div className="flex items-center justify-between">
@@ -1018,16 +1018,16 @@ export default function DeveloperConnect() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-10">{conversations.length} active</p>
               </div>
               {/* Connection Status */}
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold ${
-                  socketConnected 
-                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' 
+                  socketConnected
+                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
                     : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
                 }`}
               >
-                <motion.div 
+                <motion.div
                   animate={{ scale: socketConnected ? [1, 1.4, 1] : 1 }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
                   className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}
@@ -1036,7 +1036,7 @@ export default function DeveloperConnect() {
               </motion.div>
             </div>
           </div>
-          
+
           {/* Conversation list */}
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
@@ -1055,14 +1055,14 @@ export default function DeveloperConnect() {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => setSelectedChat(conv.participantId)}
                   className={`w-full p-4 transition-all text-left relative overflow-hidden ${
-                    selectedChat === conv.participantId 
-                      ? 'bg-gradient-to-r from-[#00ADB5]/10 to-transparent dark:from-[#00ADB5]/15 dark:to-transparent' 
+                    selectedChat === conv.participantId
+                      ? 'bg-gradient-to-r from-[#00ADB5]/10 to-transparent dark:from-[#00ADB5]/15 dark:to-transparent'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   {/* Selected indicator */}
                   {selectedChat === conv.participantId && (
-                    <motion.div 
+                    <motion.div
                       layoutId="selectedConv"
                       className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
                       style={{ background: 'linear-gradient(180deg, #00ADB5 0%, #00d4ff 100%)' }}
@@ -1074,8 +1074,8 @@ export default function DeveloperConnect() {
                         src={conv.participantAvatar}
                         alt={conv.participantName}
                         className={`w-12 h-12 rounded-full shadow-md transition-all ${
-                          selectedChat === conv.participantId 
-                            ? 'ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800' 
+                          selectedChat === conv.participantId
+                            ? 'ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800'
                             : 'ring-1 ring-gray-200 dark:ring-gray-600'
                         }`}
                       />
@@ -1085,7 +1085,7 @@ export default function DeveloperConnect() {
                       }`}></div>
                       {/* Unread badge */}
                       {unreadCounts[conv.participantId] > 0 && (
-                        <motion.div 
+                        <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           className="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg"
@@ -1100,14 +1100,14 @@ export default function DeveloperConnect() {
                         <p className={`font-semibold truncate text-sm ${
                           unreadCounts[conv.participantId] > 0
                             ? 'text-gray-900 dark:text-white font-bold'
-                            : selectedChat === conv.participantId 
-                              ? 'text-[#00ADB5]' 
+                            : selectedChat === conv.participantId
+                              ? 'text-[#00ADB5]'
                               : 'text-gray-900 dark:text-white'
                         }`}>{conv.participantName}</p>
                         {conv.lastMessageAt && (
                           <span className={`text-[10px] flex-shrink-0 ml-2 ${
-                            unreadCounts[conv.participantId] > 0 
-                              ? 'text-[#00ADB5] font-semibold' 
+                            unreadCounts[conv.participantId] > 0
+                              ? 'text-[#00ADB5] font-semibold'
                               : 'text-gray-400 dark:text-gray-500'
                           }`}>
                             {new Date(conv.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -1115,8 +1115,8 @@ export default function DeveloperConnect() {
                         )}
                       </div>
                       <p className={`text-xs truncate flex items-center gap-1 ${
-                        unreadCounts[conv.participantId] > 0 
-                          ? 'text-gray-700 dark:text-gray-200 font-medium' 
+                        unreadCounts[conv.participantId] > 0
+                          ? 'text-gray-700 dark:text-gray-200 font-medium'
                           : 'text-gray-500 dark:text-gray-400'
                       }`}>
                         {conv.lastMessage || <span className="italic text-gray-400">Start a conversation...</span>}
@@ -1129,23 +1129,23 @@ export default function DeveloperConnect() {
           </div>
         </div>
 
-        {/* Right Side - Chat Area */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden">
+        {/* Right Side - Chat Area - Full width on mobile when chat selected, hidden otherwise on mobile */}
+        <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden ${selectedChat ? 'flex' : 'hidden lg:flex'}`}>
           {!selectedChat || !selectedDev ? (
             // No chat selected - show premium welcome message
             <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-cyan-50/30 via-white to-cyan-50/30 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, type: 'spring' }}
                 className="text-center p-8 max-w-md"
               >
                 {/* Animated icon */}
-                <motion.div 
+                <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
                   className="w-28 h-28 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
-                  style={{ 
+                  style={{
                     background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 50%, #00ADB5 100%)',
                     backgroundSize: '200% 200%'
                   }}
@@ -1174,8 +1174,17 @@ export default function DeveloperConnect() {
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    {/* Back button for mobile */}
+                    <button
+                      onClick={() => setSelectedChat(null)}
+                      className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
                     <div className="relative">
-                      <img src={selectedDev.avatar} alt={selectedDev.name} className="w-11 h-11 rounded-full ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800 shadow-md" />
+                      <img src={selectedDev.avatar} alt={selectedDev.name} className="w-10 h-10 lg:w-11 lg:h-11 rounded-full ring-2 ring-[#00ADB5] ring-offset-2 dark:ring-offset-gray-800 shadow-md" />
                       <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
                         onlineUsers.has(selectedDev.userId) ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500'
                       }`}></div>
@@ -1183,24 +1192,24 @@ export default function DeveloperConnect() {
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white text-base">{selectedDev.name}</h3>
                       {typingUser ? (
-                        <motion.p 
+                        <motion.p
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="text-xs text-[#00ADB5] font-medium flex items-center gap-1"
                         >
                           <span className="flex gap-0.5">
-                            <motion.span 
-                              animate={{ y: [0, -3, 0] }} 
+                            <motion.span
+                              animate={{ y: [0, -3, 0] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
                               className="w-1 h-1 bg-[#00ADB5] rounded-full"
                             />
-                            <motion.span 
-                              animate={{ y: [0, -3, 0] }} 
+                            <motion.span
+                              animate={{ y: [0, -3, 0] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
                               className="w-1 h-1 bg-[#00ADB5] rounded-full"
                             />
-                            <motion.span 
-                              animate={{ y: [0, -3, 0] }} 
+                            <motion.span
+                              animate={{ y: [0, -3, 0] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
                               className="w-1 h-1 bg-[#00ADB5] rounded-full"
                             />
@@ -1209,8 +1218,8 @@ export default function DeveloperConnect() {
                         </motion.p>
                       ) : (
                         <p className={`text-xs flex items-center gap-1 ${
-                          onlineUsers.has(selectedDev.userId) 
-                            ? 'text-emerald-600 dark:text-emerald-400' 
+                          onlineUsers.has(selectedDev.userId)
+                            ? 'text-emerald-600 dark:text-emerald-400'
                             : 'text-gray-500 dark:text-gray-400'
                         }`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${
@@ -1221,13 +1230,13 @@ export default function DeveloperConnect() {
                       )}
                     </div>
                   </div>
-                  {/* Connection Status Badge */}
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm ${
-                    socketConnected 
-                      ? 'bg-emerald-50/80 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700' 
+                  {/* Connection Status Badge - Hidden on mobile */}
+                  <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm ${
+                    socketConnected
+                      ? 'bg-emerald-50/80 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700'
                       : 'bg-amber-50/80 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700'
                   }`}>
-                    <motion.div 
+                    <motion.div
                       animate={{ scale: socketConnected ? [1, 1.3, 1] : 1 }}
                       transition={{ repeat: Infinity, duration: 2 }}
                       className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-emerald-500' : 'bg-amber-500'}`}
@@ -1238,11 +1247,11 @@ export default function DeveloperConnect() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Messages Container - Enhanced */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50 dark:bg-gray-900">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-4 bg-gray-50 dark:bg-gray-900">
                 {loadingMessages ? (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex flex-col items-center justify-center h-full"
@@ -1254,7 +1263,7 @@ export default function DeveloperConnect() {
                     <div className="text-gray-500 text-sm mt-4">Loading messages...</div>
                   </motion.div>
                 ) : messages.length === 0 ? (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col items-center justify-center h-full"
@@ -1270,7 +1279,7 @@ export default function DeveloperConnect() {
                     {/* Date separator for first message */}
                     <div className="flex items-center justify-center mb-4">
                       <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm">
-                        {messages[0]?.createdAt 
+                        {messages[0]?.createdAt
                           ? new Date(messages[0].createdAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
                           : 'Today'}
                       </div>
@@ -1287,22 +1296,22 @@ export default function DeveloperConnect() {
                           className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
                         >
                           {!isMe && (
-                            <img 
-                              src={msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderName?.replace(/\s+/g, '') || 'User'}`} 
-                              alt={msg.senderName || 'User'} 
-                              className="w-8 h-8 rounded-full flex-shrink-0 mr-2 shadow-md ring-2 ring-white dark:ring-gray-800" 
+                            <img
+                              src={msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderName?.replace(/\s+/g, '') || 'User'}`}
+                              alt={msg.senderName || 'User'}
+                              className="w-8 h-8 rounded-full flex-shrink-0 mr-2 shadow-md ring-2 ring-white dark:ring-gray-800"
                             />
                           )}
-                          
+
                           <div className={`max-w-[70%] ${isMe ? 'mr-2' : ''}`}>
-                            <motion.div 
+                            <motion.div
                               whileHover={{ scale: 1.01, y: -1 }}
                               className={`px-4 py-2.5 relative group ${
-                                isMe 
-                                  ? 'rounded-2xl rounded-tr-md text-white' 
+                                isMe
+                                  ? 'rounded-2xl rounded-tr-md text-white'
                                   : 'rounded-2xl rounded-tl-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
                               }`}
-                              style={isMe ? { 
+                              style={isMe ? {
                                 background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
                                 boxShadow: '0 4px 20px rgba(0, 173, 181, 0.25)'
                               } : {
@@ -1312,7 +1321,7 @@ export default function DeveloperConnect() {
                               <p className="text-sm leading-relaxed">{msg.message || msg.content || msg.text}</p>
                               <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
                                 <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
-                                  {msg.createdAt 
+                                  {msg.createdAt
                                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                     : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
@@ -1331,22 +1340,22 @@ export default function DeveloperConnect() {
                               </div>
                             </motion.div>
                           </div>
-                          
+
                           {isMe && (
-                            <img 
-                              src={userprofile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name?.replace(/\s+/g, '') || 'Me'}`} 
-                              alt="Me" 
-                              className="w-8 h-8 rounded-full flex-shrink-0 ml-2 shadow-md ring-2 ring-white dark:ring-gray-800" 
+                            <img
+                              src={userprofile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name?.replace(/\s+/g, '') || 'Me'}`}
+                              alt="Me"
+                              className="w-8 h-8 rounded-full flex-shrink-0 ml-2 shadow-md ring-2 ring-white dark:ring-gray-800"
                             />
                           )}
                         </motion.div>
                       );
                     })}
                     <div ref={messagesEndRef} />
-                    
+
                     {/* Typing indicator at bottom */}
                     {typingUser && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
@@ -1354,18 +1363,18 @@ export default function DeveloperConnect() {
                       >
                         <div className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-md shadow-sm">
                           <div className="flex items-center gap-1">
-                            <motion.div 
-                              animate={{ scale: [1, 1.2, 1] }} 
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
                               className="w-2 h-2 bg-[#00ADB5] rounded-full"
                             />
-                            <motion.div 
-                              animate={{ scale: [1, 1.2, 1] }} 
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
                               className="w-2 h-2 bg-[#00ADB5] rounded-full"
                             />
-                            <motion.div 
-                              animate={{ scale: [1, 1.2, 1] }} 
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
                               className="w-2 h-2 bg-[#00ADB5] rounded-full"
                             />
@@ -1378,20 +1387,20 @@ export default function DeveloperConnect() {
               </div>
 
               {/* Message Input - Premium Design */}
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 {/* Typing indicator above input */}
                 {newMessage.trim() && (
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="text-[11px] text-[#00ADB5] mb-2 ml-2"
+                    className="text-[11px] text-[#00ADB5] mb-2 ml-2 hidden sm:block"
                   >
                     Press Enter to send
                   </motion.p>
                 )}
-                <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-900 rounded-2xl p-2 shadow-sm border border-gray-200 dark:border-gray-700 transition-all focus-within:border-[#00ADB5] focus-within:ring-2 focus-within:ring-[#00ADB5]/20">
-                  {/* Emoji button placeholder */}
-                  <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <div className="flex gap-2 sm:gap-3 items-center bg-gray-50 dark:bg-gray-900 rounded-2xl p-1.5 sm:p-2 shadow-sm border border-gray-200 dark:border-gray-700 transition-all focus-within:border-[#00ADB5] focus-within:ring-2 focus-within:ring-[#00ADB5]/20">
+                  {/* Emoji button placeholder - hidden on mobile */}
+                  <button className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -1409,8 +1418,8 @@ export default function DeveloperConnect() {
                     onBlur={() => emitStopTyping()}
                     className="flex-1 px-2 py-2 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none text-sm"
                   />
-                  {/* Attachment button placeholder */}
-                  <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                  {/* Attachment button placeholder - hidden on mobile */}
+                  <button className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
@@ -1421,11 +1430,11 @@ export default function DeveloperConnect() {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
                     className={`p-2.5 rounded-xl transition-all ${
-                      newMessage.trim() 
-                        ? 'text-white shadow-lg' 
+                      newMessage.trim()
+                        ? 'text-white shadow-lg'
                         : 'text-gray-400 bg-gray-100 dark:bg-gray-800'
                     }`}
-                    style={newMessage.trim() ? { 
+                    style={newMessage.trim() ? {
                       background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
                       boxShadow: '0 4px 12px rgba(0, 173, 181, 0.4)'
                     } : {}}
@@ -1433,8 +1442,8 @@ export default function DeveloperConnect() {
                     <Send className="w-5 h-5" />
                   </motion.button>
                 </div>
-                {/* Status footer */}
-                <div className="flex items-center justify-center gap-2 mt-2">
+                {/* Status footer - hidden on mobile */}
+                <div className="hidden sm:flex items-center justify-center gap-2 mt-2">
                   {socketConnected ? (
                     <p className="text-[10px] text-gray-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -1461,7 +1470,7 @@ export default function DeveloperConnect() {
       const isMember = selectedGroup.members?.some((m: any) => m.userId === user?.id);
       const isAdmin = selectedGroup.members?.some((m: any) => m.userId === user?.id && (m.role === 'admin' || m.role === 'creator'));
       const hasPendingRequest = selectedGroup.joinRequests?.some((r: any) => r.userId === user?.id && r.status === 'pending');
-      
+
       return (
         <div className="space-y-6">
           <button
@@ -1473,7 +1482,7 @@ export default function DeveloperConnect() {
           >
             ← Back to Groups
           </button>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -1488,7 +1497,7 @@ export default function DeveloperConnect() {
                 {selectedGroup.level}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-4 mb-6">
               <span className="text-sm px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                 {selectedGroup.topic}
@@ -1497,7 +1506,7 @@ export default function DeveloperConnect() {
                 {selectedGroup.members?.length || 0} / {selectedGroup.maxMembers} members
               </span>
             </div>
-            
+
             {/* Pending Join Requests - Only visible to owner/admin */}
             {isAdmin && selectedGroup.joinRequests?.length > 0 && (
               <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
@@ -1558,7 +1567,7 @@ export default function DeveloperConnect() {
                 </div>
               </div>
             )}
-            
+
             {/* Members List */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Members</h3>
@@ -1602,7 +1611,7 @@ export default function DeveloperConnect() {
                 ))}
               </div>
             </div>
-            
+
             {isMember ? (
               <>
                 {/* Group Chat */}
@@ -1611,7 +1620,7 @@ export default function DeveloperConnect() {
                     <MessageSquare className="w-5 h-5" />
                     Group Discussion
                   </h3>
-                  
+
                   <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4 h-64 overflow-y-auto">
                     {groupMessages.length === 0 ? (
                       <p className="text-gray-500 text-center text-sm py-8">No messages yet. Start the conversation!</p>
@@ -1619,10 +1628,10 @@ export default function DeveloperConnect() {
                       <div className="space-y-3">
                         {groupMessages.map((msg: any, idx: number) => (
                           <div key={msg.id || idx} className="flex gap-2">
-                            <img 
-                              src={msg.avatar || msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.name || msg.senderName}`} 
-                              alt={msg.name || msg.senderName} 
-                              className="w-8 h-8 rounded-full flex-shrink-0" 
+                            <img
+                              src={msg.avatar || msg.senderAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.name || msg.senderName}`}
+                              alt={msg.name || msg.senderName}
+                              className="w-8 h-8 rounded-full flex-shrink-0"
                             />
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
@@ -1638,7 +1647,7 @@ export default function DeveloperConnect() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -1650,7 +1659,7 @@ export default function DeveloperConnect() {
                           const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
                           const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
                           const tempId = `temp-${Date.now()}`;
-                          
+
                           // Optimistically add message immediately
                           const optimisticMsg = {
                             id: tempId,
@@ -1663,7 +1672,7 @@ export default function DeveloperConnect() {
                           };
                           setGroupMessages(prev => [...prev, optimisticMsg]);
                           setGroupMessage('');
-                          
+
                           try {
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
@@ -1673,10 +1682,10 @@ export default function DeveloperConnect() {
                                 senderAvatar
                               })
                             });
-                            
+
                             // Update with real ID
                             if (response.message) {
-                              setGroupMessages(prev => prev.map(m => 
+                              setGroupMessages(prev => prev.map(m =>
                                 m.id === tempId ? response.message : m
                               ));
                             }
@@ -1698,7 +1707,7 @@ export default function DeveloperConnect() {
                           const senderName = userprofile?.displayName || userprofile?.name || user?.name || 'User';
                           const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
                           const tempId = `temp-${Date.now()}`;
-                          
+
                           // Optimistically add message immediately
                           const optimisticMsg = {
                             id: tempId,
@@ -1711,7 +1720,7 @@ export default function DeveloperConnect() {
                           };
                           setGroupMessages(prev => [...prev, optimisticMsg]);
                           setGroupMessage('');
-                          
+
                           try {
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
@@ -1721,10 +1730,10 @@ export default function DeveloperConnect() {
                                 senderAvatar
                               })
                             });
-                            
+
                             // Update with real ID
                             if (response.message) {
-                              setGroupMessages(prev => prev.map(m => 
+                              setGroupMessages(prev => prev.map(m =>
                                 m.id === tempId ? response.message : m
                               ));
                             }
@@ -1743,7 +1752,7 @@ export default function DeveloperConnect() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Quick Actions */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Resources & Schedule</h3>
@@ -1789,7 +1798,7 @@ export default function DeveloperConnect() {
                             const userName = userprofile?.displayName || user.name || 'User';
                             const userAvatar = userprofile?.avatrUrl || '';
                             const response = await requestJoinStudyGroup(selectedGroup.id, userName, userAvatar);
-                            
+
                             // Update the group with the new joinRequest
                             if (response.group) {
                               setSelectedGroup(response.group);
@@ -1817,13 +1826,13 @@ export default function DeveloperConnect() {
         </div>
       );
     }
-    
+
     // Group list view
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Study Groups</h3>
-          
+
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md mx-0 sm:mx-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -1843,8 +1852,8 @@ export default function DeveloperConnect() {
               </button>
             )}
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setShowCreateGroup(true)}
             className="px-4 py-2 text-white rounded-lg transition-all shadow-lg hover:opacity-90 flex items-center gap-2 whitespace-nowrap"
             style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
@@ -1858,7 +1867,7 @@ export default function DeveloperConnect() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Group Name</label>
@@ -1870,7 +1879,7 @@ export default function DeveloperConnect() {
                   className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Description</label>
                 <textarea
@@ -1881,7 +1890,7 @@ export default function DeveloperConnect() {
                   className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Topic</label>
                 <select
@@ -1898,7 +1907,7 @@ export default function DeveloperConnect() {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Level</label>
                 <select
@@ -1911,7 +1920,7 @@ export default function DeveloperConnect() {
                   <option value="Advanced">Advanced</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Max Members</label>
                 <input
@@ -1924,7 +1933,7 @@ export default function DeveloperConnect() {
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={async () => {
@@ -1943,18 +1952,18 @@ export default function DeveloperConnect() {
                           role: 'creator' as const
                         }]
                       });
-                      
+
                       // Immediately add the new group to state for instant visibility
                       if (newGroup) {
                         setStudyGroups(prev => [newGroup, ...prev]);
                       }
-                      
+
                       // Also reload groups from server to ensure sync
                       const groups = await getAllStudyGroups();
                       if (groups && groups.length > 0) {
                         setStudyGroups(groups);
                       }
-                      
+
                       setShowCreateGroup(false);
                       setNewGroupData({name: '', description: '', topic: '', level: 'Beginner', maxMembers: 10});
                       toast.success('Study group created successfully!');
@@ -1978,19 +1987,19 @@ export default function DeveloperConnect() {
           </div>
         </div>
       )}
-      
+
         {/* Study Groups Grid */}
         {(() => {
           const searchTerm = studyGroupSearch.trim().toLowerCase();
-          const filteredGroups = searchTerm 
-            ? studyGroups.filter(group => 
+          const filteredGroups = searchTerm
+            ? studyGroups.filter(group =>
                 (group.name || '').toLowerCase().includes(searchTerm) ||
                 (group.topic || '').toLowerCase().includes(searchTerm) ||
                 (group.description || '').toLowerCase().includes(searchTerm) ||
                 (group.creatorName || '').toLowerCase().includes(searchTerm)
               )
             : studyGroups;
-          
+
           if (filteredGroups.length === 0) {
             return (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
@@ -1999,12 +2008,12 @@ export default function DeveloperConnect() {
                   {studyGroupSearch ? 'No Groups Found' : 'No Study Groups Yet'}
                 </h3>
                 <p className="text-gray-600 dark:text-white mb-6">
-                  {studyGroupSearch 
+                  {studyGroupSearch
                     ? `No groups matching "${studyGroupSearch}"`
                     : 'Create or join a study group to learn together'}
                 </p>
                 {!studyGroupSearch && (
-                  <button 
+                  <button
                     onClick={() => setShowCreateGroup(true)}
                     className="px-6 py-2 text-white rounded-lg transition-all shadow-lg hover:opacity-90"
                     style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
@@ -2014,7 +2023,7 @@ export default function DeveloperConnect() {
               </div>
             );
           }
-          
+
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredGroups.map((group) => (
@@ -2054,15 +2063,15 @@ export default function DeveloperConnect() {
                   )}
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{group.description}</p>
-              
+
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
                   {group.topic}
                 </span>
               </div>
-              
+
               {/* Members Preview */}
               <div className="mb-4">
                 <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Members ({group.members?.length || 0})</p>
@@ -2087,12 +2096,12 @@ export default function DeveloperConnect() {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between text-xs text-gray-600 dark:text-white mb-4">
                 <span>{group.members?.length || 0} / {group.maxMembers} members</span>
                 <span className="text-gray-400">Created {formatTimestamp(group.createdAt)}</span>
               </div>
-              
+
               <button
                 onClick={() => setSelectedGroup(group)}
                 className="w-full px-4 py-2 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:opacity-90"
@@ -2121,7 +2130,7 @@ export default function DeveloperConnect() {
           <Award className="w-5 h-5" style={{ color: '#00ADB5' }} />
           Endorsements Received ({endorsements.filter(e => e.recipientId === user?.id).length})
         </h4>
-        
+
         {endorsements.filter(e => e.recipientId === user?.id).length === 0 ? (
           <p className="text-gray-500 dark:text-white text-center py-8">No endorsements yet. Keep collaborating!</p>
         ) : (
@@ -2155,7 +2164,7 @@ export default function DeveloperConnect() {
           <Zap className="w-5 h-5 text-yellow-500" />
           Endorsements Given ({endorsements.filter(e => e.endorserId === user?.id).length})
         </h4>
-        
+
         {endorsements.filter(e => e.endorserId === user?.id).length === 0 ? (
           <p className="text-gray-500 dark:text-white text-center py-8">
             You haven't endorsed anyone yet. Go to the directory to endorse developers!
@@ -2249,7 +2258,7 @@ export default function DeveloperConnect() {
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
               Endorse {selectedUserToEndorse.name}
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Select Skill</label>
@@ -2264,7 +2273,7 @@ export default function DeveloperConnect() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Message (Optional)</label>
                 <textarea
@@ -2276,7 +2285,7 @@ export default function DeveloperConnect() {
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={async () => {
@@ -2284,7 +2293,7 @@ export default function DeveloperConnect() {
                     toast.error('Please select a skill to endorse');
                     return;
                   }
-                  
+
                   if (!user) {
                     toast.error('You must be logged in to endorse');
                     return;
@@ -2302,17 +2311,17 @@ export default function DeveloperConnect() {
                         recipientName: selectedUserToEndorse.name
                       })
                     });
-                    
+
                     // Update local state with the returned endorsement
                     if (response.endorsement) {
                       setEndorsements(prev => [...prev, response.endorsement]);
                     }
-                    
+
                     // Close modal and reset
                     setShowEndorseModal(false);
                     setSelectedUserToEndorse(null);
                     setEndorsementData({skill: '', message: ''});
-                    
+
                     // Show success toast
                     toast.success(`✅ Successfully endorsed ${selectedUserToEndorse.name} for ${endorsementData.skill}!`, {
                       duration: 4000,

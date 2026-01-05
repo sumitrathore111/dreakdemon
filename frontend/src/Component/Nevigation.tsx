@@ -409,7 +409,7 @@ export default function DashboardLayout() {
           {/* Logo in center */}
           <Link to="/" className="absolute left-1/2 -translate-x-1/2">
             <img
-              src="https://res.cloudinary.com/dvwmbidka/image/upload/e_make_transparent/Gemini_Generated_Image_97tpgf97tpgf97tp_qgylcb"
+              src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
               alt="App Logo"
               className="w-8 h-8"
             />
