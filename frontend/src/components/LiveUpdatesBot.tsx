@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Sparkles, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Rss, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Update {
@@ -157,9 +157,9 @@ export default function LiveUpdatesBot() {
             </div>
           )}
 
-          {/* Main button with parrot emoji */}
+          {/* Main button with tech icon */}
           <div className="relative bg-gradient-to-r from-[#00ADB5] to-cyan-500 p-3 rounded-full shadow-2xl hover:scale-110 transition-transform cursor-pointer">
-            <span className="text-2xl select-none">🦜</span>
+            <Rss className="w-7 h-7 text-white" />
           </div>
         </div>
       </button>
@@ -176,7 +176,7 @@ export default function LiveUpdatesBot() {
           <div className="bg-gradient-to-r from-[#00ADB5] to-cyan-500 p-3 sm:p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-full flex items-center justify-center">
-                <span className="text-xl">�</span>
+                <Rss className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h3 className="text-white font-bold text-sm sm:text-base">
@@ -230,25 +230,6 @@ export default function LiveUpdatesBot() {
             </button>
           </div>
 
-          {/* Greeting */}
-          <div className="p-2 sm:p-3 bg-white/5 border-b border-white/10">
-            <div className="flex items-start gap-2">
-              <div className="bg-gradient-to-r from-[#00ADB5] to-cyan-500 p-1.5 rounded-full flex-shrink-0">
-                <Sparkles className="w-3 h-3 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="bg-white/10 rounded-2xl rounded-tl-none p-2">
-                  <p className="text-white text-xs">
-                    {activeTab === 'tech'
-                      ? `💻 Latest from ${TECH_FEEDS.length} tech platforms!`
-                      : `🧠 AI & ML news from ${AI_FEEDS.length} sources!`}
-                    {updates.length > 0 && ` (${updates.length} posts)`}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Platform Tags */}
           <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-white/10">
             {RSS_FEEDS.map(feed => (
@@ -286,7 +267,7 @@ export default function LiveUpdatesBot() {
 
             {!loading && !error && updates.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full gap-3">
-                <span className="text-4xl animate-pulse">�</span>
+                <Rss className="w-10 h-10 text-[#00ADB5] animate-pulse" />
                 <p className="text-gray-400 text-sm">Click refresh to load updates</p>
               </div>
             )}
