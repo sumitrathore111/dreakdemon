@@ -1,14 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    Award,
-    Bell,
-    CheckCircle,
-    MessageSquare,
-    ShoppingBag,
-    Sword,
-    Trophy,
-    UserPlus,
-    X
+  Award,
+  Bell,
+  CheckCircle,
+  MessageSquare,
+  ShoppingBag,
+  Sword,
+  Trophy,
+  UserPlus,
+  X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -293,7 +293,7 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
         return <MessageSquare className="w-5 h-5 text-blue-500" />;
       case 'project_request':
         return <UserPlus className="w-5 h-5 text-green-500" />;
-      case 'endorsement':
+      case 'tech_review':
         return <Award className="w-5 h-5 text-purple-500" />;
       case 'sale':
         return <ShoppingBag className="w-5 h-5 text-emerald-500" />;
