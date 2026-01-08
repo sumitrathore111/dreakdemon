@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Rss, Sparkles, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Rss, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Update {
