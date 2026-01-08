@@ -176,12 +176,12 @@ const NextStepDocumentation = () => {
       sections: [
         {
           heading: '🌐 Global Developer Network',
-          text: 'Connect with thousands of developers from around the world! Developer Connect is your gateway to building meaningful professional relationships, finding collaborators, and growing your network.\n\n• Browse 12,000+ developer profiles\n• Filter by skills, location, and year of study\n• View detailed profiles with tech stacks\n• See endorsements and ratings\n• Connect with like-minded developers\n• Build your professional network',
+          text: 'Connect with thousands of developers from around the world! Developer Connect is your gateway to building meaningful professional relationships, finding collaborators, and growing your network.\n\n• Browse 12,000+ developer profiles\n• Filter by skills, location, and year of study\n• View detailed profiles with tech stacks\n• Share and discover tech reviews\n• Connect with like-minded developers\n• Build your professional network',
           image: '🌐'
         },
         {
-          heading: '⭐ Endorse Skills & Get Endorsed',
-          text: 'Build credibility through peer endorsements! Showcase your expertise by collecting endorsements from developers you\'ve worked with.\n\n💎 Endorsement System:\n• Endorse developers for specific skills\n• Add personalized messages\n• Receive endorsements on your profile\n• Display total endorsement count\n• Build trust and credibility\n• Stand out in the community\n\n🏆 Your endorsements are visible to everyone and help establish your reputation!',
+          heading: '⭐ Tech Reviews & Recommendations',
+          text: 'Discover and share the best learning resources! Help fellow developers find quality platforms, courses, and tools for their learning journey.\n\n💎 Tech Reviews System:\n• Review learning platforms & websites\n• Rate resources with 5-star ratings\n• List pros and cons\n• Share detailed experiences\n• Ask for recommendations\n• Help others find resources\n\n🏆 Your reviews help the entire community learn better!',
           image: '⭐'
         },
         {
@@ -196,12 +196,12 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '🎓 Student Profiles',
-          text: 'Showcase your journey with detailed student profiles! Share your skills, education, projects, and achievements with the community.\n\n📋 Profile Information:\n• Name, college, and year of study\n• Skills and tech stack\n• Bio and interests\n• Total endorsements received\n• Projects and contributions\n• Contact information\n• Professional avatar\n• Social media links',
+          text: 'Showcase your journey with detailed student profiles! Share your skills, education, projects, and achievements with the community.\n\n📋 Profile Information:\n• Name, college, and year of study\n• Skills and tech stack\n• Bio and interests\n• Problems solved count\n• Projects and contributions\n• Contact information\n• Professional avatar\n• Social media links',
           image: '🎓'
         },
         {
           heading: '🔍 Smart Search & Filters',
-          text: 'Find exactly who you\'re looking for with powerful search and filtering tools! Discover developers based on specific criteria.\n\n🎯 Filter Options:\n• Search by name or email\n• Filter by college\n• Filter by year of study\n• Filter by skills/tech stack\n• Sort by endorsement count\n• View developer statistics\n• Save favorite profiles\n• Quick connect options',
+          text: 'Find exactly who you\'re looking for with powerful search and filtering tools! Discover developers based on specific criteria.\n\n🎯 Filter Options:\n• Search by name or email\n• Filter by college\n• Filter by year of study\n• Filter by skills/tech stack\n• Sort by problems solved\n• View developer statistics\n• Save favorite profiles\n• Quick connect options',
           image: '🔍'
         },
         {
@@ -391,7 +391,7 @@ const NextStepDocumentation = () => {
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black">🌐 Connect with 12K+ Developers!</h3>
-                  <p className="text-white/90 font-medium">Build your network, get endorsed, join study groups, and grow together</p>
+                  <p className="text-white/90 font-medium">Build your network, share tech reviews, join study groups, and grow together</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -401,7 +401,7 @@ const NextStepDocumentation = () => {
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Endorse</span>
+                  <span className="font-bold text-sm sm:text-base">Reviews</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -610,8 +610,8 @@ const NextStepDocumentation = () => {
               </div>
               <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 border-2 border-purple-200 dark:border-purple-800 rounded-2xl p-4 text-center">
                 <Award className="w-10 h-10 text-purple-500 mx-auto mb-2" />
-                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Endorsements</h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Give & receive</p>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-1">Tech Reviews</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Share & discover</p>
               </div>
               <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 dark:from-pink-500/20 dark:to-rose-500/20 border-2 border-pink-200 dark:border-pink-800 rounded-2xl p-4 text-center">
                 <MessageCircle className="w-10 h-10 text-pink-500 mx-auto mb-2" />

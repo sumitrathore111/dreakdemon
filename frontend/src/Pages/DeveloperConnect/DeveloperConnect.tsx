@@ -1,19 +1,24 @@
 import { motion } from 'framer-motion';
 import {
   AlertCircle,
-  Award,
+  BookmarkPlus,
   BookOpen,
   Check,
   Code2,
+  ExternalLink,
+  Heart,
   Mail,
+  MessageCircle,
   MessageSquare,
   Plus,
   Search,
   Send,
+  Share2,
+  Star,
   Trash2,
+  TrendingUp,
   UserMinus,
-  X,
-  Zap
+  X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -49,11 +54,19 @@ const formatTimestamp = (timestamp: any): string => {
   }
 };
 
+// Helper function to get user avatar with proper fallback
+const getUserAvatar = (userprofile: any, userId: string | undefined): string => {
+  if (userprofile?.avatar && userprofile.avatar.trim() !== '') return userprofile.avatar;
+  if (userprofile?.avatrUrl && userprofile.avatrUrl.trim() !== '') return userprofile.avatrUrl;
+  if (userprofile?.profilePic && userprofile.profilePic.trim() !== '') return userprofile.profilePic;
+  return `https://api.dicebear.com/9.x/adventurer/svg?seed=${userId || 'default'}`;
+};
+
 export default function DeveloperConnect() {
   const { user } = useAuth();
   const { userprofile } = useDataContext();
 
-  const [activeTab, setActiveTab] = useState<'directory' | 'messages' | 'groups' | 'endorsements'>('directory');
+  const [activeTab, setActiveTab] = useState<'directory' | 'messages' | 'groups' | 'reviews'>('directory');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [lookingForFilter, setLookingForFilter] = useState('');
@@ -82,14 +95,33 @@ export default function DeveloperConnect() {
     maxMembers: 10
   });
 
-  // Endorsements state
-  const [endorsements, setEndorsements] = useState<any[]>([]);
-  const [showEndorseModal, setShowEndorseModal] = useState(false);
-  const [selectedUserToEndorse, setSelectedUserToEndorse] = useState<DeveloperProfile | null>(null);
-  const [endorsementData, setEndorsementData] = useState({
-    skill: '',
-    message: ''
+  // Tech Reviews state
+  const [techReviews, setTechReviews] = useState<any[]>([]);
+  const [helpRequests, setHelpRequests] = useState<any[]>([]);
+  const [showNewReviewModal, setShowNewReviewModal] = useState(false);
+  const [showNewRequestModal, setShowNewRequestModal] = useState(false);
+  const [reviewsActiveTab, setReviewsActiveTab] = useState<'reviews' | 'requests'>('reviews');
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [newReviewData, setNewReviewData] = useState({
+    website: '',
+    url: '',
+    category: '',
+    rating: 5,
+    title: '',
+    content: '',
+    pros: '',
+    cons: ''
   });
+  const [newRequestData, setNewRequestData] = useState({
+    title: '',
+    description: '',
+    tags: ''
+  });
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [replyText, setReplyText] = useState('');
+
+  const reviewCategories = ['Coding Practice', 'Web Development', 'Mobile Development', 'Data Science', 'DevOps', 'UI/UX', 'Algorithms', 'System Design', 'Interview Prep', 'Other'];
 
   // Group details state
   const [selectedGroup, setSelectedGroup] = useState<any | null>(null);
@@ -220,7 +252,8 @@ export default function DeveloperConnect() {
 
         setDevelopers(data.developers || []);
         setStudyGroups(data.studyGroups || []);
-        setEndorsements(data.endorsements || []);
+        setTechReviews(data.techReviews || []);
+        setHelpRequests(data.helpRequests || []);
 
         if (!data.developers || data.developers.length === 0) {
           setError('No developers found. The community is waiting for you!');
@@ -229,15 +262,17 @@ export default function DeveloperConnect() {
         console.error('Error loading Developer Connect data:', err);
         // Fallback to individual calls if optimized endpoint fails
         try {
-          const [developersData, groupsData, endorsementsData] = await Promise.all([
+          const [developersData, groupsData, reviewsData, requestsData] = await Promise.all([
             apiRequest('/developers').catch(() => []),
             apiRequest('/study-groups').catch(() => ({ groups: [] })),
-            apiRequest('/developers/endorsements/me').catch(() => ({ endorsements: [] }))
+            apiRequest('/developers/tech-reviews').catch(() => ({ reviews: [] })),
+            apiRequest('/developers/help-requests').catch(() => ({ requests: [] }))
           ]);
 
           setDevelopers(developersData || []);
           setStudyGroups(groupsData.groups || []);
-          setEndorsements(endorsementsData.endorsements || []);
+          setTechReviews(reviewsData.reviews || []);
+          setHelpRequests(requestsData.requests || []);
         } catch (fallbackErr) {
           setError('Failed to load developers: ' + (err instanceof Error ? err.message : String(err)));
         }
@@ -780,8 +815,8 @@ export default function DeveloperConnect() {
                 </div>
               </div>
               <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
-                <Award className="w-4 h-4" />
-                <span className="text-sm font-semibold">{endorsements.filter(e => e.recipientId === dev.userId).length}</span>
+                <Code2 className="w-4 h-4" />
+                <span className="text-sm font-semibold">{dev.challenges_solved || dev.codeArenaStats?.problemsSolved || 0}</span>
               </div>
             </div>
 
@@ -851,12 +886,12 @@ export default function DeveloperConnect() {
               </button>
               <button
                 onClick={() => {
-                  setSelectedUserToEndorse(dev);
-                  setShowEndorseModal(true);
+                  setActiveTab('reviews');
+                  toast.success(`Check out reviews shared by the community!`);
                 }}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
-                <Award className="w-4 h-4" />
-                Endorse
+                <Star className="w-4 h-4" />
+                Reviews
               </button>
             </div>
           </motion.div>
@@ -2118,80 +2153,877 @@ export default function DeveloperConnect() {
     );
   };
 
-  const renderEndorsements = () => (
+  // Handle submitting new review
+  const handleSubmitReview = async () => {
+    if (!newReviewData.website || !newReviewData.title || !newReviewData.content) {
+      toast.error('Please fill in required fields (Website, Title, Review)');
+      return;
+    }
+
+    try {
+      // Get user avatar - check for non-empty values
+      const avatarUrl = getUserAvatar(userprofile, user?.id);
+
+      const reviewPayload = {
+        userId: user?.id,
+        userName: userprofile?.displayName || user?.name || 'Anonymous',
+        userAvatar: avatarUrl,
+        userLevel: userprofile?.level || 'Student',
+        website: newReviewData.website,
+        url: newReviewData.url,
+        category: newReviewData.category,
+        rating: newReviewData.rating,
+        title: newReviewData.title,
+        content: newReviewData.content,
+        pros: newReviewData.pros.split(',').map(p => p.trim()).filter(Boolean),
+        cons: newReviewData.cons.split(',').map(c => c.trim()).filter(Boolean),
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        comments: 0,
+        helpful: 0
+      };
+
+      const response = await apiRequest('/developers/tech-reviews', {
+        method: 'POST',
+        body: JSON.stringify(reviewPayload)
+      });
+
+      if (response.review) {
+        setTechReviews(prev => [response.review, ...prev]);
+      } else {
+        // Optimistic update if backend doesn't return the review
+        setTechReviews(prev => [{ ...reviewPayload, id: `temp-${Date.now()}` }, ...prev]);
+      }
+
+      setShowNewReviewModal(false);
+      setNewReviewData({ website: '', url: '', category: '', rating: 5, title: '', content: '', pros: '', cons: '' });
+      toast.success('Review posted successfully!');
+    } catch (error) {
+      console.error('Error posting review:', error);
+      toast.error('Failed to post review. Please try again.');
+    }
+  };
+
+  // Handle submitting help request
+  const handleSubmitRequest = async () => {
+    if (!newRequestData.title || !newRequestData.description) {
+      toast.error('Please fill in title and description');
+      return;
+    }
+
+    try {
+      const requestPayload = {
+        userId: user?.id,
+        userName: userprofile?.displayName || user?.name || 'Anonymous',
+        userAvatar: getUserAvatar(userprofile, user?.id),
+        title: newRequestData.title,
+        description: newRequestData.description,
+        tags: newRequestData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        timestamp: new Date().toISOString(),
+        responses: 0
+      };
+
+      const response = await apiRequest('/developers/help-requests', {
+        method: 'POST',
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (response.request) {
+        setHelpRequests(prev => [response.request, ...prev]);
+      } else {
+        setHelpRequests(prev => [{ ...requestPayload, id: `temp-${Date.now()}` }, ...prev]);
+      }
+
+      setShowNewRequestModal(false);
+      setNewRequestData({ title: '', description: '', tags: '' });
+      toast.success('Help request posted successfully!');
+    } catch (error) {
+      console.error('Error posting request:', error);
+      toast.error('Failed to post request. Please try again.');
+    }
+  };
+
+  // Handle like review
+  const handleLikeReview = async (reviewId: string) => {
+    try {
+      await apiRequest(`/developers/tech-reviews/${reviewId}/like`, { method: 'POST' });
+      setTechReviews(prev => prev.map(r => r.id === reviewId ? { ...r, likes: (r.likes || 0) + 1 } : r));
+    } catch (error) {
+      console.error('Error liking review:', error);
+    }
+  };
+
+  // Handle mark helpful
+  const handleMarkHelpful = async (reviewId: string) => {
+    try {
+      await apiRequest(`/developers/tech-reviews/${reviewId}/helpful`, { method: 'POST' });
+      setTechReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpful: (r.helpful || 0) + 1 } : r));
+      toast.success('Marked as helpful!');
+    } catch (error) {
+      console.error('Error marking helpful:', error);
+    }
+  };
+
+  // Handle delete review
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) return;
+    try {
+      await apiRequest(`/developers/tech-reviews/${reviewId}`, { method: 'DELETE' });
+      setTechReviews(prev => prev.filter(r => r.id !== reviewId));
+      toast.success('Review deleted successfully');
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      toast.error('Failed to delete review');
+    }
+  };
+
+  // Handle delete help request
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!window.confirm('Are you sure you want to delete this request?')) return;
+    try {
+      await apiRequest(`/developers/help-requests/${requestId}`, { method: 'DELETE' });
+      setHelpRequests(prev => prev.filter(r => r.id !== requestId));
+      toast.success('Request deleted successfully');
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      toast.error('Failed to delete request');
+    }
+  };
+
+  // Handle submitting reply to help request
+  const handleSubmitReply = async () => {
+    if (!replyText.trim() || !selectedRequest) {
+      toast.error('Please enter your reply');
+      return;
+    }
+
+    try {
+      const replyData = {
+        content: replyText,
+        userName: userprofile?.displayName || user?.name || 'Anonymous',
+        userAvatar: getUserAvatar(userprofile, user?.id)
+      };
+
+      const response = await apiRequest(`/developers/help-requests/${selectedRequest.id}/respond`, {
+        method: 'POST',
+        body: JSON.stringify(replyData)
+      });
+
+      // Update local state with new reply
+      setHelpRequests(prev => prev.map(r =>
+        r.id === selectedRequest.id
+          ? {
+              ...r,
+              responses: response.responses || (r.responses || 0) + 1,
+              replies: response.replies || [...(r.replies || []), response.reply]
+            }
+          : r
+      ));
+
+      // Update selectedRequest to show the new reply immediately
+      setSelectedRequest((prev: any) => prev ? {
+        ...prev,
+        responses: response.responses || (prev.responses || 0) + 1,
+        replies: response.replies || [...(prev.replies || []), response.reply]
+      } : null);
+
+      setReplyText('');
+      toast.success('Reply sent successfully!');
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      toast.error('Failed to send reply');
+    }
+  };
+
+  // Fetch replies for a request
+  const fetchReplies = async (requestId: string) => {
+    try {
+      const response = await apiRequest(`/developers/help-requests/${requestId}/replies`);
+      return response.replies || [];
+    } catch (error) {
+      console.error('Error fetching replies:', error);
+      return [];
+    }
+  };
+
+  // Filter reviews based on search
+  const filteredReviews = techReviews.filter(review =>
+    review.website?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
+    review.title?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
+    review.category?.toLowerCase().includes(reviewSearch.toLowerCase())
+  );
+
+  const filteredRequests = helpRequests.filter(request =>
+    request.title?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
+    request.description?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
+    request.tags?.some((tag: string) => tag.toLowerCase().includes(reviewSearch.toLowerCase()))
+  );
+
+  const renderTechReviews = () => (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Skill Endorsements</h3>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
+            <BookmarkPlus className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Tech Reviews</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Share & discover the best learning resources</p>
+          </div>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setShowNewReviewModal(true)}
+            className="flex-1 sm:flex-none px-4 py-2 text-white rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity font-semibold"
+            style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+          >
+            <Plus className="w-4 h-4" />
+            Post Review
+          </button>
+          <button
+            onClick={() => setShowNewRequestModal(true)}
+            className="flex-1 sm:flex-none px-4 py-2 border-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-semibold"
+            style={{ borderColor: '#00ADB5', color: '#00ADB5' }}
+          >
+            <Plus className="w-4 h-4" />
+            Ask for Help
+          </button>
+        </div>
       </div>
 
-      {/* My Endorsements Received */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Award className="w-5 h-5" style={{ color: '#00ADB5' }} />
-          Endorsements Received ({endorsements.filter(e => e.recipientId === user?.id).length})
-        </h4>
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search reviews, websites, categories..."
+          value={reviewSearch}
+          onChange={(e) => setReviewSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2"
+          style={{ '--tw-ring-color': '#00ADB5' } as any}
+        />
+      </div>
 
-        {endorsements.filter(e => e.recipientId === user?.id).length === 0 ? (
-          <p className="text-gray-500 dark:text-white text-center py-8">No endorsements yet. Keep collaborating!</p>
-        ) : (
-          <div className="space-y-4">
-            {endorsements.filter(e => e.recipientId === user?.id).map(endorsement => (
-              <div key={endorsement.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <img src={endorsement.endorserAvatar} alt={endorsement.endorserName} className="w-10 h-10 rounded-full" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{endorsement.endorserName}</p>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
-                      {endorsement.skill}
-                    </span>
+      {/* Tabs */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1 flex gap-2">
+        <button
+          onClick={() => setReviewsActiveTab('reviews')}
+          className={`flex-1 py-2 px-4 rounded-md transition-colors font-semibold ${
+            reviewsActiveTab === 'reviews'
+              ? 'text-white'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+          style={reviewsActiveTab === 'reviews' ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}
+        >
+          <Star className="w-4 h-4 inline mr-2" />
+          Reviews ({filteredReviews.length})
+        </button>
+        <button
+          onClick={() => setReviewsActiveTab('requests')}
+          className={`flex-1 py-2 px-4 rounded-md transition-colors font-semibold ${
+            reviewsActiveTab === 'requests'
+              ? 'text-white'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+          style={reviewsActiveTab === 'requests' ? { background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' } : {}}
+        >
+          <MessageCircle className="w-4 h-4 inline mr-2" />
+          Help Requests ({filteredRequests.length})
+        </button>
+      </div>
+
+      {/* Reviews Tab */}
+      {reviewsActiveTab === 'reviews' && (
+        <div className="space-y-4">
+          {filteredReviews.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+              <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No reviews yet</h4>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Be the first to share a learning resource!</p>
+              <button
+                onClick={() => setShowNewReviewModal(true)}
+                className="px-6 py-2 text-white rounded-lg font-semibold"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+              >
+                Post First Review
+              </button>
+            </div>
+          ) : (
+            filteredReviews.map(review => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <img
+                    src={review.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${review.userId}`}
+                    alt={review.userName}
+                    className="w-12 h-12 rounded-full flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{review.userName}</span>
+                      <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
+                        {review.userLevel || 'Student'}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-sm text-gray-500">{formatTimestamp(review.timestamp)}</span>
+                    </div>
+
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h4 className="text-lg font-bold" style={{ color: '#00ADB5' }}>{review.website}</h4>
+                        {review.url && (
+                          <a
+                            href={review.url.startsWith('http') ? review.url : `https://${review.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-blue-500"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                        {review.category && (
+                          <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded ml-auto">
+                            {review.category}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Rating Stars */}
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${i < (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                          />
+                        ))}
+                      </div>
+
+                      <h5 className="font-semibold text-gray-900 dark:text-white mb-2">{review.title}</h5>
+                      <p className="text-gray-700 dark:text-gray-300 mb-3">{review.content}</p>
+
+                      {/* Pros and Cons */}
+                      {((review.pros && review.pros.length > 0) || (review.cons && review.cons.length > 0)) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                          {review.pros && review.pros.length > 0 && (
+                            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                              <h6 className="text-sm font-semibold text-green-800 dark:text-green-400 mb-2">Pros</h6>
+                              <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                                {review.pros.map((pro: string, i: number) => (
+                                  <li key={i}>✓ {pro}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {review.cons && review.cons.length > 0 && (
+                            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                              <h6 className="text-sm font-semibold text-red-800 dark:text-red-400 mb-2">Cons</h6>
+                              <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                                {review.cons.map((con: string, i: number) => (
+                                  <li key={i}>✗ {con}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-6 text-gray-500 pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <button
+                          onClick={() => handleLikeReview(review.id)}
+                          className="flex items-center gap-2 hover:text-red-500 transition-colors"
+                        >
+                          <Heart className="w-5 h-5" />
+                          <span className="text-sm">{review.likes || 0}</span>
+                        </button>
+                        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="text-sm">{review.comments || 0}</span>
+                        </button>
+                        <button
+                          onClick={() => handleMarkHelpful(review.id)}
+                          className="flex items-center gap-2 hover:text-green-500 transition-colors"
+                        >
+                          <TrendingUp className="w-5 h-5" />
+                          <span className="text-sm">{review.helpful || 0} helpful</span>
+                        </button>
+                        <div className="flex items-center gap-2 ml-auto">
+                          <button className="flex items-center gap-2 hover:text-purple-500 transition-colors">
+                            <Share2 className="w-5 h-5" />
+                          </button>
+                          {review.userId === user?.id && (
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              className="flex items-center gap-2 hover:text-red-500 transition-colors"
+                              title="Delete your review"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {endorsement.message && (
-                    <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">
-                    {formatTimestamp(endorsement.timestamp)}
-                  </p>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Help Requests Tab */}
+      {reviewsActiveTab === 'requests' && (
+        <div className="space-y-4">
+          {filteredRequests.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+              <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No help requests yet</h4>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Need recommendations? Ask the community!</p>
+              <button
+                onClick={() => setShowNewRequestModal(true)}
+                className="px-6 py-2 text-white rounded-lg font-semibold"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+              >
+                Ask for Help
+              </button>
+            </div>
+          ) : (
+            filteredRequests.map(request => (
+              <motion.div
+                key={request.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <img
+                    src={request.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${request.userId}`}
+                    alt={request.userName}
+                    className="w-12 h-12 rounded-full flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-gray-900 dark:text-white">{request.userName}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-sm text-gray-500">{formatTimestamp(request.timestamp)}</span>
+                    </div>
+
+                    <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{request.title}</h4>
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">{request.description}</p>
+
+                    {request.tags && request.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {request.tags.map((tag: string, i: number) => (
+                          <span
+                            key={i}
+                            className="text-xs px-3 py-1 rounded-full"
+                            style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4 text-sm">
+                      <button
+                        onClick={async () => {
+                          // Fetch latest replies before opening modal
+                          const replies = await fetchReplies(request.id);
+                          setSelectedRequest({ ...request, replies });
+                          setShowReplyModal(true);
+                        }}
+                        className="flex items-center gap-2 font-medium hover:opacity-80 transition-opacity"
+                        style={{ color: '#00ADB5' }}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        {request.responses || 0} responses
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (request.userId === user?.id) {
+                            // If it's the owner, just show replies
+                            const replies = await fetchReplies(request.id);
+                            setSelectedRequest({ ...request, replies });
+                            setShowReplyModal(true);
+                            return;
+                          }
+                          const replies = await fetchReplies(request.id);
+                          setSelectedRequest({ ...request, replies });
+                          setShowReplyModal(true);
+                        }}
+                        className="text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors"
+                      >
+                        {request.userId === user?.id ? 'View Replies' : 'Help Answer'}
+                      </button>
+                      {request.userId === user?.id && (
+                        <button
+                          onClick={() => handleDeleteRequest(request.id)}
+                          className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors ml-auto"
+                          title="Delete your request"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* New Review Modal */}
+      {showNewReviewModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Post a Review</h3>
+              <button
+                onClick={() => setShowNewReviewModal(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Website Name *</label>
+                <input
+                  type="text"
+                  value={newReviewData.website}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, website: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="e.g., LeetCode, freeCodeCamp"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Website URL</label>
+                <input
+                  type="text"
+                  value={newReviewData.url}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, url: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="e.g., leetcode.com"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Category</label>
+                <select
+                  value={newReviewData.category}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, category: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                >
+                  <option value="">Select category</option>
+                  {reviewCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <Star
+                      key={star}
+                      className={`w-8 h-8 cursor-pointer transition-colors ${
+                        star <= newReviewData.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 hover:text-yellow-200'
+                      }`}
+                      onClick={() => setNewReviewData({ ...newReviewData, rating: star })}
+                    />
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Endorsements Given */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-500" />
-          Endorsements Given ({endorsements.filter(e => e.endorserId === user?.id).length})
-        </h4>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Review Title *</label>
+                <input
+                  type="text"
+                  value={newReviewData.title}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, title: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="Summarize your experience"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
 
-        {endorsements.filter(e => e.endorserId === user?.id).length === 0 ? (
-          <p className="text-gray-500 dark:text-white text-center py-8">
-            You haven't endorsed anyone yet. Go to the directory to endorse developers!
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {endorsements.filter(e => e.endorserId === user?.id).map(endorsement => (
-              <div key={endorsement.id} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm">To: {endorsement.recipientName}</p>
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
-                      {endorsement.skill}
-                    </span>
-                  </div>
-                  {endorsement.message && (
-                    <p className="text-sm text-gray-600 dark:text-white">{endorsement.message}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">
-                    {formatTimestamp(endorsement.timestamp)}
-                  </p>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Detailed Review *</label>
+                <textarea
+                  value={newReviewData.content}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, content: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white h-32 focus:outline-none focus:ring-2"
+                  placeholder="Share your experience, tips, and insights..."
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Pros (comma separated)</label>
+                <input
+                  type="text"
+                  value={newReviewData.pros}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, pros: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="Great UI, Free resources, Active community"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Cons (comma separated)</label>
+                <input
+                  type="text"
+                  value={newReviewData.cons}
+                  onChange={(e) => setNewReviewData({ ...newReviewData, cons: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="Expensive, Limited content, Slow support"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleSubmitReview}
+                className="flex-1 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+              >
+                Post Review
+              </button>
+              <button
+                onClick={() => setShowNewReviewModal(false)}
+                className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* New Help Request Modal */}
+      {showNewRequestModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Ask for Help</h3>
+              <button
+                onClick={() => setShowNewRequestModal(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">What are you looking for? *</label>
+                <input
+                  type="text"
+                  value={newRequestData.title}
+                  onChange={(e) => setNewRequestData({ ...newRequestData, title: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="e.g., Best resources to learn React"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Description *</label>
+                <textarea
+                  value={newRequestData.description}
+                  onChange={(e) => setNewRequestData({ ...newRequestData, description: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white h-24 focus:outline-none focus:ring-2"
+                  placeholder="Describe what you're looking for, your current level, specific requirements..."
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Tags (comma separated)</label>
+                <input
+                  type="text"
+                  value={newRequestData.tags}
+                  onChange={(e) => setNewRequestData({ ...newRequestData, tags: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2"
+                  placeholder="React, Frontend, Beginner"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleSubmitRequest}
+                className="flex-1 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+              >
+                Post Request
+              </button>
+              <button
+                onClick={() => setShowNewRequestModal(false)}
+                className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Reply Modal */}
+      {showReplyModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {selectedRequest.userId === user?.id ? 'View Replies' : 'Reply to Request'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReplyModal(false);
+                  setReplyText('');
+                  setSelectedRequest(null);
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Request Info */}
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <img
+                  src={selectedRequest.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${selectedRequest.userId}`}
+                  alt={selectedRequest.userName}
+                  className="w-8 h-8 rounded-full"
+                />
+                <span className="font-semibold text-gray-900 dark:text-white">{selectedRequest.userName}</span>
+                {selectedRequest.userId === user?.id && (
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">Your Request</span>
+                )}
+              </div>
+              <h4 className="font-bold text-gray-900 dark:text-white mb-1">{selectedRequest.title}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{selectedRequest.description}</p>
+            </div>
+
+            {/* Existing Replies */}
+            {selectedRequest.replies && selectedRequest.replies.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-white mb-3 flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  {selectedRequest.replies.length} {selectedRequest.replies.length === 1 ? 'Reply' : 'Replies'}
+                </h4>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {selectedRequest.replies.map((reply: any, index: number) => (
+                    <div key={reply.id || index} className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <img
+                          src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
+                          alt={reply.userName}
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <span className="font-medium text-sm text-gray-900 dark:text-white">{reply.userName}</span>
+                        <span className="text-xs text-gray-500">{formatTimestamp(reply.createdAt)}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{reply.content}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            )}
+
+            {/* No Replies Message for Owner */}
+            {selectedRequest.userId === user?.id && (!selectedRequest.replies || selectedRequest.replies.length === 0) && (
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p>No replies yet. Check back later!</p>
+              </div>
+            )}
+
+            {/* Reply Input - Only show if not the owner */}
+            {selectedRequest.userId !== user?.id && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Your Reply *</label>
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white h-24 focus:outline-none focus:ring-2"
+                    placeholder="Share your recommendation, resources, or advice..."
+                    style={{ '--tw-ring-color': '#00ADB5' } as React.CSSProperties}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              {selectedRequest.userId !== user?.id ? (
+                <>
+                  <button
+                    onClick={handleSubmitReply}
+                    disabled={!replyText.trim()}
+                    className="flex-1 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                  >
+                    Send Reply
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowReplyModal(false);
+                      setReplyText('');
+                      setSelectedRequest(null);
+                    }}
+                    className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowReplyModal(false);
+                    setReplyText('');
+                    setSelectedRequest(null);
+                  }}
+                  className="w-full py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 
@@ -2222,7 +3054,7 @@ export default function DeveloperConnect() {
             { id: 'directory', label: 'Developer Directory', icon: Code2 },
             { id: 'messages', label: 'Messages', icon: Mail },
             { id: 'groups', label: 'Study Groups', icon: BookOpen },
-            { id: 'endorsements', label: 'Endorsements', icon: Award }
+            { id: 'reviews', label: 'Tech Reviews', icon: Star }
           ].map(tab => {
             const Icon = tab.icon;
             return (
@@ -2238,7 +3070,7 @@ export default function DeveloperConnect() {
               >
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.id === 'directory' ? 'Directory' : tab.id === 'messages' ? 'Messages' : tab.id === 'groups' ? 'Groups' : 'Endorsements'}</span>
+                <span className="sm:hidden">{tab.id === 'directory' ? 'Directory' : tab.id === 'messages' ? 'Messages' : tab.id === 'groups' ? 'Groups' : 'Reviews'}</span>
               </button>
             );
           })}
@@ -2248,110 +3080,8 @@ export default function DeveloperConnect() {
         {activeTab === 'directory' && renderDirectory()}
         {activeTab === 'messages' && renderMessages()}
         {activeTab === 'groups' && renderGroups()}
-        {activeTab === 'endorsements' && renderEndorsements()}
+        {activeTab === 'reviews' && renderTechReviews()}
       </div>
-
-      {/* Global Endorse Modal - Shows on any tab */}
-      {showEndorseModal && selectedUserToEndorse && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Endorse {selectedUserToEndorse.name}
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Select Skill</label>
-                <select
-                  value={endorsementData.skill}
-                  onChange={(e) => setEndorsementData({...endorsementData, skill: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                >
-                  <option value="">Choose a skill</option>
-                  {selectedUserToEndorse.skills.map(skill => (
-                    <option key={skill} value={skill}>{skill}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Message (Optional)</label>
-                <textarea
-                  value={endorsementData.message}
-                  onChange={(e) => setEndorsementData({...endorsementData, message: e.target.value})}
-                  placeholder="Great team player with excellent React skills..."
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={async () => {
-                  if (!endorsementData.skill) {
-                    toast.error('Please select a skill to endorse');
-                    return;
-                  }
-
-                  if (!user) {
-                    toast.error('You must be logged in to endorse');
-                    return;
-                  }
-
-                  try {
-                    // Save to backend first
-                    const response = await apiRequest(`/developers/${selectedUserToEndorse.userId}/endorse`, {
-                      method: 'POST',
-                      body: JSON.stringify({
-                        skill: endorsementData.skill,
-                        message: endorsementData.message,
-                        endorserName: userprofile?.displayName || user.name || 'User',
-                        endorserAvatar: userprofile?.avatrUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=User`,
-                        recipientName: selectedUserToEndorse.name
-                      })
-                    });
-
-                    // Update local state with the returned endorsement
-                    if (response.endorsement) {
-                      setEndorsements(prev => [...prev, response.endorsement]);
-                    }
-
-                    // Close modal and reset
-                    setShowEndorseModal(false);
-                    setSelectedUserToEndorse(null);
-                    setEndorsementData({skill: '', message: ''});
-
-                    // Show success toast
-                    toast.success(`✅ Successfully endorsed ${selectedUserToEndorse.name} for ${endorsementData.skill}!`, {
-                      duration: 4000,
-                      position: 'top-center',
-                    });
-                  } catch (error: any) {
-                    console.error('Error saving endorsement:', error);
-                    const errorMessage = error?.message || 'Failed to save endorsement. Please try again.';
-                    toast.error(errorMessage);
-                  }
-                }}
-                disabled={!endorsementData.skill}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Send Endorsement
-              </button>
-              <button
-                onClick={() => {
-                  setShowEndorseModal(false);
-                  setSelectedUserToEndorse(null);
-                  setEndorsementData({skill: '', message: ''});
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

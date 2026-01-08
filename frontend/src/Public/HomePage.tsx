@@ -3,12 +3,13 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FeatureCard, ServiceCard, TestimonialCard } from "../components/HomePage/Cards";
 import { useRevealAnimation } from "../components/hooks/useRevealAnimation";
+import LiveUpdatesBot from "../components/LiveUpdatesBot";
 import {
-  features as homePageFeatures,
-  galleryImages as homePageGallery,
-  services as homePageServices,
-  testimonials as homePageTestimonials,
-  statistics
+    features as homePageFeatures,
+    galleryImages as homePageGallery,
+    services as homePageServices,
+    testimonials as homePageTestimonials,
+    statistics
 } from "../data/homePageData";
 
 // Custom Hook for Parallax Scroll Effect
@@ -450,7 +451,7 @@ HeroSection.displayName = 'HeroSection';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
       {/* Hero Section */}
       <HeroSection />
 
@@ -1256,6 +1257,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Live Tech Updates Bot */}
+      <LiveUpdatesBot />
     </div>
   );
 }

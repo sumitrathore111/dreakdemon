@@ -1,14 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Award,
-  Bell,
-  CheckCircle,
-  MessageSquare,
-  ShoppingBag,
-  Sword,
-  Trophy,
-  UserPlus,
-  X
+    Award,
+    Bell,
+    CheckCircle,
+    MessageSquare,
+    ShoppingBag,
+    Sword,
+    Trophy,
+    UserPlus,
+    X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,7 +19,7 @@ import { getSocket, initializeSocket } from '../../service/socketService';
 
 interface Notification {
   id: string;
-  type: 'battle_invite' | 'message' | 'project_request' | 'endorsement' | 'sale' | 'task_assigned' | 'battle_result';
+  type: 'battle_invite' | 'message' | 'project_request' | 'tech_review' | 'sale' | 'task_assigned' | 'battle_result';
   title: string;
   message: string;
   link?: string;
@@ -47,12 +47,12 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const panelHeight = 400; // Approximate panel height
-      
+
       // Check if button is in bottom half of screen - if so, open upward
       const isBottomHalf = rect.top > window.innerHeight / 2;
-      
+
       setPanelPosition({
-        top: isBottomHalf 
+        top: isBottomHalf
           ? Math.max(16, rect.top - panelHeight - 8) // Open upward
           : rect.bottom + 8, // Open downward
         left: Math.max(16, Math.min(rect.left, window.innerWidth - 400))
@@ -66,11 +66,11 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
-    
+
     // Set up real-time socket listeners
     initializeSocket();
     const socket = getSocket();
-    
+
     if (socket) {
       // Listen for new messages
       socket.on('newMessage', (data: any) => {
@@ -114,14 +114,14 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
         });
       });
 
-      // Listen for endorsements
-      socket.on('newEndorsement', (data: any) => {
+      // Listen for tech reviews
+      socket.on('newTechReview', (data: any) => {
         addNotification({
-          id: `endorse-${Date.now()}`,
-          type: 'endorsement',
-          title: 'New Endorsement!',
-          message: `${data.fromName || 'Someone'} endorsed your ${data.skill || 'skills'}`,
-          link: '/dashboard/courses',
+          id: `review-${Date.now()}`,
+          type: 'tech_review',
+          title: 'New Tech Review!',
+          message: `${data.fromName || 'Someone'} posted a review for ${data.website || 'a website'}`,
+          link: '/dashboard/developer-connect',
           read: false,
           createdAt: new Date(),
           data
@@ -157,11 +157,11 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
   const fetchNotifications = async () => {
     if (!user) return;
     setLoading(true);
-    
+
     try {
       // Aggregate notifications from different sources
       const notifs: Notification[] = [];
-      
+
       // 1. Unread messages count
       try {
         const chatsResponse = await apiRequest('/chats');
@@ -170,7 +170,7 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           const lastMessage = chat.lastMessage;
           return lastMessage && lastMessage.senderId !== user.id && !chat.read;
         });
-        
+
         if (unreadChats.length > 0) {
           notifs.push({
             id: 'messages-unread',
@@ -183,18 +183,18 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           });
         }
       } catch (e) { /* ignore */ }
-      
+
       // 2. Pending join requests (for project creators)
       try {
         const ideasResponse = await apiRequest('/ideas');
-        const myProjects = (ideasResponse || []).filter((idea: any) => 
+        const myProjects = (ideasResponse || []).filter((idea: any) =>
           idea.userId === user.id && idea.status === 'approved'
         );
-        
+
         for (const project of myProjects.slice(0, 5)) {
           const requests = await apiRequest(`/join-requests/project/${project.projectId || project.id}`);
           const pendingRequests = (requests || []).filter((r: any) => r.status === 'pending');
-          
+
           if (pendingRequests.length > 0) {
             notifs.push({
               id: `project-requests-${project.id}`,
@@ -208,14 +208,14 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           }
         }
       } catch (e) { /* ignore */ }
-      
+
       // 3. Recent battle results
       try {
         const battlesResponse = await apiRequest(`/battles/user/${user.id}`);
         const recentBattles = (battlesResponse?.battles || [])
           .filter((b: any) => b.status === 'completed')
           .slice(0, 3);
-        
+
         for (const battle of recentBattles) {
           const isWinner = battle.winner === user.id;
           notifs.push({
@@ -229,12 +229,12 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           });
         }
       } catch (e) { /* ignore */ }
-      
+
       // 4. Rematch requests
       try {
         const rematchResponse = await apiRequest(`/battles/rematch-requests?userId=${user.id}`);
         const rematchBattles = rematchResponse?.battles || [];
-        
+
         for (const battle of rematchBattles) {
           notifs.push({
             id: `rematch-${battle._id}`,
@@ -247,12 +247,12 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           });
         }
       } catch (e) { /* ignore */ }
-      
+
       // Sort by date and set
       notifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setNotifications(notifs);
       setUnreadCount(notifs.filter(n => !n.read).length);
-      
+
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -266,7 +266,7 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
   };
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, read: true } : n)
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
@@ -312,7 +312,7 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
@@ -329,7 +329,7 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
         title="Notifications"
       >
         <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        
+
         {/* Unread Badge */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
@@ -353,11 +353,11 @@ export default function UnifiedNotifications({ isMinimized = false }: UnifiedNot
           {isOpen && (
             <>
               {/* Backdrop */}
-              <div 
+              <div
                 className="fixed inset-0 z-[9998]"
                 onClick={() => setIsOpen(false)}
               />
-              
+
               {/* Notification Panel */}
               <motion.div
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
