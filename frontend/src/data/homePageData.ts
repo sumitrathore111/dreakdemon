@@ -135,7 +135,7 @@ export const testimonials: TestimonialData[] = [
   },
   {
     name: "David Kim",
-    role: "DevOps Engineer", 
+    role: "DevOps Engineer",
     company: "Amazon",
     quote: "NextStep's focus on practical skills and real-world experience prepared me perfectly for my role at Amazon. The mentors are world-class.",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",

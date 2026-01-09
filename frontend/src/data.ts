@@ -260,7 +260,7 @@ export const companies = [
     "package_lpa": 15.5,
     "job_type": "Full-time",
     "education": "B.Tech/B.E. in CSE/IT",
-    "hiring_for": "2025 Batch"
+    "hiring_for": "2025 Batchz"
   },
   {
     "id": 17,

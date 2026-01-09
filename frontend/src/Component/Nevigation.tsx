@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  BookOpen,
-  ChevronsLeft,
-  DoorOpen,
-  Folder,
-  Home,
-  LogOut,
-  Menu,
-  MessageSquare,
-  Moon,
-  Store,
-  Sun,
-  Trophy,
-  UserCircle,
+    AlertTriangle,
+    BookOpen,
+    ChevronsLeft,
+    DoorOpen,
+    Folder,
+    Home,
+    LogOut,
+    Menu,
+    MessageSquare,
+    Moon,
+    Store,
+    Sun,
+    Trophy,
+    UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -38,7 +38,7 @@ export default function DashboardLayout() {
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
-    { name: "Developer Connect", path: "/dashboard/courses", icon: <BookOpen size={20} /> },
+    { name: "Developer Connect", path: "/dashboard/developer-connect", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
     { name: "Project Bazaar", path: "/dashboard/marketplace", icon: <Store size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },

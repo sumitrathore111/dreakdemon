@@ -62,6 +62,33 @@ const getUserAvatar = (userprofile: any, userId: string | undefined): string => 
   return `https://api.dicebear.com/9.x/adventurer/svg?seed=${userId || 'default'}`;
 };
 
+// Helper function to render text with clickable links
+const renderMessageWithLinks = (text: string, isMe: boolean = false) => {
+  if (!text) return null;
+
+  // URL regex pattern
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`underline hover:opacity-80 ${isMe ? 'text-cyan-100' : 'text-[#00ADB5]'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export default function DeveloperConnect() {
   const { user } = useAuth();
   const { userprofile } = useDataContext();
@@ -120,6 +147,10 @@ export default function DeveloperConnect() {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [replyText, setReplyText] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [reviewToShare, setReviewToShare] = useState<any>(null);
+  const [shareSearch, setShareSearch] = useState('');
+  const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(null);
 
   const reviewCategories = ['Coding Practice', 'Web Development', 'Mobile Development', 'Data Science', 'DevOps', 'UI/UX', 'Algorithms', 'System Design', 'Interview Prep', 'Other'];
 
@@ -145,6 +176,39 @@ export default function DeveloperConnect() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle URL parameters for shared review links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    const reviewId = params.get('reviewId');
+
+    if (tab === 'reviews') {
+      setActiveTab('reviews');
+      setReviewsActiveTab('reviews');
+
+      if (reviewId) {
+        setHighlightedReviewId(reviewId);
+        // Clean up URL immediately to prevent re-processing
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, []); // Run only once on mount
+
+  // Scroll to highlighted review when reviews load
+  useEffect(() => {
+    if (highlightedReviewId && techReviews.length > 0) {
+      // Wait for rendering, then scroll
+      setTimeout(() => {
+        const reviewElement = document.getElementById(`review-${highlightedReviewId}`);
+        if (reviewElement) {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+      // Clear highlight after 3 seconds
+      setTimeout(() => setHighlightedReviewId(null), 3000);
+    }
+  }, [highlightedReviewId, techReviews]);
 
   // Track WebSocket connection status and typing indicators
   useEffect(() => {
@@ -1353,7 +1417,7 @@ export default function DeveloperConnect() {
                                 boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
                               }}
                             >
-                              <p className="text-sm leading-relaxed">{msg.message || msg.content || msg.text}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMessageWithLinks(msg.message || msg.content || msg.text, isMe)}</p>
                               <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
                                 <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
                                   {msg.createdAt
@@ -2179,7 +2243,7 @@ export default function DeveloperConnect() {
         cons: newReviewData.cons.split(',').map(c => c.trim()).filter(Boolean),
         timestamp: new Date().toISOString(),
         likes: 0,
-        comments: 0,
+
         helpful: 0
       };
 
@@ -2453,9 +2517,14 @@ export default function DeveloperConnect() {
             filteredReviews.map(review => (
               <motion.div
                 key={review.id}
+                id={`review-${review.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+                className={`bg-white dark:bg-gray-800 rounded-xl p-6 border hover:shadow-lg transition-all ${
+                  highlightedReviewId === review.id
+                    ? 'border-[#00ADB5] ring-2 ring-[#00ADB5] shadow-lg shadow-[#00ADB5]/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}
               >
                 <div className="flex items-start gap-4">
                   <img
@@ -2541,10 +2610,7 @@ export default function DeveloperConnect() {
                           <Heart className="w-5 h-5" />
                           <span className="text-sm">{review.likes || 0}</span>
                         </button>
-                        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="text-sm">{review.comments || 0}</span>
-                        </button>
+
                         <button
                           onClick={() => handleMarkHelpful(review.id)}
                           className="flex items-center gap-2 hover:text-green-500 transition-colors"
@@ -2553,7 +2619,14 @@ export default function DeveloperConnect() {
                           <span className="text-sm">{review.helpful || 0} helpful</span>
                         </button>
                         <div className="flex items-center gap-2 ml-auto">
-                          <button className="flex items-center gap-2 hover:text-purple-500 transition-colors">
+                          <button
+                            onClick={() => {
+                              setReviewToShare(review);
+                              setShowShareModal(true);
+                            }}
+                            className="flex items-center gap-2 hover:text-purple-500 transition-colors"
+                            title="Share to message"
+                          >
                             <Share2 className="w-5 h-5" />
                           </button>
                           {review.userId === user?.id && (
@@ -2921,12 +2994,27 @@ export default function DeveloperConnect() {
             {/* Request Info */}
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
               <div className="flex items-center gap-3 mb-2">
-                <img
-                  src={selectedRequest.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${selectedRequest.userId}`}
-                  alt={selectedRequest.userName}
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="font-semibold text-gray-900 dark:text-white">{selectedRequest.userName}</span>
+                <button
+                  onClick={() => {
+                    if (selectedRequest.userId !== user?.id) {
+                      setSearchQuery(selectedRequest.userName || '');
+                      setActiveTab('directory');
+                      setShowReplyModal(false);
+                      setSelectedRequest(null);
+                      setReplyText('');
+                    }
+                  }}
+                  className={`flex items-center gap-2 ${selectedRequest.userId !== user?.id ? 'hover:opacity-80 transition-opacity cursor-pointer group' : 'cursor-default'}`}
+                  title={selectedRequest.userId !== user?.id ? `View ${selectedRequest.userName}'s profile` : 'Your profile'}
+                  disabled={selectedRequest.userId === user?.id}
+                >
+                  <img
+                    src={selectedRequest.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${selectedRequest.userId}`}
+                    alt={selectedRequest.userName}
+                    className={`w-8 h-8 rounded-full ${selectedRequest.userId !== user?.id ? 'ring-2 ring-transparent group-hover:ring-[#00ADB5] transition-all' : ''}`}
+                  />
+                  <span className={`font-semibold text-gray-900 dark:text-white ${selectedRequest.userId !== user?.id ? 'group-hover:text-[#00ADB5] transition-colors' : ''}`}>{selectedRequest.userName}</span>
+                </button>
                 {selectedRequest.userId === user?.id && (
                   <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">Your Request</span>
                 )}
@@ -2946,12 +3034,24 @@ export default function DeveloperConnect() {
                   {selectedRequest.replies.map((reply: any, index: number) => (
                     <div key={reply.id || index} className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <img
-                          src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
-                          alt={reply.userName}
-                          className="w-6 h-6 rounded-full"
-                        />
-                        <span className="font-medium text-sm text-gray-900 dark:text-white">{reply.userName}</span>
+                        <button
+                          onClick={() => {
+                            setSearchQuery(reply.userName || '');
+                            setActiveTab('directory');
+                            setShowReplyModal(false);
+                            setSelectedRequest(null);
+                            setReplyText('');
+                          }}
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group"
+                          title={`View ${reply.userName}'s profile`}
+                        >
+                          <img
+                            src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
+                            alt={reply.userName}
+                            className="w-6 h-6 rounded-full ring-2 ring-transparent group-hover:ring-[#00ADB5] transition-all"
+                          />
+                          <span className="font-medium text-sm text-gray-900 dark:text-white group-hover:text-[#00ADB5] transition-colors">{reply.userName}</span>
+                        </button>
                         <span className="text-xs text-gray-500">{formatTimestamp(reply.createdAt)}</span>
                       </div>
                       <p className="text-sm text-gray-700 dark:text-gray-300">{reply.content}</p>
@@ -3082,6 +3182,131 @@ export default function DeveloperConnect() {
         {activeTab === 'groups' && renderGroups()}
         {activeTab === 'reviews' && renderTechReviews()}
       </div>
+
+      {/* Share Review Modal */}
+      {showShareModal && reviewToShare && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-xl"
+          >
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Share Review</h3>
+              <button
+                onClick={() => {
+                  setShowShareModal(false);
+                  setReviewToShare(null);
+                  setShareSearch('');
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Review Preview */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Sharing:</p>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-400" />
+                <span className="font-semibold text-gray-900 dark:text-white">{reviewToShare.website}</span>
+                <span className="text-gray-500">-</span>
+                <span className="text-gray-600 dark:text-gray-300 truncate">{reviewToShare.title}</span>
+              </div>
+            </div>
+
+            {/* Search Developers */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search developers to share with..."
+                  value={shareSearch}
+                  onChange={(e) => setShareSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 text-sm"
+                  style={{ '--tw-ring-color': '#00ADB5' } as any}
+                />
+              </div>
+            </div>
+
+            {/* Developer List */}
+            <div className="overflow-y-auto max-h-[300px]">
+              {developers
+                .filter(dev =>
+                  dev.userId !== user?.id &&
+                  (dev.name?.toLowerCase().includes(shareSearch.toLowerCase()) ||
+                   dev.skills?.some((s: string) => s.toLowerCase().includes(shareSearch.toLowerCase())))
+                )
+                .slice(0, 20)
+                .map(dev => (
+                  <button
+                    key={dev.userId}
+                    onClick={async () => {
+                      try {
+                        // Create or get chat with this developer
+                        const chatResponse = await apiRequest('/chats', {
+                          method: 'POST',
+                          body: JSON.stringify({
+                            participantIds: [user?.id, dev.userId],
+                          }),
+                        });
+
+                        const chatId = chatResponse?.id || chatResponse?.chat?.id;
+                        if (!chatId) throw new Error('Failed to create chat');
+
+                        // Send the shared review as a link message
+                        const reviewLink = `${window.location.origin}/dashboard/developer-connect?tab=reviews&reviewId=${reviewToShare.id}`;
+                        const shareMessage = `📚 Check out this review: ${reviewToShare.website}\n🔗 ${reviewLink}`;
+
+                        await apiRequest(`/chats/${chatId}/messages`, {
+                          method: 'POST',
+                          body: JSON.stringify({
+                            senderId: user?.id,
+                            senderName: userprofile?.displayName || userprofile?.name || user?.name || 'User',
+                            senderAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
+                            message: shareMessage,
+                          }),
+                        });
+
+                        toast.success(`Review shared with ${dev.name}!`);
+                        setShowShareModal(false);
+                        setReviewToShare(null);
+                        setShareSearch('');
+                      } catch (error) {
+                        console.error('Error sharing review:', error);
+                        toast.error('Failed to share review');
+                      }
+                    }}
+                    className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                  >
+                    <img
+                      src={dev.avatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${dev.userId}`}
+                      alt={dev.name}
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div className="flex-1 text-left">
+                      <p className="font-semibold text-gray-900 dark:text-white">{dev.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{dev.bio?.substring(0, 30) || 'Developer'}</p>
+                    </div>
+                    <Send className="w-4 h-4 text-gray-400" />
+                  </button>
+                ))}
+              {developers.filter(dev =>
+                dev.userId !== user?.id &&
+                (dev.name?.toLowerCase().includes(shareSearch.toLowerCase()) ||
+                 dev.skills?.some((s: string) => s.toLowerCase().includes(shareSearch.toLowerCase())))
+              ).length === 0 && (
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                  <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No developers found</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

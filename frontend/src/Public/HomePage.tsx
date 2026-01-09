@@ -3,13 +3,12 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FeatureCard, ServiceCard, TestimonialCard } from "../components/HomePage/Cards";
 import { useRevealAnimation } from "../components/hooks/useRevealAnimation";
-import LiveUpdatesBot from "../components/LiveUpdatesBot";
 import {
-    features as homePageFeatures,
-    galleryImages as homePageGallery,
-    services as homePageServices,
-    testimonials as homePageTestimonials,
-    statistics
+  features as homePageFeatures,
+  galleryImages as homePageGallery,
+  services as homePageServices,
+  testimonials as homePageTestimonials,
+  statistics
 } from "../data/homePageData";
 
 // Custom Hook for Parallax Scroll Effect
@@ -201,7 +200,7 @@ const HeroSection = memo(() => {
               </h1>
 
               <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
-                SkillUpX is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
+                NextStep is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
               </p>
 
               {/* Feature Highlights with Stagger Animation */}
@@ -451,7 +450,7 @@ HeroSection.displayName = 'HeroSection';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <HeroSection />
 
@@ -1257,9 +1256,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Live Tech Updates Bot */}
-      <LiveUpdatesBot />
     </div>
   );
 }
