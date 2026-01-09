@@ -107,23 +107,15 @@ export const features: FeatureData[] = [
 
 export const testimonials: TestimonialData[] = [
   {
-    name: "Sarah sw",
+    name: "Pawan",
     role: "Software Engineer",
     company: "Google",
-    quote: "NextStep transformed my career. The real project experience I gained here directly led to my job at Google. The mentorship was invaluable.",
+    quote: "SkillUpX transformed my career. The real project experience I gained here directly led to my job at Google. The mentorship was invaluable.",
     image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&q=80",
     rating: 5,
     verified: true
   },
-  {
-    name: "Alex Rodriguez",
-    role: "Full Stack Developer",
-    company: "Microsoft",
-    quote: "The open-source contributions I made through NextStep showcase on my GitHub helped me stand out during interviews. Highly recommend!",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
-    rating: 5,
-    verified: true
-  },
+
   {
     name: "Priya Sharma",
     role: "Frontend Developer",
@@ -133,15 +125,7 @@ export const testimonials: TestimonialData[] = [
     rating: 5,
     verified: true
   },
-  {
-    name: "David Kim",
-    role: "DevOps Engineer",
-    company: "Amazon",
-    quote: "NextStep's focus on practical skills and real-world experience prepared me perfectly for my role at Amazon. The mentors are world-class.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
-    rating: 5,
-    verified: true
-  }
+
 ];
 
 export const statistics: StatisticData[] = [

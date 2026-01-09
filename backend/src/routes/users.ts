@@ -10,28 +10,28 @@ const router = Router();
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { search, limit = 50, page = 1 } = req.query;
-    
+
     let query: any = {};
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     const users = await User.find(query)
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit));
-    
+
     const total = await User.countDocuments(query);
-    
-    res.json({ 
-      users, 
-      total, 
-      page: Number(page), 
+
+    res.json({
+      users,
+      total,
+      page: Number(page),
       pages: Math.ceil(total / Number(limit))
     });
   } catch (error: any) {
@@ -44,32 +44,32 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
-    
+
     // Get user to find their name for matching assignedTo
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    
+
     const userName = user.name || user.email?.split('@')[0] || '';
-    
+
     // Find all projects and count issues where:
     // - verified is true (approved by owner)
     // - assignedTo matches user's name OR completedBy matches user's id
     const projects = await Project.find({});
-    
+
     let count = 0;
     const completedTasks: any[] = [];
-    
+
     for (const project of projects) {
       for (const issue of project.issues) {
         const issueData = issue as any;
         // Task is considered completed if:
         // 1. verified === true (owner approved it)
         // 2. AND (assignedTo matches userName OR completedBy matches userId)
-        if (issueData.verified === true && 
-            (issueData.assignedTo === userName || 
+        if (issueData.verified === true &&
+            (issueData.assignedTo === userName ||
              issueData.assignedTo === user.email?.split('@')[0] ||
              issueData.completedBy === userId)) {
           count++;
@@ -85,7 +85,7 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
         }
       }
     }
-    
+
     res.json({ count, completedTasks });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -128,20 +128,20 @@ router.put('/:userId', authenticate, updateProfileValidation, async (req: AuthRe
       res.status(403).json({ error: 'Not authorized to update this profile' });
       return;
     }
-    
+
     const { password, ...updateData } = req.body;
-    
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       { $set: updateData },
       { new: true, runValidators: true }
     ).select('-password');
-    
+
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
-    
+
     res.json({ user });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -152,7 +152,7 @@ router.put('/:userId', authenticate, updateProfileValidation, async (req: AuthRe
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { search, limit = 20, page = 1 } = req.query;
-    
+
     let query: any = {};
     if (search) {
       query = {
@@ -162,15 +162,80 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
         ]
       };
     }
-    
+
     const users = await User.find(query)
       .select('name email institute skills profileCompletion')
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit));
-    
+
     const total = await User.countDocuments(query);
-    
+
     res.json({ users, total, page: Number(page), limit: Number(limit) });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add badges to user
+router.post('/:userId/badges', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { badges } = req.body;
+
+    if (!badges || !Array.isArray(badges)) {
+      res.status(400).json({ error: 'Badges array is required' });
+      return;
+    }
+
+    // Check if user is adding badges to their own profile
+    if (req.user?.id !== req.params.userId && req.user?.role !== 'admin') {
+      res.status(403).json({ error: 'Not authorized to add badges to this profile' });
+      return;
+    }
+
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Get existing badges
+    const existingBadges = user.badges || [];
+    const existingBadgeIds = existingBadges.map((b: any) => b.id);
+
+    // Filter out badges that are already earned
+    const newBadges = badges.filter((b: any) => !existingBadgeIds.includes(b.id));
+
+    if (newBadges.length === 0) {
+      res.json({ message: 'No new badges to add', badges: existingBadges });
+      return;
+    }
+
+    // Add new badges
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.userId,
+      { $push: { badges: { $each: newBadges } } },
+      { new: true }
+    ).select('-password');
+
+    res.json({
+      message: `${newBadges.length} badge(s) added successfully!`,
+      badges: updatedUser?.badges || [],
+      newBadges
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user badges
+router.get('/:userId/badges', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.params.userId).select('badges name');
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json({ badges: user.badges || [], userName: user.name });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

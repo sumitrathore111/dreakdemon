@@ -9,7 +9,7 @@ export interface DeveloperProfile {
   email: string;
   avatar: string;
   bio: string;
-  
+
   // Institute/College info
   college?: string;
   institute?: string;
@@ -17,7 +17,7 @@ export interface DeveloperProfile {
   yearOfStudy?: number;
   location?: string;
   phone?: string;
-  
+
   // CodeArena Stats
   codeArenaStats?: {
     problemsSolved: number;
@@ -30,11 +30,11 @@ export interface DeveloperProfile {
   marathon_score?: number;
   marathon_rank?: number;
   streakCount?: number;
-  
+
   // Skills & Expertise
   skills: string[];
   languages?: string[];
-  
+
   // Education & Experience
   education?: Array<{
     degree: string;
@@ -48,7 +48,7 @@ export interface DeveloperProfile {
     desc: string;
   }>;
   achievements?: string[];
-  
+
   // Projects
   projectsCompleted?: number;
   projectsLeading?: number;
@@ -57,23 +57,23 @@ export interface DeveloperProfile {
     role: string;
     project_status: string;
   }>;
-  
+
   // Reputation
   endorsements?: SkillEndorsement[];
   averageRating?: number;
   reviewCount?: number;
   rating?: number;
-  
+
   // Collaboration Status
   lookingFor?: 'Teammates' | 'Mentoring' | 'Both' | 'Not looking' | string;
   lookingForDetails?: string;
   availability?: 'Full-time' | 'Part-time' | 'Weekends only' | 'Flexible' | string;
-  
+
   // Profile Status
   profileCompletion?: number;
   isProfileComplete?: boolean;
   role?: string;
-  
+
   // Social & Links
   github?: string;
   githubUsername?: string;
@@ -86,11 +86,21 @@ export interface DeveloperProfile {
     url: string;
   }>;
   target_company?: string[];
-  
+
   // Status
   isOnline?: boolean;
   joinedDate?: Date;
-  
+
+  // Badges
+  badges?: Array<{
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    earnedAt: Date;
+    category: 'achievement' | 'reward' | 'status';
+  }>;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -112,17 +122,17 @@ export interface DirectMessage {
   senderAvatar: string;
   receiverId: string;
   receiverName: string;
-  
+
   content: string;
   type: 'text' | 'idea' | 'request';
-  
+
   // If type === 'idea' or 'request'
   metadata?: {
     projectTitle?: string;
     skillsNeeded?: string[];
     duration?: string;
   };
-  
+
   read: boolean;
   timestamp: Date;
 }
@@ -132,11 +142,11 @@ export interface MessageThread {
   participantIds: [string, string]; // [userId1, userId2]
   participantNames: [string, string];
   participantAvatars: [string, string];
-  
+
   lastMessage?: DirectMessage;
   messageCount: number;
   unreadCount: number;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -148,23 +158,23 @@ export interface StudyGroup {
   creatorId: string;
   creatorName: string;
   creatorAvatar: string;
-  
+
   topic: string; // 'DSA Interview Prep', 'Web Dev Learning', etc
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   maxMembers: number;
-  
+
   members: GroupMember[];
-  
+
   // Scheduling
   sessionSchedule?: {
     day: string; // 'Monday', 'Tuesday', etc
     time: string; // '10:00 AM'
     duration: number; // minutes
   };
-  
+
   // Resources
   resources: Resource[];
-  
+
   // Activity
   messages: GroupMessage[];
   createdAt: Date;

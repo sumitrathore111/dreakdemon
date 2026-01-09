@@ -118,7 +118,7 @@ export default function MarketplaceBazaar() {
               {/* Chat Requests & Messages */}
               <ChatRequests />
               <MessagesPanel />
-              
+
               <Link
                 to="/dashboard/marketplace/my-purchases"
                 className="px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border-2 rounded-lg hover:bg-[#00ADB5]/10 dark:hover:bg-[#00ADB5]/20 transition-colors flex items-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base whitespace-nowrap"

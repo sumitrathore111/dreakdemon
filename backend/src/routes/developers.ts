@@ -80,7 +80,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       endorsements: 0, // Will be fetched separately if needed
       isOnline: Math.random() > 0.5,
       lookingFor: user.bio?.includes('mentor') ? 'Mentorship' : user.bio?.includes('collab') ? 'Collaboration' : 'Learning',
-      joinedDate: user.createdAt || new Date()
+      joinedDate: user.createdAt || new Date(),
+      badges: user.badges || []
     }));
 
     res.json(developers);
@@ -262,7 +263,7 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
     const [users, studyGroupsData, endorsementsData, techReviewsData, helpRequestsData] = await Promise.all([
       // Get developers (excluding current user)
       User.find(userId ? { _id: { $ne: userId } } : {})
-        .select('name email bio skills languages institute location avatar githubUsername createdAt marathon_rank challenges_solved yearOfStudy')
+        .select('name email bio skills languages institute location avatar githubUsername createdAt marathon_rank challenges_solved yearOfStudy badges rating')
         .limit(50)
         .sort({ createdAt: -1 }),
 
@@ -301,7 +302,12 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
       avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name?.replace(/\s+/g, '') || 'User'}`,
       githubUsername: user.githubUsername || '',
       isOnline: Math.random() > 0.5,
-      joinedDate: user.createdAt || new Date()
+      joinedDate: user.createdAt || new Date(),
+      badges: user.badges || [],
+      rating: user.rating || 0,
+      marathon_rank: user.marathon_rank || 0,
+      challenges_solved: user.challenges_solved || 0,
+      yearOfStudy: user.yearOfStudy || 0
     }));
 
     // Transform study groups - include ALL fields needed by frontend

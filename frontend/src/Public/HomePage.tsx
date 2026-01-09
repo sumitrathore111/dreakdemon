@@ -1,4 +1,4 @@
-import { ArrowRight, Award, BookOpen, Code, Play, Rocket, Sparkles, TrendingUp, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle, Code, Play, Rocket, Sparkles, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FeatureCard, ServiceCard, TestimonialCard } from "../components/HomePage/Cards";
@@ -42,6 +42,9 @@ const useMousePosition = () => {
 // Animated Counter Component
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }: { target: number; suffix?: string; duration?: number }) => {
   const [count, setCount] = useState(0);
+  /**
+   * @param {{ target: number, suffix?: string, duration?: number }} props
+   */
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -957,79 +960,176 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Benefits Section with Hover Lift */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Why NextStep is
-              <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]"> Your Best Choice</span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Everything you need to become a professional developer, all in one platform
-            </p>
-          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: "🎯",
-                title: "Learn Real Skills",
-                description: "Master DSA, coding concepts, and industry-standard technologies through hands-on practice",
-                gradient: "from-blue-500 to-cyan-500"
-              },
-              {
-                icon: "👥",
-                title: "Collaborate & Grow",
-                description: "Team up with other developers on real projects and learn from experienced mentors",
-                gradient: "from-purple-500 to-pink-500"
-              },
-              {
-                icon: "📈",
-                title: "Build Your Portfolio",
-                description: "Showcase 500+ real projects on your profile to impress employers and land better jobs",
-                gradient: "from-orange-500 to-red-500"
-              },
-              {
-                icon: "⚔️",
-                title: "Compete & Win",
-                description: "Battle other developers in CodeArena, climb leaderboards, and earn recognition",
-                gradient: "from-yellow-500 to-orange-500"
-              },
-              {
-                icon: "🏆",
-                title: "Get Verified Certs",
-                description: "Earn industry-recognized certificates backed by real project completion",
-                gradient: "from-green-500 to-emerald-500"
-              },
-              {
-                icon: "💰",
-                title: "100% Free Start",
-                description: "Access all learning resources for free - premium features available at low cost",
-                gradient: "from-[#00ADB5] to-cyan-600"
-              }
-            ].map((benefit, idx) => (
-              <div
-                key={idx}
-                className="group relative p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-100 dark:border-gray-700 hover:border-transparent shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 overflow-hidden spotlight"
-                style={{ animationDelay: `${idx * 0.1}s` }}
-              >
-                {/* Gradient Border on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${benefit.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`} />
-                <div className="absolute inset-[2px] bg-white dark:bg-gray-800 rounded-2xl z-0 group-hover:bg-gradient-to-br group-hover:from-white dark:group-hover:from-gray-800 group-hover:to-gray-50 dark:group-hover:to-gray-900" />
+      {/* Benefits Section with Zig-Zag Timeline */}
+<section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
+  <div className="max-w-5xl mx-auto">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+        Why NextStep is
+        <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]"> Your Best Choice</span>
+      </h2>
+      <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Everything you need to become a professional developer, all in one platform
+      </p>
+    </div>
 
-                <div className="relative z-10">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-3xl mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
-                    {benefit.icon}
-                  </div>
-                  <h3 className="text-xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#00ADB5] transition-colors">{benefit.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{benefit.description}</p>
-                </div>
-              </div>
-            ))}
+    {/* Mobile: Simple stacked cards */}
+    <div className="sm:hidden flex flex-col gap-6">
+      {[
+        {
+          icon: "🎯",
+          title: "Learn Real Skills",
+          description: "Master DSA, coding concepts, and industry-standard technologies through hands-on practice",
+          color: "border-blue-300",
+          bg: "bg-blue-50",
+          image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80"
+        },
+        {
+          icon: "👥",
+          title: "Collaborate & Grow",
+          description: "Team up with other developers on real projects and learn from experienced mentors",
+          color: "border-purple-300",
+          bg: "bg-purple-50",
+          image: "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=400&q=80"
+        },
+        {
+          icon: "📈",
+          title: "Build Your Portfolio",
+          description: "Showcase 500+ real projects on your profile to impress employers and land better jobs",
+          color: "border-orange-300",
+          bg: "bg-orange-50",
+          image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
+        },
+        {
+          icon: "⚔️",
+          title: "Compete & Win",
+          description: "Battle other developers in CodeArena, climb leaderboards, and earn recognition",
+          color: "border-yellow-300",
+          bg: "bg-yellow-50",
+          image: "https://images.unsplash.com/photo-1503676382389-4809596d5290?w=400&q=80"
+        },
+        {
+          icon: "🏆",
+          title: "Get Verified Certs",
+          description: "Earn industry-recognized certificates backed by real project completion",
+          color: "border-green-300",
+          bg: "bg-green-50",
+          image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400&q=80"
+        },
+        {
+          icon: "💰",
+          title: "100% Free Start",
+          description: "Access all learning resources for free - premium features available at low cost",
+          color: "border-cyan-300",
+          bg: "bg-cyan-50",
+          image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80"
+        }
+      ].map((benefit, idx) => (
+        <div key={idx} className={`rounded-2xl shadow-md ${benefit.bg} dark:bg-gray-900 border ${benefit.color} dark:border-gray-700 px-5 py-6 flex flex-col items-center`}>
+          <img src={benefit.image} alt={benefit.title} className="w-full h-24 object-cover rounded-xl mb-3 shadow" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow -mt-6 border-2 border-[#00ADB5]/30">
+            <span className="text-xl text-gray-900 dark:text-white">{benefit.icon}</span>
           </div>
+          <h3 className="text-lg font-extrabold text-center mb-1 text-gray-900 dark:text-white">
+            {benefit.title}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+            {benefit.description}
+          </p>
         </div>
-      </section>
+      ))}
+    </div>
+    {/* Desktop/Tablet: Timeline zig-zag */}
+    <div className="hidden sm:relative sm:flex sm:flex-col sm:items-left">
+      {/* Timeline vertical line */}
+      <div className="absolute left-1/2 top-0 h-full w-1 bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/10 to-transparent -translate-x-1/2 z-0" />
+      <div className="h-8 md:h-12" />
+      {[
+        {
+          icon: "🎯",
+          title: "Learn Real Skills",
+          description: "Master DSA, coding concepts, and industry-standard technologies through hands-on practice",
+          color: "border-blue-300",
+          bg: "bg-blue-50",
+          image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80"
+        },
+        {
+          icon: "👥",
+          title: "Collaborate & Grow",
+          description: "Team up with other developers on real projects and learn from experienced mentors",
+          color: "border-purple-300",
+          bg: "bg-purple-50",
+          image: "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=400&q=80"
+        },
+        {
+          icon: "📈",
+          title: "Build Your Portfolio",
+          description: "Showcase 500+ real projects on your profile to impress employers and land better jobs",
+          color: "border-orange-300",
+          bg: "bg-orange-50",
+          image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
+        },
+        {
+          icon: "⚔️",
+          title: "Compete & Win",
+          description: "Battle other developers in CodeArena, climb leaderboards, and earn recognition",
+          color: "border-yellow-300",
+          bg: "bg-yellow-50",
+          image: "https://images.unsplash.com/photo-1578269174936-2709b6aeb913?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        },
+        {
+          icon: "🏆",
+          title: "Get Verified Certs",
+          description: "Earn industry-recognized certificates backed by real project completion",
+          color: "border-green-300",
+          bg: "bg-green-50",
+          image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400&q=80"
+        },
+        {
+          icon: "💰",
+          title: "100% Free Start",
+          description: "Access all learning resources for free - premium features available at low cost",
+          color: "border-cyan-300",
+          bg: "bg-cyan-50",
+          image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80"
+        }
+      ].map((benefit, idx) => {
+        const isLeft = idx % 2 === 0;
+        return (
+          <div key={idx} className="relative flex items-center w-full mb-16 min-h-[180px]">
+            {/* Timeline dot */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gradient-to-br from-[#00ADB5] via-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-base shadow-xl border-4 border-white z-20 animate-pulse ring-2 ring-[#00ADB5]/30">
+              {idx + 1}
+            </div>
+            {/* Card - alternate left/right, now smaller */}
+            <div
+              className={`absolute ${isLeft ? 'right-1/2 pr-4' : 'left-1/2 pl-4'} w-[calc(50%-2.5rem)] max-w-sm mx-auto rounded-2xl shadow-xl ${benefit.bg} dark:bg-gray-900 border ${benefit.color} dark:border-gray-700 px-5 py-6 flex flex-col items-center z-10 group transition-all duration-700 hover:-translate-y-2 hover:shadow-2xl backdrop-blur-xl`}
+              style={{ [isLeft ? 'right' : 'left']: '50%', animationDelay: `${idx * 0.15}s`, animationName: 'fadeInUp', animationFillMode: 'both' }}
+            >
+              {/* Gradient overlay for glassmorphism */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/60 via-[#00ADB5]/10 to-transparent dark:from-gray-900/60 dark:via-[#00ADB5]/10 dark:to-transparent pointer-events-none z-0" />
+              <img
+                src={benefit.image}
+                alt={benefit.title}
+                className="w-full h-24 object-cover rounded-xl mb-3 shadow-md transition-transform duration-700 group-hover:scale-105 group-hover:brightness-110 z-10"
+              />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow-md -mt-6 z-10 border-2 border-[#00ADB5]/30 group-hover:border-[#00ADB5] transition-all duration-300">
+                <span className="text-xl text-gray-900 dark:text-white animate-pulse">{benefit.icon}</span>
+              </div>
+              <h3 className="text-lg font-extrabold text-center mb-1 text-gray-900 dark:text-white drop-shadow-lg z-10 group-hover:text-[#00ADB5] transition-colors duration-300">
+                {benefit.title}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 text-center z-10 opacity-95 drop-shadow group-hover:opacity-100 transition-opacity duration-300">
+                {benefit.description}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
 
       {/* Testimonials Section */}
       <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-[#00ADB5]/5 via-cyan-50/30 to-blue-50/20">
@@ -1056,56 +1156,105 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Achievement Milestones Section - Interactive Cards */}
+
+      {/* Achievement Milestones Section - Horizontal Stepper Design */}
       <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="max-w-7xl mx-auto">
+          {/* Centered Heading */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 mb-6 animate-magnetic">
-              <span className="text-2xl">🏅</span>
-              <span className="text-sm font-bold text-orange-600 dark:text-orange-400">GAMIFIED LEARNING</span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Unlock Your Achievements
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Track your progress and celebrate milestones as you grow
-            </p>
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-4">Achievement Milestones</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">Track your progress and unlock exclusive rewards as you grow!</p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: "📚", milestone: "Complete 1 Course", reward: "+100 XP", color: "from-blue-400 to-blue-600", shadow: "shadow-blue-500/30" },
-              { icon: "💻", milestone: "Finish 5 Projects", reward: "Gold Badge", color: "from-yellow-400 to-yellow-600", shadow: "shadow-yellow-500/30" },
-              { icon: "⚔️", milestone: "Win 10 CodeArena Battles", reward: "+500 Coins", color: "from-purple-400 to-purple-600", shadow: "shadow-purple-500/30" },
-              { icon: "👥", milestone: "Join 3 Teams", reward: "Collaborator Badge", color: "from-pink-400 to-pink-600", shadow: "shadow-pink-500/30" },
-              { icon: "🏆", milestone: "Get 3 Certificates", reward: "Elite Status", color: "from-green-400 to-green-600", shadow: "shadow-green-500/30" },
-              { icon: "⭐", milestone: "Reach 4.8+ Rating", reward: "Star Developer", color: "from-orange-400 to-orange-600", shadow: "shadow-orange-500/30" },
-              { icon: "🎯", milestone: "Solve 100+ DSA Problems", reward: "Coding Master", color: "from-cyan-400 to-cyan-600", shadow: "shadow-cyan-500/30" },
-              { icon: "🚀", milestone: "Deploy 1 Live Project", reward: "Full Stack Badge", color: "from-indigo-400 to-indigo-600", shadow: "shadow-indigo-500/30" }
-            ].map((achievement, idx) => (
-              <div
-                key={idx}
-                className={`group relative rounded-2xl p-6 bg-gradient-to-br ${achievement.color} text-white shadow-xl ${achievement.shadow} hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 hover:scale-105 overflow-hidden spotlight`}
-                style={{ animationDelay: `${idx * 0.1}s` }}
-              >
-                {/* Animated Background Pattern */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full blur-2xl animate-float" />
-                  <div className="absolute bottom-0 right-0 w-16 h-16 bg-white rounded-full blur-2xl animate-float-delayed" />
-                </div>
-
-                <div className="relative z-10">
-                  <div className="text-5xl mb-3 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">{achievement.icon}</div>
-                  <h3 className="font-black text-sm mb-2">{achievement.milestone}</h3>
-                  <div className="inline-block px-3 py-1 bg-white/30 backdrop-blur-sm rounded-full text-xs font-bold group-hover:bg-white/50 transition-colors">
-                    {achievement.reward}
+          {/* Horizontal Stepper Timeline */}
+          <div className="relative flex flex-col items-center">
+            <div className="w-full flex flex-col items-center">
+              <div className="w-full flex flex-row items-center justify-between relative mb-16">
+                {/* Connecting line */}
+                <div className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 rounded-full z-0" style={{ transform: 'translateY(-50%)' }} />
+                {[
+                  { icon: "💻", milestone: "Finish 5 Projects", reward: "Gold Badge", color: "from-yellow-400 to-yellow-600" },
+                  { icon: "⚔️", milestone: "Win 10 CodeArena Battles", reward: "+500 Coins", color: "from-purple-400 to-purple-600" },
+                  { icon: "👥", milestone: "Join 3 Teams", reward: "Collaborator Badge", color: "from-pink-400 to-pink-600" },
+                  { icon: "🏆", milestone: "Get 3 Certificates", reward: "Elite Status", color: "from-green-400 to-green-600" },
+                  { icon: "⭐", milestone: "Reach 4.8+ Rating", reward: "Star Developer", color: "from-orange-400 to-orange-600" },
+                  { icon: "🎯", milestone: "Solve 100+ DSA Problems", reward: "Coding Master", color: "from-cyan-400 to-cyan-600" },
+                ].map((achievement, idx, _arr) => (
+                  <div key={idx} className="relative flex flex-col items-center z-10 w-1/6 group">
+                    {/* Stepper dot */}
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center text-white font-bold text-2xl shadow-xl border-4 border-white z-10 mb-3 group-hover:scale-110 transition-transform duration-300 animate-pulse`}>{achievement.icon}</div>
+                    {/* Card */}
+                    <div className="w-40 rounded-2xl p-4 bg-white/90 dark:bg-gray-800/80 shadow-xl border-2 border-[#00ADB5] group-hover:scale-105 transition-transform duration-500 text-center -mt-2">
+                      <h3 className="font-black text-base text-gray-900 dark:text-white mb-1">{achievement.milestone}</h3>
+                      <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#00ADB5] to-cyan-500 text-white rounded-full text-xs font-bold mb-1">{achievement.reward}</div>
+                    </div>
                   </div>
-                </div>
-
-                {/* Shine Effect on Hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                ))}
               </div>
-            ))}
+            </div>
+            {/* Certificate Card Highlighted Below */}
+            <div className="mt-20 flex flex-col items-center justify-center animate-float-slow w-full">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">🎓 Your Verified Certificate</h3>
+                <p className="text-gray-600 dark:text-gray-400 font-medium">Complete 50 tasks to unlock this certificate</p>
+              </div>
+              <div className="relative w-full max-w-2xl">
+                {/* Decorative background pattern */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-100/80 via-white/90 to-amber-200/80 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-3xl blur-[2px] -z-20" />
+                {/* Enhanced glow */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-rose-400/20 blur-2xl -z-10" />
+                {/* Certificate Card */}
+                <div className="relative bg-white/95 dark:bg-gray-900/90 border-4 border-amber-400 dark:border-amber-600 rounded-3xl p-10 sm:p-14 shadow-[0_8px_40px_0_rgba(0,0,0,0.18)] hover:shadow-[0_12px_60px_0_rgba(0,0,0,0.22)] transition-shadow duration-500 scale-105 hover:scale-110 cursor-pointer overflow-hidden">
+                  {/* Decorative corners */}
+                  <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-amber-400 rounded-tl-3xl" />
+                  <div className="absolute top-0 right-0 w-24 h-24 border-t-4 border-r-4 border-amber-400 rounded-tr-3xl" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 border-b-4 border-l-4 border-amber-400 rounded-bl-3xl" />
+                  <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-amber-400 rounded-br-3xl" />
+                  {/* Watermark */}
+                  <div className="absolute inset-0 opacity-10 dark:opacity-15 pointer-events-none select-none">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[180px] font-black text-amber-300 dark:text-amber-500 select-none">NS</div>
+                  </div>
+                  {/* Card Content */}
+                  <div className="relative text-center">
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <div className="relative">
+                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="SkillUpX Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg" />
+                        <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                          <CheckCircle className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">SkillUpX</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Building Tomorrow's Developers</p>
+                      </div>
+                    </div>
+                    <h4 className="text-sm sm:text-base text-amber-600 dark:text-amber-400 font-bold tracking-[0.3em] uppercase mb-5">Certificate of Achievement</h4>
+                    <div className="w-40 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-5" />
+                    <p className="text-gray-600 dark:text-gray-400 text-base mb-2">This is to certify that</p>
+                    <h3 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-1 font-serif italic">John Doe</h3>
+                    <p className="text-base text-[#00ADB5] dark:text-cyan-400 font-medium mb-3">✉️ johndoe@example.com</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-base mb-4">has successfully completed</p>
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full font-bold mb-5 shadow-md"><CheckCircle className="w-6 h-6" /><span>50 Verified Tasks</span></div>
+                    <p className="text-gray-600 dark:text-gray-400 text-base mb-4">and is hereby recognized as a</p>
+                    <h4 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 mb-5">Verified Collaborator</h4>
+                    <div className="w-40 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-5" />
+                    <div className="flex flex-wrap justify-center gap-6 mb-6">
+                      <div className="text-center"><div className="text-xl font-black text-[#00ADB5]">50</div><div className="text-xs text-gray-500 dark:text-gray-400">Tasks</div></div>
+                      <div className="text-center"><div className="text-xl font-black text-purple-500">8</div><div className="text-xs text-gray-500 dark:text-gray-400">Projects</div></div>
+                      <div className="text-center"><div className="text-xl font-black text-pink-500">5</div><div className="text-xs text-gray-500 dark:text-gray-400">Skills</div></div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-amber-200 dark:border-amber-800">
+                      <div className="text-left"><p className="text-xs text-gray-500 dark:text-gray-400">Issue Date</p><p className="text-base font-bold text-gray-700 dark:text-gray-300">December 22, 2025</p></div>
+                      <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg flex items-center justify-center border-2 border-gray-300 dark:border-gray-600"><div className="grid grid-cols-3 gap-0.5">{[...Array(9)].map((_, i) => (<div key={i} className={`w-4 h-4 ${[0, 2, 3, 5, 6, 8].includes(i) ? 'bg-gray-800 dark:bg-gray-200' : 'bg-transparent'}`} />))}</div></div>
+                      <div className="text-right"><p className="text-xs text-gray-500 dark:text-gray-400">Certificate ID</p><p className="text-base font-bold text-gray-700 dark:text-gray-300 font-mono">NS-2025-XXXXX</p></div>
+                    </div>
+                    <div className="mt-6 pt-4"><div className="w-32 h-0.5 bg-gray-400 mx-auto mb-1" /><p className="text-xs text-gray-500 dark:text-gray-400">SkillUpX Team</p></div>
+                  </div>
+                  {/* Gold seal badge */}
+                  <div className="absolute -bottom-6 -right-6 sm:bottom-6 sm:right-6"><div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-amber-300"><Award className="w-10 h-10 sm:w-12 sm:h-12 text-white" /></div></div>
+                </div>
+                <p className="text-center text-base text-gray-500 dark:text-gray-400 mt-6">📥 Download and share on LinkedIn to showcase your skills!</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

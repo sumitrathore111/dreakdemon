@@ -48,6 +48,17 @@ export interface IUser extends Document {
   battleRating: number;
   battlesWon: number;
   battlesLost: number;
+  badges: Array<{
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    earnedAt: Date;
+    category: 'achievement' | 'reward' | 'status';
+  }>;
+  rating: number;
+  certificates: number;
+  teamsJoined: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -99,7 +110,18 @@ const UserSchema: Schema = new Schema({
   avatar: { type: String, default: '' },
   battleRating: { type: Number, default: 1000 },
   battlesWon: { type: Number, default: 0 },
-  battlesLost: { type: Number, default: 0 }
+  battlesLost: { type: Number, default: 0 },
+  badges: [{
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    icon: { type: String, required: true },
+    description: { type: String, required: true },
+    earnedAt: { type: Date, default: Date.now },
+    category: { type: String, enum: ['achievement', 'reward', 'status'], default: 'achievement' }
+  }],
+  rating: { type: Number, default: 0 },
+  certificates: { type: Number, default: 0 },
+  teamsJoined: { type: Number, default: 0 }
 }, {
   timestamps: true,
   toJSON: {

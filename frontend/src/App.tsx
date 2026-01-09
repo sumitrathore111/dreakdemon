@@ -22,6 +22,7 @@ import PublicNavBar from "./Public/PublicNevBar";
 const HomePage = lazy(() => import("./Public/HomePage"));
 const AboutPage = lazy(() => import("./Public/CompanyAbout").then(mod => ({ default: mod.AboutPage })));
 const ContactUs = lazy(() => import("./Public/ContactUs").then(mod => ({ default: mod.ContactUs })));
+const TechUpdate = lazy(() => import("./Public/techupdate"));
 const Login = lazy(() => import("./Auth/LoginScreen"));
 const Signup = lazy(() => import("./Auth/SignupScreen"));
 
@@ -58,6 +59,7 @@ function PublicLayout() {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/TechUpdate" element={<TechUpdate />} />
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
@@ -137,21 +139,27 @@ function PublicLayout() {
                 </h4>
                 <ul className="space-y-3 text-sm text-muted-foreground dark:text-gray-400">
                   <li>
-                    <a href="/about" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="/about" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       About Us
                     </a>
                   </li>
                   <li>
-                    <a href="/about#team" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="/about#team" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       Our Team
                     </a>
                   </li>
                   <li>
-                    <a href="/contact" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="/contact" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       Contact
+                    </a>
+                  </li>
+                   <li>
+                    <a href="/documentation" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
+                      <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
+                      Documentation
                     </a>
                   </li>
                 </ul>
@@ -164,25 +172,25 @@ function PublicLayout() {
                 </h4>
                 <ul className="space-y-3 text-sm text-muted-foreground dark:text-gray-400">
                   <li>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       LinkedIn
                     </a>
                   </li>
                   <li>
-                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       Twitter
                     </a>
                   </li>
                   <li>
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                       GitHub
                     </a>
                   </li>
                   <li>
-                    <a href="https://www.instagram.com/skillupx1.0?igsh=Y25rN29tMzJnenFh" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group">
+                    <a href="https://www.instagram.com/skillupx1.0?igsh=Y25rN29tMzJnenFh" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors duration-200 flex items-center gap-2 group relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>
                       <span className="w-1.5 h-1.5 bg-primary/50 rounded-full group-hover:bg-primary transition-colors"></span>
                      Instagram
                     </a>
@@ -196,9 +204,9 @@ function PublicLayout() {
                 &copy; 2024 SkillUpX. All rights reserved.
               </p>
               <div className="flex gap-6 text-sm text-muted-foreground dark:text-gray-500">
-                <a href="#" className="hover:text-primary transition-colors duration-200">Privacy Policy</a>
-                <a href="#" className="hover:text-primary transition-colors duration-200">Terms of Service</a>
-                <a href="#" className="hover:text-primary transition-colors duration-200">Cookie Policy</a>
+                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Privacy Policy</a>
+                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Terms of Service</a>
+                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Cookie Policy</a>
               </div>
             </div>
           </div>

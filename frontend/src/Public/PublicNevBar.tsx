@@ -22,7 +22,7 @@ const PublicNavBar = () => {
         { id: "home", label: "Home", icon: <Home className="w-5 h-5" />, path: '/' },
         { id: "about", label: "About", icon: <Info className="w-5 h-5" />, path: '/about' },
         { id: "contact", label: "Contact Us", icon: <Phone className="w-5 h-5" />, path: '/contact' },
-        { id: "Documentation", label: "Documentation", icon: <Book className="w-5 h-5" />, path: '/documentation' },
+        { id: "TechUpdate", label: "TechUpdate", icon: <Book className="w-5 h-5" />, path: '/TechUpdate' },
     ];
 
     const authItems = user

@@ -928,6 +928,29 @@ export default function DeveloperConnect() {
               </div>
             </div>
 
+            {/* Badges */}
+            {(dev.badges && dev.badges.length > 0) && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Badges</p>
+                <div className="flex flex-wrap gap-1">
+                  {dev.badges.slice(0, 4).map((badge: any, idx: number) => (
+                    <span
+                      key={idx}
+                      className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border border-purple-200 dark:border-purple-800"
+                      title={badge.description}
+                    >
+                      {badge.icon} {badge.name}
+                    </span>
+                  ))}
+                  {dev.badges.length > 4 && (
+                    <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
+                      +{dev.badges.length - 4} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Looking For */}
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">
