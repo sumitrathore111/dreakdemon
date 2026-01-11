@@ -2,6 +2,39 @@ import { BookOpen, Globe, Lightbulb, Shield, Users, Zap } from "lucide-react";
 import { useState } from "react";
 
 export function AboutPage() {
+    // Timeline milestones
+    const milestones = [
+      {
+        year: "2022",
+        title: "Idea Born",
+        desc: "SkillUpX was conceptualized by a group of passionate students.",
+        icon: Lightbulb,
+      },
+      {
+        year: "2023",
+        title: "First Project Launched",
+        desc: "Our first batch of students completed real-world projects.",
+        icon: BookOpen,
+      },
+      {
+        year: "2024",
+        title: "Community Growth",
+        desc: "We grew to 10,000+ active learners and mentors.",
+        icon: Users,
+      },
+      {
+        year: "2025",
+        title: "Global Recognition",
+        desc: "SkillUpX received awards for innovation in education.",
+        icon: Shield,
+      },
+      {
+        year: "2026 Launch",
+        title: "Platform Launch",
+        desc: "SkillUpX officially launched for students worldwide.",
+        icon: Zap,
+      },
+    ];
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
 
   const observe = (id: string, el: HTMLDivElement | null) => {
@@ -94,16 +127,60 @@ export function AboutPage() {
             theory, but about action, collaboration, and growth.
           </p>
         </div>
-        <div className="overflow-hidden rounded-2xl shadow-lg">
+        <div className="overflow-hidden rounded-2xl shadow-lg relative">
           <img
             src="https://i.pinimg.com/736x/e8/7e/c4/e87ec4c9d80e8e3da206a9c67e368226.jpg"
             alt="Students working"
             className="w-full h-96 object-cover transform transition-transform duration-1000 hover:scale-105"
+            style={{ transform: "translateZ(0)", willChange: "transform" }}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         </div>
       </div>
 
       {/* Mission Section */}
+            {/* Timeline Section */}
+            <div className="bg-white dark:bg-gray-900 py-16 px-4 lg:px-24">
+              <h2 className="text-3xl font-semibold text-center mb-10 text-[#00ADB5]">SkillUpX Journey</h2>
+              <div className="relative flex flex-col items-center">
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-2 h-full bg-gradient-to-b from-[#00ADB5] to-gray-200 dark:to-gray-700 rounded-full"></div>
+                {milestones.map((m, idx) => {
+                  const Icon = m.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className={`relative z-10 mb-12 flex items-center w-full ${idx % 2 === 0 ? "justify-start" : "justify-end"}`}
+                      style={{ animation: `fadeIn 0.8s ease ${idx * 0.15}s both` }}
+                    >
+                      {/* Dot */}
+                      <div className="absolute left-1/2 transform -translate-x-1/2 w-7 h-7 bg-white dark:bg-gray-800 rounded-full shadow-lg border-4 border-[#00ADB5] dark:border-gray-700 flex items-center justify-center" style={{ top: '50%' }}>
+                        <Icon className="w-5 h-5 text-[#00ADB5]" />
+                      </div>
+                      <div
+                        className={`w-full max-w-md ${idx % 2 === 0 ? "ml-0 mr-auto" : "mr-0 ml-auto"} rounded-2xl shadow-xl p-6 border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 hover:scale-105 transition-transform duration-300`}
+                        style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.08)" }}
+                      >
+                        <div className="flex items-center mb-2">
+                          <span className="font-bold text-[#00ADB5] text-lg mr-3">{m.year}</span>
+                          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border-2 border-[#00ADB5] dark:border-gray-700 shadow">
+                            <Icon className="w-6 h-6 text-[#00ADB5]" />
+                          </div>
+                        </div>
+                        <div className="font-bold text-xl mb-1 text-[#00ADB5]">{m.title}</div>
+                        <div className="text-gray-700 dark:text-gray-300 text-base">{m.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Fade-in animation keyframes */}
+                <style>{`
+                  @keyframes fadeIn {
+                    0% { opacity: 0; transform: translateY(40px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                  }
+                `}</style>
+              </div>
+            </div>
       <div
         ref={(el) => observe("mission", el)}
         className={`grid lg:grid-cols-2 gap-12 px-8 lg:px-16 py-20 items-center transform transition-all duration-1000 ${
@@ -186,11 +263,7 @@ export function AboutPage() {
               <div
                 key={value.id}
                 ref={(el) => observe(`value-${value.id}`, el)}
-                className={`p-8 bg-white dark:bg-gray-900 rounded-2xl text-center shadow-md hover:shadow-xl transition-all duration-700 transform ${
-                  visibleSections.includes(`value-${value.id}`)
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-12"
-                }`}
+                className={`p-8 bg-white dark:bg-gray-900 rounded-2xl text-center shadow-md hover:shadow-xl transition-all duration-700 transform hover:scale-105 hover:rotate-1`}
               >
                 <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-full bg-[#00ADB5]">
                   <Icon className="w-8 h-8 text-black" />
@@ -202,6 +275,63 @@ export function AboutPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+      {/* Impact & Achievements Section */}
+      <div className="bg-white dark:bg-gray-900 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
+        <h2 className="text-4xl font-extrabold text-center mb-14 text-[#00ADB5]">Impact & Achievements</h2>
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-10">
+          <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl border border-gray-100 dark:border-gray-800">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#00ADB5] mb-4 shadow-lg">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-2xl font-bold text-[#00ADB5] mb-1">10,000+ Learners</div>
+            <p className="text-gray-700 dark:text-gray-300 text-base">Active students and mentors building real-world skills.</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl border border-gray-100 dark:border-gray-800">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#00ADB5] mb-4 shadow-Our Storylg">
+              <BookOpen className="w-8 h-8 text-white" />
+            </div>
+            <p className="text-gray-700 dark:text-gray-300 text-base">Industry projects completed by SkillUpX students.</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl border border-gray-100 dark:border-gray-800">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#00ADB5] mb-4 shadow-lg">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-2xl font-bold text-[#00ADB5] mb-1">50+ Awards</div>
+            <p className="text-gray-700 dark:text-gray-300 text-base">Recognized for innovation and impact in education.</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl border border-gray-100 dark:border-gray-800">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#00ADB5] mb-4 shadow-lg">
+              <Zap className="w-8 h-8 text-white" />
+            </div>
+            <div className="text-2xl font-bold text-[#00ADB5] mb-1">100% Satisfaction</div>
+            <p className="text-gray-700 dark:text-gray-300 text-base">Learners rate SkillUpX highly for mentorship and growth.</p>
+          </div>
+        </div>
+      </div>
+      {/* Meet the Team Section */}
+      <div className="bg-gray-50 dark:bg-gray-800 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
+        <h2 className="text-4xl font-extrabold text-center mb-10 text-[#00ADB5]">Meet the Team</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Aman Sharma" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Aman Sharma</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">Founder & CEO</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Visionary leader passionate about empowering students and driving innovation in education.</p>
+          </div>
+          <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Priya Verma" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Priya Verma</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">Head of Community</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Building a vibrant, inclusive community and supporting every learner’s journey.</p>
+          </div>
+          <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
+            <img src="https://randomuser.me/api/portraits/men/65.jpg" alt="Rahul Singh" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Rahul Singh</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">Lead Developer</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Tech enthusiast focused on building robust, scalable solutions for SkillUpX.</p>
+          </div>
         </div>
       </div>
     </div>
