@@ -202,7 +202,7 @@ const HeroSection = memo(() => {
               </h1>
 
               <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
-                NextStep is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
+                SkillUpX is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
               </p>
 
               {/* Feature Highlights with Stagger Animation */}
@@ -329,7 +329,7 @@ const HeroSection = memo(() => {
                       <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50" />
                       <div className="w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
                       <span className="ml-2 text-xs text-gray-400 font-mono flex items-center gap-1">
-                        <Code className="w-3 h-3" /> nextstep.tsx
+                        <Code className="w-3 h-3" /> SkillUpX.tsx
                       </span>
                       <div className="ml-auto flex items-center gap-1">
                         <div className="w-2 h-2 rounded-full bg-[#00ADB5] animate-pulse" />
@@ -362,7 +362,7 @@ const HeroSection = memo(() => {
                       <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '1s', animationFillMode: 'forwards' }}>
                         <span className="text-gray-500 text-xs w-4">3</span>
                         <span className="text-blue-400">await</span>
-                        <span className="text-cyan-300">NextStep</span>
+                        <span className="text-cyan-300">SkillUpX</span>
                         <span className="text-white">.</span>
                         <span className="text-yellow-400">transform</span>
                         <span className="text-white">(</span>
@@ -702,7 +702,7 @@ export default function HomePage() {
   <div className="max-w-5xl mx-auto">
     <div className="text-center mb-16">
       <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-        Why NextStep is
+        Why SkillUpX is
         <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]"> Your Best Choice</span>
       </h2>
       <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
@@ -894,7 +894,7 @@ export default function HomePage() {
                 </h2>
 
                 <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                  Scroll down to discover how NextStep takes you from beginner to industry-ready developer through our unique approach.
+                  Scroll down to discover how SkillUpX takes you from beginner to industry-ready developer through our unique approach.
                 </p>
 
                 {/* Animated Image Container */}
@@ -1219,7 +1219,7 @@ export default function HomePage() {
               </h2>
 
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                NextStep enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
+                SkillUpX enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
               </p>
 
               <ul className="space-y-3">
@@ -1373,7 +1373,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
               Why Choose
-              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> NextStep?</span>
+              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> SkillUpX?</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Unlock your potential with our comprehensive platform designed for career success
@@ -1483,7 +1483,7 @@ export default function HomePage() {
               <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> Successful Developers</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Hear from developers who landed their dream jobs after completing NextStep
+              Hear from developers who landed their dream jobs after completing SkillUpX
             </p>
           </div>
 
@@ -1505,18 +1505,18 @@ export default function HomePage() {
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              Everything you need to know about NextStep
+              Everything you need to know about SkillUpX
             </p>
           </div>
 
           <div className="space-y-4">
             {[
               {
-                q: "Is NextStep really free?",
+                q: "Is SkillUpX really free?",
                 a: "Yes! All courses and learning resources are completely free. You only pay optional fees for certificate verification (₹299-₹499) after completing projects."
               },
               {
-                q: "What skills can I learn on NextStep?",
+                q: "What skills can I learn on SkillUpX?",
                 a: "You can learn Web Development (JavaScript, React, Node.js), Data Structures & Algorithms (DSA), AI/Machine Learning, Full Stack Development (MERN), and more."
               },
               {
@@ -1597,7 +1597,7 @@ export default function HomePage() {
                     </span>
                   </h2>
                   <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                    Join thousands of successful developers who started their journey with NextStep.
+                    Join thousands of successful developers who started their journey with SkillUpX.
                     Your future in tech starts today.
                   </p>
                 </div>
