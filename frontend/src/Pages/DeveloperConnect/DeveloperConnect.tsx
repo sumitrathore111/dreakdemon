@@ -147,6 +147,7 @@ export default function DeveloperConnect() {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [replyText, setReplyText] = useState('');
+  const [expandedRequests, setExpandedRequests] = useState<Set<string>>(new Set());
   const [showShareModal, setShowShareModal] = useState(false);
   const [reviewToShare, setReviewToShare] = useState<any>(null);
   const [shareSearch, setShareSearch] = useState('');
@@ -2689,89 +2690,316 @@ export default function DeveloperConnect() {
               </button>
             </div>
           ) : (
-            filteredRequests.map(request => (
-              <motion.div
-                key={request.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start gap-4">
-                  <img
-                    src={request.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${request.userId}`}
-                    alt={request.userName}
-                    className="w-12 h-12 rounded-full flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-900 dark:text-white">{request.userName}</span>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-sm text-gray-500">{formatTimestamp(request.timestamp)}</span>
-                    </div>
+            filteredRequests.map(request => {
+              const allReplies = request.replies || [];
+              const isExpanded = expandedRequests.has(request.id);
+              const displayReplies = isExpanded ? allReplies : allReplies.slice(-2);
+              const totalReplies = allReplies.length || request.responses || 0;
+              const hasMoreReplies = totalReplies > 2;
 
-                    <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{request.title}</h4>
-                    <p className="text-gray-700 dark:text-gray-300 mb-3">{request.description}</p>
-
-                    {request.tags && request.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {request.tags.map((tag: string, i: number) => (
-                          <span
-                            key={i}
-                            className="text-xs px-3 py-1 rounded-full"
-                            style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
+              return (
+                <motion.div
+                  key={request.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  {/* Main Request */}
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <button
+                        onClick={() => {
+                          setSearchQuery(request.userName || '');
+                          setActiveTab('directory');
+                        }}
+                        className="flex-shrink-0 group"
+                        title={`View ${request.userName}'s profile`}
+                      >
+                        <img
+                          src={request.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${request.userId}`}
+                          alt={request.userName}
+                          className="w-12 h-12 rounded-full ring-2 ring-transparent group-hover:ring-[#00ADB5] transition-all cursor-pointer"
+                        />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <button
+                            onClick={() => {
+                              setSearchQuery(request.userName || '');
+                              setActiveTab('directory');
+                            }}
+                            className="font-semibold text-gray-900 dark:text-white hover:text-[#00ADB5] dark:hover:text-[#00ADB5] transition-colors cursor-pointer"
+                            title={`View ${request.userName}'s profile`}
                           >
-                            {tag}
+                            {request.userName}
+                          </button>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-500">{formatTimestamp(request.timestamp)}</span>
+                        </div>
+
+                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{request.title}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 mb-3">{request.description}</p>
+
+                        {request.tags && request.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {request.tags.map((tag: string, i: number) => (
+                              <span
+                                key={i}
+                                className="text-xs px-3 py-1 rounded-full"
+                                style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="flex items-center gap-2 font-medium" style={{ color: '#00ADB5' }}>
+                            <MessageCircle className="w-4 h-4" />
+                            {totalReplies} {totalReplies === 1 ? 'response' : 'responses'}
                           </span>
+                          {request.userId === user?.id && (
+                            <button
+                              onClick={() => handleDeleteRequest(request.id)}
+                              className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors ml-auto"
+                              title="Delete your request"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Replies Section - Reddit Style */}
+                  <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                    {/* Show/Hide all replies toggle */}
+                    {hasMoreReplies && (
+                      <button
+                        onClick={async () => {
+                          if (!isExpanded) {
+                            // Fetch all replies if not already loaded
+                            const replies = await fetchReplies(request.id);
+                            setHelpRequests(prev => prev.map(r =>
+                              r.id === request.id ? { ...r, replies } : r
+                            ));
+                          }
+                          setExpandedRequests(prev => {
+                            const newSet = new Set(prev);
+                            if (isExpanded) {
+                              newSet.delete(request.id);
+                            } else {
+                              newSet.add(request.id);
+                            }
+                            return newSet;
+                          });
+                        }}
+                        className="w-full px-6 py-3 text-sm font-medium text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                        style={{ color: '#00ADB5' }}
+                      >
+                        {isExpanded ? (
+                          <>
+                            <span>▲</span> Hide responses
+                          </>
+                        ) : (
+                          <>
+                            <span>▼</span> View all {totalReplies} responses
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {/* Replies */}
+                    {displayReplies.length > 0 && (
+                      <div className="px-4 sm:px-6 py-4 space-y-3">
+                        {displayReplies.map((reply: any, index: number) => (
+                          <div
+                            key={reply.id || index}
+                            className="bg-white dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:border-[#00ADB5]/30 transition-all shadow-sm hover:shadow-md"
+                          >
+                            <div className="flex items-start gap-3">
+                              <button
+                                onClick={() => {
+                                  setSearchQuery(reply.userName || '');
+                                  setActiveTab('directory');
+                                }}
+                                className="flex-shrink-0 group"
+                                title={`View ${reply.userName}'s profile`}
+                              >
+                                <img
+                                  src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
+                                  alt={reply.userName}
+                                  className="w-10 h-10 rounded-full ring-2 ring-gray-100 dark:ring-gray-600 group-hover:ring-[#00ADB5] transition-all"
+                                />
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <button
+                                      onClick={() => {
+                                        setSearchQuery(reply.userName || '');
+                                        setActiveTab('directory');
+                                      }}
+                                      className="font-semibold text-sm text-gray-900 dark:text-white hover:text-[#00ADB5] dark:hover:text-[#00ADB5] transition-colors"
+                                      title={`View ${reply.userName}'s profile`}
+                                    >
+                                      {reply.userName}
+                                    </button>
+                                    <span className="text-xs text-gray-400">•</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimestamp(reply.timestamp || reply.createdAt)}</span>
+                                  </div>
+                                  {reply.userId === user?.id && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!window.confirm('Delete this response?')) return;
+                                        try {
+                                          await apiRequest(`/developers/help-requests/${request.id}/replies/${reply.id}`, {
+                                            method: 'DELETE'
+                                          });
+                                          setHelpRequests(prev => prev.map(r =>
+                                            r.id === request.id
+                                              ? {
+                                                  ...r,
+                                                  responses: Math.max((r.responses || 1) - 1, 0),
+                                                  replies: (r.replies || []).filter((rep: any) => rep.id !== reply.id)
+                                                }
+                                              : r
+                                          ));
+                                          toast.success('Response deleted');
+                                        } catch (error) {
+                                          console.error('Error deleting reply:', error);
+                                          toast.error('Failed to delete response');
+                                        }
+                                      }}
+                                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                      title="Delete your response"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{reply.content}</p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm">
-                      <button
-                        onClick={async () => {
-                          // Fetch latest replies before opening modal
-                          const replies = await fetchReplies(request.id);
-                          setSelectedRequest({ ...request, replies });
-                          setShowReplyModal(true);
-                        }}
-                        className="flex items-center gap-2 font-medium hover:opacity-80 transition-opacity"
-                        style={{ color: '#00ADB5' }}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        {request.responses || 0} responses
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (request.userId === user?.id) {
-                            // If it's the owner, just show replies
-                            const replies = await fetchReplies(request.id);
-                            setSelectedRequest({ ...request, replies });
-                            setShowReplyModal(true);
-                            return;
-                          }
-                          const replies = await fetchReplies(request.id);
-                          setSelectedRequest({ ...request, replies });
-                          setShowReplyModal(true);
-                        }}
-                        className="text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors"
-                      >
-                        {request.userId === user?.id ? 'View Replies' : 'Help Answer'}
-                      </button>
-                      {request.userId === user?.id && (
-                        <button
-                          onClick={() => handleDeleteRequest(request.id)}
-                          className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors ml-auto"
-                          title="Delete your request"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      )}
-                    </div>
+                    {/* Inline Reply Input */}
+                    {request.userId !== user?.id && (
+                      <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+                        <div className="flex gap-3">
+                          <img
+                            src={getUserAvatar(userprofile, user?.id)}
+                            alt="You"
+                            className="w-8 h-8 rounded-full flex-shrink-0"
+                          />
+                          <div className="flex-1 flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Write a helpful response..."
+                              className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
+                              onKeyDown={async (e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  const input = e.target as HTMLInputElement;
+                                  const content = input.value.trim();
+                                  if (!content) return;
+
+                                  try {
+                                    const replyData = {
+                                      content,
+                                      userName: userprofile?.displayName || user?.name || 'Anonymous',
+                                      userAvatar: getUserAvatar(userprofile, user?.id)
+                                    };
+
+                                    const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
+                                      method: 'POST',
+                                      body: JSON.stringify(replyData)
+                                    });
+
+                                    // Update local state
+                                    setHelpRequests(prev => prev.map(r =>
+                                      r.id === request.id
+                                        ? {
+                                            ...r,
+                                            responses: (r.responses || 0) + 1,
+                                            replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
+                                          }
+                                        : r
+                                    ));
+
+                                    input.value = '';
+                                    toast.success('Response posted!');
+                                  } catch (error) {
+                                    console.error('Error posting reply:', error);
+                                    toast.error('Failed to post response');
+                                  }
+                                }
+                              }}
+                            />
+                            <button
+                              onClick={async (e) => {
+                                const container = (e.target as HTMLElement).closest('.flex-1');
+                                const input = container?.querySelector('input') as HTMLInputElement;
+                                if (!input) return;
+                                const content = input.value.trim();
+                                if (!content) return;
+
+                                try {
+                                  const replyData = {
+                                    content,
+                                    userName: userprofile?.displayName || user?.name || 'Anonymous',
+                                    userAvatar: getUserAvatar(userprofile, user?.id)
+                                  };
+
+                                  const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
+                                    method: 'POST',
+                                    body: JSON.stringify(replyData)
+                                  });
+
+                                  // Update local state
+                                  setHelpRequests(prev => prev.map(r =>
+                                    r.id === request.id
+                                      ? {
+                                          ...r,
+                                          responses: (r.responses || 0) + 1,
+                                          replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
+                                        }
+                                      : r
+                                  ));
+
+                                  input.value = '';
+                                  toast.success('Response posted!');
+                                } catch (error) {
+                                  console.error('Error posting reply:', error);
+                                  toast.error('Failed to post response');
+                                }
+                              }}
+                              className="px-4 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                              style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Owner view - just show reply count if no replies */}
+                    {request.userId === user?.id && displayReplies.length === 0 && (
+                      <div className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No responses yet. Hang tight, the community is here to help!
+                      </div>
+                    )}
                   </div>
-                </div>
-              </motion.div>
-            ))
+                </motion.div>
+              );
+            })
           )}
         </div>
       )}

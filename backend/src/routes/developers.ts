@@ -753,6 +753,47 @@ router.get('/help-requests/:requestId/replies', authenticate, async (req: AuthRe
   }
 });
 
+// Delete a reply from help request (only by reply author)
+router.delete('/help-requests/:requestId/replies/:replyId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { requestId, replyId } = req.params;
+    const userId = req.user?.id;
+
+    const request = await HelpRequest.findById(requestId) as any;
+
+    if (!request) {
+      res.status(404).json({ error: 'Help request not found' });
+      return;
+    }
+
+    // Find the reply
+    const replyIndex = request.replies?.findIndex((r: any) => r.id === replyId || r._id?.toString() === replyId);
+
+    if (replyIndex === undefined || replyIndex === -1) {
+      res.status(404).json({ error: 'Reply not found' });
+      return;
+    }
+
+    const reply = request.replies[replyIndex];
+
+    // Check if user is the author of the reply
+    if (reply.userId !== userId && reply.userId?.toString() !== userId) {
+      res.status(403).json({ error: 'Not authorized to delete this reply' });
+      return;
+    }
+
+    // Remove the reply
+    request.replies.splice(replyIndex, 1);
+    request.responses = Math.max((request.responses || 1) - 1, 0);
+    await request.save();
+
+    res.json({ success: true, responses: request.responses });
+  } catch (error: any) {
+    console.error('Error deleting reply:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Mark help request as resolved (only by creator)
 router.patch('/help-requests/:requestId/resolve', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
