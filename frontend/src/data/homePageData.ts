@@ -26,7 +26,7 @@ export interface TestimonialData {
   role: string;
   company: string;
   quote: string;
-  image: string;
+  // image: string;
   rating: number;
   verified: boolean;
 }
@@ -111,8 +111,8 @@ export const testimonials: TestimonialData[] = [
     role: "Software Engineer",
     company: "Google",
     quote: "SkillUpX transformed my career. The real project experience I gained here directly led to my job at Google. The mentorship was invaluable.",
-    image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&q=80",
-    rating: 5,
+    // image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&q=80",
+     rating: 5,
     verified: true
   },
 
@@ -121,7 +121,7 @@ export const testimonials: TestimonialData[] = [
     role: "Frontend Developer",
     company: "Stripe",
     quote: "The community here is incredible. I learned more in 6 months than I did in 2 years of traditional courses. The projects are real and challenging.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80",
+    // image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80",
     rating: 5,
     verified: true
   },

@@ -20,7 +20,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   return (
     <article
       ref={ref}
-      className={`group relative bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden transition-all duration-700 transform 
+      className={`group relative bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden transition-all duration-700 transform
         hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       }`}
@@ -36,10 +36,10 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
           }`}
           onLoad={handleImageLoad}
         />
-        
+
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
+
         {/* Icon Badge */}
         <div className="absolute bottom-4 left-4 w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
           <service.icon className="w-7 h-7 text-white" />
@@ -62,7 +62,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
           {service.description}
         </p>
-        
+
         {/* Learn More Link */}
         <div className="flex items-center text-[#00ADB5] font-semibold text-sm group-hover:translate-x-1 transition-transform duration-300">
           <span>Learn More</span>
@@ -75,7 +75,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
 
 ServiceCard.displayName = 'ServiceCard';
 
-// Feature Card Component  
+// Feature Card Component
 interface FeatureCardProps {
   feature: FeatureData;
   index: number;
@@ -107,10 +107,10 @@ export const FeatureCard = memo(({ feature, index }: FeatureCardProps) => {
           }`}
           onLoad={handleImageLoad}
         />
-        
+
         {/* Dynamic Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-t ${feature.color} opacity-90`} />
-        
+
         {/* Content Overlay */}
         <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
           <div className="space-y-4">
@@ -118,7 +118,7 @@ export const FeatureCard = memo(({ feature, index }: FeatureCardProps) => {
             <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <feature.icon className="w-6 h-6" />
             </div>
-            
+
             {/* Title & Description */}
             <div>
               <h3 className="font-bold text-xl mb-2 group-hover:scale-105 transition-transform duration-300 origin-left">
@@ -128,7 +128,7 @@ export const FeatureCard = memo(({ feature, index }: FeatureCardProps) => {
                 {feature.description}
               </p>
             </div>
-            
+
             {/* Benefits List */}
             <div className="space-y-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
               {feature.benefits.slice(0, 2).map((benefit, idx) => (
@@ -172,19 +172,19 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
       {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#00ADB5]/10 to-transparent rounded-bl-full" />
       <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-tr from-[#00ADB5]/5 to-transparent rounded-tr-full" />
-      
+
       {/* Quote Icon */}
       <div className="text-6xl text-[#00ADB5]/20 font-serif mb-4 relative z-10">"</div>
-      
+
       {/* Quote Content */}
       <blockquote className="text-gray-700 dark:text-gray-300 text-lg mb-6 relative z-10 leading-relaxed italic">
         {testimonial.quote}
       </blockquote>
-      
+
       {/* Author Info */}
       <footer className="flex items-center gap-4 relative z-10">
         <div className="relative flex-shrink-0">
-          <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-[#00ADB5]/30 shadow-lg">
+          {/* <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-[#00ADB5]/30 shadow-lg">
             <img
               src={testimonial.image}
               alt={testimonial.name}
@@ -193,20 +193,20 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
               }`}
               onLoad={handleImageLoad}
             />
-          </div>
-          
+          </div> */}
+
           {/* Verified Badge */}
-          {testimonial.verified && (
+          {/* {testimonial.verified && (
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">
               <CheckCircle className="w-3 h-3 text-white" />
             </div>
-          )}
+          )} */}
         </div>
-        
+
         <div className="flex-1">
           <h4 className="font-bold text-lg text-gray-900 dark:text-white">{testimonial.name}</h4>
           <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role} at {testimonial.company}</p>
-          
+
           {/* Rating Stars */}
           <div className="flex items-center gap-1 mt-1">
             {Array.from({ length: testimonial.rating }, (_, i) => (
@@ -215,7 +215,7 @@ export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProp
           </div>
         </div>
       </footer>
-      
+
       {/* Hover Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/0 to-[#00ADB5]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </article>
