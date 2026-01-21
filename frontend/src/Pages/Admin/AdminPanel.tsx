@@ -1,34 +1,34 @@
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  DollarSign,
-  ExternalLink,
-  Eye,
-  FolderOpen,
-  Github,
-  Image,
-  Lightbulb,
-  Mail,
-  MessageSquare,
-  Play,
-  Search,
-  Shield,
-  ShoppingBag,
-  Trash2,
-  TrendingUp,
-  User,
-  Users,
-  XCircle
+    Calendar,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    ExternalLink,
+    Eye,
+    FolderOpen,
+    Github,
+    Image,
+    Lightbulb,
+    Mail,
+    MessageSquare,
+    Play,
+    Search,
+    Shield,
+    ShoppingBag,
+    Trash2,
+    TrendingUp,
+    User,
+    Users,
+    XCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import {
-  approveMarketplaceProject,
-  getAllMarketplaceProjectsForAdmin,
-  rejectMarketplaceProject
+    approveMarketplaceProject,
+    getAllMarketplaceProjectsForAdmin,
+    rejectMarketplaceProject
 } from '../../service/marketplaceService';
 import type { MarketplaceProject } from '../../types/marketplace';
 
@@ -63,11 +63,11 @@ interface PlatformStats {
 
 export default function AdminPanel() {
   const { user } = useAuth();
-  const { 
-    fetchAllIdeas, 
+  const {
+    fetchAllIdeas,
     updateIdeaStatus,
     deleteIdea,
-    fetchAllUsers, 
+    fetchAllUsers,
     fetchAllProjectMembers
   } = useDataContext();
   const navigate = useNavigate();
@@ -99,7 +99,7 @@ export default function AdminPanel() {
   const [deletingIdeaId, setDeletingIdeaId] = useState<string | null>(null);
   const [showIdeaDeleteConfirm, setShowIdeaDeleteConfirm] = useState(false);
   const [ideaToDelete, setIdeaToDelete] = useState<SubmittedIdea | null>(null);
-  
+
   // Marketplace verification state
   const [marketplaceProjects, setMarketplaceProjects] = useState<MarketplaceProject[]>([]);
   const [allMarketplaceProjects, setAllMarketplaceProjects] = useState<MarketplaceProject[]>([]);
@@ -116,7 +116,7 @@ export default function AdminPanel() {
       navigate('/login');
       return;
     }
-    
+
     loadAllData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -190,7 +190,7 @@ export default function AdminPanel() {
       const allIdeas = await fetchAllIdeas();
       const approvedProjects = allIdeas.filter((idea: any) => idea.status === 'approved');
       const members = await fetchAllProjectMembers();
-      
+
       // Group members by project
       const projectsWithMembers = approvedProjects.map((project: any) => {
         const projectMembers = members.filter((m: any) => m.projectId === project.id);
@@ -200,7 +200,7 @@ export default function AdminPanel() {
           members: projectMembers
         };
       });
-      
+
       setProjects(projectsWithMembers);
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -209,19 +209,19 @@ export default function AdminPanel() {
 
   useEffect(() => {
     let filtered = ideas;
-    
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter(idea => idea.status === statusFilter);
     }
-    
+
     if (searchQuery) {
-      filtered = filtered.filter(idea => 
+      filtered = filtered.filter(idea =>
         idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         idea.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         idea.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     setFilteredIdeas(filtered);
   }, [ideas, statusFilter, searchQuery]);
 
@@ -232,10 +232,10 @@ export default function AdminPanel() {
     const rejectedIdeas = ideas.filter(i => i.status === 'rejected').length;
     const pendingMarketplace = allMarketplaceProjects.filter(p => p.status === 'pending_verification').length;
     const publishedMarketplace = allMarketplaceProjects.filter(p => p.status === 'published').length;
-    
+
     // Calculate total contributors from projects
     const totalContributors = projects.reduce((sum, p) => sum + (p.memberCount || 1), 0);
-    
+
     setStats({
       totalUsers: users.length,
       totalIdeas: ideas.length,
@@ -258,20 +258,20 @@ export default function AdminPanel() {
 
     try {
       await updateIdeaStatus(ideaId, 'approved', reviewFeedback, user?.id);
-      
+
       // Update local state
-      setIdeas(ideas.map(idea => 
-        idea.id === ideaId 
-          ? { 
-              ...idea, 
-              status: 'approved', 
+      setIdeas(ideas.map(idea =>
+        idea.id === ideaId
+          ? {
+              ...idea,
+              status: 'approved',
               reviewedAt: new Date().toISOString(),
               reviewedBy: user?.email || 'Admin',
               feedback: reviewFeedback
             }
           : idea
       ));
-      
+
       alert(`Idea approved! Email notification sent to ${selectedIdea?.userEmail}`);
       setSelectedIdea(null);
       setReviewFeedback('');
@@ -289,20 +289,20 @@ export default function AdminPanel() {
 
     try {
       await updateIdeaStatus(ideaId, 'rejected', reviewFeedback, user?.id);
-      
+
       // Update local state
-      setIdeas(ideas.map(idea => 
-        idea.id === ideaId 
-          ? { 
-              ...idea, 
-              status: 'rejected', 
+      setIdeas(ideas.map(idea =>
+        idea.id === ideaId
+          ? {
+              ...idea,
+              status: 'rejected',
               reviewedAt: new Date().toISOString(),
               reviewedBy: user?.email || 'Admin',
               feedback: reviewFeedback
             }
           : idea
       ));
-      
+
       alert(`Idea rejected. Email notification sent to ${selectedIdea?.userEmail}`);
       setSelectedIdea(null);
       setReviewFeedback('');
@@ -317,16 +317,16 @@ export default function AdminPanel() {
 
     try {
       setDeletingProjectId(projectToDelete.id);
-      
+
       // Delete the idea (which will cascade delete the associated project)
       // projectToDelete.id is the idea ID, projectToDelete.projectId is the actual project ID
       await deleteIdea(projectToDelete.id);
-      
+
       // Update local state - remove the deleted project
       setProjects(projects.filter(p => p.id !== projectToDelete.id));
       setIdeas(ideas.filter(i => i.id !== projectToDelete.id));
       setFilteredIdeas(filteredIdeas.filter(i => i.id !== projectToDelete.id));
-      
+
       alert(`Project "${projectToDelete.title}" has been deleted successfully`);
       setShowDeleteConfirm(false);
       setProjectToDelete(null);
@@ -344,13 +344,13 @@ export default function AdminPanel() {
     try {
       setDeletingIdeaId(ideaToDelete.id);
       await deleteIdea(ideaToDelete.id);
-      
+
       // Update local state - remove the deleted idea
       setIdeas(ideas.filter(i => i.id !== ideaToDelete.id));
       setFilteredIdeas(filteredIdeas.filter(i => i.id !== ideaToDelete.id));
       // Also remove from projects if it was approved
       setProjects(projects.filter(p => p.id !== ideaToDelete.id));
-      
+
       alert(`Idea "${ideaToDelete.title}" and any associated project have been deleted successfully`);
       setShowIdeaDeleteConfirm(false);
       setIdeaToDelete(null);
@@ -399,10 +399,10 @@ export default function AdminPanel() {
     try {
       setProcessingMarketplaceId(projectId);
       await approveMarketplaceProject(projectId);
-      
+
       // Remove from pending list
       setMarketplaceProjects(prev => prev.filter(p => p.id !== projectId));
-      
+
       alert('Marketplace project approved and published successfully!');
       setSelectedMarketplaceProject(null);
     } catch (error) {
@@ -422,10 +422,10 @@ export default function AdminPanel() {
     try {
       setProcessingMarketplaceId(projectId);
       await rejectMarketplaceProject(projectId, marketplaceRejectionReason);
-      
+
       // Remove from pending list
       setMarketplaceProjects(prev => prev.filter(p => p.id !== projectId));
-      
+
       alert('Marketplace project rejected. The seller has been notified.');
       setSelectedMarketplaceProject(null);
       setMarketplaceRejectionReason('');
@@ -539,7 +539,7 @@ export default function AdminPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Users Card */}
-                <div 
+                <div
                   onClick={() => setActiveTab('users')}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
@@ -552,7 +552,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Ideas Card */}
-                <div 
+                <div
                   onClick={() => setActiveTab('ideas')}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
@@ -567,7 +567,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Marketplace Card */}
-                <div 
+                <div
                   onClick={() => setActiveTab('marketplace')}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
@@ -582,7 +582,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Projects Card */}
-                <div 
+                <div
                   onClick={() => setActiveTab('projects')}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
@@ -781,7 +781,7 @@ export default function AdminPanel() {
                           </span>
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 mb-3">{idea.description}</p>
-                        
+
                         <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
@@ -816,7 +816,7 @@ export default function AdminPanel() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="ml-4 flex flex-col gap-2">
                         {idea.status === 'pending' && (
                           <button
@@ -875,7 +875,7 @@ export default function AdminPanel() {
                       <div className="flex-1">
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{project.title}</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{project.description}</p>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />
@@ -985,11 +985,11 @@ export default function AdminPanel() {
                             {userData.name?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-gray-900 truncate">{userData.name || 'No Name'}</h3>
                           <p className="text-sm text-gray-600 truncate">{userData.email || 'No Email'}</p>
-                          
+
                           <div className="mt-2 space-y-1">
                             {userData.institute && (
                               <p className="text-xs text-gray-500 truncate">🎓 {userData.institute}</p>
@@ -1103,7 +1103,7 @@ export default function AdminPanel() {
                   No {marketplaceStatusFilter === 'all' ? '' : marketplaceStatusFilter === 'pending_verification' ? 'Pending' : marketplaceStatusFilter === 'published' ? 'Approved' : 'Rejected'} Listings
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {marketplaceStatusFilter === 'pending_verification' 
+                  {marketplaceStatusFilter === 'pending_verification'
                     ? 'All marketplace listings have been reviewed. New listings will appear here when users submit them for verification.'
                     : `No ${marketplaceStatusFilter === 'published' ? 'approved' : marketplaceStatusFilter === 'rejected' ? 'rejected' : ''} listings found.`
                   }
@@ -1133,9 +1133,9 @@ export default function AdminPanel() {
                       {/* Project Image */}
                       <div className="w-48 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
                         {project.images && project.images.length > 0 ? (
-                          <img 
-                            src={project.images[0]} 
-                            alt={project.title} 
+                          <img
+                            src={project.images[0]}
+                            alt={project.title}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1177,9 +1177,9 @@ export default function AdminPanel() {
                         {/* Project Links */}
                         <div className="flex flex-wrap gap-2 mb-4">
                           {project.links?.github && (
-                            <a 
-                              href={project.links.github} 
-                              target="_blank" 
+                            <a
+                              href={project.links.github}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="px-3 py-1 bg-gray-900 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors"
                             >
@@ -1188,9 +1188,9 @@ export default function AdminPanel() {
                             </a>
                           )}
                           {project.links?.liveDemo && (
-                            <a 
-                              href={project.links.liveDemo} 
-                              target="_blank" 
+                            <a
+                              href={project.links.liveDemo}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-green-600 transition-colors"
                             >
@@ -1199,9 +1199,9 @@ export default function AdminPanel() {
                             </a>
                           )}
                           {project.links?.documentation && (
-                            <a 
-                              href={project.links.documentation} 
-                              target="_blank" 
+                            <a
+                              href={project.links.documentation}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-blue-600 transition-colors"
                             >
@@ -1210,14 +1210,36 @@ export default function AdminPanel() {
                             </a>
                           )}
                           {project.links?.video && (
-                            <a 
-                              href={project.links.video} 
-                              target="_blank" 
+                            <a
+                              href={project.links.video}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-red-600 transition-colors"
                             >
                               <Play className="w-3 h-3" />
                               Video
+                            </a>
+                          )}
+                          {project.links?.demoVideo && (
+                            <a
+                              href={project.links.demoVideo}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-purple-700 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                              🎬 Demo
+                            </a>
+                          )}
+                          {project.links?.explanationVideo && (
+                            <a
+                              href={project.links.explanationVideo}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-indigo-700 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                              💡 Explain
                             </a>
                           )}
                         </div>
@@ -1285,17 +1307,17 @@ export default function AdminPanel() {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Review Marketplace Listing</h2>
-                
+
                 {/* Project Images */}
                 {selectedMarketplaceProject.images && selectedMarketplaceProject.images.length > 0 && (
                   <div className="mb-6">
                     <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">Project Images</label>
                     <div className="flex gap-3 overflow-x-auto pb-2">
                       {selectedMarketplaceProject.images.map((img, idx) => (
-                        <img 
+                        <img
                           key={idx}
-                          src={img} 
-                          alt={`Preview ${idx + 1}`} 
+                          src={img}
+                          alt={`Preview ${idx + 1}`}
                           className="w-40 h-28 object-cover rounded-lg flex-shrink-0"
                         />
                       ))}
@@ -1308,7 +1330,7 @@ export default function AdminPanel() {
                     <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Title</label>
                     <p className="text-lg font-bold text-gray-900 dark:text-white">{selectedMarketplaceProject.title}</p>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Description</label>
                     <p className="text-gray-700 dark:text-gray-300">{selectedMarketplaceProject.description}</p>
@@ -1350,9 +1372,9 @@ export default function AdminPanel() {
                     <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 block">Project Links</label>
                     <div className="flex flex-wrap gap-2">
                       {selectedMarketplaceProject.links?.github && (
-                        <a 
-                          href={selectedMarketplaceProject.links.github} 
-                          target="_blank" 
+                        <a
+                          href={selectedMarketplaceProject.links.github}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-colors"
                         >
@@ -1361,9 +1383,9 @@ export default function AdminPanel() {
                         </a>
                       )}
                       {selectedMarketplaceProject.links?.liveDemo && (
-                        <a 
-                          href={selectedMarketplaceProject.links.liveDemo} 
-                          target="_blank" 
+                        <a
+                          href={selectedMarketplaceProject.links.liveDemo}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-green-600 transition-colors"
                         >
@@ -1372,9 +1394,9 @@ export default function AdminPanel() {
                         </a>
                       )}
                       {selectedMarketplaceProject.links?.documentation && (
-                        <a 
-                          href={selectedMarketplaceProject.links.documentation} 
-                          target="_blank" 
+                        <a
+                          href={selectedMarketplaceProject.links.documentation}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-blue-600 transition-colors"
                         >
@@ -1383,9 +1405,9 @@ export default function AdminPanel() {
                         </a>
                       )}
                       {selectedMarketplaceProject.links?.video && (
-                        <a 
-                          href={selectedMarketplaceProject.links.video} 
-                          target="_blank" 
+                        <a
+                          href={selectedMarketplaceProject.links.video}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-600 transition-colors"
                         >
@@ -1397,6 +1419,53 @@ export default function AdminPanel() {
                         <span className="text-gray-500 dark:text-gray-400 text-sm">No links provided</span>
                       )}
                     </div>
+                  </div>
+
+                  {/* Required Videos Section - Demo & Explanation */}
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
+                    <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block flex items-center gap-2">
+                      📹 Required Videos
+                      <span className="text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300 px-2 py-0.5 rounded-full">
+                        Must Review Before Approval
+                      </span>
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedMarketplaceProject.links?.demoVideo ? (
+                        <a
+                          href={selectedMarketplaceProject.links.demoVideo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-3 bg-purple-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors"
+                        >
+                          <Play className="w-4 h-4" />
+                          🎬 Watch Demo Video
+                        </a>
+                      ) : (
+                        <div className="px-4 py-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm font-semibold rounded-lg flex items-center gap-2">
+                          <XCircle className="w-4 h-4" />
+                          ⚠️ Demo Video Missing!
+                        </div>
+                      )}
+                      {selectedMarketplaceProject.links?.explanationVideo ? (
+                        <a
+                          href={selectedMarketplaceProject.links.explanationVideo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                        >
+                          <Play className="w-4 h-4" />
+                          💡 Watch Explanation Video
+                        </a>
+                      ) : (
+                        <div className="px-4 py-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm font-semibold rounded-lg flex items-center gap-2">
+                          <XCircle className="w-4 h-4" />
+                          ⚠️ Explanation Video Missing!
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                      Please watch both videos to verify the project quality before approving.
+                    </p>
                   </div>
 
                   {selectedMarketplaceProject.techStack && (
@@ -1469,13 +1538,13 @@ export default function AdminPanel() {
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 <h2 className="text-2xl font-black text-gray-900 mb-6">Review Idea</h2>
-                
+
                 <div className="space-y-4 mb-6">
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Title</label>
                     <p className="text-lg font-bold text-gray-900">{selectedIdea.title}</p>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Description</label>
                     <p className="text-gray-700">{selectedIdea.description}</p>

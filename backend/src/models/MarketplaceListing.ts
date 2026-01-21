@@ -19,6 +19,8 @@ export interface IMarketplaceListing extends Document {
     liveDemo?: string;
     documentation?: string;
     video?: string;
+    demoVideo?: string;
+    explanationVideo?: string;
   };
   licenseType: 'personal' | 'commercial' | 'open-source' | 'mit';
   views: number;
@@ -27,6 +29,9 @@ export interface IMarketplaceListing extends Document {
   rating: number;
   reviewCount: number;
   features?: string[];
+  // Reward tracking
+  lastViewMilestone: number;
+  totalCoinsRewarded: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,10 +47,10 @@ const MarketplaceListingSchema: Schema = new Schema({
   sellerId: { type: String, required: true },
   sellerName: { type: String, required: true },
   sellerAvatar: { type: String, default: '' },
-  status: { 
-    type: String, 
-    enum: ['draft', 'pending_verification', 'published', 'rejected', 'sold-out', 'archived'], 
-    default: 'pending_verification' 
+  status: {
+    type: String,
+    enum: ['draft', 'pending_verification', 'published', 'rejected', 'sold-out', 'archived'],
+    default: 'pending_verification'
   },
   rejectionReason: { type: String },
   techStack: [{ type: String }],
@@ -53,10 +58,12 @@ const MarketplaceListingSchema: Schema = new Schema({
     github: { type: String },
     liveDemo: { type: String },
     documentation: { type: String },
-    video: { type: String }
+    video: { type: String },
+    demoVideo: { type: String, required: true },
+    explanationVideo: { type: String, required: true }
   },
-  licenseType: { 
-    type: String, 
+  licenseType: {
+    type: String,
     enum: ['personal', 'commercial', 'open-source', 'mit'],
     default: 'personal'
   },
@@ -65,7 +72,10 @@ const MarketplaceListingSchema: Schema = new Schema({
   purchases: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
-  features: [{ type: String }]
+  features: [{ type: String }],
+  // Reward tracking
+  lastViewMilestone: { type: Number, default: 0 },
+  totalCoinsRewarded: { type: Number, default: 0 }
 }, {
   timestamps: true,
   toJSON: {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
+import { CheckCircle, Star } from 'lucide-react';
 import type { MarketplaceReview } from '../../../types/marketplace';
 
 interface ReviewSectionProps {
@@ -119,9 +119,18 @@ export default function ReviewSection({
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">
-                        {review.buyerName}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                          {review.buyerName}
+                        </h4>
+                        {/* Verified Watcher Badge */}
+                        {review.isVerifiedWatcher && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full">
+                            <CheckCircle className="w-3 h-3" />
+                            Verified Watcher
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600 dark:text-white">
                         {formatDate(review.createdAt)}
                       </p>

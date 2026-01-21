@@ -16,6 +16,13 @@ export interface IMarketplacePurchase extends Document {
     liveDemo?: string;
     documentation?: string;
     video?: string;
+    demoVideo?: string;
+    explanationVideo?: string;
+  };
+  // Video watch tracking
+  videoWatched?: {
+    demo: boolean;
+    explanation: boolean;
   };
 }
 
@@ -29,8 +36,8 @@ const MarketplacePurchaseSchema: Schema = new Schema({
   sellerName: { type: String, required: true },
   price: { type: Number, required: true },
   purchasedAt: { type: Date, default: Date.now },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['completed', 'refunded', 'disputed'],
     default: 'completed'
   },
@@ -38,7 +45,14 @@ const MarketplacePurchaseSchema: Schema = new Schema({
     github: { type: String },
     liveDemo: { type: String },
     documentation: { type: String },
-    video: { type: String }
+    video: { type: String },
+    demoVideo: { type: String },
+    explanationVideo: { type: String }
+  },
+  // Video watch tracking for verified reviews
+  videoWatched: {
+    demo: { type: Boolean, default: false },
+    explanation: { type: Boolean, default: false }
   }
 }, {
   timestamps: true,

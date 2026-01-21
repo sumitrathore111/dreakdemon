@@ -1,19 +1,19 @@
 import { motion } from 'framer-motion';
 import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Coins,
-  Gift,
-  History,
-  Star,
-  Swords,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Trophy,
-  Wallet as WalletIcon,
-  X,
-  Zap
+    ArrowDownRight,
+    ArrowUpRight,
+    Coins,
+    Gift,
+    History,
+    Star,
+    Swords,
+    Target,
+    TrendingDown,
+    TrendingUp,
+    Trophy,
+    Wallet as WalletIcon,
+    X,
+    Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
@@ -126,6 +126,8 @@ const WalletPanel = ({ wallet, onClose }: WalletPanelProps) => {
       if (reason?.toLowerCase().includes('challenge')) return Target;
       if (reason?.toLowerCase().includes('battle') || reason?.toLowerCase().includes('prize')) return Swords;
       if (reason?.toLowerCase().includes('tournament')) return Trophy;
+      if (reason?.toLowerCase().includes('marketplace') || reason?.toLowerCase().includes('views')) return Coins;
+      if (reason?.toLowerCase().includes('star') || reason?.toLowerCase().includes('rating')) return Star;
       return Gift;
     } else {
       if (reason?.toLowerCase().includes('hint')) return Star;

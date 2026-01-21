@@ -1,5 +1,6 @@
 import {
     ArrowLeft,
+    CheckCircle,
     ExternalLink,
     Eye,
     FileText,
@@ -10,6 +11,7 @@ import {
     Shield,
     ShoppingCart,
     Star,
+    Trophy,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -25,7 +27,12 @@ import {
     getProjectReviews,
     incrementProjectViews,
 } from '../../service/marketplaceService';
-import type { MarketplaceProject, MarketplaceReview } from '../../types/marketplace';
+import {
+    getPurchaseVideoStatus,
+    getSellerAchievements,
+    markVideoAsWatched,
+} from '../../service/marketplaceServiceNew';
+import type { MarketplaceProject, MarketplaceReview, SellerAchievements } from '../../types/marketplace';
 import { CATEGORY_LABELS, LICENSE_LABELS } from '../../types/marketplace';
 import ChatWindow from './components/ChatWindow';
 import ImageGallery from './components/ImageGallery';
@@ -53,6 +60,13 @@ export default function ProjectDetail() {
   const [reviewComment, setReviewComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
+  // Video watch tracking
+  const [videoWatched, setVideoWatched] = useState({ demo: false, explanation: false });
+  const [canReview, setCanReview] = useState(false);
+
+  // Seller achievements
+  const [sellerAchievements, setSellerAchievements] = useState<SellerAchievements | null>(null);
+
   useEffect(() => {
     if (projectId) {
       loadProject();
@@ -74,9 +88,30 @@ export default function ProjectDetail() {
         setProject(projectData);
         setReviews(reviewsData);
 
+        // Load seller achievements
+        try {
+          const achievements = await getSellerAchievements(projectData.sellerId);
+          setSellerAchievements(achievements);
+        } catch (err) {
+          console.error('Error loading seller achievements:', err);
+        }
+
         if (user?.id) {
           const purchased = await checkUserPurchased(user.id, projectId);
           setHasPurchased(purchased);
+
+          // Load video watch status if purchased
+          if (purchased) {
+            try {
+              const status = await getPurchaseVideoStatus(projectId, user.id);
+              if (status) {
+                setVideoWatched(status.videoWatched);
+                setCanReview(status.canReview);
+              }
+            } catch (err) {
+              console.error('Error loading video status:', err);
+            }
+          }
         }
       } else {
         toast.error('Project not found');
@@ -84,13 +119,33 @@ export default function ProjectDetail() {
       }
     } catch (error: any) {
       console.error('Error loading project:', error);
-      const errorMessage = error?.code === 'permission-denied' 
+      const errorMessage = error?.code === 'permission-denied'
         ? 'Access denied. Please make sure Firestore rules are deployed.'
         : 'Failed to load project. Please try again.';
       toast.error(errorMessage);
       navigate('/dashboard/marketplace');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle marking video as watched
+  const handleMarkVideoWatched = async (videoType: 'demo' | 'explanation') => {
+    if (!projectId || !user?.id) return;
+
+    try {
+      const result = await markVideoAsWatched(projectId, videoType, user.id);
+      setVideoWatched(result.videoWatched);
+      setCanReview(result.canReview);
+
+      if (result.canReview) {
+        toast.success('🎉 You can now leave a review!', { duration: 4000 });
+      } else {
+        toast.success(result.message);
+      }
+    } catch (error) {
+      console.error('Error marking video as watched:', error);
+      toast.error('Failed to update watch status');
     }
   };
 
@@ -354,6 +409,128 @@ export default function ProjectDetail() {
                 </div>
               )}
 
+              {/* Project Videos Section */}
+              {(project.links.demoVideo || project.links.explanationVideo) && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    📹 Project Videos
+                    <span className="text-xs bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-1 rounded-full">
+                      Watch & Review to support the creator!
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {project.links.demoVideo && (
+                      <div className={`bg-gradient-to-br rounded-xl p-4 border ${
+                        videoWatched.demo
+                          ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-green-700'
+                          : 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className={`p-2 rounded-lg ${videoWatched.demo ? 'bg-green-500' : 'bg-purple-500'}`}>
+                            {videoWatched.demo ? <CheckCircle className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white" />}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                              🎬 Demo Video
+                              {videoWatched.demo && <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">✓ Watched</span>}
+                            </h4>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">See the project in action</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <a
+                            href={project.links.demoVideo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full px-4 py-3 bg-purple-600 text-white text-center rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                          >
+                            Watch Demo Video →
+                          </a>
+                          {hasPurchased && !videoWatched.demo && (
+                            <button
+                              onClick={() => handleMarkVideoWatched('demo')}
+                              className="w-full px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              I watched this video
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {project.links.explanationVideo && (
+                      <div className={`bg-gradient-to-br rounded-xl p-4 border ${
+                        videoWatched.explanation
+                          ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-300 dark:border-green-700'
+                          : 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className={`p-2 rounded-lg ${videoWatched.explanation ? 'bg-green-500' : 'bg-blue-500'}`}>
+                            {videoWatched.explanation ? <CheckCircle className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white" />}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                              💡 Explanation Video
+                              {videoWatched.explanation && <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">✓ Watched</span>}
+                            </h4>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Learn about the concept & idea</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <a
+                            href={project.links.explanationVideo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full px-4 py-3 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                          >
+                            Watch Explanation Video →
+                          </a>
+                          {hasPurchased && !videoWatched.explanation && (
+                            <button
+                              onClick={() => handleMarkVideoWatched('explanation')}
+                              className="w-full px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              I watched this video
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Video Watch Progress for Buyers */}
+                  {hasPurchased && (project.links.demoVideo || project.links.explanationVideo) && (
+                    <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Video Watch Progress:</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded ${videoWatched.demo ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-400'}`}>
+                            Demo {videoWatched.demo ? '✓' : '○'}
+                          </span>
+                          <span className={`px-2 py-1 rounded ${videoWatched.explanation ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-500 dark:bg-gray-600 dark:text-gray-400'}`}>
+                            Explanation {videoWatched.explanation ? '✓' : '○'}
+                          </span>
+                        </div>
+                      </div>
+                      {canReview ? (
+                        <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+                          ✅ You can now write a verified review!
+                        </p>
+                      ) : (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 text-center">
+                          ⚠️ Watch both videos to write a verified review
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-3 text-center">
+                    🪙 Rate this project above 3.5 stars to reward the creator with coins!
+                  </p>
+                </div>
+              )}
+
               {/* Project Details */}
               <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <div>
@@ -381,20 +558,56 @@ export default function ProjectDetail() {
             {/* Add Review */}
             {hasPurchased && !isOwnProject && (
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                {!showReviewForm ? (
-                  <button
-                    onClick={() => setShowReviewForm(true)}
-                    className="w-full px-4 py-3 text-white rounded-lg transition-colors font-semibold hover:opacity-90"
-                    style={{ backgroundColor: '#00ADB5' }}
-                  >
-                    Write a Review
-                  </button>
+                {/* Not eligible to review - videos not watched */}
+                {!canReview && (project.links.demoVideo || project.links.explanationVideo) ? (
+                  <div className="text-center py-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-4">
+                      <Play className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      Watch Videos to Review
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                      Watch both the demo and explanation videos to unlock the ability to write a verified review.
+                    </p>
+                    <div className="flex items-center justify-center gap-4 text-sm">
+                      <span className={`px-3 py-1 rounded-full ${videoWatched.demo ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+                        {videoWatched.demo ? '✓' : '○'} Demo Video
+                      </span>
+                      <span className={`px-3 py-1 rounded-full ${videoWatched.explanation ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
+                        {videoWatched.explanation ? '✓' : '○'} Explanation Video
+                      </span>
+                    </div>
+                  </div>
+                ) : !showReviewForm ? (
+                  <div>
+                    {canReview && (
+                      <div className="mb-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
+                        <span className="text-sm text-green-700 dark:text-green-400">
+                          <CheckCircle className="w-4 h-4 inline mr-1" />
+                          Your review will be marked as "Verified Watcher"
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setShowReviewForm(true)}
+                      className="w-full px-4 py-3 text-white rounded-lg transition-colors font-semibold hover:opacity-90"
+                      style={{ backgroundColor: '#00ADB5' }}
+                    >
+                      Write a Review
+                    </button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                       Write Your Review
+                      {canReview && (
+                        <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-full">
+                          ✓ Verified Watcher
+                        </span>
+                      )}
                     </h3>
-                    
+
                     {/* Rating */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
@@ -416,6 +629,29 @@ export default function ProjectDetail() {
                             />
                           </button>
                         ))}
+                      </div>
+                      {/* Tiered Reward Info */}
+                      <div className="mt-2 text-xs">
+                        {reviewRating >= 5 && (
+                          <p className="text-green-600 dark:text-green-400">
+                            🪙 5⭐ = Seller earns <strong>20 coins</strong> (Excellent!)
+                          </p>
+                        )}
+                        {reviewRating === 4 && (
+                          <p className="text-blue-600 dark:text-blue-400">
+                            🪙 4⭐ = Seller earns <strong>15 coins</strong> (Great!)
+                          </p>
+                        )}
+                        {reviewRating >= 3.5 && reviewRating < 4 && (
+                          <p className="text-amber-600 dark:text-amber-400">
+                            🪙 3.5⭐ = Seller earns <strong>10 coins</strong> (Good!)
+                          </p>
+                        )}
+                        {reviewRating > 0 && reviewRating < 3.5 && (
+                          <p className="text-gray-500 dark:text-gray-400">
+                            Ratings below 3.5 don't earn coins for the seller
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -522,6 +758,50 @@ export default function ProjectDetail() {
                     <p className="text-sm text-gray-600 dark:text-white">View Profile</p>
                   </div>
                 </Link>
+
+                {/* Seller Achievement Badges */}
+                {sellerAchievements && sellerAchievements.badges.length > 0 && (
+                  <div className="mt-4 p-3 bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trophy className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">Seller Achievements</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {sellerAchievements.badges.map((badge) => (
+                        <div
+                          key={badge.id}
+                          className="group relative px-2 py-1 bg-white dark:bg-gray-800 rounded-full border border-amber-300 dark:border-amber-600 cursor-help"
+                        >
+                          <span className="text-sm">{badge.emoji} {badge.name}</span>
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            {badge.description}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Seller Stats */}
+                    <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <span>💰</span>
+                        <span>{sellerAchievements.stats.totalSales} sales</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <span>⭐</span>
+                        <span>{sellerAchievements.stats.avgRating.toFixed(1)} avg rating</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <span>👁️</span>
+                        <span>{sellerAchievements.stats.totalViews} views</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                        <span>🪙</span>
+                        <span>{sellerAchievements.stats.totalCoinsEarned} coins earned</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

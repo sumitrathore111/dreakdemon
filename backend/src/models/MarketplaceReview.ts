@@ -8,6 +8,7 @@ export interface IMarketplaceReview extends Document {
   rating: number;
   comment: string;
   helpful: number;
+  isVerifiedWatcher: boolean; // True if buyer watched both videos before reviewing
   createdAt: Date;
 }
 
@@ -18,7 +19,8 @@ const MarketplaceReviewSchema: Schema = new Schema({
   buyerAvatar: { type: String, default: '' },
   rating: { type: Number, required: true, min: 1, max: 5 },
   comment: { type: String, required: true },
-  helpful: { type: Number, default: 0 }
+  helpful: { type: Number, default: 0 },
+  isVerifiedWatcher: { type: Boolean, default: false } // Badge for watching both videos
 }, {
   timestamps: true,
   toJSON: {

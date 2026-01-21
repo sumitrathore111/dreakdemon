@@ -30,6 +30,8 @@ export default function CreateListing() {
       liveDemo: '',
       documentation: '',
       video: '',
+      demoVideo: '',
+      explanationVideo: '',
     },
     licenseType: 'personal',
     status: 'published',
@@ -148,7 +150,7 @@ export default function CreateListing() {
 
       for (let i = 0; i < totalFiles; i++) {
         const file = files[i];
-        
+
         // Validate file type
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
@@ -230,6 +232,17 @@ export default function CreateListing() {
       return;
     }
 
+    // Validate required video links
+    if (!formData.links.demoVideo || !formData.links.demoVideo.trim()) {
+      toast.error('Demo Video link is required');
+      return;
+    }
+
+    if (!formData.links.explanationVideo || !formData.links.explanationVideo.trim()) {
+      toast.error('Explanation Video link is required');
+      return;
+    }
+
     // Validate URL format
     const urlPattern = /^https?:\/\/.+/;
     if (!urlPattern.test(formData.links.github)) {
@@ -265,7 +278,7 @@ export default function CreateListing() {
       }
     } catch (error: any) {
       console.error(`Error ${isEditMode ? 'updating' : 'creating'} project:`, error);
-      
+
       // Provide specific error messages
       if (error?.message) {
         toast.error(`Failed to ${isEditMode ? 'update' : 'create'} listing: ${error.message}`);
@@ -482,7 +495,7 @@ export default function CreateListing() {
               <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Project Images <span className="text-gray-500 text-xs">(max 5 images)</span>
               </label>
-              
+
               {/* File Upload Section */}
               <div className="mb-4">
                 <input
@@ -508,7 +521,7 @@ export default function CreateListing() {
                       <div className="w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin mb-3" />
                       <span className="text-sm font-medium text-[#00ADB5]">Uploading... {uploadProgress}%</span>
                       <div className="w-48 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-2 overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-[#00ADB5] transition-all duration-300"
                           style={{ width: `${uploadProgress}%` }}
                         />
@@ -523,7 +536,7 @@ export default function CreateListing() {
                         {formData.images.length >= 5 ? 'Maximum images reached' : 'Click to upload images'}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {formData.images.length >= 5 
+                        {formData.images.length >= 5
                           ? 'Remove some images to add more'
                           : 'JPEG, PNG, GIF, WebP up to 5MB each'
                         }
@@ -648,18 +661,54 @@ export default function CreateListing() {
                   placeholder="https://docs.example.com"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Video Demo (YouTube, etc.)
-                </label>
-                <input
-                  type="url"
-                  value={formData.links.video}
-                  onChange={(e) => setFormData({ ...formData, links: { ...formData.links, video: e.target.value } })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
-                  placeholder="https://youtube.com/..."
-                />
+            </div>
+
+            {/* Required Video Links */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                📹 Required Videos
+                <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded-full">Required</span>
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Upload two videos to help buyers understand your project better. Good videos can earn you coin rewards!
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    🎬 Demo Video <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Show your project in action - features, UI, functionality
+                  </p>
+                  <input
+                    type="url"
+                    value={formData.links.demoVideo}
+                    onChange={(e) => setFormData({ ...formData, links: { ...formData.links, demoVideo: e.target.value } })}
+                    className="w-full px-4 py-2 border border-purple-300 dark:border-purple-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://youtube.com/watch?v=..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    💡 Explanation Video <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Explain your idea - concept, use cases, why it's valuable
+                  </p>
+                  <input
+                    type="url"
+                    value={formData.links.explanationVideo}
+                    onChange={(e) => setFormData({ ...formData, links: { ...formData.links, explanationVideo: e.target.value } })}
+                    className="w-full px-4 py-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://youtube.com/watch?v=..."
+                    required
+                  />
+                </div>
               </div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-3 flex items-center gap-1">
+                🪙 Earn coins when buyers rate your project above 3.5 stars or every 1000 views!
+              </p>
             </div>
 
             {/* Submit */}

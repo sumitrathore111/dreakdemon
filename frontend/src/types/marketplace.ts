@@ -24,6 +24,9 @@ export interface MarketplaceProject {
   updatedAt: Date;
   tags?: string[];
   features?: string[];
+  // Reward tracking
+  lastViewMilestone?: number;
+  totalCoinsRewarded?: number;
 }
 
 export interface ProjectLinks {
@@ -31,9 +34,11 @@ export interface ProjectLinks {
   liveDemo?: string;
   documentation?: string;
   video?: string;
+  demoVideo?: string;
+  explanationVideo?: string;
 }
 
-export type ProjectCategory = 
+export type ProjectCategory =
   | 'web-app'
   | 'mobile-app'
   | 'backend-api'
@@ -44,13 +49,13 @@ export type ProjectCategory =
   | 'template'
   | 'other';
 
-export type LicenseType = 
+export type LicenseType =
   | 'personal'
   | 'commercial'
   | 'open-source'
   | 'mit';
 
-export type ProjectStatus = 
+export type ProjectStatus =
   | 'draft'
   | 'pending_verification'
   | 'published'
@@ -71,9 +76,14 @@ export interface MarketplacePurchase {
   purchasedAt: Date;
   status: PurchaseStatus;
   accessLinks?: ProjectLinks;
+  // Video watch tracking
+  videoWatched?: {
+    demo: boolean;
+    explanation: boolean;
+  };
 }
 
-export type PurchaseStatus = 
+export type PurchaseStatus =
   | 'completed'
   | 'refunded'
   | 'disputed';
@@ -88,6 +98,7 @@ export interface MarketplaceReview {
   comment: string;
   createdAt: Date;
   helpful: number;
+  isVerifiedWatcher?: boolean; // True if buyer watched both videos before reviewing
 }
 
 export interface MarketplaceChat {
@@ -196,3 +207,36 @@ export const TECH_STACK_OPTIONS = [
   'PyTorch',
   'OpenAI',
 ];
+
+// Seller Achievement Badges
+export interface SellerBadge {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+}
+
+export interface SellerAchievements {
+  sellerId: string;
+  stats: {
+    totalSales: number;
+    totalViews: number;
+    totalCoinsEarned: number;
+    avgRating: number;
+    totalProjects: number;
+  };
+  badges: SellerBadge[];
+  progress: {
+    topSeller: { current: number; required: number };
+    highlyRated: { current: number; required: number };
+    viralProject: { current: number; required: number };
+    coinMaster: { current: number; required: number };
+  };
+}
+
+// Tiered Reward System
+export const REWARD_TIERS = {
+  FIVE_STARS: { rating: 5, coins: 20, emoji: '🌟' },
+  FOUR_STARS: { rating: 4, coins: 15, emoji: '⭐' },
+  THREE_FIVE_STARS: { rating: 3.5, coins: 10, emoji: '✨' },
+} as const;

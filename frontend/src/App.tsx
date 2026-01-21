@@ -37,13 +37,13 @@ const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const DeveloperConnect = lazy(() => import("./Pages/DeveloperConnect/DeveloperConnect"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
-const Path2Code = lazy(() => import("./Pages/Path2Code/Path2Code"));
-// // Marketplace pages
-// const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
-// const ProjectDetailMarketplace = lazy(() => import("./Pages/Marketplace/ProjectDetail"));
-// const CreateListing = lazy(() => import("./Pages/Marketplace/CreateListing"));
-// const MyListings = lazy(() => import("./Pages/Marketplace/MyListings"));
-// const MyPurchases = lazy(() => import("./Pages/Marketplace/MyPurchases"));
+
+// Marketplace pages
+const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
+const ProjectDetailMarketplace = lazy(() => import("./Pages/Marketplace/ProjectDetail"));
+const CreateListing = lazy(() => import("./Pages/Marketplace/CreateListing"));
+const MyListings = lazy(() => import("./Pages/Marketplace/MyListings"));
+const MyPurchases = lazy(() => import("./Pages/Marketplace/MyPurchases"));
 
 function PublicLayout() {
 
@@ -275,15 +275,14 @@ const App: React.FC = () => {
                   <Route path="profile" element={<ProfileInfo />} />
                   <Route path="codearena/*" element={<CodeArena />} />
                   <Route path="company_req" element={<Company_Req />} />
-                  <Route path="path2code" element={<Path2Code />} />
 
-                  {/* Marketplace Routes */}
-                  {/* <Route path="Path2Code" element={<Path2Code />} /> */}
-                  {/* <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
+ {/* Marketplace Routes */}
+                  <Route path="marketplace" element={<MarketplaceBazaar />} />
+                  <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
                   <Route path="marketplace/create" element={<CreateListing />} />
                   <Route path="marketplace/edit/:projectId" element={<CreateListing />} />
                   <Route path="marketplace/my-listings" element={<MyListings />} />
-                  <Route path="marketplace/my-purchases" element={<MyPurchases />} /> */}
+                  <Route path="marketplace/my-purchases" element={<MyPurchases />} />
                 </Route>
               </Routes>
             </AnimatePresence>

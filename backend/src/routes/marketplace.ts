@@ -1,21 +1,77 @@
 import { Response, Router } from 'express';
+import mongoose from 'mongoose';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import MarketplaceChat from '../models/MarketplaceChat';
 import MarketplaceListing from '../models/MarketplaceListing';
 import MarketplaceMessage from '../models/MarketplaceMessage';
 import MarketplacePurchase from '../models/MarketplacePurchase';
 import MarketplaceReview from '../models/MarketplaceReview';
+import Wallet from '../models/Wallet';
 
 const router = Router();
+
+// Tiered Reward System Constants
+const COINS_FOR_5_STARS = 20;      // 5 ⭐ rating
+const COINS_FOR_4_STARS = 15;      // 4-4.9 ⭐ rating
+const COINS_FOR_3_5_STARS = 10;    // 3.5-3.9 ⭐ rating
+const COINS_PER_1000_VIEWS = 5;    // Coins for every 1000 views
+
+// Helper function to calculate coins based on rating tier
+function getCoinsForRating(rating: number): number {
+  if (rating === 5) return COINS_FOR_5_STARS;
+  if (rating >= 4) return COINS_FOR_4_STARS;
+  if (rating >= 3.5) return COINS_FOR_3_5_STARS;
+  return 0;
+}
+
+// Achievement thresholds
+const ACHIEVEMENT_THRESHOLDS = {
+  TOP_SELLER: 10,        // 10+ sales
+  HIGHLY_RATED: 4.5,     // Avg 4.5+ stars
+  VIRAL_PROJECT: 10000,  // 10,000+ views
+  COIN_MASTER: 500       // 500+ coins earned
+};
+
+// Helper function to reward seller coins
+async function rewardSellerCoins(sellerId: string, amount: number, reason: string): Promise<boolean> {
+  try {
+    const sellerObjectId = new mongoose.Types.ObjectId(sellerId);
+
+    let wallet = await Wallet.findOne({ userId: sellerObjectId });
+    if (!wallet) {
+      wallet = await Wallet.create({
+        userId: sellerObjectId,
+        coins: 100,
+        transactions: [],
+        achievements: { problemsSolved: 0, battlesWon: 0, currentStreak: 0 }
+      });
+    }
+
+    wallet.coins += amount;
+    wallet.transactions.push({
+      type: 'credit',
+      amount,
+      reason,
+      createdAt: new Date()
+    });
+    await wallet.save();
+
+    console.log(`Rewarded ${amount} coins to seller ${sellerId}: ${reason}`);
+    return true;
+  } catch (error) {
+    console.error('Error rewarding coins:', error);
+    return false;
+  }
+}
 
 // Get all listings (published only for public, all statuses for authenticated users)
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { category, search, minPrice, maxPrice, sort = '-createdAt', page = 1, limit = 20 } = req.query;
-    
+
     // Only show published listings
     let query: any = { status: 'published' };
-    
+
     if (category && category !== 'all') query.category = category;
     if (search) {
       query.$or = [
@@ -26,14 +82,14 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
     }
     if (minPrice) query.price = { ...query.price, $gte: Number(minPrice) };
     if (maxPrice) query.price = { ...query.price, $lte: Number(maxPrice) };
-    
+
     const listings = await MarketplaceListing.find(query)
       .sort(sort as string)
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit));
-    
+
     const total = await MarketplaceListing.countDocuments(query);
-    
+
     res.json({ listings, total, page: Number(page), limit: Number(limit) });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -56,9 +112,9 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       reviewCount: 0,
       likes: []
     };
-    
+
     const listing = await MarketplaceListing.create(listingData);
-    
+
     res.status(201).json({ listing });
   } catch (error: any) {
     console.error('Error creating listing:', error);
@@ -70,13 +126,13 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
 router.get('/all', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status } = req.query;
-    
+
     let query: any = {};
     if (status && status !== 'all') query.status = status;
-    
+
     const listings = await MarketplaceListing.find(query)
       .sort({ createdAt: -1 });
-    
+
     // Transform to ensure proper format
     const projects = listings.map((listing: any) => {
       const obj = listing.toObject();
@@ -85,7 +141,7 @@ router.get('/all', authenticate, async (req: AuthRequest, res: Response): Promis
         id: obj._id?.toString() || obj.id
       };
     });
-    
+
     res.json({ projects, total: projects.length });
   } catch (error: any) {
     console.error('Error getting all marketplace listings:', error);
@@ -98,23 +154,23 @@ router.post('/approve/:listingId', authenticate, async (req: AuthRequest, res: R
   try {
     const listing = await MarketplaceListing.findByIdAndUpdate(
       req.params.listingId,
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'published',
           rejectionReason: ''
-        } 
+        }
       },
       { new: true }
     );
-    
+
     if (!listing) {
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Project approved successfully',
-      listing 
+      listing
     });
   } catch (error: any) {
     console.error('Error approving listing:', error);
@@ -126,26 +182,26 @@ router.post('/approve/:listingId', authenticate, async (req: AuthRequest, res: R
 router.post('/reject/:listingId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { reason } = req.body;
-    
+
     const listing = await MarketplaceListing.findByIdAndUpdate(
       req.params.listingId,
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'rejected',
           rejectionReason: reason || 'No reason provided'
-        } 
+        }
       },
       { new: true }
     );
-    
+
     if (!listing) {
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Project rejected',
-      listing 
+      listing
     });
   } catch (error: any) {
     console.error('Error rejecting listing:', error);
@@ -166,7 +222,7 @@ router.get('/user/my-listings', authenticate, async (req: AuthRequest, res: Resp
 // Get seller projects (public)
 router.get('/seller/:sellerId/projects', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const listings = await MarketplaceListing.find({ 
+    const listings = await MarketplaceListing.find({
       sellerId: req.params.sellerId,
       status: 'published'
     }).sort({ createdAt: -1 });
@@ -200,11 +256,38 @@ router.get('/user/:userId/purchases', authenticate, async (req: AuthRequest, res
 router.get('/projects/:projectId/purchased', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId as string || req.user!.id;
-    const purchase = await MarketplacePurchase.findOne({ 
-      projectId: req.params.projectId, 
-      buyerId: userId 
+    const purchase = await MarketplacePurchase.findOne({
+      projectId: req.params.projectId,
+      buyerId: userId
     });
     res.json({ purchased: !!purchase });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get purchase status with video watching info
+router.get('/projects/:projectId/purchase-status', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const buyerId = req.query.buyerId as string || req.user!.id;
+    const purchase = await MarketplacePurchase.findOne({
+      projectId: req.params.projectId,
+      buyerId
+    });
+
+    if (!purchase) {
+      res.status(404).json({ error: 'Purchase not found' });
+      return;
+    }
+
+    const videoWatched = purchase.videoWatched || { demo: false, explanation: false };
+    const canReview = videoWatched.demo && videoWatched.explanation;
+
+    res.json({
+      videoWatched,
+      canReview,
+      purchasedAt: purchase.purchasedAt
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -229,7 +312,7 @@ router.post('/projects/:projectId/purchase', authenticate, async (req: AuthReque
       res.status(400).json({ error: 'Already purchased' });
       return;
     }
-    
+
     // Create purchase record
     const purchase = await MarketplacePurchase.create({
       projectId: listing._id.toString(),
@@ -248,7 +331,7 @@ router.post('/projects/:projectId/purchase', authenticate, async (req: AuthReque
     // Increment purchase count
     listing.purchases += 1;
     await listing.save();
-    
+
     res.json({ purchase });
   } catch (error: any) {
     console.error('Error creating purchase:', error);
@@ -256,12 +339,32 @@ router.post('/projects/:projectId/purchase', authenticate, async (req: AuthReque
   }
 });
 
-// Increment project views
+// Increment project views with reward for every 1000 views
 router.post('/projects/:projectId/views', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const listing = await MarketplaceListing.findById(req.params.projectId);
     if (listing) {
       listing.views += 1;
+
+      // Check if we've hit a new 1000 views milestone
+      const currentMilestone = Math.floor(listing.views / 1000);
+      const lastMilestone = listing.lastViewMilestone || 0;
+
+      if (currentMilestone > lastMilestone) {
+        // Reward coins for reaching new milestone
+        const milestonesReached = currentMilestone - lastMilestone;
+        const coinsToReward = milestonesReached * COINS_PER_1000_VIEWS;
+
+        await rewardSellerCoins(
+          listing.sellerId,
+          coinsToReward,
+          `🎉 Marketplace: ${listing.title} reached ${currentMilestone * 1000} views!`
+        );
+
+        listing.lastViewMilestone = currentMilestone;
+        listing.totalCoinsRewarded = (listing.totalCoinsRewarded || 0) + coinsToReward;
+      }
+
       await listing.save();
     }
     res.json({ success: true });
@@ -280,33 +383,175 @@ router.get('/projects/:projectId/reviews', async (req: AuthRequest, res: Respons
   }
 });
 
-// Create a review
+// Create a review with tiered reward system
 router.post('/projects/:projectId/reviews', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { rating, comment, buyerId, buyerName, buyerAvatar } = req.body;
-    
-    // Create review
+    const finalBuyerId = buyerId || req.user!.id;
+
+    // Get the listing to reward the seller
+    const listing = await MarketplaceListing.findById(req.params.projectId);
+    if (!listing) {
+      res.status(404).json({ error: 'Listing not found' });
+      return;
+    }
+
+    // Check if user has purchased and watched videos
+    const purchase = await MarketplacePurchase.findOne({
+      projectId: req.params.projectId,
+      buyerId: finalBuyerId
+    });
+
+    if (!purchase) {
+      res.status(403).json({ error: 'You must purchase this project before reviewing' });
+      return;
+    }
+
+    // Check if both videos were watched
+    const videosWatched = purchase.videoWatched?.demo && purchase.videoWatched?.explanation;
+    const isVerifiedWatcher = videosWatched === true;
+
+    // Create review with verified watcher badge
     const review = await MarketplaceReview.create({
       projectId: req.params.projectId,
-      buyerId: buyerId || req.user!.id,
+      buyerId: finalBuyerId,
       buyerName: buyerName || req.user!.name || 'User',
       buyerAvatar: buyerAvatar || '',
       rating,
-      comment
+      comment,
+      isVerifiedWatcher
     });
 
     // Update listing rating
     const reviews = await MarketplaceReview.find({ projectId: req.params.projectId });
     const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    
+
     await MarketplaceListing.findByIdAndUpdate(req.params.projectId, {
       rating: Math.round(avgRating * 10) / 10,
       reviewCount: reviews.length
     });
 
-    res.json({ review });
+    // Calculate tiered reward based on rating
+    const coinsToReward = getCoinsForRating(rating);
+
+    if (coinsToReward > 0) {
+      const tierEmoji = rating === 5 ? '🌟' : rating >= 4 ? '⭐' : '✨';
+      await rewardSellerCoins(
+        listing.sellerId,
+        coinsToReward,
+        `${tierEmoji} Marketplace: ${buyerName || 'A user'} gave ${rating} stars on "${listing.title}" (+${coinsToReward} coins)`
+      );
+
+      // Update total coins rewarded on listing
+      listing.totalCoinsRewarded = (listing.totalCoinsRewarded || 0) + coinsToReward;
+      await listing.save();
+    }
+
+    res.json({
+      review,
+      coinsRewarded: coinsToReward,
+      isVerifiedWatcher,
+      rewardTier: rating === 5 ? '5-star' : rating >= 4 ? '4-star' : rating >= 3.5 ? '3.5-star' : 'none'
+    });
   } catch (error: any) {
     console.error('Error creating review:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark video as watched
+router.post('/projects/:projectId/watch-video', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { videoType, buyerId } = req.body; // videoType: 'demo' | 'explanation'
+    const finalBuyerId = buyerId || req.user!.id;
+
+    if (!['demo', 'explanation'].includes(videoType)) {
+      res.status(400).json({ error: 'Invalid video type. Must be "demo" or "explanation"' });
+      return;
+    }
+
+    const purchase = await MarketplacePurchase.findOne({
+      projectId: req.params.projectId,
+      buyerId: finalBuyerId
+    });
+
+    if (!purchase) {
+      res.status(404).json({ error: 'Purchase not found' });
+      return;
+    }
+
+    // Update video watched status
+    if (!purchase.videoWatched) {
+      purchase.videoWatched = { demo: false, explanation: false };
+    }
+    purchase.videoWatched[videoType as 'demo' | 'explanation'] = true;
+    await purchase.save();
+
+    const bothWatched = purchase.videoWatched.demo && purchase.videoWatched.explanation;
+
+    res.json({
+      success: true,
+      videoWatched: purchase.videoWatched,
+      canReview: bothWatched,
+      message: bothWatched ? 'You can now leave a review!' : `Watch the ${videoType === 'demo' ? 'explanation' : 'demo'} video to unlock reviews`
+    });
+  } catch (error: any) {
+    console.error('Error marking video as watched:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get seller achievements/badges
+router.get('/seller/:sellerId/achievements', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { sellerId } = req.params;
+
+    // Get all seller's listings
+    const listings = await MarketplaceListing.find({ sellerId, status: 'published' });
+
+    // Calculate stats
+    const totalSales = listings.reduce((sum, l) => sum + l.purchases, 0);
+    const totalViews = listings.reduce((sum, l) => sum + l.views, 0);
+    const totalCoinsEarned = listings.reduce((sum, l) => sum + (l.totalCoinsRewarded || 0), 0);
+    const avgRating = listings.length > 0
+      ? listings.reduce((sum, l) => sum + l.rating, 0) / listings.filter(l => l.rating > 0).length
+      : 0;
+
+    // Determine badges
+    const badges: { id: string; name: string; emoji: string; description: string }[] = [];
+
+    if (totalSales >= ACHIEVEMENT_THRESHOLDS.TOP_SELLER) {
+      badges.push({ id: 'top_seller', name: 'Top Seller', emoji: '🥇', description: '10+ sales' });
+    }
+    if (avgRating >= ACHIEVEMENT_THRESHOLDS.HIGHLY_RATED && listings.some(l => l.reviewCount > 0)) {
+      badges.push({ id: 'highly_rated', name: 'Highly Rated', emoji: '⭐', description: 'Avg 4.5+ stars' });
+    }
+    if (totalViews >= ACHIEVEMENT_THRESHOLDS.VIRAL_PROJECT) {
+      badges.push({ id: 'viral_project', name: 'Viral Creator', emoji: '👁️', description: '10,000+ views' });
+    }
+    if (totalCoinsEarned >= ACHIEVEMENT_THRESHOLDS.COIN_MASTER) {
+      badges.push({ id: 'coin_master', name: 'Coin Master', emoji: '💎', description: '500+ coins earned' });
+    }
+
+    res.json({
+      sellerId,
+      stats: {
+        totalSales,
+        totalViews,
+        totalCoinsEarned,
+        avgRating: Math.round(avgRating * 10) / 10,
+        totalProjects: listings.length
+      },
+      badges,
+      progress: {
+        topSeller: { current: totalSales, required: ACHIEVEMENT_THRESHOLDS.TOP_SELLER },
+        highlyRated: { current: avgRating, required: ACHIEVEMENT_THRESHOLDS.HIGHLY_RATED },
+        viralProject: { current: totalViews, required: ACHIEVEMENT_THRESHOLDS.VIRAL_PROJECT },
+        coinMaster: { current: totalCoinsEarned, required: ACHIEVEMENT_THRESHOLDS.COIN_MASTER }
+      }
+    });
+  } catch (error: any) {
+    console.error('Error getting seller achievements:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -318,14 +563,14 @@ router.get('/chats/pending', authenticate, async (req: AuthRequest, res: Respons
   try {
     const userId = req.query.userId as string || req.user!.id;
     console.log('Fetching pending requests for seller:', userId);
-    
-    const requests = await MarketplaceChat.find({ 
-      sellerId: userId, 
-      status: 'pending' 
+
+    const requests = await MarketplaceChat.find({
+      sellerId: userId,
+      status: 'pending'
     }).sort({ createdAt: -1 });
-    
+
     console.log('Found pending requests:', requests.length);
-    
+
     // Convert to JSON to ensure Maps are converted to objects
     const requestsJson = requests.map(r => r.toJSON());
     res.json({ requests: requestsJson });
@@ -338,10 +583,10 @@ router.get('/chats/pending', authenticate, async (req: AuthRequest, res: Respons
 // Get seller chats (all chats where user is the seller)
 router.get('/chats/seller/:sellerId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const chats = await MarketplaceChat.find({ 
+    const chats = await MarketplaceChat.find({
       sellerId: req.params.sellerId
     }).sort({ lastMessageTime: -1 });
-    
+
     // Convert to JSON to ensure Maps are converted to objects
     const chatsJson = chats.map(c => c.toJSON());
     res.json({ chats: chatsJson });
@@ -354,11 +599,11 @@ router.get('/chats/seller/:sellerId', authenticate, async (req: AuthRequest, res
 router.get('/chats', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId as string || req.user!.id;
-    const chats = await MarketplaceChat.find({ 
+    const chats = await MarketplaceChat.find({
       participants: userId,
       status: 'accepted'
     }).sort({ lastMessageTime: -1 });
-    
+
     // Convert to JSON to ensure Maps are converted to objects
     const chatsJson = chats.map(c => c.toJSON());
     res.json({ chats: chatsJson });
@@ -370,10 +615,10 @@ router.get('/chats', authenticate, async (req: AuthRequest, res: Response): Prom
 // Create or get chat
 router.post('/chats', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { 
+    const {
       requesterId, requesterName, requesterAvatar,
       sellerId, sellerName, sellerAvatar,
-      projectId, projectTitle 
+      projectId, projectTitle
     } = req.body;
 
     // Check if chat already exists
@@ -384,7 +629,7 @@ router.post('/chats', authenticate, async (req: AuthRequest, res: Response): Pro
     });
 
     if (chat) {
-      res.json({ 
+      res.json({
         chatId: chat._id.toString(),
         status: chat.status,
         isNew: false
@@ -407,7 +652,7 @@ router.post('/chats', authenticate, async (req: AuthRequest, res: Response): Pro
       sellerId
     });
 
-    res.json({ 
+    res.json({
       chatId: chat._id.toString(),
       status: 'pending',
       isNew: true
@@ -422,7 +667,7 @@ router.post('/chats', authenticate, async (req: AuthRequest, res: Response): Pro
 router.get('/chats/debug', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.query.userId as string || req.user!.id;
-    
+
     // Get all chats for this user for debugging
     const allChats = await MarketplaceChat.find({
       $or: [
@@ -431,11 +676,11 @@ router.get('/chats/debug', authenticate, async (req: AuthRequest, res: Response)
         { participants: userId }
       ]
     });
-    
+
     const pendingAseller = await MarketplaceChat.find({ sellerId: userId, status: 'pending' });
     const acceptedChats = await MarketplaceChat.find({ participants: userId, status: 'accepted' });
-    
-    res.json({ 
+
+    res.json({
       message: 'Marketplace chats debug endpoint',
       userId,
       allChatsCount: allChats.length,
@@ -541,7 +786,7 @@ router.post('/chats/:chatId/messages', authenticate, async (req: AuthRequest, re
 router.post('/chats/:chatId/read', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.body.userId || req.user!.id;
-    
+
     await MarketplaceMessage.updateMany(
       { chatId: req.params.chatId, senderId: { $ne: userId }, read: false },
       { read: true }
@@ -578,7 +823,7 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
+
     res.json({ listing });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -593,20 +838,20 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response): Promis
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
+
     if (listing.sellerId !== req.user!.id && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Not authorized' });
       return;
     }
-    
+
     // Update isFree based on price
     if (req.body.price !== undefined) {
       req.body.isFree = req.body.price === 0;
     }
-    
+
     Object.assign(listing, req.body);
     await listing.save();
-    
+
     res.json({ listing });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -621,12 +866,12 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response): Pro
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
+
     if (listing.sellerId !== req.user!.id && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Not authorized' });
       return;
     }
-    
+
     await listing.deleteOne();
     res.json({ message: 'Listing deleted' });
   } catch (error: any) {
@@ -642,16 +887,16 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res: Response): 
       res.status(404).json({ error: 'Listing not found' });
       return;
     }
-    
+
     const userId = req.user!.id;
     const likeIndex = listing.likes.indexOf(userId);
-    
+
     if (likeIndex > -1) {
       listing.likes.splice(likeIndex, 1);
     } else {
       listing.likes.push(userId);
     }
-    
+
     await listing.save();
     res.json({ listing });
   } catch (error: any) {

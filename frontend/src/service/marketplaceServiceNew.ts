@@ -18,7 +18,7 @@ export const getMarketplaceListings = async (filters?: {
         if (value !== undefined) params.append(key, value.toString());
       });
     }
-    
+
     const response = await apiRequest(`/marketplace?${params.toString()}`);
     return response;
   } catch (error) {
@@ -32,7 +32,7 @@ export const getListingById = async (listingId: string): Promise<any> => {
   try {
     const response = await apiRequest(`/marketplace/${listingId}`);
     const listing = response.listing;
-    
+
     // Transform dates and ensure proper format
     if (listing) {
       return {
@@ -120,7 +120,7 @@ export const getAllMarketplaceProjectsForAdmin = async (): Promise<any[]> => {
     const response = await apiRequest('/marketplace/all');
     console.log('Marketplace all response:', response);
     const projects = response.projects || [];
-    
+
     // Transform each project to ensure proper format
     return projects.map((project: any) => ({
       ...project,
@@ -164,7 +164,7 @@ export const deleteProject = deleteListing;
 export const getAllProjects = async (): Promise<MarketplaceProject[]> => {
   const response = await getMarketplaceListings();
   const listings = response.listings || [];
-  
+
   // Transform each listing to ensure proper format
   return listings.map((listing: any) => ({
     ...listing,
@@ -179,7 +179,7 @@ export const getSellerProjects = async (sellerId: string): Promise<any[]> => {
   try {
     const response = await apiRequest(`/marketplace/seller/${sellerId}/projects`);
     const listings = response.listings || response.projects || [];
-    
+
     return listings.map((listing: any) => ({
       ...listing,
       id: listing.id || listing._id,
@@ -196,7 +196,7 @@ export const getSellerSales = async (sellerId: string): Promise<any[]> => {
   try {
     const response = await apiRequest(`/marketplace/seller/${sellerId}/sales`);
     const sales = response.sales || [];
-    
+
     return sales.map((sale: any) => ({
       ...sale,
       id: sale.id || sale._id,
@@ -213,7 +213,7 @@ export const getUserPurchases = async (userId: string): Promise<any[]> => {
   try {
     const response = await apiRequest(`/marketplace/user/${userId}/purchases`);
     const purchases = response.purchases || [];
-    
+
     return purchases.map((purchase: any) => ({
       ...purchase,
       id: purchase.id || purchase._id,
@@ -238,9 +238,9 @@ export const checkUserPurchased = async (userId: string, projectId: string): Pro
 
 // Create a purchase - MATCHES COMPONENT CALL: createPurchase(projectId, project, userId, userName)
 export const createPurchase = async (
-  projectId: string, 
-  _project: MarketplaceProject, 
-  userId: string, 
+  projectId: string,
+  _project: MarketplaceProject,
+  userId: string,
   userName: string
 ): Promise<any> => {
   try {
@@ -289,7 +289,7 @@ export const getProjectReviews = async (projectId: string): Promise<any[]> => {
   try {
     const response = await apiRequest(`/marketplace/projects/${projectId}/reviews`);
     const reviews = response.reviews || [];
-    
+
     return reviews.map((review: any) => ({
       ...review,
       id: review.id || review._id,
@@ -309,5 +309,64 @@ export const incrementProjectViews = async (projectId: string): Promise<void> =>
   } catch (error) {
     console.error('Error incrementing views:', error);
     // Don't throw, views increment is not critical
+  }
+};
+
+// Mark video as watched (for verified watcher badge)
+export const markVideoAsWatched = async (
+  projectId: string,
+  videoType: 'demo' | 'explanation',
+  buyerId: string
+): Promise<{ success: boolean; videoWatched: { demo: boolean; explanation: boolean }; canReview: boolean; message: string }> => {
+  try {
+    const response = await apiRequest(`/marketplace/projects/${projectId}/watch-video`, {
+      method: 'POST',
+      body: JSON.stringify({ videoType, buyerId })
+    });
+    return response;
+  } catch (error) {
+    console.error('Error marking video as watched:', error);
+    throw error;
+  }
+};
+
+// Get seller achievements and badges
+export const getSellerAchievements = async (sellerId: string): Promise<{
+  sellerId: string;
+  stats: {
+    totalSales: number;
+    totalViews: number;
+    totalCoinsEarned: number;
+    avgRating: number;
+    totalProjects: number;
+  };
+  badges: { id: string; name: string; emoji: string; description: string }[];
+  progress: {
+    topSeller: { current: number; required: number };
+    highlyRated: { current: number; required: number };
+    viralProject: { current: number; required: number };
+    coinMaster: { current: number; required: number };
+  };
+}> => {
+  try {
+    const response = await apiRequest(`/marketplace/seller/${sellerId}/achievements`);
+    return response;
+  } catch (error) {
+    console.error('Error getting seller achievements:', error);
+    throw error;
+  }
+};
+
+// Get purchase video watch status
+export const getPurchaseVideoStatus = async (projectId: string, buyerId: string): Promise<{
+  videoWatched: { demo: boolean; explanation: boolean };
+  canReview: boolean;
+} | null> => {
+  try {
+    const response = await apiRequest(`/marketplace/projects/${projectId}/purchase-status?buyerId=${buyerId}`);
+    return response;
+  } catch (error) {
+    console.error('Error getting purchase video status:', error);
+    return null;
   }
 };
