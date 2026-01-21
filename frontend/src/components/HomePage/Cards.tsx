@@ -154,12 +154,7 @@ interface TestimonialCardProps {
 }
 
 export const TestimonialCard = memo(({ testimonial, index }: TestimonialCardProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const { ref, isVisible } = useRevealAnimation(index * 200);
-
-  const handleImageLoad = useCallback(() => {
-    setImageLoaded(true);
-  }, []);
 
   return (
     <article
