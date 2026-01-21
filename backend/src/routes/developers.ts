@@ -366,7 +366,9 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
       pros: review.pros,
       cons: review.cons,
       likes: review.likes,
+      likedBy: review.likedBy || [],
       helpful: review.helpful,
+      helpfulBy: review.helpfulBy || [],
       comments: review.comments,
       timestamp: review.createdAt
     }));
@@ -446,7 +448,9 @@ router.get('/tech-reviews', authenticate, async (req: AuthRequest, res: Response
       pros: review.pros,
       cons: review.cons,
       likes: review.likes,
+      likedBy: review.likedBy || [],
       helpful: review.helpful,
+      helpfulBy: review.helpfulBy || [],
       comments: review.comments,
       timestamp: review.createdAt
     }));

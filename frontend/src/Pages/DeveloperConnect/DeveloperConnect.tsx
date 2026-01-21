@@ -54,6 +54,41 @@ const formatTimestamp = (timestamp: any): string => {
   }
 };
 
+// Helper function to format relative time (Instagram style)
+const formatRelativeTime = (timestamp: any): string => {
+  if (!timestamp) return '';
+
+  try {
+    let date: Date;
+    if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp?.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+
+    if (isNaN(date.getTime())) return '';
+
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+
+    if (diffSecs < 60) return 'now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    if (diffWeeks < 52) return `${diffWeeks}w`;
+    return `${Math.floor(diffWeeks / 52)}y`;
+  } catch {
+    return '';
+  }
+};
+
 // Helper function to get user avatar with proper fallback
 const getUserAvatar = (userprofile: any, userId: string | undefined): string => {
   if (userprofile?.avatar && userprofile.avatar.trim() !== '') return userprofile.avatar;
@@ -2334,8 +2369,18 @@ export default function DeveloperConnect() {
   // Handle like review
   const handleLikeReview = async (reviewId: string) => {
     try {
-      await apiRequest(`/developers/tech-reviews/${reviewId}/like`, { method: 'POST' });
-      setTechReviews(prev => prev.map(r => r.id === reviewId ? { ...r, likes: (r.likes || 0) + 1 } : r));
+      const response = await apiRequest(`/developers/tech-reviews/${reviewId}/like`, { method: 'POST' });
+      setTechReviews(prev => prev.map(r =>
+        r.id === reviewId
+          ? {
+              ...r,
+              likes: response.likes,
+              likedBy: response.liked
+                ? [...(r.likedBy || []), user?.id]
+                : (r.likedBy || []).filter((id: string) => id !== user?.id)
+            }
+          : r
+      ));
     } catch (error) {
       console.error('Error liking review:', error);
     }
@@ -2629,9 +2674,9 @@ export default function DeveloperConnect() {
                       <div className="flex items-center gap-6 text-gray-500 pt-3 border-t border-gray-100 dark:border-gray-700">
                         <button
                           onClick={() => handleLikeReview(review.id)}
-                          className="flex items-center gap-2 hover:text-red-500 transition-colors"
+                          className={`flex items-center gap-2 transition-colors ${(review.likedBy || []).includes(user?.id) ? 'text-red-500' : 'hover:text-red-500'}`}
                         >
-                          <Heart className="w-5 h-5" />
+                          <Heart className={`w-5 h-5 ${(review.likedBy || []).includes(user?.id) ? 'fill-red-500' : ''}`} />
                           <span className="text-sm">{review.likes || 0}</span>
                         </button>
 
@@ -2693,9 +2738,9 @@ export default function DeveloperConnect() {
             filteredRequests.map(request => {
               const allReplies = request.replies || [];
               const isExpanded = expandedRequests.has(request.id);
-              const displayReplies = isExpanded ? allReplies : allReplies.slice(-2);
+              const displayReplies = isExpanded ? allReplies : [];
               const totalReplies = allReplies.length || request.responses || 0;
-              const hasMoreReplies = totalReplies > 2;
+              const hasMoreReplies = totalReplies > 0;
 
               return (
                 <motion.div
@@ -2755,10 +2800,10 @@ export default function DeveloperConnect() {
                         )}
 
                         <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-2 font-medium" style={{ color: '#00ADB5' }}>
+                          {/* <span className="flex items-center gap-2 font-medium" style={{ color: '#00ADB5' }}>
                             <MessageCircle className="w-4 h-4" />
                             {totalReplies} {totalReplies === 1 ? 'response' : 'responses'}
-                          </span>
+                          </span> */}
                           {request.userId === user?.id && (
                             <button
                               onClick={() => handleDeleteRequest(request.id)}
@@ -2774,114 +2819,103 @@ export default function DeveloperConnect() {
                     </div>
                   </div>
 
-                  {/* Replies Section - Reddit Style */}
-                  <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                    {/* Show/Hide all replies toggle */}
-                    {hasMoreReplies && (
+                  {/* Comments Section - Instagram Style Enhanced */}
+                  <div className="border-t border-gray-100 dark:border-gray-700/50">
+                    {/* Comments Count */}
+                    {totalReplies > 0 && (
+                      <div className="px-4 pb-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {totalReplies} {totalReplies === 1 ? 'response' : 'responses'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* View all comments link */}
+                    {hasMoreReplies && !isExpanded && (
                       <button
                         onClick={async () => {
-                          if (!isExpanded) {
-                            // Fetch all replies if not already loaded
-                            const replies = await fetchReplies(request.id);
-                            setHelpRequests(prev => prev.map(r =>
-                              r.id === request.id ? { ...r, replies } : r
-                            ));
-                          }
-                          setExpandedRequests(prev => {
-                            const newSet = new Set(prev);
-                            if (isExpanded) {
-                              newSet.delete(request.id);
-                            } else {
-                              newSet.add(request.id);
-                            }
-                            return newSet;
-                          });
+                          const replies = await fetchReplies(request.id);
+                          setHelpRequests(prev => prev.map(r =>
+                            r.id === request.id ? { ...r, replies } : r
+                          ));
+                          setExpandedRequests(prev => new Set([...prev, request.id]));
                         }}
-                        className="w-full px-6 py-3 text-sm font-medium text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                        style={{ color: '#00ADB5' }}
+                        className="px-4 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-[#00ADB5] transition-colors"
                       >
-                        {isExpanded ? (
-                          <>
-                            <span>▲</span> Hide responses
-                          </>
-                        ) : (
-                          <>
-                            <span>▼</span> View all {totalReplies} responses
-                          </>
-                        )}
+                        View all {totalReplies} responses
                       </button>
                     )}
 
-                    {/* Replies */}
+                    {/* Comments List - Enhanced Instagram Style */}
                     {displayReplies.length > 0 && (
-                      <div className="px-4 sm:px-6 py-4 space-y-3">
+                      <div className="px-4 py-2 space-y-3">
                         {displayReplies.map((reply: any, index: number) => (
                           <div
                             key={reply.id || index}
-                            className="bg-white dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:border-[#00ADB5]/30 transition-all shadow-sm hover:shadow-md"
+                            className="group flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300"
+                            style={{ animationDelay: `${index * 50}ms` }}
                           >
-                            <div className="flex items-start gap-3">
-                              <button
-                                onClick={() => {
-                                  setSearchQuery(reply.userName || '');
-                                  setActiveTab('directory');
-                                }}
-                                className="flex-shrink-0 group"
-                                title={`View ${reply.userName}'s profile`}
-                              >
-                                <img
-                                  src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
-                                  alt={reply.userName}
-                                  className="w-10 h-10 rounded-full ring-2 ring-gray-100 dark:ring-gray-600 group-hover:ring-[#00ADB5] transition-all"
-                                />
-                              </button>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <button
-                                      onClick={() => {
-                                        setSearchQuery(reply.userName || '');
-                                        setActiveTab('directory');
-                                      }}
-                                      className="font-semibold text-sm text-gray-900 dark:text-white hover:text-[#00ADB5] dark:hover:text-[#00ADB5] transition-colors"
-                                      title={`View ${reply.userName}'s profile`}
-                                    >
-                                      {reply.userName}
-                                    </button>
-                                    <span className="text-xs text-gray-400">•</span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimestamp(reply.timestamp || reply.createdAt)}</span>
-                                  </div>
-                                  {reply.userId === user?.id && (
-                                    <button
-                                      onClick={async () => {
-                                        if (!window.confirm('Delete this response?')) return;
-                                        try {
-                                          await apiRequest(`/developers/help-requests/${request.id}/replies/${reply.id}`, {
-                                            method: 'DELETE'
-                                          });
-                                          setHelpRequests(prev => prev.map(r =>
-                                            r.id === request.id
-                                              ? {
-                                                  ...r,
-                                                  responses: Math.max((r.responses || 1) - 1, 0),
-                                                  replies: (r.replies || []).filter((rep: any) => rep.id !== reply.id)
-                                                }
-                                              : r
-                                          ));
-                                          toast.success('Response deleted');
-                                        } catch (error) {
-                                          console.error('Error deleting reply:', error);
-                                          toast.error('Failed to delete response');
-                                        }
-                                      }}
-                                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                      title="Delete your response"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{reply.content}</p>
+                            {/* Avatar with gradient ring */}
+                            <button
+                              onClick={() => {
+                                setSearchQuery(reply.userName || '');
+                                setActiveTab('directory');
+                              }}
+                              className="flex-shrink-0 relative"
+                            >
+                              <div className="absolute -inset-0.5 bg-gradient-to-tr from-[#00ADB5] to-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <img
+                                src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
+                                alt={reply.userName}
+                                className="relative w-9 h-9 rounded-full ring-2 ring-white dark:ring-gray-800"
+                              />
+                            </button>
+
+                            {/* Comment Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="bg-gray-100/80 dark:bg-gray-700/50 rounded-2xl px-4 py-2.5 inline-block max-w-full">
+                                <button
+                                  onClick={() => {
+                                    setSearchQuery(reply.userName || '');
+                                    setActiveTab('directory');
+                                  }}
+                                  className="font-semibold text-sm text-gray-900 dark:text-white hover:text-[#00ADB5] dark:hover:text-[#00ADB5] transition-colors"
+                                >
+                                  {reply.userName}
+                                </button>
+                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5 leading-relaxed break-words">{reply.content}</p>
+                              </div>
+                              {/* Comment Meta */}
+                              <div className="flex items-center gap-3 mt-1.5 ml-1">
+                                <span className="text-xs text-gray-400 font-medium">{formatRelativeTime(reply.timestamp || reply.createdAt)}</span>
+                                {reply.userId === user?.id && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!window.confirm('Delete this comment?')) return;
+                                      try {
+                                        await apiRequest(`/developers/help-requests/${request.id}/replies/${reply.id}`, {
+                                          method: 'DELETE'
+                                        });
+                                        setHelpRequests(prev => prev.map(r =>
+                                          r.id === request.id
+                                            ? {
+                                                ...r,
+                                                responses: Math.max((r.responses || 1) - 1, 0),
+                                                replies: (r.replies || []).filter((rep: any) => rep.id !== reply.id)
+                                              }
+                                            : r
+                                        ));
+                                        toast.success('Comment deleted');
+                                      } catch (error) {
+                                        console.error('Error deleting comment:', error);
+                                        toast.error('Failed to delete comment');
+                                      }
+                                    }}
+                                    className="text-xs font-semibold text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                  >
+                                    Delete
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -2889,111 +2923,129 @@ export default function DeveloperConnect() {
                       </div>
                     )}
 
-                    {/* Inline Reply Input */}
+                    {/* Hide comments button when expanded */}
+                    {isExpanded && hasMoreReplies && (
+                      <button
+                        onClick={() => {
+                          setExpandedRequests(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(request.id);
+                            return newSet;
+                          });
+                        }}
+                        className="px-4 py-2 text-xs font-medium text-gray-400 hover:text-[#00ADB5] transition-colors"
+                      >
+                        ── Hide comments ──
+                      </button>
+                    )}
+
+                    {/* Add Comment Input - Enhanced Instagram Style */}
                     {request.userId !== user?.id && (
-                      <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
-                        <div className="flex gap-3">
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/30 flex items-center gap-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+                        <div className="relative">
+                          <div className="absolute -inset-0.5 bg-gradient-to-tr from-[#00ADB5] to-cyan-400 rounded-full opacity-60" />
                           <img
                             src={getUserAvatar(userprofile, user?.id)}
                             alt="You"
-                            className="w-8 h-8 rounded-full flex-shrink-0"
+                            className="relative w-9 h-9 rounded-full ring-2 ring-white dark:ring-gray-800 flex-shrink-0"
                           />
-                          <div className="flex-1 flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="Write a helpful response..."
-                              className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
-                              onKeyDown={async (e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  const input = e.target as HTMLInputElement;
-                                  const content = input.value.trim();
-                                  if (!content) return;
+                        </div>
+                        <div className="flex-1 flex items-center gap-2 bg-gray-100/80 dark:bg-gray-700/50 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-[#00ADB5]/50 transition-all">
+                          <input
+                            type="text"
+                            placeholder="Add a comment..."
+                            className="flex-1 text-sm bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                          onKeyDown={async (e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              const input = e.target as HTMLInputElement;
+                              const content = input.value.trim();
+                              if (!content) return;
 
-                                  try {
-                                    const replyData = {
-                                      content,
-                                      userName: userprofile?.displayName || user?.name || 'Anonymous',
-                                      userAvatar: getUserAvatar(userprofile, user?.id)
-                                    };
+                              try {
+                                const replyData = {
+                                  content,
+                                  userName: userprofile?.displayName || user?.name || 'Anonymous',
+                                  userAvatar: getUserAvatar(userprofile, user?.id)
+                                };
 
-                                    const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
-                                      method: 'POST',
-                                      body: JSON.stringify(replyData)
-                                    });
+                                const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
+                                  method: 'POST',
+                                  body: JSON.stringify(replyData)
+                                });
 
-                                    // Update local state
-                                    setHelpRequests(prev => prev.map(r =>
-                                      r.id === request.id
-                                        ? {
-                                            ...r,
-                                            responses: (r.responses || 0) + 1,
-                                            replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
-                                          }
-                                        : r
-                                    ));
+                                setHelpRequests(prev => prev.map(r =>
+                                  r.id === request.id
+                                    ? {
+                                        ...r,
+                                        responses: (r.responses || 0) + 1,
+                                        replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
+                                      }
+                                    : r
+                                ));
 
-                                    input.value = '';
-                                    toast.success('Response posted!');
-                                  } catch (error) {
-                                    console.error('Error posting reply:', error);
-                                    toast.error('Failed to post response');
-                                  }
-                                }
-                              }}
-                            />
-                            <button
-                              onClick={async (e) => {
-                                const container = (e.target as HTMLElement).closest('.flex-1');
-                                const input = container?.querySelector('input') as HTMLInputElement;
-                                if (!input) return;
-                                const content = input.value.trim();
-                                if (!content) return;
+                                input.value = '';
+                                toast.success('Comment posted!');
+                              } catch (error) {
+                                console.error('Error posting comment:', error);
+                                toast.error('Failed to post comment');
+                              }
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={async (e) => {
+                            const container = (e.target as HTMLElement).closest('.flex');
+                            const input = container?.querySelector('input') as HTMLInputElement;
+                            if (!input) return;
+                            const content = input.value.trim();
+                            if (!content) {
+                              input.focus();
+                              return;
+                            }
 
-                                try {
-                                  const replyData = {
-                                    content,
-                                    userName: userprofile?.displayName || user?.name || 'Anonymous',
-                                    userAvatar: getUserAvatar(userprofile, user?.id)
-                                  };
+                            try {
+                              const replyData = {
+                                content,
+                                userName: userprofile?.displayName || user?.name || 'Anonymous',
+                                userAvatar: getUserAvatar(userprofile, user?.id)
+                              };
 
-                                  const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
-                                    method: 'POST',
-                                    body: JSON.stringify(replyData)
-                                  });
+                              const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
+                                method: 'POST',
+                                body: JSON.stringify(replyData)
+                              });
 
-                                  // Update local state
-                                  setHelpRequests(prev => prev.map(r =>
-                                    r.id === request.id
-                                      ? {
-                                          ...r,
-                                          responses: (r.responses || 0) + 1,
-                                          replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
-                                        }
-                                      : r
-                                  ));
+                              setHelpRequests(prev => prev.map(r =>
+                                r.id === request.id
+                                  ? {
+                                      ...r,
+                                      responses: (r.responses || 0) + 1,
+                                      replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
+                                    }
+                                  : r
+                              ));
 
-                                  input.value = '';
-                                  toast.success('Response posted!');
-                                } catch (error) {
-                                  console.error('Error posting reply:', error);
-                                  toast.error('Failed to post response');
-                                }
-                              }}
-                              className="px-4 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                              style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
-                            >
-                              Reply
-                            </button>
-                          </div>
+                              input.value = '';
+                              toast.success('Comment posted!');
+                            } catch (error) {
+                              console.error('Error posting comment:', error);
+                              toast.error('Failed to post comment');
+                            }
+                          }}
+                          className="text-sm font-bold hover:scale-105 active:scale-95 transition-all"
+                          style={{ color: '#00ADB5' }}
+                        >
+                          Post
+                        </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Owner view - just show reply count if no replies */}
+                    {/* Owner view - Waiting for comments */}
                     {request.userId === user?.id && displayReplies.length === 0 && (
-                      <div className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                        No responses yet. Hang tight, the community is here to help!
+                      <div className="px-4 py-4 flex items-center justify-center gap-2 text-sm text-gray-400 dark:text-gray-500">
+
                       </div>
                     )}
                   </div>
