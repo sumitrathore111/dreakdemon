@@ -499,15 +499,15 @@ export default function HomePage() {
     {
       id: 'project-bazaar',
       title: 'Project Bazaar',
-      subtitle: 'Trade & Earn',
-      description: 'Monetize your skills. Buy, sell, or trade completed projects and source code.',
+      subtitle: 'Learn & Earn',
+      description: 'Watch project tutorials, learn from video guides, rate creators, and help them earn coins.',
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
       icon: ShoppingBag,
       color: 'from-teal-500 to-emerald-600',
       lightBg: 'bg-teal-500/10',
       textColor: 'text-teal-600 dark:text-teal-400',
       stats: '200+ Projects',
-      features: ['Sell projects', 'Buy solutions', 'Verified sellers', 'Secure pay'],
+      features: ['Video tutorials', 'Learn projects', 'Rate creators', 'Earn coins'],
       link: '/marketplace'
     }
   ];

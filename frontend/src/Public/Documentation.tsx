@@ -11,7 +11,7 @@ const NextStepDocumentation = () => {
     { id: 'getting-started', icon: Compass, label: 'Getting Started', gradient: 'from-blue-500 to-cyan-500', description: 'Begin your journey' },
     { id: 'creator-corner', icon: Lightbulb, label: 'Creator Corner', gradient: 'from-purple-500 to-pink-500', description: 'Collaborate & build' },
     { id: 'codearena', icon: Swords, label: 'CodeArena', gradient: 'from-orange-500 to-red-500', description: 'Battle & earn coins' },
-    { id: 'project-bazaar', icon: ShoppingBag, label: 'Project Bazaar', gradient: 'from-emerald-500 to-teal-500', description: 'Buy & sell projects' },
+    { id: 'project-bazaar', icon: ShoppingBag, label: 'Project Bazaar', gradient: 'from-emerald-500 to-teal-500', description: 'Learn & earn coins' },
     { id: 'developer-connect', icon: Users, label: 'Developer Connect', gradient: 'from-indigo-500 to-purple-500', description: 'Network & connect' },
   ];
 
@@ -133,39 +133,39 @@ const NextStepDocumentation = () => {
       ]
     },
     'project-bazaar': {
-      title: 'Project Bazaar - Buy, Sell & Trade',
+      title: 'Project Bazaar - Learn & Earn',
       icon: ShoppingBag,
       gradient: 'from-emerald-500 to-teal-500',
       sections: [
         {
-          heading: '🛒 Your Marketplace for Digital Assets',
-          text: 'Welcome to Project Bazaar - the ultimate marketplace for developers! Buy and sell templates, complete projects, UI components, and much more. Turn your creations into income or find the perfect starting point for your next project.\n\n• Browse thousands of digital products\n• Secure payment and instant delivery\n• Quality-verified listings\n• Direct creator support\n• Fair pricing for all skill levels',
-          image: '🛒'
+          heading: '🎬 Learn Through Video Tutorials',
+          text: 'Welcome to Project Bazaar - your gateway to learning real-world projects! Watch comprehensive video tutorials created by experienced developers and learn how to build amazing projects from scratch.\n\n• Browse hundreds of project tutorials\n• Watch step-by-step video guides\n• Learn at your own pace\n• Access source code with explanations\n• Build your portfolio while learning',
+          image: '🎬'
         },
         {
-          heading: '🎨 Premium Templates & Themes',
-          text: 'Find stunning templates for every framework and use case! From React dashboards to landing pages, we\'ve got you covered.\n\n📦 Available Templates:\n• React/Next.js Templates\n• Vue.js & Nuxt Templates\n• Admin Dashboards\n• E-commerce Themes\n• Portfolio Templates\n• SaaS Starter Kits\n• Mobile App Templates\n• Email Templates',
-          image: '🎨'
+          heading: '📚 Project Categories',
+          text: 'Explore a wide variety of project tutorials across different technologies and difficulty levels!\n\n📦 Available Categories:\n• React/Next.js Projects\n• Full-Stack Web Apps\n• Mobile App Development\n• E-commerce Solutions\n• API & Backend Systems\n• Portfolio Websites\n• SaaS Applications\n• Real-time Applications',
+          image: '📚'
         },
         {
-          heading: '🧩 UI Components & Libraries',
-          text: 'Speed up your development with ready-to-use UI components! Copy, paste, and customize beautiful components for your projects.\n\n• Button Collections\n• Form Components\n• Navigation Bars\n• Card Layouts\n• Modal & Dialog Systems\n• Animation Libraries\n• Icon Packs\n• Chart & Graph Components',
-          image: '🧩'
-        },
-        {
-          heading: '📦 Complete Project Solutions',
-          text: 'Need a head start? Purchase complete, production-ready projects and customize them to your needs. Save weeks of development time!\n\n🚀 Project Categories:\n• Full-Stack Web Apps\n• Mobile Applications\n• API & Backend Systems\n• E-commerce Solutions\n• Social Media Clones\n• Management Systems\n• Portfolio Websites\n• Blog Platforms',
-          image: '📦'
-        },
-        {
-          heading: '💵 Sell Your Creations',
-          text: 'Turn your side projects into passive income! List your templates, components, or complete projects on the bazaar and earn money while you sleep.\n\n🎯 Why Sell on Bazaar:\n• Set your own prices\n• 80% revenue share (highest in industry)\n• Global audience of developers\n• Easy listing process\n• Analytics dashboard\n• Instant payouts\n• Build your brand as a creator',
-          image: '💵'
-        },
-        {
-          heading: '⭐ Quality Guarantee',
-          text: 'Every product on Project Bazaar goes through a quality review process. We ensure all listings meet our standards for code quality, documentation, and support.\n\n✅ Our Promise:\n• Code quality verification\n• Documentation requirements\n• Regular security checks\n• Buyer protection policy\n• Refund guarantee for issues\n• Direct creator messaging\n• Community reviews & ratings',
+          heading: '⭐ Rate & Review Creators',
+          text: 'Help the community by rating and reviewing project tutorials! Your feedback helps creators improve and helps other learners find quality content.\n\n🌟 Rating System:\n• Rate tutorials from 1-5 stars\n• Write detailed reviews\n• Upvote helpful tutorials\n• Share your learning experience\n• Help creators earn more coins\n• Build a trusted community',
           image: '⭐'
+        },
+        {
+          heading: '💰 Creators Earn Coins',
+          text: 'As a creator, share your knowledge and earn coins! Upload project tutorials with video guides and earn coins based on ratings and views.\n\n🎯 How Creators Earn:\n• Upload project with video tutorial\n• Earn coins for every view\n• Bonus coins for high ratings\n• Build your creator reputation\n• Get featured for top content\n• Withdraw or use coins on platform',
+          image: '💰'
+        },
+        {
+          heading: '🚀 Become a Creator',
+          text: 'Share your expertise with the community! Create video tutorials for your projects and help others learn while earning coins.\n\n📹 Creator Benefits:\n• Easy video upload process\n• Reach thousands of learners\n• Earn coins from your content\n• Build your personal brand\n• Get recognition as an expert\n• Connect with your audience',
+          image: '🚀'
+        },
+        {
+          heading: '🏆 Quality Learning Experience',
+          text: 'Every project tutorial is reviewed to ensure high-quality learning content. We prioritize clear explanations and practical skills.\n\n✅ Our Standards:\n• Clear video explanations\n• Well-documented code\n• Beginner-friendly content\n• Practical real-world projects\n• Regular content updates\n• Creator support available',
+          image: '🏆'
         }
       ]
     },
@@ -358,26 +358,26 @@ const NextStepDocumentation = () => {
                   <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black">💰 Turn Code Into Cash!</h3>
-                  <p className="text-white/90 font-medium">Buy premium templates or sell your creations to thousands of developers</p>
+                  <h3 className="text-xl sm:text-2xl font-black">🎬 Learn Projects, Rate Creators, Earn Coins!</h3>
+                  <p className="text-white/90 font-medium">Watch video tutorials, learn from experts, and help creators earn through your ratings</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Templates</span>
+                  <span className="font-bold text-sm sm:text-base">Video Tutorials</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Projects</span>
+                  <span className="font-bold text-sm sm:text-base">Learn Projects</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
-                  <Code className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Components</span>
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Rate Creators</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">80% Revenue</span>
+                  <span className="font-bold text-sm sm:text-base">Earn Coins</span>
                 </div>
               </div>
             </div>
