@@ -117,9 +117,16 @@ export default function AdminPanel() {
       return;
     }
 
+    // Only allow admin users to access this page
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only admins can access this page');
+      navigate('/');
+      return;
+    }
+
     loadAllData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, navigate]);
 
   const loadAllData = async () => {
     setLoading(true);
