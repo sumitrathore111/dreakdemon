@@ -2,6 +2,8 @@ import axios from 'axios';
 import { Response, Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import Battle from '../models/Battle';
+import User from '../models/User';
+import emailNotifications from '../services/emailService';
 
 const router = Router();
 
@@ -295,6 +297,17 @@ router.post('/create', authenticate, async (req: AuthRequest, res: Response): Pr
       createdBy: userId,
       version: 'v2.0-custom'
     });
+
+    // Send email notification to all other users that someone is waiting for a battle (async, don't wait)
+    try {
+      const users = await User.find({ _id: { $ne: userId } }).select('email');
+      const userEmails = users.map(u => u.email).filter(Boolean);
+      if (userEmails.length > 0) {
+        emailNotifications.notifyBattleWaiting(userName, difficulty, prize, userEmails);
+      }
+    } catch (emailError) {
+      console.error('Failed to send battle waiting email notifications:', emailError);
+    }
 
     res.status(201).json({ battleId: battle._id, battle });
   } catch (error: any) {
@@ -619,6 +632,23 @@ router.post('/:battleId/submit', authenticate, async (req: AuthRequest, res: Res
               winner: { oldRating: winnerRating, newRating: ratingResult.winnerNewRating },
               loser: { oldRating: loserRating, newRating: ratingResult.loserNewRating }
             };
+
+            // Send email notifications to both players about battle result (async, don't wait)
+            try {
+              // Notify winner
+              const winnerUser = await User.findById(winner.userId).select('email');
+              if (winnerUser?.email) {
+                emailNotifications.notifyBattleResult(loser.userName || 'Opponent', 'won', battle.prize, winnerUser.email);
+              }
+
+              // Notify loser
+              const loserUser = await User.findById(loser.userId).select('email');
+              if (loserUser?.email) {
+                emailNotifications.notifyBattleResult(winner.userName || 'Opponent', 'lost', 0, loserUser.email);
+              }
+            } catch (emailError) {
+              console.error('Failed to send battle result email notifications:', emailError);
+            }
           }
         } catch (walletError) {
           console.error('Error awarding prize:', walletError);

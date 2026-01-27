@@ -6,7 +6,9 @@ import MarketplaceListing from '../models/MarketplaceListing';
 import MarketplaceMessage from '../models/MarketplaceMessage';
 import MarketplacePurchase from '../models/MarketplacePurchase';
 import MarketplaceReview from '../models/MarketplaceReview';
+import User from '../models/User';
 import Wallet from '../models/Wallet';
+import emailNotifications from '../services/emailService';
 
 const router = Router();
 
@@ -114,6 +116,23 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     };
 
     const listing = await MarketplaceListing.create(listingData);
+
+    // Send email notification to all users about new listing when it's published (async, don't wait)
+    // Note: Listing starts as pending, so we notify admins instead
+    try {
+      const admins = await User.find({ role: 'admin' }).select('email');
+      const adminEmails = admins.map(a => a.email).filter(Boolean);
+      if (adminEmails.length > 0) {
+        emailNotifications.notifyNewListing(
+          listingData.title || 'New Listing',
+          listingData.sellerName,
+          listingData.price || 0,
+          adminEmails
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send new listing email notifications:', emailError);
+    }
 
     res.status(201).json({ listing });
   } catch (error: any) {
@@ -332,6 +351,33 @@ router.post('/projects/:projectId/purchase', authenticate, async (req: AuthReque
     listing.purchases += 1;
     await listing.save();
 
+    // Send email notifications for the purchase (async, don't wait)
+    try {
+      // Notify seller about new sale
+      const seller = await User.findById(listing.sellerId).select('email');
+      if (seller?.email) {
+        emailNotifications.notifyNewPurchase(
+          listing.title,
+          req.body.buyerName || req.user!.name || 'A user',
+          listing.price,
+          seller.email
+        );
+      }
+
+      // Notify buyer about purchase confirmation
+      const buyer = await User.findById(req.body.buyerId || req.user!.id).select('email');
+      if (buyer?.email) {
+        emailNotifications.notifyPurchaseConfirmation(
+          listing.title,
+          listing.sellerName,
+          listing.price,
+          buyer.email
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send purchase email notifications:', emailError);
+    }
+
     res.json({ purchase });
   } catch (error: any) {
     console.error('Error creating purchase:', error);
@@ -445,6 +491,21 @@ router.post('/projects/:projectId/reviews', authenticate, async (req: AuthReques
       // Update total coins rewarded on listing
       listing.totalCoinsRewarded = (listing.totalCoinsRewarded || 0) + coinsToReward;
       await listing.save();
+    }
+
+    // Send email notification to seller about new review (async, don't wait)
+    try {
+      const seller = await User.findById(listing.sellerId).select('email');
+      if (seller?.email) {
+        emailNotifications.notifyNewReview(
+          listing.title,
+          buyerName || req.user!.name || 'A user',
+          rating,
+          seller.email
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send new review email notification:', emailError);
     }
 
     res.json({

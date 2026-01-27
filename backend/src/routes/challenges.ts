@@ -2,8 +2,10 @@ import axios from 'axios';
 import { Response, Router } from 'express';
 import { adminOnly, authenticate, AuthRequest } from '../middleware/auth';
 import Challenge from '../models/Challenge';
+import User from '../models/User';
 import UserProgress from '../models/UserProgress';
 import Wallet from '../models/Wallet';
+import emailNotifications from '../services/emailService';
 
 const router = Router();
 
@@ -582,6 +584,22 @@ router.post('/', authenticate, adminOnly, async (req: AuthRequest, res: Response
 
     const challenge = new Challenge(challengeData);
     await challenge.save();
+
+    // Send email notification to all users about new challenge (async, don't wait)
+    try {
+      const users = await User.find().select('email');
+      const userEmails = users.map(u => u.email).filter(Boolean);
+      if (userEmails.length > 0) {
+        emailNotifications.notifyNewChallenge(
+          challengeData.title,
+          challengeData.difficulty,
+          challengeData.points || 100,
+          userEmails
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send new challenge email notifications:', emailError);
+    }
 
     res.status(201).json({
       message: 'Challenge created successfully',

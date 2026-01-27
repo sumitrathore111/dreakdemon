@@ -4,6 +4,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import Message from '../models/Message';
 import Project from '../models/Project';
 import User from '../models/User';
+import emailNotifications from '../services/emailService';
 
 // Helper to get socket.io instance from app
 const getIO = (req: AuthRequest): SocketIOServer | null => {
@@ -136,6 +137,17 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     });
 
     await project.save();
+
+    // Send email notification to all users about new project (async, don't wait)
+    try {
+      const users = await User.find({ _id: { $ne: req.user?.id } }).select('email');
+      const userEmails = users.map(u => u.email).filter(Boolean);
+      if (userEmails.length > 0) {
+        emailNotifications.notifyNewProject(title, req.user?.name || 'Someone', userEmails);
+      }
+    } catch (emailError) {
+      console.error('Failed to send new project email notifications:', emailError);
+    }
 
     res.status(201).json({
       message: 'Project created successfully',

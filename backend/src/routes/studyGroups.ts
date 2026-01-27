@@ -3,6 +3,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import GroupMessage from '../models/GroupMessage';
 import StudyGroup from '../models/StudyGroup';
+import User from '../models/User';
+import emailNotifications from '../services/emailService';
 
 // Helper to get socket.io instance from app
 const getIO = (req: Request): SocketIOServer | null => {
@@ -51,7 +53,7 @@ const transformGroup = (group: any) => ({
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { category, search } = req.query;
-    
+
     let query: any = {};
     if (category) query.category = category;
     if (search) {
@@ -61,7 +63,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
         { topic: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     // Only show public groups or groups user is a member of
     const groups = await StudyGroup.find({
       $and: [
@@ -74,9 +76,9 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
         }
       ]
     }).sort({ createdAt: -1 });
-    
+
     const transformedGroups = groups.map(transformGroup);
-    
+
     res.json({ groups: transformedGroups });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -87,7 +89,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, description, topic, level, maxMembers, creatorName, creatorAvatar } = req.body;
-    
+
     const group = await StudyGroup.create({
       name,
       description,
@@ -106,7 +108,18 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
         joinedAt: new Date()
       }]
     });
-    
+
+    // Send email notification to all users about new study group (async, don't wait)
+    try {
+      const users = await User.find({ _id: { $ne: req.user!.id } }).select('email');
+      const userEmails = users.map(u => u.email).filter(Boolean);
+      if (userEmails.length > 0) {
+        emailNotifications.notifyNewStudyGroup(name, topic, creatorName || req.user!.name || 'Someone', userEmails);
+      }
+    } catch (emailError) {
+      console.error('Failed to send new study group email notifications:', emailError);
+    }
+
     res.status(201).json({ group: transformGroup(group) });
   } catch (error: any) {
     console.error('Error creating study group:', error);
@@ -122,13 +135,13 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response): Promis
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check access for private groups
     if (group.isPrivate && !group.members.some(m => m.userId === req.user!.id)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     res.json({ group: transformGroup(group) });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -140,17 +153,17 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
   try {
     const { userName, userAvatar } = req.body;
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     if (group.members.some(m => m.userId === req.user!.id)) {
       res.status(400).json({ error: 'Already a member' });
       return;
     }
-    
+
     if (group.members.length >= group.maxMembers) {
       res.status(400).json({ error: 'Group is full' });
       return;
@@ -169,7 +182,7 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
     if (!group.joinRequests) {
       group.joinRequests = [];
     }
-    
+
     group.joinRequests.push({
       userId: req.user!.id,
       userName: userName || req.user!.name,
@@ -177,9 +190,9 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
       requestedAt: new Date(),
       status: 'pending'
     });
-    
+
     await group.save();
-    
+
     // Emit real-time event to group owner/admins
     const io = getIO(req);
     if (io) {
@@ -194,8 +207,8 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
         }
       });
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Join request sent successfully',
       group: transformGroup(group),
       requestStatus: 'pending'
@@ -209,12 +222,12 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: Response): 
 router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if current user is admin
     const currentMember = group.members.find(m => m.userId === req.user!.id);
     if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
@@ -226,14 +239,14 @@ router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: 
     const requestIndex = group.joinRequests?.findIndex(
       r => r.userId === req.params.userId && r.status === 'pending'
     );
-    
+
     if (requestIndex === undefined || requestIndex === -1) {
       res.status(404).json({ error: 'Join request not found' });
       return;
     }
 
     const request = group.joinRequests[requestIndex];
-    
+
     // Check if group is full
     if (group.members.length >= group.maxMembers) {
       res.status(400).json({ error: 'Group is full' });
@@ -251,9 +264,19 @@ router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: 
 
     // Update request status
     group.joinRequests[requestIndex].status = 'approved';
-    
+
     await group.save();
-    
+
+    // Send email notification to the approved user (async, don't wait)
+    try {
+      const approvedUser = await User.findById(req.params.userId).select('email');
+      if (approvedUser?.email) {
+        emailNotifications.notifyStudyGroupJoinApproved(group.name, approvedUser.email);
+      }
+    } catch (emailError) {
+      console.error('Failed to send study group join approved email:', emailError);
+    }
+
     // Emit real-time event to the approved user and group members
     const io = getIO(req);
     if (io) {
@@ -276,8 +299,8 @@ router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: 
         group: transformedGroup
       });
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Join request approved',
       group: transformGroup(group)
     });
@@ -290,12 +313,12 @@ router.post('/:id/approve/:userId', authenticate, async (req: AuthRequest, res: 
 router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if current user is admin
     const currentMember = group.members.find(m => m.userId === req.user!.id);
     if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
@@ -307,7 +330,7 @@ router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: R
     const requestIndex = group.joinRequests?.findIndex(
       r => r.userId === req.params.userId && r.status === 'pending'
     );
-    
+
     if (requestIndex === undefined || requestIndex === -1) {
       res.status(404).json({ error: 'Join request not found' });
       return;
@@ -315,9 +338,9 @@ router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: R
 
     // Update request status
     group.joinRequests[requestIndex].status = 'rejected';
-    
+
     await group.save();
-    
+
     // Emit real-time event to the rejected user
     const io = getIO(req);
     if (io) {
@@ -331,8 +354,8 @@ router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: R
         group: transformGroup(group)
       });
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Join request rejected',
       group: transformGroup(group)
     });
@@ -345,12 +368,12 @@ router.post('/:id/reject/:userId', authenticate, async (req: AuthRequest, res: R
 router.delete('/:id/members/:userId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if current user is admin
     const currentMember = group.members.find(m => m.userId === req.user!.id);
     if (!currentMember || (currentMember.role !== 'admin' && group.createdBy !== req.user!.id)) {
@@ -366,9 +389,9 @@ router.delete('/:id/members/:userId', authenticate, async (req: AuthRequest, res
 
     // Remove the member
     group.members = group.members.filter(m => m.userId !== req.params.userId);
-    
+
     await group.save();
-    
+
     // Emit real-time event to the removed user and group members
     const io = getIO(req);
     if (io) {
@@ -385,8 +408,8 @@ router.delete('/:id/members/:userId', authenticate, async (req: AuthRequest, res
         group: transformedGroup
       });
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Member removed successfully',
       group: transformGroup(group)
     });
@@ -399,21 +422,21 @@ router.delete('/:id/members/:userId', authenticate, async (req: AuthRequest, res
 router.post('/:id/leave', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     group.members = group.members.filter(m => m.userId !== req.user!.id);
-    
+
     // Delete group if no members left
     if (group.members.length === 0) {
       await group.deleteOne();
       res.json({ message: 'Group deleted' });
       return;
     }
-    
+
     await group.save();
     res.json({ group: transformGroup(group) });
   } catch (error: any) {
@@ -425,23 +448,23 @@ router.post('/:id/leave', authenticate, async (req: AuthRequest, res: Response):
 router.post('/:id/resources', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     if (!group.members.some(m => m.userId === req.user!.id)) {
       res.status(403).json({ error: 'Not a member' });
       return;
     }
-    
+
     group.resources.push({
       ...req.body,
       uploadedBy: req.user!.id,
       uploadedAt: new Date()
     });
-    
+
     await group.save();
     res.json({ group: transformGroup(group) });
   } catch (error: any) {
@@ -453,19 +476,19 @@ router.post('/:id/resources', authenticate, async (req: AuthRequest, res: Respon
 router.delete('/:id', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if user is the creator or an admin
     const member = group.members.find(m => m.userId === req.user!.id);
     if (!member || (member.role !== 'admin' && group.createdBy !== req.user!.id)) {
       res.status(403).json({ error: 'Only group admins can delete the group' });
       return;
     }
-    
+
     await group.deleteOne();
     res.json({ message: 'Group deleted successfully' });
   } catch (error: any) {
@@ -477,22 +500,22 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response): Pro
 router.get('/:id/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if user is a member
     if (!group.members.some(m => m.userId === req.user!.id)) {
       res.status(403).json({ error: 'Only members can view messages' });
       return;
     }
-    
+
     const messages = await GroupMessage.find({ groupId: req.params.id })
       .sort({ createdAt: 1 })
       .limit(100);
-    
+
     const formattedMessages = messages.map(msg => ({
       id: msg._id.toString(),
       groupId: msg.groupId,
@@ -502,7 +525,7 @@ router.get('/:id/messages', authenticate, async (req: AuthRequest, res: Response
       message: msg.message,
       timestamp: msg.createdAt
     }));
-    
+
     res.json({ messages: formattedMessages });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -513,25 +536,25 @@ router.get('/:id/messages', authenticate, async (req: AuthRequest, res: Response
 router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { message, senderName, senderAvatar } = req.body;
-    
+
     if (!message || !message.trim()) {
       res.status(400).json({ error: 'Message is required' });
       return;
     }
-    
+
     const group = await StudyGroup.findById(req.params.id);
-    
+
     if (!group) {
       res.status(404).json({ error: 'Group not found' });
       return;
     }
-    
+
     // Check if user is a member
     if (!group.members.some(m => m.userId === req.user!.id)) {
       res.status(403).json({ error: 'Only members can send messages' });
       return;
     }
-    
+
     const newMessage = await GroupMessage.create({
       groupId: req.params.id,
       senderId: req.user!.id,
@@ -539,7 +562,7 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Respons
       senderAvatar: senderAvatar || '',
       message: message.trim()
     });
-    
+
     const formattedMessage = {
       id: newMessage._id.toString(),
       groupId: newMessage.groupId,
@@ -549,7 +572,7 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Respons
       message: newMessage.message,
       timestamp: newMessage.createdAt
     };
-    
+
     // Emit real-time message to group members
     const io = getIO(req);
     if (io) {
@@ -558,7 +581,7 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Respons
         message: formattedMessage
       });
     }
-    
+
     res.status(201).json({ message: formattedMessage });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

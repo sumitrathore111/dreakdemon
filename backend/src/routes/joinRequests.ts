@@ -3,6 +3,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import JoinRequest from '../models/JoinRequest';
 import Project from '../models/Project';
+import User from '../models/User';
+import emailNotifications from '../services/emailService';
 
 // Helper to get socket.io instance from app
 const getIO = (req: AuthRequest): SocketIOServer | null => {
@@ -63,9 +65,9 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     });
 
     if (existingRequest) {
-      res.status(400).json({ 
+      res.status(400).json({
         error: 'Join request already exists',
-        status: existingRequest.status 
+        status: existingRequest.status
       });
       return;
     }
@@ -73,7 +75,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     // Get the user's name from database if not available in req.user
     let userName = req.user?.name || '';
     const userEmail = req.user?.email || '';
-    
+
     if (!userName || userName.trim() === '') {
       const User = require('../models/User').default;
       const user = await User.findById(req.user?.id);
@@ -92,6 +94,16 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       userEmail,
       message
     });
+
+    // Send email notification to project owner about new join request (async, don't wait)
+    try {
+      const owner = await User.findById(project.owner).select('email');
+      if (owner?.email) {
+        emailNotifications.notifyNewJoinRequest(project.title, userName, owner.email);
+      }
+    } catch (emailError) {
+      console.error('Failed to send join request email notification:', emailError);
+    }
 
     res.status(201).json({ request });
   } catch (error: any) {
@@ -115,7 +127,7 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
 // Only returns pending requests - approved/rejected are filtered out
 router.get('/project/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const requests = await JoinRequest.find({ 
+    const requests = await JoinRequest.find({
       projectId: req.params.projectId,
       status: 'pending'  // Only show pending requests
     })
@@ -131,7 +143,7 @@ router.get('/project/:projectId', authenticate, async (req: AuthRequest, res: Re
 router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status } = req.body;
-    
+
     if (!['approved', 'rejected'].includes(status)) {
       res.status(400).json({ error: 'Invalid status. Must be "approved" or "rejected"' });
       return;
@@ -142,7 +154,7 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
       res.status(404).json({ error: 'Join request not found' });
       return;
     }
-    
+
     console.log('📋 Processing join request:', req.params.requestId);
     console.log('📋 Request projectId:', request.projectId.toString());
 
@@ -153,11 +165,11 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
       res.status(404).json({ error: 'Project not found' });
       return;
     }
-    
+
     console.log('📋 Found project:', project._id.toString(), 'Title:', project.title);
 
     const isOwner = project.owner.toString() === req.user?.id;
-    const isAdmin = project.members.some(m => 
+    const isAdmin = project.members.some(m =>
       m.userId.toString() === req.user?.id && m.role === 'admin'
     );
 
@@ -176,16 +188,16 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
     if (status === 'approved') {
       console.log('📋 Approving join request for project:', project._id.toString());
       console.log('📋 Request userId:', request.userId.toString());
-      
+
       // Check if user is already a member to prevent duplicates
       const isAlreadyMember = project.members.some(m => m.userId.toString() === request.userId.toString());
       console.log('📋 Is already member:', isAlreadyMember);
-      
+
       if (!isAlreadyMember) {
         // Get the user's name from the database if not stored in request
         let userName = request.userName;
         let userEmail = request.userEmail;
-        
+
         if (!userName || userName.trim() === '') {
           const User = require('../models/User').default;
           const user = await User.findById(request.userId);
@@ -196,9 +208,9 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
             userName = userEmail?.split('@')[0] || 'Unknown User';
           }
         }
-        
+
         console.log('📋 Adding member:', { userId: request.userId.toString(), name: userName, email: userEmail });
-        
+
         project.members.push({
           userId: request.userId,
           name: userName,
@@ -206,10 +218,10 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
           role: 'member',
           joinedAt: new Date()
         });
-        
+
         const savedProject = await project.save();
         console.log('📋 Project saved with', savedProject.members.length, 'members');
-        
+
         // Emit real-time event for new member
         const io = getIO(req);
         if (io) {
@@ -245,6 +257,20 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
         userId: request.userId,
         projectId: project._id
       });
+    }
+
+    // Send email notification to the user about their join request status (async, don't wait)
+    try {
+      const requestUser = await User.findById(request.userId).select('email');
+      if (requestUser?.email) {
+        if (status === 'approved') {
+          emailNotifications.notifyJoinRequestApproved(project.title, requestUser.email);
+        } else if (status === 'rejected') {
+          emailNotifications.notifyJoinRequestRejected(project.title, requestUser.email);
+        }
+      }
+    } catch (emailError) {
+      console.error('Failed to send join request status email notification:', emailError);
     }
 
     res.json({ request, project: status === 'approved' ? project : undefined });
