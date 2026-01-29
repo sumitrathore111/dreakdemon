@@ -363,7 +363,7 @@ export default function CareerInfoPage() {
             Career Tips
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 dark:bg-gray-750 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                 🎯 Focus on Fundamentals
               </h3>
@@ -371,7 +371,7 @@ export default function CareerInfoPage() {
                 Strong fundamentals are valued more than knowing many tools superficially.
               </p>
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-750 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                 💼 Build Projects
               </h3>
@@ -379,7 +379,7 @@ export default function CareerInfoPage() {
                 Real projects demonstrate practical skills better than certifications alone.
               </p>
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-750 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                 🤝 Network Actively
               </h3>

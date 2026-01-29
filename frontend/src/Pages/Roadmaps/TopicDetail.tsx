@@ -233,7 +233,7 @@ export default function TopicDetail() {
                   href={resource.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-750 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
                 >
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -290,7 +290,7 @@ export default function TopicDetail() {
               {questions.map(question => (
                 <div
                   key={question._id}
-                  className="p-4 bg-gray-50 dark:bg-gray-750 rounded-lg"
+                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">

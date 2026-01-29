@@ -331,7 +331,7 @@ export default function InterviewPrep() {
                 >
                   <button
                     onClick={() => toggleQuestion(question._id)}
-                    className="w-full p-4 flex items-start gap-4 text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                    className="w-full p-4 flex items-start gap-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex-shrink-0 mt-0.5">
                       <span
@@ -385,7 +385,7 @@ export default function InterviewPrep() {
                         transition={{ duration: 0.2 }}
                         className="border-t border-gray-100 dark:border-gray-700"
                       >
-                        <div className="p-4 bg-gray-50 dark:bg-gray-750">
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700">
                           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Answer:
                           </h4>
@@ -413,7 +413,7 @@ export default function InterviewPrep() {
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-750"
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
             </button>
@@ -425,7 +425,7 @@ export default function InterviewPrep() {
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.totalPages}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-750"
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

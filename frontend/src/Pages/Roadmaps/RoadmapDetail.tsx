@@ -1,34 +1,35 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    ArrowLeft,
-    BookOpen,
-    Briefcase,
-    Check,
-    ChevronDown,
-    ChevronRight,
-    Clock,
-    ExternalLink,
-    GraduationCap,
-    HelpCircle,
-    Map,
-    Play,
-    Star,
-    Target,
-    TrendingUp,
-    Users,
-    Zap
+  ArrowLeft,
+  BookOpen,
+  Briefcase,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Code,
+  ExternalLink,
+  GraduationCap,
+  HelpCircle,
+  Map,
+  Play,
+  Star,
+  Target,
+  TrendingUp,
+  Users,
+  Zap
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import {
-    enrollInRoadmap,
-    getRoadmapBySlug,
-    markTopicComplete,
-    markTopicIncomplete,
-    PHASE_LABELS,
-    type RoadmapDetail,
-    type Topic
+  enrollInRoadmap,
+  getRoadmapBySlug,
+  markTopicComplete,
+  markTopicIncomplete,
+  PHASE_LABELS,
+  type RoadmapDetail,
+  type Topic
 } from '../../service/roadmapService';
 
 export default function RoadmapDetailPage() {
@@ -291,7 +292,7 @@ export default function RoadmapDetailPage() {
                   {/* Phase Header */}
                   <button
                     onClick={() => togglePhase(phase.key)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -352,7 +353,7 @@ export default function RoadmapDetailPage() {
                             return (
                               <div
                                 key={topic._id}
-                                className="p-4 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                                className="p-4 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                               >
                                 {/* Completion Checkbox */}
                                 {isAuthenticated && (
@@ -608,6 +609,43 @@ export default function RoadmapDetailPage() {
                 </Link>
               </motion.div>
             )}
+
+            {/* Recommended Projects */}
+            {(() => {
+              const allProjects: string[] = [];
+              Object.values(topicsByPhase).forEach(topics => {
+                topics.forEach(topic => {
+                  if (topic.relatedProjects) {
+                    allProjects.push(...topic.relatedProjects);
+                  }
+                });
+              });
+              const uniqueProjects = [...new Set(allProjects)].slice(0, 6);
+
+              if (uniqueProjects.length === 0) return null;
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Code className="w-5 h-5 text-purple-500" />
+                    Recommended Projects
+                  </h3>
+                  <ul className="space-y-2">
+                    {uniqueProjects.map((project, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-yellow-500 mt-1">•</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{project}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              );
+            })()}
           </div>
         </div>
       </div>

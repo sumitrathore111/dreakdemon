@@ -248,7 +248,7 @@ export default function LearningDashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 * index }}
-                      className="p-4 bg-gray-50 dark:bg-gray-750 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         <div
@@ -320,7 +320,7 @@ export default function LearningDashboard() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 * index }}
-                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-750 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                       >
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
@@ -400,7 +400,7 @@ export default function LearningDashboard() {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.1 * index }}
-                      className="text-center p-3 bg-gray-50 dark:bg-gray-750 rounded-lg"
+                      className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                       title={badge.name}
                     >
                       <span className="text-2xl block mb-1">
@@ -459,21 +459,21 @@ export default function LearningDashboard() {
               <div className="space-y-2">
                 <Link
                   to="/dashboard/roadmaps"
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-750 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <Map className="w-5 h-5 text-[#00ADB5]" />
                   <span className="text-gray-700 dark:text-gray-300">Browse Roadmaps</span>
                 </Link>
                 <Link
                   to="/dashboard/interview-prep"
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-750 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <Calendar className="w-5 h-5 text-purple-500" />
                   <span className="text-gray-700 dark:text-gray-300">Interview Prep</span>
                 </Link>
                 <Link
                   to="/dashboard/careers"
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-750 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <TrendingUp className="w-5 h-5 text-green-500" />
                   <span className="text-gray-700 dark:text-gray-300">Career Info</span>
