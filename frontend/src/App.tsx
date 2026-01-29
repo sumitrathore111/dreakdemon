@@ -39,11 +39,19 @@ const DeveloperConnect = lazy(() => import("./Pages/DeveloperConnect/DeveloperCo
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
 
 // Marketplace pages
-const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
-const ProjectDetailMarketplace = lazy(() => import("./Pages/Marketplace/ProjectDetail"));
-const CreateListing = lazy(() => import("./Pages/Marketplace/CreateListing"));
-const MyListings = lazy(() => import("./Pages/Marketplace/MyListings"));
-const MyPurchases = lazy(() => import("./Pages/Marketplace/MyPurchases"));
+// const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
+// const ProjectDetailMarketplace = lazy(() => import("./Pages/Marketplace/ProjectDetail"));
+// const CreateListing = lazy(() => import("./Pages/Marketplace/CreateListing"));
+// const MyListings = lazy(() => import("./Pages/Marketplace/MyListings"));
+// const MyPurchases = lazy(() => import("./Pages/Marketplace/MyPurchases"));
+
+// Roadmap pages (Learning Platform)
+const RoadmapList = lazy(() => import("./Pages/Roadmaps/RoadmapList"));
+const RoadmapDetail = lazy(() => import("./Pages/Roadmaps/RoadmapDetail"));
+const TopicDetail = lazy(() => import("./Pages/Roadmaps/TopicDetail"));
+const LearningDashboard = lazy(() => import("./Pages/Roadmaps/LearningDashboard"));
+const InterviewPrep = lazy(() => import("./Pages/Roadmaps/InterviewPrep"));
+const CareerInfoPage = lazy(() => import("./Pages/Roadmaps/CareerInfo"));
 
 function PublicLayout() {
 
@@ -127,7 +135,7 @@ function PublicLayout() {
                   </li>
                   <li className="hover:text-primary transition-colors duration-200 cursor-pointer flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-primary/50 rounded-full"></span>
-                    Project Bazaar
+                    Learning Roadmaps
                   </li>
                 </ul>
               </div>
@@ -277,12 +285,22 @@ const App: React.FC = () => {
                   <Route path="company_req" element={<Company_Req />} />
 
  {/* Marketplace Routes */}
-                  <Route path="marketplace" element={<MarketplaceBazaar />} />
+                  {/* <Route path="marketplace" element={<MarketplaceBazaar />} />
                   <Route path="marketplace/project/:projectId" element={<ProjectDetailMarketplace />} />
                   <Route path="marketplace/create" element={<CreateListing />} />
                   <Route path="marketplace/edit/:projectId" element={<CreateListing />} />
                   <Route path="marketplace/my-listings" element={<MyListings />} />
-                  <Route path="marketplace/my-purchases" element={<MyPurchases />} />
+                  <Route path="marketplace/my-purchases" element={<MyPurchases />} /> */}
+
+                  {/* Learning Roadmap Routes */}
+                  <Route path="roadmaps" element={<RoadmapList />} />
+                  <Route path="roadmaps/:slug" element={<RoadmapDetail />} />
+                  <Route path="roadmaps/topic/:topicId" element={<TopicDetail />} />
+                  <Route path="roadmaps/:slug/interview" element={<InterviewPrep />} />
+                  <Route path="roadmaps/:slug/careers" element={<CareerInfoPage />} />
+                  <Route path="learning-dashboard" element={<LearningDashboard />} />
+                  <Route path="interview-prep" element={<InterviewPrep />} />
+                  <Route path="careers" element={<CareerInfoPage />} />
                 </Route>
               </Routes>
             </AnimatePresence>

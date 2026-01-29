@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    BookOpen,
-    ChevronsLeft,
-    DoorOpen,
-    Folder,
-    Home,
-    LogOut,
-    Menu,
-    MessageSquare,
-    Moon,
-    Store,
-    Sun,
-    Trophy,
-    UserCircle,
+  AlertTriangle,
+  BookOpen,
+  ChevronsLeft,
+  DoorOpen,
+  Folder,
+  Home,
+  LogOut,
+  Map,
+  Menu,
+  MessageSquare,
+  Moon,
+  Sun,
+  Trophy,
+  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -34,18 +34,18 @@ export default function DashboardLayout() {
   const { isBattleActive, activeBattleId, forfeitBattle } = useBattleGuard();
   const [showBattleBlockModal, setShowBattleBlockModal] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
 
   const navItems = [
     { name: "DashBoard", path: "/dashboard/db", icon: <Home size={20} /> },
     { name: "Creator Corner", path: "/dashboard/projects", icon: <Folder size={20} /> },
     { name: "Developer Connect", path: "/dashboard/developer-connect", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
-    { name: "Project Bazaar", path: "/dashboard/marketplace", icon: <Store size={20} /> },
+    { name: "Learning Roadmaps", path: "/dashboard/roadmaps", icon: <Map size={20} /> },
     { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
-  const { fetchAllIdeas, fetchJoinRequests, userprofile } = useDataContext();
   const { user, clearUser } = useAuth();
 
   // Load pending requests count for projects where user is the creator

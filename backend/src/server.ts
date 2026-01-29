@@ -23,6 +23,7 @@ import leaderboardRoutes from './routes/leaderboard';
 import marketplaceRoutes from './routes/marketplace';
 import messageRoutes from './routes/messages';
 import projectRoutes from './routes/projects';
+import roadmapRoutes from './routes/roadmaps';
 import studyGroupRoutes from './routes/studyGroups';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/users';
@@ -57,7 +58,7 @@ const onlineUsers = new Set<string>();
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('🔌 User connected:', socket.id);
-  
+
   // Handle user coming online
   socket.on('userOnline', (data: { userId: string }) => {
     if (data.userId) {
@@ -73,13 +74,13 @@ io.on('connection', (socket) => {
   socket.on('getOnlineUsers', () => {
     socket.emit('onlineUsers', Array.from(onlineUsers));
   });
-  
+
   // Join a project room for real-time updates
   socket.on('join-project', (projectId: string) => {
     socket.join(`project:${projectId}`);
     console.log(`👤 Socket ${socket.id} joined project:${projectId}`);
   });
-  
+
   // Leave a project room
   socket.on('leave-project', (projectId: string) => {
     socket.leave(`project:${projectId}`);
@@ -133,7 +134,7 @@ io.on('connection', (socket) => {
     socket.leave(`user:${userId}`);
     console.log(`👤 Socket ${socket.id} left user:${userId}`);
   });
-  
+
   socket.on('disconnect', () => {
     // Handle user going offline
     const userId = socketUserMap.get(socket.id);
@@ -188,6 +189,7 @@ app.use('/api/study-groups', studyGroupRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/ideas', ideaRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/developers', developerRoutes);
