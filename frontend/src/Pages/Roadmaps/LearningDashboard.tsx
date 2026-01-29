@@ -238,7 +238,7 @@ export default function LearningDashboard() {
               </div>
 
               <div className="space-y-4">
-                {roadmapProgress.map((progress, index) => (
+                {roadmapProgress.filter(p => p.roadmap).map((progress, index) => (
                   <Link
                     key={progress.roadmap._id}
                     to={`/dashboard/roadmaps/${progress.roadmap.slug}`}
