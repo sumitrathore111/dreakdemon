@@ -1,5 +1,5 @@
 // API Configuration - Use Render backend for production
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
 
 // Migrate old token key to new one (one-time migration)
 const migrateTokenKey = (): void => {
