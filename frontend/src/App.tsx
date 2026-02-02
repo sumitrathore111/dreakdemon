@@ -29,7 +29,8 @@ const Signup = lazy(() => import("./Auth/SignupScreen"));
 // const ProjectContribution = lazy(() => import("./Pages/ProjectContribution"));
 const BrowseProjects = lazy(() => import("./Pages/Projects/BrowseProjects"));
 const IdeaSubmission = lazy(() => import("./Pages/Projects/IdeaSubmission"));
-const ProjectWorkspace = lazy(() => import("./Pages/Projects/ProjectWorkspace"));
+// const ProjectWorkspace = lazy(() => import("./Pages/Projects/ProjectWorkspace"));
+const EnhancedProjectWorkspace = lazy(() => import("./Component/ProjectComponent/EnhancedProjectWorkspace/EnhancedProjectWorkspace"));
 const ProjectAccessDiagnostic = lazy(() => import("./Pages/Projects/ProjectAccessDiagnostic"));
 const AdminPanel = lazy(() => import("./Pages/Admin/AdminPanel"));
 const QueryScreen = lazy(() => import("./Pages/QueryScreen"));
@@ -277,7 +278,7 @@ const App: React.FC = () => {
                   <Route path="projects/AdminPanel" element={<AdminPanel />} />
                   <Route path="projects/submit-idea" element={<IdeaSubmission />} />
                   <Route path="projects/access-diagnostic" element={<ProjectAccessDiagnostic />} />
-                  <Route path="projects/workspace/:projectId" element={<ProjectWorkspace />} />
+                  <Route path="projects/workspace/:projectId" element={<EnhancedProjectWorkspace />} />
                   <Route path="developer-connect" element={<DeveloperConnect />} />
                   <Route path="query" element={<QueryScreen />} />
                   <Route path="profile" element={<ProfileInfo />} />

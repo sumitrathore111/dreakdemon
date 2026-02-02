@@ -1,6 +1,7 @@
 import { Response, Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { updateProfileValidation } from '../middleware/validation';
+import { BoardTask } from '../models/Board';
 import Project from '../models/Project';
 import User from '../models/User';
 
@@ -41,6 +42,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 
 // Get user's completed tasks count (MUST be before /:userId route)
 // Counts tasks that are verified completed and assigned to this user
+// Includes both old Project.issues system AND new Kanban BoardTask system
 router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
@@ -62,6 +64,7 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
     let count = 0;
     const completedTasks: any[] = [];
 
+    // 1. Count from old Project.issues system (legacy)
     for (const project of projects) {
       for (const issue of project.issues) {
         const issueData = issue as any;
@@ -80,10 +83,37 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
             projectId: project._id,
             completedAt: issueData.completedAt,
             verifiedAt: issueData.verifiedAt,
-            verifiedByName: issueData.verifiedByName
+            verifiedByName: issueData.verifiedByName,
+            source: 'issues'
           });
         }
       }
+    }
+
+    // 2. Count from Kanban BoardTask system (new)
+    // Tasks where user is assignee AND task is approved by project creator
+    // Only approved tasks count towards certificates
+    const kanbanTasks = await BoardTask.find({
+      $or: [
+        { 'assignees': userId },
+        { 'completedBy': userId }
+      ],
+      completedAt: { $exists: true, $ne: null },
+      reviewStatus: 'approved'
+    }).populate('projectId', 'title');
+
+    for (const task of kanbanTasks) {
+      count++;
+      completedTasks.push({
+        id: task._id,
+        title: task.title,
+        projectTitle: (task.projectId as any)?.title || 'Unknown Project',
+        projectId: task.projectId,
+        completedAt: task.completedAt,
+        reviewedAt: task.reviewedAt,
+        reviewedBy: task.reviewedBy,
+        source: 'kanban'
+      });
     }
 
     res.json({ count, completedTasks });

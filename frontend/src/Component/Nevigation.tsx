@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  BookOpen,
-  ChevronsLeft,
-  DoorOpen,
-  Folder,
-  Home,
-  LogOut,
-  Map,
-  Menu,
-  MessageSquare,
-  Moon,
-  Sun,
-  Trophy,
-  UserCircle,
+    AlertTriangle,
+    BookOpen,
+    ChevronsLeft,
+    DoorOpen,
+    Folder,
+    Home,
+    LogOut,
+    Map,
+    Menu,
+    MessageSquare,
+    Moon,
+    Sun,
+    Trophy,
+    UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -165,9 +165,15 @@ export default function DashboardLayout() {
                     {!isMinimized && (
                       <span className="truncate text-sm font-medium">{item.name}</span>
                     )}
-                    {/* Notification Badge for Projects */}
-                    {item.path === '/dashboard/projects' && pendingRequestsCount > 0 && (
-                      <span className="ml-auto flex-shrink-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {/* Notification Badge for Projects - Full sidebar */}
+                    {item.path === '/dashboard/projects' && pendingRequestsCount > 0 && !isMinimized && (
+                      <span className="ml-auto flex-shrink-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                        {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                      </span>
+                    )}
+                    {/* Notification Badge for Projects - Minimized sidebar */}
+                    {item.path === '/dashboard/projects' && pendingRequestsCount > 0 && isMinimized && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                         {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
                       </span>
                     )}

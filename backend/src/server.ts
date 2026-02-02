@@ -13,10 +13,12 @@ import { connectDatabase } from './config/database';
 import adminRoutes from './routes/admin';
 import authRoutes from './routes/auth';
 import battleRoutes from './routes/battles';
+import boardRoutes from './routes/boards';
 import challengeRoutes from './routes/challenges';
 import chatRoutes from './routes/chats';
 import developerRoutes from './routes/developers';
 import executeRoutes from './routes/execute';
+import githubRoutes from './routes/github';
 import ideaRoutes from './routes/ideas';
 import joinRequestRoutes from './routes/joinRequests';
 import leaderboardRoutes from './routes/leaderboard';
@@ -97,6 +99,87 @@ io.on('connection', (socket) => {
   socket.on('leave-user', (userId: string) => {
     socket.leave(`user:${userId}`);
     console.log(`👤 Socket ${socket.id} left user room: user:${userId}`);
+  });
+
+  // ==================== BOARD COLLABORATION EVENTS ====================
+
+  // Join a board room for real-time task updates
+  socket.on('join-board', (boardId: string) => {
+    socket.join(`board:${boardId}`);
+    console.log(`📋 Socket ${socket.id} joined board:${boardId}`);
+  });
+
+  // Leave a board room
+  socket.on('leave-board', (boardId: string) => {
+    socket.leave(`board:${boardId}`);
+    console.log(`📋 Socket ${socket.id} left board:${boardId}`);
+  });
+
+  // Cursor tracking for real-time collaboration
+  socket.on('cursor-move', (data: { boardId: string; userId: string; userName: string; position: { x: number; y: number }; color: string }) => {
+    socket.to(`board:${data.boardId}`).emit('cursor-update', {
+      socketId: socket.id,
+      userId: data.userId,
+      userName: data.userName,
+      position: data.position,
+      color: data.color
+    });
+  });
+
+  // Task drag start - show ghost to other users
+  socket.on('task-drag-start', (data: { boardId: string; taskId: string; userId: string; userName: string }) => {
+    socket.to(`board:${data.boardId}`).emit('task-dragging', {
+      taskId: data.taskId,
+      userId: data.userId,
+      userName: data.userName,
+      isDragging: true
+    });
+  });
+
+  // Task drag end
+  socket.on('task-drag-end', (data: { boardId: string; taskId: string; userId: string }) => {
+    socket.to(`board:${data.boardId}`).emit('task-dragging', {
+      taskId: data.taskId,
+      userId: data.userId,
+      isDragging: false
+    });
+  });
+
+  // User is typing in task comments
+  socket.on('typing-comment', (data: { taskId: string; boardId: string; userId: string; userName: string }) => {
+    socket.to(`board:${data.boardId}`).emit('user-typing-comment', {
+      taskId: data.taskId,
+      userId: data.userId,
+      userName: data.userName
+    });
+  });
+
+  // User stopped typing
+  socket.on('stopped-typing-comment', (data: { taskId: string; boardId: string; userId: string }) => {
+    socket.to(`board:${data.boardId}`).emit('user-stopped-typing-comment', {
+      taskId: data.taskId,
+      userId: data.userId
+    });
+  });
+
+  // User is viewing a task (for presence indicators)
+  socket.on('viewing-task', (data: { taskId: string; boardId: string; userId: string; userName: string; avatar?: string }) => {
+    socket.join(`task:${data.taskId}`);
+    socket.to(`board:${data.boardId}`).emit('user-viewing-task', {
+      taskId: data.taskId,
+      userId: data.userId,
+      userName: data.userName,
+      avatar: data.avatar
+    });
+  });
+
+  // User stopped viewing a task
+  socket.on('stopped-viewing-task', (data: { taskId: string; boardId: string; userId: string }) => {
+    socket.leave(`task:${data.taskId}`);
+    socket.to(`board:${data.boardId}`).emit('user-left-task', {
+      taskId: data.taskId,
+      userId: data.userId
+    });
   });
 
   // Join a chat room for real-time messaging
@@ -184,6 +267,7 @@ connectDatabase();
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/battles', battleRoutes);
+app.use('/api/boards', boardRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/study-groups', studyGroupRoutes);
 app.use('/api/messages', messageRoutes);
@@ -199,6 +283,7 @@ app.use('/api/execute', executeRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/join-requests', joinRequestRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/github', githubRoutes);
 
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {

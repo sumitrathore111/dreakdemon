@@ -11,6 +11,19 @@ const getIO = (req: AuthRequest): SocketIOServer | null => {
   return req.app.get('io') as SocketIOServer | null;
 };
 
+// Helper to find project by ID or ideaId (for dual ID lookup support)
+const findProject = async (projectIdOrIdeaId: string) => {
+  // First try to find by direct _id
+  let project = await Project.findById(projectIdOrIdeaId).catch(() => null);
+
+  // If not found, try to find by ideaId
+  if (!project) {
+    project = await Project.findOne({ ideaId: projectIdOrIdeaId });
+  }
+
+  return project;
+};
+
 const router = Router();
 
 // Get all join requests (for debugging or admin)
@@ -44,12 +57,15 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
   try {
     const { projectId, message } = req.body;
 
-    // Check if project exists
-    const project = await Project.findById(projectId);
+    // Check if project exists (supports both project ID and idea ID)
+    const project = await findProject(projectId);
     if (!project) {
       res.status(404).json({ error: 'Project not found' });
       return;
     }
+
+    const actualProjectId = project._id.toString();
+    console.log('📋 Creating join request for project:', actualProjectId, '(queried with:', projectId, ')');
 
     // Check if user is already a member
     const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
@@ -58,9 +74,9 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    // Check if request already exists
+    // Check if request already exists (check both the queried ID and actual project ID)
     const existingRequest = await JoinRequest.findOne({
-      projectId,
+      $or: [{ projectId: actualProjectId }, { projectId: projectId }],
       userId: req.user?.id
     });
 
@@ -86,14 +102,16 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       }
     }
 
-    // Create join request
+    // Create join request - use the actual project ID (not the idea ID)
     const request = await JoinRequest.create({
-      projectId,
+      projectId: actualProjectId,
       userId: req.user?.id,
       userName,
       userEmail,
       message
     });
+
+    console.log('✅ Join request created:', request._id, 'for project:', actualProjectId);
 
     // Send email notification to project owner about new join request (async, don't wait)
     try {
@@ -125,16 +143,32 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
 
 // Get join requests for a project (for project owner/admin)
 // Only returns pending requests - approved/rejected are filtered out
+// Supports lookup by both project ID and idea ID
 router.get('/project/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Find the actual project (supports both project ID and idea ID)
+    const project = await findProject(req.params.projectId);
+
+    if (!project) {
+      console.log('❌ Project not found for ID:', req.params.projectId);
+      res.json({ requests: [] });
+      return;
+    }
+
+    const actualProjectId = project._id.toString();
+    console.log('📋 Fetching join requests for project:', actualProjectId, '(queried with:', req.params.projectId, ')');
+
     const requests = await JoinRequest.find({
-      projectId: req.params.projectId,
+      projectId: actualProjectId,
       status: 'pending'  // Only show pending requests
     })
       .populate('userId', 'name email skills')
       .sort({ createdAt: -1 });
+
+    console.log('📋 Found', requests.length, 'pending join requests');
     res.json({ requests });
   } catch (error: any) {
+    console.error('Error fetching join requests:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -158,7 +192,7 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
     console.log('📋 Processing join request:', req.params.requestId);
     console.log('📋 Request projectId:', request.projectId.toString());
 
-    // Check if user is project owner or admin
+    // Check if user is project owner (only owner can approve/reject)
     const project = await Project.findById(request.projectId);
     if (!project) {
       console.log('❌ Project not found for request projectId:', request.projectId.toString());
@@ -169,12 +203,9 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
     console.log('📋 Found project:', project._id.toString(), 'Title:', project.title);
 
     const isOwner = project.owner.toString() === req.user?.id;
-    const isAdmin = project.members.some(m =>
-      m.userId.toString() === req.user?.id && m.role === 'admin'
-    );
 
-    if (!isOwner && !isAdmin) {
-      res.status(403).json({ error: 'Not authorized to respond to join requests' });
+    if (!isOwner) {
+      res.status(403).json({ error: 'Only the project owner can approve or reject join requests' });
       return;
     }
 

@@ -39,6 +39,37 @@ export interface IProjectIssue {
   verificationFeedback?: string;
 }
 
+// Board column configuration
+export interface IBoardColumn {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
+  limit?: number; // WIP limit
+}
+
+// Project settings
+export interface IProjectSettings {
+  defaultView: 'kanban' | 'list' | 'calendar' | 'gantt' | 'timeline';
+  enableTimeTracking: boolean;
+  enableStoryPoints: boolean;
+  enableSubtasks: boolean;
+  enableSprints: boolean;
+  workingDays: number[]; // 0-6 (Sunday-Saturday)
+  workingHoursStart: number; // 0-23
+  workingHoursEnd: number;
+  defaultTaskPriority: 'low' | 'medium' | 'high';
+  autoAssignCreator: boolean;
+}
+
+// Project labels for consistent tagging
+export interface IProjectLabel {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+}
+
 export interface IProject extends Document {
   title: string;
   description: string;
@@ -58,6 +89,21 @@ export interface IProject extends Document {
   startDate?: Date;
   expectedEndDate?: Date;
   actualEndDate?: Date;
+
+  // Board configuration
+  boardColumns: IBoardColumn[];
+
+  // Project settings
+  settings: IProjectSettings;
+
+  // Project-wide labels
+  labels: IProjectLabel[];
+
+  // Analytics
+  totalTasks: number;
+  completedTasks: number;
+  totalTimeSpent: number; // in minutes
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -100,12 +146,51 @@ const ProjectIssueSchema = new Schema({
   verificationFeedback: { type: String }
 });
 
+// Board column schema
+const BoardColumnSchema = new Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  color: { type: String, default: '#6b7280' },
+  order: { type: Number, required: true },
+  limit: { type: Number } // WIP limit
+}, { _id: false });
+
+// Project settings schema
+const ProjectSettingsSchema = new Schema({
+  defaultView: {
+    type: String,
+    enum: ['kanban', 'list', 'calendar', 'gantt', 'timeline'],
+    default: 'kanban'
+  },
+  enableTimeTracking: { type: Boolean, default: true },
+  enableStoryPoints: { type: Boolean, default: true },
+  enableSubtasks: { type: Boolean, default: true },
+  enableSprints: { type: Boolean, default: false },
+  workingDays: { type: [Number], default: [1, 2, 3, 4, 5] }, // Mon-Fri
+  workingHoursStart: { type: Number, default: 9 },
+  workingHoursEnd: { type: Number, default: 17 },
+  defaultTaskPriority: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+    default: 'medium'
+  },
+  autoAssignCreator: { type: Boolean, default: false }
+}, { _id: false });
+
+// Project label schema
+const ProjectLabelSchema = new Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  color: { type: String, required: true },
+  description: { type: String }
+}, { _id: false });
+
 const ProjectSchema: Schema = new Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, required: true },
   category: { type: String, required: true },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['planning', 'active', 'paused', 'completed', 'archived'],
     default: 'planning'
   },
@@ -122,9 +207,50 @@ const ProjectSchema: Schema = new Schema({
   maxMembers: { type: Number, default: 5 },
   startDate: { type: Date },
   expectedEndDate: { type: Date },
-  actualEndDate: { type: Date }
+  actualEndDate: { type: Date },
+
+  // Board configuration
+  boardColumns: {
+    type: [BoardColumnSchema],
+    default: [
+      { id: 'backlog', name: 'Backlog', color: '#6b7280', order: 0 },
+      { id: 'todo', name: 'To Do', color: '#3b82f6', order: 1 },
+      { id: 'in-progress', name: 'In Progress', color: '#f59e0b', order: 2 },
+      { id: 'review', name: 'Review', color: '#8b5cf6', order: 3 },
+      { id: 'done', name: 'Done', color: '#10b981', order: 4 }
+    ]
+  },
+
+  // Project settings
+  settings: {
+    type: ProjectSettingsSchema,
+    default: () => ({})
+  },
+
+  // Project-wide labels
+  labels: {
+    type: [ProjectLabelSchema],
+    default: [
+      { id: 'bug', name: 'Bug', color: '#ef4444', description: 'Something is broken' },
+      { id: 'feature', name: 'Feature', color: '#10b981', description: 'New feature request' },
+      { id: 'enhancement', name: 'Enhancement', color: '#3b82f6', description: 'Improvement to existing feature' },
+      { id: 'documentation', name: 'Documentation', color: '#8b5cf6', description: 'Documentation updates' },
+      { id: 'urgent', name: 'Urgent', color: '#f59e0b', description: 'Needs immediate attention' }
+    ]
+  },
+
+  // Analytics
+  totalTasks: { type: Number, default: 0 },
+  completedTasks: { type: Number, default: 0 },
+  totalTimeSpent: { type: Number, default: 0 } // in minutes
 }, {
   timestamps: true
+});
+
+// Virtual for completion percentage
+ProjectSchema.virtual('completionPercentage').get(function(this: IProject) {
+  if (this.totalTasks === 0) return 0;
+  return Math.round((this.completedTasks / this.totalTasks) * 100);
 });
 
 // Indexes
@@ -132,5 +258,7 @@ ProjectSchema.index({ owner: 1, status: 1 });
 ProjectSchema.index({ 'members.userId': 1 });
 ProjectSchema.index({ visibility: 1, status: 1 });
 ProjectSchema.index({ category: 1 });
+ProjectSchema.index({ 'labels.id': 1 });
+ProjectSchema.index({ createdAt: -1 });
 
 export default mongoose.model<IProject>('Project', ProjectSchema);

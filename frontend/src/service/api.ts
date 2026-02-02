@@ -1,6 +1,21 @@
 // API Configuration - Use Render backend for production
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Migrate old token key to new one (one-time migration)
+const migrateTokenKey = (): void => {
+  const oldToken = localStorage.getItem('token');
+  const newToken = localStorage.getItem('authToken');
+
+  // If old token exists but new one doesn't, migrate it
+  if (oldToken && !newToken) {
+    localStorage.setItem('authToken', oldToken);
+    localStorage.removeItem('token');
+  }
+};
+
+// Run migration on module load
+migrateTokenKey();
+
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
@@ -40,11 +55,15 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}): P
 // Save token to localStorage
 export const saveAuthToken = (token: string): void => {
   localStorage.setItem('authToken', token);
+  // Also remove old key if it exists
+  localStorage.removeItem('token');
 };
 
 // Remove token from localStorage
 export const clearAuthToken = (): void => {
   localStorage.removeItem('authToken');
+  // Also clear old key for complete cleanup
+  localStorage.removeItem('token');
 };
 
 export { API_BASE_URL };

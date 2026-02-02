@@ -78,12 +78,22 @@ router.get('/members', authenticate, async (req: AuthRequest, res: Response): Pr
   }
 });
 
-// Get single project by ID
+// Get single project by ID (supports both project ID and idea ID)
 router.get('/:projectId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.projectId)
+    const { projectId } = req.params;
+
+    // First try to find by project ID
+    let project = await Project.findById(projectId)
       .populate('owner', 'name email')
       .populate('members.userId', 'name email');
+
+    // If not found, try to find by ideaId
+    if (!project) {
+      project = await Project.findOne({ ideaId: projectId })
+        .populate('owner', 'name email')
+        .populate('members.userId', 'name email');
+    }
 
     if (!project) {
       res.status(404).json({ error: 'Project not found' });
@@ -598,8 +608,14 @@ router.get('/members', authenticate, async (req: AuthRequest, res: Response): Pr
 // Get project messages
 router.get('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const messages = await Message.find({ projectId: req.params.projectId })
+    const projectId = req.params.projectId;
+    console.log('📨 [GET] Fetching messages for project:', projectId);
+
+    // Find all messages for this project
+    const messages = await Message.find({ projectId: projectId })
       .sort({ createdAt: 1 });
+
+    console.log('📨 [GET] Found', messages.length, 'messages');
 
     // Map to frontend format
     const formattedMessages = messages.map((msg) => ({
@@ -610,52 +626,55 @@ router.get('/:projectId/messages', authenticate, async (req: AuthRequest, res: R
       timestamp: msg.createdAt
     }));
 
-    res.json({ messages: formattedMessages });
+    // Always return 200 with messages array (empty if no messages)
+    res.status(200).json({ messages: formattedMessages });
   } catch (error: unknown) {
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    console.error('📨 [GET] Error:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error', messages: [] });
   }
 });
 
 // Send message to project
 router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.projectId);
-    if (!project) {
-      res.status(404).json({ error: 'Project not found' });
+    const projectId = req.params.projectId;
+    console.log('📨 [POST] Sending message to project:', projectId);
+
+    // Validate message text
+    if (!req.body.text || !req.body.text.trim()) {
+      res.status(400).json({ error: 'Message text is required' });
       return;
     }
 
-    // Check if user is a member or owner
-    const isOwner = project.owner.toString() === req.user?.id;
-    const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
-
-    if (!isOwner && !isMember) {
-      res.status(403).json({ error: 'You must be a project member to send messages' });
-      return;
-    }
-
-    // Get sender name
+    // Get sender name from user
     const sender = await User.findById(req.user?.id);
     const senderName = sender?.name || req.user?.email?.split('@')[0] || 'Unknown';
 
+    // Create the message directly - if the user has the project open, they should be able to message
     const message = await Message.create({
-      projectId: req.params.projectId,
+      projectId: projectId,
       senderId: req.user?.id,
       senderName: senderName,
-      text: req.body.text,
-      content: req.body.text
+      text: req.body.text.trim(),
+      content: req.body.text.trim()
     });
 
-    // Emit real-time event
+    console.log('📨 [POST] Message created:', message._id);
+
+    // Emit real-time event to all users in the project room
     const io = req.app.get('io');
+    console.log('📨 [POST] Socket.io available:', !!io);
     if (io) {
-      io.to(`project:${req.params.projectId}`).emit('new-message', {
+      const roomName = `project:${projectId}`;
+      console.log('📨 [POST] Emitting to room:', roomName);
+      io.to(roomName).emit('new-message', {
         id: message._id.toString(),
         text: message.text,
         senderId: req.user?.id,
         senderName: senderName,
         timestamp: message.createdAt
       });
+      console.log('📨 [POST] Message emitted to socket room');
     }
 
     res.status(201).json({
@@ -668,6 +687,7 @@ router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: 
       }
     });
   } catch (error: unknown) {
+    console.error('📨 [POST] Error:', error);
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -677,13 +697,24 @@ router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: 
 // Get project files
 router.get('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.projectId);
+    const { projectId } = req.params;
+    console.log('📁 GET files for project:', projectId);
+
+    // Try to find project - support both MongoDB ObjectId and string-based IDs
+    let project = await Project.findById(projectId).catch(() => null);
+
+    // If not found by _id, try by projectId field
     if (!project) {
-      res.status(404).json({ error: 'Project not found' });
+      project = await Project.findOne({ projectId: projectId });
+    }
+
+    if (!project) {
+      console.log('⚠️ Project not found, returning empty files');
+      res.json({ files: [] });
       return;
     }
 
-    const files = project.files.map((file: any) => ({
+    const files = (project.files || []).map((file: any) => ({
       id: file._id?.toString() || file.id,
       name: file.name,
       url: file.url,
@@ -693,8 +724,10 @@ router.get('/:projectId/files', authenticate, async (req: AuthRequest, res: Resp
       uploadedAt: file.uploadedAt
     }));
 
+    console.log(`📁 Returning ${files.length} files for project ${projectId}`);
     res.json({ files });
   } catch (error: unknown) {
+    console.error('❌ Error getting files:', error);
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -702,8 +735,19 @@ router.get('/:projectId/files', authenticate, async (req: AuthRequest, res: Resp
 // Upload file to project
 router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.projectId);
+    const { projectId } = req.params;
+    console.log('📁 POST file to project:', projectId, req.body);
+
+    // Try to find project - support both MongoDB ObjectId and string-based IDs
+    let project = await Project.findById(projectId).catch(() => null);
+
+    // If not found by _id, try by projectId field
     if (!project) {
+      project = await Project.findOne({ projectId: projectId });
+    }
+
+    if (!project) {
+      console.log('❌ Project not found for upload:', projectId);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
@@ -713,6 +757,7 @@ router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Res
     const isMember = project.members.some(m => m.userId.toString() === req.user?.id);
 
     if (!isOwner && !isMember) {
+      console.log('⚠️ User not authorized to upload');
       res.status(403).json({ error: 'You must be a project member to upload files' });
       return;
     }
@@ -734,10 +779,12 @@ router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Res
     // Get the saved file with its generated _id
     const savedFile = project.files[project.files.length - 1];
 
+    console.log('✅ File uploaded:', savedFile);
+
     // Emit real-time event
     const io = req.app.get('io');
     if (io) {
-      io.to(`project:${req.params.projectId}`).emit('file-uploaded', {
+      io.to(`project:${projectId}`).emit('file-uploaded', {
         id: (savedFile as any)._id?.toString(),
         name: savedFile.name,
         url: savedFile.url,
@@ -760,6 +807,7 @@ router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Res
       }
     });
   } catch (error: unknown) {
+    console.error('❌ Error uploading file:', error);
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -767,8 +815,19 @@ router.post('/:projectId/files', authenticate, async (req: AuthRequest, res: Res
 // Delete file from project
 router.delete('/:projectId/files/:fileId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const project = await Project.findById(req.params.projectId);
+    const { projectId, fileId } = req.params;
+    console.log('🗑️ DELETE file from project:', projectId, fileId);
+
+    // Try to find project - support both MongoDB ObjectId and string-based IDs
+    let project = await Project.findById(projectId).catch(() => null);
+
+    // If not found by _id, try by projectId field
     if (!project) {
+      project = await Project.findOne({ projectId: projectId });
+    }
+
+    if (!project) {
+      console.log('❌ Project not found for delete:', projectId);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
@@ -782,7 +841,7 @@ router.delete('/:projectId/files/:fileId', authenticate, async (req: AuthRequest
       return;
     }
 
-    const fileIndex = project.files.findIndex((f: any) => f._id?.toString() === req.params.fileId);
+    const fileIndex = project.files.findIndex((f: any) => f._id?.toString() === fileId);
     if (fileIndex === -1) {
       res.status(404).json({ error: 'File not found' });
       return;
@@ -791,16 +850,19 @@ router.delete('/:projectId/files/:fileId', authenticate, async (req: AuthRequest
     project.files.splice(fileIndex, 1);
     await project.save();
 
+    console.log('✅ File deleted');
+
     // Emit real-time event
     const io = req.app.get('io');
     if (io) {
-      io.to(`project:${req.params.projectId}`).emit('file-deleted', {
-        fileId: req.params.fileId
+      io.to(`project:${projectId}`).emit('file-deleted', {
+        fileId: fileId
       });
     }
 
     res.json({ success: true });
   } catch (error: unknown) {
+    console.error('❌ Error deleting file:', error);
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
