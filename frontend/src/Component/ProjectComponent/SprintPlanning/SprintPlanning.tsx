@@ -180,7 +180,7 @@ export default function SprintPlanning({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-6 h-6 animate-spin text-purple-500" />
+        <RefreshCw className="w-6 h-6 animate-spin text-teal-500" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function SprintPlanning({
               </p>
               <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                 {task.storyPoints && (
-                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded">
+                  <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded">
                     {task.storyPoints} pts
                   </span>
                 )}
@@ -229,7 +229,7 @@ export default function SprintPlanning({
                     {task.assignees.slice(0, 2).map((a) => (
                       <div
                         key={a._id}
-                        className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs"
+                        className="w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs"
                         title={a.name}
                       >
                         {a.name.charAt(0)}
@@ -255,11 +255,11 @@ export default function SprintPlanning({
         {/* Active Sprint */}
         {activeSprint && (
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800">
+            <div className="p-4 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-200 dark:border-teal-800">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-purple-500" />
+                    <Zap className="w-5 h-5 text-teal-500" />
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {activeSprint.name}
                     </h3>
@@ -296,7 +296,7 @@ export default function SprintPlanning({
                     </div>
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                       <p className="text-xs text-gray-500">Progress</p>
-                      <p className="text-xl font-bold text-purple-600">
+                      <p className="text-xl font-bold text-teal-600">
                         {stats.progress}%
                       </p>
                     </div>
@@ -309,7 +309,7 @@ export default function SprintPlanning({
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                       <button
                         onClick={() => handleCompleteSprint(activeSprint._id)}
-                        className="w-full h-full flex items-center justify-center gap-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg"
+                        className="w-full h-full flex items-center justify-center gap-2 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
                       >
                         <Trophy className="w-5 h-5" />
                         Complete
@@ -346,7 +346,7 @@ export default function SprintPlanning({
                     </p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                       {task.storyPoints && (
-                        <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded">
+                        <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded">
                           {task.storyPoints} pts
                         </span>
                       )}
@@ -415,7 +415,7 @@ export default function SprintPlanning({
                     >
                       {task.title}
                       {task.storyPoints && (
-                        <span className="ml-2 text-xs text-purple-600">
+                        <span className="ml-2 text-xs text-teal-600">
                           {task.storyPoints}pts
                         </span>
                       )}
@@ -461,7 +461,7 @@ export default function SprintPlanning({
         {/* Create Sprint Button */}
         <button
           onClick={() => setShowCreateModal(true)}
-          className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 hover:border-purple-500 hover:text-purple-500 transition-colors flex items-center justify-center gap-2"
+          className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 hover:border-teal-500 hover:text-teal-500 transition-colors flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Create New Sprint
@@ -589,7 +589,7 @@ function CreateSprintModal({ onClose, onCreate }: CreateSprintModalProps) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+              className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
             >
               Create Sprint
             </button>
