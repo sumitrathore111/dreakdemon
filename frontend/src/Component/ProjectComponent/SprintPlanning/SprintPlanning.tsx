@@ -1,17 +1,22 @@
 import {
-    Clock,
-    Play,
-    Plus,
-    RefreshCw,
-    Target,
-    Trophy,
-    X,
-    Zap
+  Clock,
+  Play,
+  Plus,
+  RefreshCw,
+  Target,
+  Trophy,
+  X,
+  Zap
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { KanbanTask } from '../KanbanBoard/kanban.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 interface Sprint {
   _id: string;

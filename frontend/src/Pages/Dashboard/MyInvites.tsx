@@ -3,7 +3,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 interface ProjectInvite {
   id: string;

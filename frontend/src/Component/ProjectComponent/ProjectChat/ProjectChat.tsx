@@ -1,14 +1,19 @@
 import { MoreVertical, Send, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    initializeSocket,
-    joinProjectRoom,
-    leaveProjectRoom,
-    offNewMessage,
-    onNewMessage
+  initializeSocket,
+  joinProjectRoom,
+  leaveProjectRoom,
+  offNewMessage,
+  onNewMessage
 } from '../../../service/socketService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 interface Message {
   id: string;

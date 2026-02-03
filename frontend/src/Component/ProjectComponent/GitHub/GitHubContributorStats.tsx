@@ -1,16 +1,21 @@
 import {
-    Code2,
-    GitCommit,
-    GitMerge,
-    GitPullRequest,
-    Loader2,
-    RefreshCw,
-    TrendingUp,
-    Users
+  Code2,
+  GitCommit,
+  GitMerge,
+  GitPullRequest,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 interface GitHubContributor {
   login: string;

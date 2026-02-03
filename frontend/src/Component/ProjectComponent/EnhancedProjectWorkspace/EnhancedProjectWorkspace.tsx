@@ -24,7 +24,12 @@ import { ProjectChat } from '../ProjectChat';
 import { ProjectFiles } from '../ProjectFiles';
 import { SprintPlanning } from '../SprintPlanning';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 type TabType = 'board' | 'sprints' | 'activity' | 'analytics' | 'github' | 'files' | 'chat' | 'members';
 

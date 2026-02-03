@@ -1,11 +1,11 @@
 import {
-    BarChart2,
-    Calendar as CalendarIcon,
-    Kanban,
-    List,
-    Plus,
-    RefreshCw,
-    Search
+  BarChart2,
+  Calendar as CalendarIcon,
+  Kanban,
+  List,
+  Plus,
+  RefreshCw,
+  Search
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import BoardColumn from './BoardColumn';
@@ -13,7 +13,12 @@ import CreateTaskModal from './CreateTaskModal';
 import TaskDetailModal from './TaskDetailModal';
 import type { Board, KanbanTask, ProjectMember, ViewMode } from './kanban.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
+// Get base URL and ensure /api suffix
+const getApiUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
+  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+};
+const API_URL = getApiUrl();
 
 interface KanbanBoardProps {
   projectId: string;
