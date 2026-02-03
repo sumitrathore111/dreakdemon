@@ -2,8 +2,7 @@ import { AlertCircle, Check, Loader2, LogIn, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../service/apiConfig';
 
 interface InviteInfo {
   projectTitle: string;

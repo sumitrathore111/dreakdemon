@@ -1,20 +1,19 @@
 import {
-    BarChart2,
-    CheckCircle2,
-    Clock,
-    Code2,
-    GitCommit,
-    GitMerge,
-    GitPullRequest,
-    RefreshCw,
-    Target,
-    TrendingUp,
-    Users,
-    Zap
+  BarChart2,
+  CheckCircle2,
+  Clock,
+  Code2,
+  GitCommit,
+  GitMerge,
+  GitPullRequest,
+  RefreshCw,
+  Target,
+  TrendingUp,
+  Users,
+  Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../../../service/apiConfig';
 
 interface GitHubContributor {
   login: string;

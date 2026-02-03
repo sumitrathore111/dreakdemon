@@ -8,17 +8,11 @@ import {
   Search
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { API_URL } from '../../../service/apiConfig';
 import BoardColumn from './BoardColumn';
 import CreateTaskModal from './CreateTaskModal';
 import TaskDetailModal from './TaskDetailModal';
 import type { Board, KanbanTask, ProjectMember, ViewMode } from './kanban.types';
-
-// Get base URL and ensure /api suffix
-const getApiUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
-  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
-};
-const API_URL = getApiUrl();
 
 interface KanbanBoardProps {
   projectId: string;

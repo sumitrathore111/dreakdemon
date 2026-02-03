@@ -16,8 +16,7 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '../../../service/apiConfig';
 
 interface ActivityItem {
   _id: string;

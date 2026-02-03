@@ -43,8 +43,10 @@ interface _BattleResult {
 // Export for external use if needed
 export type { _BattleResult as BattleResult };
 
+    import { API_BASE_URL } from './apiConfig';
+
 class SecureCodeExecutionService {
-  private readonly BACKEND_URL = (import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api').replace('/api', '');
+  private readonly BACKEND_URL = API_BASE_URL;
 
   // Execute code securely through backend proxy
   async executeCode(code: string, language: string, input?: string): Promise<ExecutionResult> {
@@ -83,8 +85,8 @@ class SecureCodeExecutionService {
 
   // Submit code for challenge with server-side validation
   async submitChallenge(
-    challengeId: string, 
-    code: string, 
+    challengeId: string,
+    code: string,
     language: string,
     testCases?: Array<{ input: string; expected_output?: string; expectedOutput?: string; output?: string }>,
     coinReward?: number,

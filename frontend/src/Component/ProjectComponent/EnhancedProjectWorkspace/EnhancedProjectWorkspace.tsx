@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
+import { API_URL } from '../../../service/apiConfig';
 import { ActivityTimeline } from '../ActivityTimeline';
 import { GitHubPanel } from '../GitHub';
 import { KanbanBoard } from '../KanbanBoard';
@@ -23,13 +24,6 @@ import { ProjectAnalytics } from '../ProjectAnalytics';
 import { ProjectChat } from '../ProjectChat';
 import { ProjectFiles } from '../ProjectFiles';
 import { SprintPlanning } from '../SprintPlanning';
-
-// Get base URL and ensure /api suffix
-const getApiUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
-  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
-};
-const API_URL = getApiUrl();
 
 type TabType = 'board' | 'sprints' | 'activity' | 'analytics' | 'github' | 'files' | 'chat' | 'members';
 

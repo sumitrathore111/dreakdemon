@@ -1,10 +1,8 @@
 import { io, Socket } from 'socket.io-client';
+import { API_BASE_URL } from './apiConfig';
 
-// Get base URL for socket (remove /api from API URL)
-const getSocketUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-  return apiUrl.replace('/api', '');
-};
+// Use shared base URL for socket connections
+const getSocketUrl = () => API_BASE_URL;
 
 let socket: Socket | null = null;
 

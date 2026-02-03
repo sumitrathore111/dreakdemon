@@ -1,6 +1,7 @@
 // GitHub Integration Service for Frontend
+import { API_URL } from './apiConfig';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = API_URL;
 
 // Get auth headers
 const getHeaders = () => {

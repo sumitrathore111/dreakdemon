@@ -15,10 +15,11 @@ import {
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { apiRequest } from '../../service/api';
+import { API_BASE_URL } from '../../service/apiConfig';
 
 interface ActivityItem {
   id: string;
-  type: 'battle_win' | 'battle_complete' | 'project_created' | 'project_joined' | 
+  type: 'battle_win' | 'battle_complete' | 'project_created' | 'project_joined' |
         'message' | 'endorsement' | 'sale' | 'new_developer' | 'challenge_solved';
   title: string;
   description: string;
@@ -49,10 +50,8 @@ export default function ActivityFeed({ isOpen, onClose }: ActivityFeedProps) {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Get base URL without /api suffix for socket.io
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
-    const socketUrl = apiUrl.replace('/api', '');
-    const socket: Socket = io(socketUrl, { 
+    // Use shared API base URL for socket.io
+    const socket: Socket = io(API_BASE_URL, {
       transports: ['polling', 'websocket'],
       timeout: 10000,
       reconnection: true,
@@ -262,7 +261,7 @@ export default function ActivityFeed({ isOpen, onClose }: ActivityFeedProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2">
-                <div 
+                <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
                 >
@@ -315,7 +314,7 @@ export default function ActivityFeed({ isOpen, onClose }: ActivityFeedProps) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`p-3 rounded-xl bg-gradient-to-r ${getActivityColor(activity.type)} 
+                      className={`p-3 rounded-xl bg-gradient-to-r ${getActivityColor(activity.type)}
                         border border-gray-100 dark:border-gray-700/50`}
                     >
                       <div className="flex items-start gap-3">

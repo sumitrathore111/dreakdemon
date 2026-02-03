@@ -1,11 +1,5 @@
-// API Configuration - Use Render backend for production
-// Get base URL and ensure /api suffix for consistency
-const getApiBaseUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
-  // Remove trailing /api if present, we'll add it in requests
-  return baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
-};
-const API_BASE_URL = getApiBaseUrl();
+// API Configuration - Use shared config for consistency
+import { API_BASE_URL } from './apiConfig';
 
 // Migrate old token key to new one (one-time migration)
 const migrateTokenKey = (): void => {

@@ -9,13 +9,7 @@ import {
   Users
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-
-// Get base URL and ensure /api suffix
-const getApiUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
-  return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
-};
-const API_URL = getApiUrl();
+import { API_URL } from '../../../service/apiConfig';
 
 interface GitHubContributor {
   login: string;

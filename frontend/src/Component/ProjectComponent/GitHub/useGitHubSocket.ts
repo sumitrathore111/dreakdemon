@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { API_BASE_URL } from '../../../service/apiConfig';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://nextstepbackend-qhxw.onrender.com';
+const SOCKET_URL = API_BASE_URL;
 
 interface GitHubEventData {
   projectId: string;
