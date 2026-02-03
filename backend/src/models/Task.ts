@@ -231,14 +231,14 @@ TaskSchema.index({ projectId: 1, status: 1 });
 TaskSchema.index({ projectId: 1, sprintId: 1 });
 
 // Virtual for calculating progress based on subtasks
-TaskSchema.virtual('subtaskProgress').get(function() {
+TaskSchema.virtual('subtaskProgress').get(function(this: ITask) {
   if (!this.subtasks || this.subtasks.length === 0) return 100;
   const completed = this.subtasks.filter((s: ISubtask) => s.completed).length;
   return Math.round((completed / this.subtasks.length) * 100);
 });
 
 // Virtual for calculating checklist progress
-TaskSchema.virtual('checklistProgress').get(function() {
+TaskSchema.virtual('checklistProgress').get(function(this: ITask) {
   if (!this.checklist || this.checklist.length === 0) return 100;
   const checked = this.checklist.filter((c: IChecklistItem) => c.checked).length;
   return Math.round((checked / this.checklist.length) * 100);
