@@ -93,11 +93,9 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
     // 2. Count from Kanban BoardTask system (new)
     // Tasks where user is assignee AND task is approved by project creator
     // Only approved tasks count towards certificates
+    // IMPORTANT: Only assignees get credit, NOT the owner who approved it
     const kanbanTasks = await BoardTask.find({
-      $or: [
-        { 'assignees': userId },
-        { 'completedBy': userId }
-      ],
+      'assignees': userId, // Only count if user is an assignee
       completedAt: { $exists: true, $ne: null },
       reviewStatus: 'approved'
     }).populate('projectId', 'title');

@@ -1,13 +1,13 @@
-import { ArrowRight, Award, BookOpen, CheckCircle, Code, Lightbulb, Play, Rocket, ShoppingBag, Sparkles, Swords, TrendingUp, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle, Code, Lightbulb, Map, Play, Rocket, Sparkles, Swords, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FeatureCard, TestimonialCard } from "../components/HomePage/Cards";
 import { useRevealAnimation } from "../components/hooks/useRevealAnimation";
 import {
-  features as homePageFeatures,
-  galleryImages as homePageGallery,
-  testimonials as homePageTestimonials,
-  statistics
+    features as homePageFeatures,
+    galleryImages as homePageGallery,
+    testimonials as homePageTestimonials,
+    statistics
 } from "../data/homePageData";
 
 // Custom Hook for Parallax Scroll Effect
@@ -497,18 +497,18 @@ export default function HomePage() {
       link: '/code-arena'
     },
     {
-      id: 'project-bazaar',
-      title: 'Project Bazaar',
-      subtitle: 'Learn & Earn',
-      description: 'Watch project tutorials, learn from video guides, rate creators, and help them earn coins.',
+      id: 'learning-roadmaps',
+      title: 'Learning Roadmaps',
+      subtitle: 'Your Path to Success',
+      description: 'Follow structured learning paths, track your progress, and master new technologies step by step.',
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-      icon: ShoppingBag,
+      icon: Map,
       color: 'from-teal-500 to-emerald-600',
       lightBg: 'bg-teal-500/10',
       textColor: 'text-teal-600 dark:text-teal-400',
-      stats: '200+ Projects',
-      features: ['Video tutorials', 'Learn projects', 'Rate creators', 'Earn coins'],
-      link: '/marketplace'
+      stats: '20+ Roadmaps',
+      features: ['Curated paths', 'Track progress', 'Earn certificates', 'Resources'],
+      link: '/dashboard/roadmaps'
     }
   ];
 

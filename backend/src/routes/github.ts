@@ -7,24 +7,24 @@ import GitHubIntegration, { GitHubActivity, ProjectGitHubConnection } from '../m
 import Project from '../models/Project';
 import User from '../models/User';
 import {
-    closeGitHubIssue,
-    createGitHubIssue,
-    createWebhook,
-    decryptToken,
-    deleteWebhook,
-    encryptToken,
-    exchangeCodeForToken,
-    generateWebhookSecret,
-    getGitHubAuthUrl,
-    getGitHubUser,
-    getProjectGitHubConnection,
-    getRepositoryBranches,
-    getRepositoryCommits,
-    getRepositoryIssues,
-    getRepositoryPullRequests,
-    getUserGitHubIntegration,
-    getUserRepositories,
-    verifyWebhookSignature
+  closeGitHubIssue,
+  createGitHubIssue,
+  createWebhook,
+  decryptToken,
+  deleteWebhook,
+  encryptToken,
+  exchangeCodeForToken,
+  generateWebhookSecret,
+  getGitHubAuthUrl,
+  getGitHubUser,
+  getProjectGitHubConnection,
+  getRepositoryBranches,
+  getRepositoryCommits,
+  getRepositoryIssues,
+  getRepositoryPullRequests,
+  getUserGitHubIntegration,
+  getUserRepositories,
+  verifyWebhookSignature
 } from '../services/githubService';
 
 const router = Router();
@@ -337,6 +337,50 @@ router.get('/repos/:owner/:repo/branches', authenticate, async (req: AuthRequest
   }
 });
 
+// Get repository contributors
+router.get('/repos/:owner/:repo/contributors', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { owner, repo } = req.params;
+
+    const integration = await getUserGitHubIntegration(userId!);
+    if (!integration) {
+      return res.status(400).json({ message: 'GitHub not connected' });
+    }
+
+    const accessToken = decryptToken(integration.accessToken);
+
+    // Fetch contributors from GitHub API
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=50`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'CodeTermite-App'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch contributors');
+    }
+
+    const contributors = await response.json() as any[];
+
+    res.json({
+      contributors: contributors.map((c: any) => ({
+        login: c.login,
+        avatar_url: c.avatar_url,
+        avatarUrl: c.avatar_url,
+        contributions: c.contributions,
+        html_url: c.html_url,
+        type: c.type
+      }))
+    });
+  } catch (error) {
+    console.error('Error getting contributors:', error);
+    res.status(500).json({ message: 'Failed to get contributors' });
+  }
+});
+
 // ==========================================
 // PROJECT GITHUB CONNECTION
 // ==========================================
@@ -348,11 +392,31 @@ router.post('/projects/:projectId/connect', authenticate, async (req: AuthReques
     const { projectId } = req.params;
     const { repoOwner, repoName, syncSettings } = req.body;
 
-    // Check project access
-    const project = await Project.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+    console.log('GitHub Connect Debug:', {
+      projectId,
+      userId,
+      repoOwner,
+      repoName
+    });
+
+    // Validate projectId format
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return res.status(400).json({ message: 'Invalid project ID format', debug: { projectId } });
     }
+
+    // Check project access - first try by _id, then by ideaId (same as projects.ts)
+    let project = await Project.findById(projectId);
+    if (!project) {
+      project = await Project.findOne({ ideaId: projectId });
+    }
+    console.log('Project lookup result:', project ? 'Found' : 'Not found', 'ID:', projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found', debug: { projectId } });
+    }
+
+    // Use the actual MongoDB _id for all operations
+    const actualProjectId = project._id.toString();
 
     if (String(project.owner) !== userId) {
       return res.status(403).json({ message: 'Only project owner can connect GitHub' });
@@ -366,7 +430,7 @@ router.post('/projects/:projectId/connect', authenticate, async (req: AuthReques
 
     const accessToken = decryptToken(integration.accessToken);
     const webhookSecret = generateWebhookSecret();
-    const webhookUrl = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/github/webhook`;
+    const webhookUrl = `${process.env.BACKEND_URL || 'https://nextstepbackend-qhxw.onrender.com'}/api/github/webhook`;
 
     // Create webhook on the repository
     let webhookId;
@@ -378,11 +442,11 @@ router.post('/projects/:projectId/connect', authenticate, async (req: AuthReques
       console.error('Webhook creation error:', error);
     }
 
-    // Save connection
+    // Save connection - use actualProjectId (real _id) not the URL param
     const connection = await ProjectGitHubConnection.findOneAndUpdate(
-      { projectId },
+      { projectId: actualProjectId },
       {
-        projectId,
+        projectId: actualProjectId,
         repoOwner,
         repoName,
         repoFullName: `${repoOwner}/${repoName}`,
@@ -403,7 +467,7 @@ router.post('/projects/:projectId/connect', authenticate, async (req: AuthReques
     );
 
     // Update project with repository URL
-    await Project.findByIdAndUpdate(projectId, {
+    await Project.findByIdAndUpdate(actualProjectId, {
       repositoryUrl: `https://github.com/${repoOwner}/${repoName}`
     });
 
@@ -427,7 +491,11 @@ router.delete('/projects/:projectId/disconnect', authenticate, async (req: AuthR
     const userId = req.user?.id;
     const { projectId } = req.params;
 
-    const project = await Project.findById(projectId);
+    // Try finding by _id first, then by ideaId
+    let project = await Project.findById(projectId);
+    if (!project) {
+      project = await Project.findOne({ ideaId: projectId });
+    }
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -436,7 +504,9 @@ router.delete('/projects/:projectId/disconnect', authenticate, async (req: AuthR
       return res.status(403).json({ message: 'Only project owner can disconnect GitHub' });
     }
 
-    const connection = await getProjectGitHubConnection(projectId);
+    // Use the actual project _id for the connection lookup
+    const actualProjectId = project._id.toString();
+    const connection = await getProjectGitHubConnection(actualProjectId);
     if (!connection) {
       return res.status(404).json({ message: 'No GitHub connection found' });
     }
@@ -468,7 +538,14 @@ router.get('/projects/:projectId/status', authenticate, async (req: AuthRequest,
   try {
     const { projectId } = req.params;
 
-    const connection = await getProjectGitHubConnection(projectId);
+    // Resolve projectId (might be ideaId) to actual project _id
+    let project = await Project.findById(projectId).select('_id');
+    if (!project) {
+      project = await Project.findOne({ ideaId: projectId }).select('_id');
+    }
+    const actualProjectId = project?._id?.toString() || projectId;
+
+    const connection = await getProjectGitHubConnection(actualProjectId);
     if (!connection) {
       return res.json({ connected: false });
     }
@@ -493,7 +570,14 @@ router.get('/projects/:projectId/activity', authenticate, async (req: AuthReques
     const { projectId } = req.params;
     const { limit = 50, offset = 0 } = req.query;
 
-    const activities = await GitHubActivity.find({ projectId })
+    // Resolve projectId (might be ideaId) to actual project _id
+    let project = await Project.findById(projectId).select('_id');
+    if (!project) {
+      project = await Project.findOne({ ideaId: projectId }).select('_id');
+    }
+    const actualProjectId = project?._id?.toString() || projectId;
+
+    const activities = await GitHubActivity.find({ projectId: actualProjectId })
       .sort({ createdAt: -1 })
       .skip(Number(offset))
       .limit(Number(limit));

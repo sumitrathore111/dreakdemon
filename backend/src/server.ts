@@ -24,6 +24,7 @@ import joinRequestRoutes from './routes/joinRequests';
 import leaderboardRoutes from './routes/leaderboard';
 import marketplaceRoutes from './routes/marketplace';
 import messageRoutes from './routes/messages';
+import projectInviteRoutes from './routes/projectInvites';
 import projectRoutes from './routes/projects';
 import roadmapRoutes from './routes/roadmaps';
 import studyGroupRoutes from './routes/studyGroups';
@@ -282,6 +283,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/join-requests', joinRequestRoutes);
+app.use('/api/project-invites', projectInviteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/github', githubRoutes);
 

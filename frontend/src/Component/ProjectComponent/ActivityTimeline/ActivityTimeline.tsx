@@ -3,6 +3,9 @@ import {
     Clock,
     FileText,
     GitBranch,
+    GitCommit,
+    GitMerge,
+    GitPullRequest,
     MessageSquare,
     Play,
     Plus,
@@ -27,22 +30,30 @@ interface ActivityItem {
   title: string;
   metadata?: Record<string, any>;
   createdAt: string;
+  // GitHub specific fields
+  isGitHubActivity?: boolean;
+  githubEventType?: string;
+  githubUrl?: string;
 }
 
 interface ActivityTimelineProps {
   projectId: string;
   limit?: number;
+  includeGitHub?: boolean;
 }
 
 export default function ActivityTimeline({
   projectId,
-  limit = 50
+  limit = 50,
+  includeGitHub = true
 }: ActivityTimelineProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [githubActivities, setGithubActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showGitHub, setShowGitHub] = useState(true);
 
-  // Activity type icons
+  // Activity type icons - including GitHub types
   const activityIcons: Record<string, React.ReactNode> = {
     task_created: <Plus className="w-4 h-4" />,
     task_updated: <Settings className="w-4 h-4" />,
@@ -56,10 +67,19 @@ export default function ActivityTimeline({
     member_joined: <UserPlus className="w-4 h-4" />,
     file_uploaded: <FileText className="w-4 h-4" />,
     time_logged: <Clock className="w-4 h-4" />,
+    // GitHub activity types
+    github_push: <GitCommit className="w-4 h-4" />,
+    github_commit: <GitCommit className="w-4 h-4" />,
+    github_pr_opened: <GitPullRequest className="w-4 h-4" />,
+    github_pr_merged: <GitMerge className="w-4 h-4" />,
+    github_pr_closed: <GitPullRequest className="w-4 h-4" />,
+    github_issue_opened: <GitBranch className="w-4 h-4" />,
+    github_issue_closed: <CheckCircle2 className="w-4 h-4" />,
+    github_review: <MessageSquare className="w-4 h-4" />,
     default: <Zap className="w-4 h-4" />
   };
 
-  // Activity type colors
+  // Activity type colors - including GitHub types
   const activityColors: Record<string, string> = {
     task_created: 'bg-green-500',
     task_updated: 'bg-blue-500',
@@ -73,6 +93,15 @@ export default function ActivityTimeline({
     member_joined: 'bg-cyan-500',
     file_uploaded: 'bg-orange-500',
     time_logged: 'bg-pink-500',
+    // GitHub activity colors
+    github_push: 'bg-gray-700',
+    github_commit: 'bg-gray-700',
+    github_pr_opened: 'bg-blue-600',
+    github_pr_merged: 'bg-purple-600',
+    github_pr_closed: 'bg-red-600',
+    github_issue_opened: 'bg-green-600',
+    github_issue_closed: 'bg-purple-500',
+    github_review: 'bg-yellow-600',
     default: 'bg-gray-500'
   };
 
@@ -82,6 +111,8 @@ export default function ActivityTimeline({
       try {
         setLoading(true);
         const token = localStorage.getItem('authToken');
+
+        // Fetch regular activities
         const res = await fetch(`${API_URL}/boards/project/${projectId}/activity?limit=${limit}`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -91,6 +122,35 @@ export default function ActivityTimeline({
         if (!res.ok) throw new Error('Failed to fetch activities');
         const data = await res.json();
         setActivities(data);
+
+        // Fetch GitHub activities if enabled
+        if (includeGitHub) {
+          try {
+            const githubRes = await fetch(`${API_URL}/github/projects/${projectId}/activity?limit=${limit}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (githubRes.ok) {
+              const githubData = await githubRes.json();
+              const formattedGithubActivities = (githubData.activities || []).map((activity: any) => ({
+                _id: activity._id,
+                projectId: activity.projectId,
+                userId: activity.sender?.login || 'GitHub',
+                userName: activity.sender?.login || 'GitHub',
+                type: `github_${activity.eventType}${activity.action ? '_' + activity.action : ''}`,
+                title: formatGitHubActivityTitle(activity),
+                metadata: activity.payload,
+                createdAt: activity.createdAt,
+                isGitHubActivity: true,
+                githubEventType: activity.eventType,
+                githubUrl: activity.payload?.html_url || activity.payload?.pull_request?.html_url
+              }));
+              setGithubActivities(formattedGithubActivities);
+            }
+          } catch (err) {
+            console.error('Error fetching GitHub activities:', err);
+          }
+        }
       } catch (err: any) {
         console.error('Error fetching activities:', err);
         setError(err.message);
@@ -100,13 +160,47 @@ export default function ActivityTimeline({
     };
 
     fetchActivities();
-  }, [projectId, limit]);
+  }, [projectId, limit, includeGitHub]);
+
+  // Format GitHub activity title
+  const formatGitHubActivityTitle = (activity: any): string => {
+    const { eventType, action, payload } = activity;
+
+    switch (eventType) {
+      case 'push':
+        const commitCount = payload?.commits?.length || 1;
+        return `pushed ${commitCount} commit${commitCount > 1 ? 's' : ''} to ${payload?.ref?.replace('refs/heads/', '') || 'main'}`;
+      case 'pull_request':
+        const prTitle = payload?.pull_request?.title || `PR #${payload?.number}`;
+        if (action === 'opened') return `opened pull request: ${prTitle}`;
+        if (action === 'closed' && payload?.pull_request?.merged) return `merged pull request: ${prTitle}`;
+        if (action === 'closed') return `closed pull request: ${prTitle}`;
+        return `${action} pull request: ${prTitle}`;
+      case 'issue':
+        const issueTitle = payload?.issue?.title || `Issue #${payload?.number}`;
+        return `${action} issue: ${issueTitle}`;
+      case 'pull_request_review':
+        return `reviewed pull request #${payload?.pull_request?.number}`;
+      case 'issue_comment':
+        return `commented on issue #${payload?.issue?.number}`;
+      default:
+        return `${eventType} ${action || ''}`.trim();
+    }
+  };
+
+  // Combine and sort all activities
+  const allActivities = useMemo(() => {
+    const combined = showGitHub
+      ? [...activities, ...githubActivities]
+      : activities;
+    return combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [activities, githubActivities, showGitHub]);
 
   // Group activities by date
   const groupedActivities = useMemo(() => {
     const groups: Record<string, ActivityItem[]> = {};
 
-    activities.forEach(activity => {
+    allActivities.forEach(activity => {
       const date = new Date(activity.createdAt);
       const today = new Date();
       const yesterday = new Date(today);
@@ -132,7 +226,7 @@ export default function ActivityTimeline({
     });
 
     return groups;
-  }, [activities]);
+  }, [allActivities]);
 
   // Format time
   const formatTime = (dateString: string) => {
@@ -178,10 +272,26 @@ export default function ActivityTimeline({
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 h-full overflow-y-auto">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <Zap className="w-5 h-5 text-teal-500" />
-        Activity Feed
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <Zap className="w-5 h-5 text-teal-500" />
+          Activity Feed
+        </h2>
+        {/* GitHub toggle */}
+        {includeGitHub && githubActivities.length > 0 && (
+          <button
+            onClick={() => setShowGitHub(!showGitHub)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              showGitHub
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+            }`}
+          >
+            <GitCommit className="w-4 h-4" />
+            GitHub ({githubActivities.length})
+          </button>
+        )}
+      </div>
 
       <div className="space-y-6">
         {Object.entries(groupedActivities).map(([date, dateActivities]) => (
@@ -210,7 +320,11 @@ export default function ActivityTimeline({
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    <div className={`flex-1 min-w-0 rounded-lg p-3 ${
+                      activity.isGitHubActivity
+                        ? 'bg-gray-900/5 dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                        : 'bg-gray-50 dark:bg-gray-800'
+                    }`}>
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           {/* User name and action */}
@@ -220,8 +334,28 @@ export default function ActivityTimeline({
                             <span className="text-gray-600 dark:text-gray-400">{activity.title}</span>
                           </p>
 
+                          {/* GitHub badge */}
+                          {activity.isGitHubActivity && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-900 text-white">
+                                <GitCommit className="w-3 h-3" />
+                                GitHub
+                              </span>
+                              {activity.githubUrl && (
+                                <a
+                                  href={activity.githubUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-teal-600 hover:underline"
+                                >
+                                  View on GitHub →
+                                </a>
+                              )}
+                            </div>
+                          )}
+
                           {/* Metadata */}
-                          {activity.metadata && Object.keys(activity.metadata).length > 0 && (
+                          {activity.metadata && Object.keys(activity.metadata).length > 0 && !activity.isGitHubActivity && (
                             <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                               {activity.metadata.taskTitle && (
                                 <span className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">

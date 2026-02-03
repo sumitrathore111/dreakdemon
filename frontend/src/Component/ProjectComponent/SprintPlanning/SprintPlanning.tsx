@@ -11,7 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import type { KanbanTask } from '../KanbanBoard/kanban.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com';
 
 interface Sprint {
   _id: string;

@@ -107,6 +107,38 @@ const emailTemplates = {
     `, 'New Task')
   }),
 
+  // Task assigned to you notification
+  taskAssignedToYou: (projectTitle: string, taskTitle: string, assignedByName: string, priority: string, dueDate?: string): EmailTemplate => ({
+    subject: `🎯 You've been assigned a task: ${taskTitle}`,
+    html: getEmailWrapper(`
+      <h2 style="color: #333; margin-bottom: 20px;">New Task Assignment!</h2>
+      <p style="color: #666; line-height: 1.6;">You have been assigned a new task by <strong>${assignedByName}</strong>:</p>
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #667eea; margin: 0 0 10px 0;">${taskTitle}</h3>
+        <p style="color: #888; margin: 0;">Project: <strong>${projectTitle}</strong></p>
+        <p style="color: #888; margin: 5px 0 0 0;">Priority: <span style="color: ${priority === 'high' ? '#e53e3e' : priority === 'medium' ? '#dd6b20' : '#38a169'}; font-weight: bold;">${priority.toUpperCase()}</span></p>
+        ${dueDate ? `<p style="color: #888; margin: 5px 0 0 0;">Due Date: <strong>${new Date(dueDate).toLocaleDateString()}</strong></p>` : ''}
+      </div>
+      <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/projects" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">View Task</a>
+    `, 'Task Assignment')
+  }),
+
+  // Task submitted for review notification (for project owner)
+  taskSubmittedForReview: (projectTitle: string, taskTitle: string, submitterName: string): EmailTemplate => ({
+    subject: `📝 Task Ready for Review: ${taskTitle}`,
+    html: getEmailWrapper(`
+      <h2 style="color: #333; margin-bottom: 20px;">Task Submitted for Review!</h2>
+      <p style="color: #666; line-height: 1.6;"><strong>${submitterName}</strong> has submitted a task for your review:</p>
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #667eea; margin: 0 0 10px 0;">${taskTitle}</h3>
+        <p style="color: #888; margin: 0;">Project: <strong>${projectTitle}</strong></p>
+        <p style="color: #38a169; margin: 10px 0 0 0; font-weight: bold;">⏳ Awaiting your review</p>
+      </div>
+      <p style="color: #666; line-height: 1.6;">Please review the task and approve or request changes.</p>
+      <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/projects" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">Review Task</a>
+    `, 'Task Review')
+  }),
+
   // Idea notifications
   newIdea: (ideaTitle: string, submitterName: string, category: string): EmailTemplate => ({
     subject: `💡 Brilliant Idea Alert! Check Out: ${ideaTitle}`,
@@ -334,6 +366,42 @@ const emailTemplates = {
     `, 'New Message')
   }),
 
+  // Project Invite notification
+  projectInvite: (projectTitle: string, inviterName: string, personalMessage: string, inviteLink: string): EmailTemplate => ({
+    subject: `🎉 You're Invited to Join: ${projectTitle}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 60px;">🎉</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center; font-size: 24px;">Project Invitation!</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 25px;">You've been personally invited to collaborate!</p>
+
+      <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 25px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #667eea;">
+        <h3 style="color: #667eea; margin: 0 0 15px 0; font-size: 20px;">📌 ${projectTitle}</h3>
+        <div style="display: flex; align-items: center; margin-top: 10px;">
+          <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">👤 Invited by ${inviterName}</span>
+        </div>
+      </div>
+
+      ${personalMessage ? `
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #00ADB5;">
+        <p style="color: #666; margin: 0; font-style: italic;">"${personalMessage}"</p>
+        <p style="color: #888; margin: 10px 0 0 0; font-size: 12px;">— ${inviterName}</p>
+      </div>
+      ` : ''}
+
+      <div style="background-color: #d4edda; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+        <p style="color: #155724; margin: 0; font-weight: 500;">💡 Click the button below to join the project instantly!</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 173, 181, 0.4);">🚀 Join Project Now</a>
+      </div>
+
+      <p style="color: #888; text-align: center; margin-top: 20px; font-size: 12px;">This invite link expires in 7 days.</p>
+    `, 'Project Invitation')
+  }),
+
   // Join Request notifications
   newJoinRequest: (projectTitle: string, requesterName: string): EmailTemplate => ({
     subject: `🙋 Join Request for: ${projectTitle}`,
@@ -539,6 +607,12 @@ export const emailNotifications = {
     return sendEmail(recipientEmail, template);
   },
 
+  // Project Invite notification
+  notifyProjectInvite: async (projectTitle: string, inviterName: string, personalMessage: string, inviteLink: string, recipientEmail: string) => {
+    const template = emailTemplates.projectInvite(projectTitle, inviterName, personalMessage, inviteLink);
+    return sendEmail(recipientEmail, template);
+  },
+
   // Join Request notifications
   notifyNewJoinRequest: async (projectTitle: string, requesterName: string, ownerEmail: string) => {
     const template = emailTemplates.newJoinRequest(projectTitle, requesterName);
@@ -565,6 +639,18 @@ export const emailNotifications = {
   notifyNewEndorsement: async (endorserName: string, skill: string, recipientEmail: string) => {
     const template = emailTemplates.newEndorsement(endorserName, skill);
     return sendEmail(recipientEmail, template);
+  },
+
+  // Task assignment notification (sent to assignee when task is assigned)
+  notifyTaskAssigned: async (projectTitle: string, taskTitle: string, assignedByName: string, priority: string, dueDate: string | undefined, assigneeEmail: string) => {
+    const template = emailTemplates.taskAssignedToYou(projectTitle, taskTitle, assignedByName, priority, dueDate);
+    return sendEmail(assigneeEmail, template);
+  },
+
+  // Task submitted for review notification (sent to project owner)
+  notifyTaskSubmittedForReview: async (projectTitle: string, taskTitle: string, submitterName: string, ownerEmail: string) => {
+    const template = emailTemplates.taskSubmittedForReview(projectTitle, taskTitle, submitterName);
+    return sendEmail(ownerEmail, template);
   }
 };
 

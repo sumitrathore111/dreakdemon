@@ -53,6 +53,8 @@ const TopicDetail = lazy(() => import("./Pages/Roadmaps/TopicDetail"));
 const LearningDashboard = lazy(() => import("./Pages/Roadmaps/LearningDashboard"));
 const InterviewPrep = lazy(() => import("./Pages/Roadmaps/InterviewPrep"));
 const CareerInfoPage = lazy(() => import("./Pages/Roadmaps/CareerInfo"));
+const JoinProjectViaLink = lazy(() => import("./Pages/JoinProjectViaLink"));
+const MyInvites = lazy(() => import("./Pages/Dashboard/MyInvites"));
 
 function PublicLayout() {
 
@@ -261,6 +263,9 @@ const App: React.FC = () => {
                   {/* Public Routes */}
                   <Route path="/*" element={<PublicLayout />} />
 
+                  {/* Join Project via Invite Link (public, but handles auth internally) */}
+                  <Route path="project/join/:inviteToken" element={<JoinProjectViaLink />} />
+
                 {/* Private Routes */}
                 <Route
                   path="dashboard/*"
@@ -280,6 +285,7 @@ const App: React.FC = () => {
                   <Route path="projects/access-diagnostic" element={<ProjectAccessDiagnostic />} />
                   <Route path="projects/workspace/:projectId" element={<EnhancedProjectWorkspace />} />
                   <Route path="developer-connect" element={<DeveloperConnect />} />
+                  <Route path="my-invites" element={<MyInvites />} />
                   <Route path="query" element={<QueryScreen />} />
                   <Route path="profile" element={<ProfileInfo />} />
                   <Route path="codearena/*" element={<CodeArena />} />

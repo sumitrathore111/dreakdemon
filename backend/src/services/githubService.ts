@@ -3,8 +3,9 @@ import GitHubIntegration, { ProjectGitHubConnection } from '../models/GitHubInte
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || 'Ov23liUCOv2SlyGPyI1s';
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '619c17b059ac1b9d43703d8f0fd50b0d0f4ba834';
-const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'http://localhost:5173/api/github/callback';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'http://https://nextstepbackend-qhxw.onrender.com/api/github/callback';
+// Use a stable fallback key for development - in production, set ENCRYPTION_KEY env var
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
 
 // Encryption utilities for storing tokens securely
 export const encryptToken = (token: string): string => {
@@ -17,14 +18,22 @@ export const encryptToken = (token: string): string => {
 };
 
 export const decryptToken = (encryptedToken: string): string => {
-  const parts = encryptedToken.split(':');
-  const iv = Buffer.from(parts[0], 'hex');
-  const encrypted = parts[1];
-  const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32).padEnd(32, '0'));
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  try {
+    const parts = encryptedToken.split(':');
+    if (parts.length !== 2) {
+      throw new Error('Invalid token format');
+    }
+    const iv = Buffer.from(parts[0], 'hex');
+    const encrypted = parts[1];
+    const key = Buffer.from(ENCRYPTION_KEY.slice(0, 32).padEnd(32, '0'));
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (error) {
+    console.error('Token decryption failed - user may need to reconnect GitHub');
+    throw new Error('Token decryption failed. Please reconnect your GitHub account.');
+  }
 };
 
 // GitHub OAuth URLs

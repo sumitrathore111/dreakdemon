@@ -1,13 +1,16 @@
 import {
-  AlertCircle,
-  Calendar,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  MessageSquare,
-  Paperclip,
-  User
+    AlertCircle,
+    Calendar,
+    CheckCircle2,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    GitBranch,
+    GitCommit,
+    GitMerge,
+    GitPullRequest,
+    MessageSquare,
+    Paperclip
 } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -59,6 +62,30 @@ interface Assignee {
   avatar?: string;
 }
 
+// GitHub integration types for task cards
+interface GitHubPRInfo {
+  number: number;
+  title: string;
+  state: 'open' | 'closed' | 'merged';
+  url: string;
+  author: string;
+  reviewStatus?: 'pending' | 'approved' | 'changes_requested';
+  checksStatus?: 'pending' | 'success' | 'failure';
+}
+
+interface GitHubCommitInfo {
+  sha: string;
+  message: string;
+  author: string;
+  url: string;
+}
+
+interface TaskGitHubData {
+  linkedPRs?: GitHubPRInfo[];
+  linkedCommits?: GitHubCommitInfo[];
+  linkedIssueNumber?: number;
+}
+
 interface KanbanTask {
   _id: string;
   boardId: string;
@@ -93,6 +120,8 @@ interface KanbanTask {
   reviewComment?: string;
   createdAt: string;
   updatedAt: string;
+  // GitHub integration
+  github?: TaskGitHubData;
 }
 
 interface BoardLabel {
@@ -108,6 +137,8 @@ interface TaskCardProps {
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
   isDragging?: boolean;
+  currentUserId?: string;
+  isProjectOwner?: boolean;
 }
 
 export default function TaskCard({
@@ -116,8 +147,20 @@ export default function TaskCard({
   onClick,
   onDragStart,
   onDragEnd,
-  isDragging
+  isDragging,
+  currentUserId,
+  isProjectOwner = false
 }: TaskCardProps) {
+  // Debug: Log full task data
+  console.log('🎯 TaskCard FULL DATA for:', task.title);
+  console.log('   - assignees:', task.assignees);
+  console.log('   - assignees length:', task.assignees?.length);
+  console.log('   - full task:', JSON.stringify(task, null, 2));
+
+  // Check if current user can drag this task (assignee or project owner)
+  const canDrag = isProjectOwner || task.assignees?.some(a =>
+    a._id === currentUserId || (a as any).id === currentUserId || String(a._id) === currentUserId
+  );
   const priorityColors = {
     low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -191,18 +234,40 @@ export default function TaskCard({
     return `${hours}h ${minutes}m`;
   }, [task.totalTimeSpent]);
 
+  // GitHub PR status helpers
+  const linkedPRs = task.github?.linkedPRs || [];
+  const linkedCommits = task.github?.linkedCommits || [];
+  const hasGitHubData = linkedPRs.length > 0 || linkedCommits.length > 0 || task.github?.linkedIssueNumber;
+
+  const prStatusColor = (pr: GitHubPRInfo) => {
+    if (pr.state === 'merged') return 'text-purple-500 bg-purple-100 dark:bg-purple-900/30';
+    if (pr.state === 'closed') return 'text-red-500 bg-red-100 dark:bg-red-900/30';
+    if (pr.reviewStatus === 'approved') return 'text-green-500 bg-green-100 dark:bg-green-900/30';
+    if (pr.reviewStatus === 'changes_requested') return 'text-orange-500 bg-orange-100 dark:bg-orange-900/30';
+    return 'text-blue-500 bg-blue-100 dark:bg-blue-900/30';
+  };
+
+  const prStatusIcon = (pr: GitHubPRInfo) => {
+    if (pr.state === 'merged') return <GitMerge className="w-3 h-3" />;
+    if (pr.checksStatus === 'success') return <CheckCircle2 className="w-3 h-3" />;
+    if (pr.checksStatus === 'failure') return <AlertCircle className="w-3 h-3" />;
+    return <GitPullRequest className="w-3 h-3" />;
+  };
+
   return (
     <div
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      draggable={canDrag}
+      onDragStart={canDrag ? onDragStart : undefined}
+      onDragEnd={canDrag ? onDragEnd : undefined}
       onClick={onClick}
       className={`
         bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700
         p-3 cursor-pointer transition-all duration-200
         hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600
         ${isDragging ? 'opacity-50 rotate-3 scale-105' : ''}
+        ${!canDrag ? 'cursor-default' : ''}
       `}
+      title={!canDrag ? 'Only assignees can move this task' : undefined}
     >
       {/* Labels */}
       {taskLabels.length > 0 && (
@@ -223,6 +288,46 @@ export default function TaskCard({
       <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-2 line-clamp-2">
         {task.title}
       </h4>
+
+      {/* Assignee Info - Show on draggable card */}
+      <div className="flex items-center gap-2 mb-2 p-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+        {task.assignees && task.assignees.length > 0 ? (
+          <>
+            <div className="flex -space-x-1">
+              {task.assignees.map((assignee, index) => {
+                // Handle both object and string assignee formats
+                const assigneeObj: Assignee = typeof assignee === 'string'
+                  ? { _id: assignee, name: assignee, email: '' }
+                  : assignee;
+                const name = assigneeObj?.name || assigneeObj?.email || 'User';
+                return (
+                  <div
+                    key={assigneeObj?._id || `assignee-${index}`}
+                    className="w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-medium border border-white dark:border-gray-800"
+                    title={name}
+                  >
+                    {assigneeObj?.avatar ? (
+                      <img src={assigneeObj.avatar} alt={name} className="w-full h-full rounded-full" />
+                    ) : (
+                      name.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <span className="text-xs text-gray-600 dark:text-gray-300 font-medium truncate">
+              {task.assignees.map((assignee, index) => {
+                const name = typeof assignee === 'string'
+                  ? assignee
+                  : (assignee?.name || assignee?.email || 'User');
+                return index === 0 ? name : `, ${name}`;
+              }).join('')}
+            </span>
+          </>
+        ) : (
+          <span className="text-xs text-gray-400 italic">Unassigned</span>
+        )}
+      </div>
 
       {/* Description preview */}
       {task.description && (
@@ -247,6 +352,48 @@ export default function TaskCard({
               style={{ width: `${subtaskProgress.percentage}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {/* GitHub Integration Indicators */}
+      {hasGitHubData && (
+        <div className="mb-2 space-y-1">
+          {/* Linked PRs */}
+          {linkedPRs.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {linkedPRs.slice(0, 2).map((pr) => (
+                <a
+                  key={pr.number}
+                  href={pr.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${prStatusColor(pr)} hover:opacity-80 transition-opacity`}
+                  title={`PR #${pr.number}: ${pr.title}`}
+                >
+                  {prStatusIcon(pr)}
+                  <span>#{pr.number}</span>
+                </a>
+              ))}
+              {linkedPRs.length > 2 && (
+                <span className="text-xs text-gray-400">+{linkedPRs.length - 2}</span>
+              )}
+            </div>
+          )}
+          {/* Linked Commits */}
+          {linkedCommits.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <GitCommit className="w-3 h-3" />
+              <span>{linkedCommits.length} commit{linkedCommits.length > 1 ? 's' : ''}</span>
+            </div>
+          )}
+          {/* Linked Issue */}
+          {task.github?.linkedIssueNumber && (
+            <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+              <GitBranch className="w-3 h-3" />
+              <span>Issue #{task.github.linkedIssueNumber}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -286,7 +433,7 @@ export default function TaskCard({
         </div>
       </div>
 
-      {/* Bottom row: Due date, time, assignees */}
+      {/* Bottom row: Due date and time only */}
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-2 text-xs">
           {/* Due date */}
@@ -303,33 +450,6 @@ export default function TaskCard({
               <Clock className="w-3 h-3" />
               {formattedTimeSpent}
             </span>
-          )}
-        </div>
-
-        {/* Assignees */}
-        <div className="flex -space-x-2">
-          {task.assignees.slice(0, 3).map((assignee, index) => (
-            <div
-              key={typeof assignee._id === 'string' ? assignee._id : String(assignee._id) || `assignee-${index}`}
-              className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white dark:border-gray-800"
-              title={assignee.name || 'Unknown'}
-            >
-              {assignee.avatar ? (
-                <img src={assignee.avatar} alt={assignee.name || 'User'} className="w-full h-full rounded-full" />
-              ) : (
-                (assignee.name || 'U').charAt(0).toUpperCase()
-              )}
-            </div>
-          ))}
-          {task.assignees.length > 3 && (
-            <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium border-2 border-white dark:border-gray-800">
-              +{task.assignees.length - 3}
-            </div>
-          )}
-          {task.assignees.length === 0 && (
-            <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-              <User className="w-3 h-3 text-gray-400" />
-            </div>
           )}
         </div>
       </div>

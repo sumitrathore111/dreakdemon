@@ -2,6 +2,7 @@ import { Response, Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import Chat from '../models/Chat';
 import ChatMessage from '../models/ChatMessage';
+import User from '../models/User';
 
 const router = Router();
 
@@ -9,29 +10,35 @@ const router = Router();
 router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { participantIds, participantNames, participantAvatars } = req.body;
-    
+
     if (!participantIds || participantIds.length < 2) {
       res.status(400).json({ error: 'At least 2 participant IDs are required' });
       return;
     }
-    
+
     // Sort participant IDs to ensure consistent lookup
     const sortedIds = [...participantIds].sort();
-    
+
+    // Sort names and avatars to match the sorted IDs order
+    const indexMap = participantIds.map((id: string, idx: number) => ({ id, idx }));
+    indexMap.sort((a: any, b: any) => a.id.localeCompare(b.id));
+    const sortedNames = indexMap.map((item: any) => participantNames?.[item.idx] || 'Unknown');
+    const sortedAvatars = indexMap.map((item: any) => participantAvatars?.[item.idx] || '');
+
     // Check if chat already exists
     let chat = await Chat.findOne({
       participantIds: { $all: sortedIds, $size: sortedIds.length }
     });
-    
+
     if (!chat) {
       // Create new chat
       chat = await Chat.create({
         participantIds: sortedIds,
-        participantNames: participantNames || [],
-        participantAvatars: participantAvatars || []
+        participantNames: sortedNames,
+        participantAvatars: sortedAvatars
       });
     }
-    
+
     res.json({
       id: chat._id.toString(),
       participantIds: chat.participantIds,
@@ -53,23 +60,37 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
     const chats = await Chat.find({
       participantIds: req.user?.id
     }).sort({ lastMessageAt: -1, updatedAt: -1 });
-    
-    // Transform to include other participant info
-    const transformedChats = chats.map(chat => {
-      const otherIndex = chat.participantIds.findIndex(id => id !== req.user?.id);
-      const userIndex = chat.participantIds.findIndex(id => id === req.user?.id);
-      
+
+    // Transform to include other participant info with fresh data from DB
+    const transformedChats = await Promise.all(chats.map(async chat => {
+      const otherParticipantId = chat.participantIds.find(id => id !== req.user?.id) || chat.participantIds[0];
+      const otherIndex = chat.participantIds.indexOf(otherParticipantId);
+
+      // Try to get fresh user data from database
+      let participantName = chat.participantNames?.[otherIndex] || 'Unknown User';
+      let participantAvatar = chat.participantAvatars?.[otherIndex] || '';
+
+      try {
+        const otherUser = await User.findById(otherParticipantId).select('name avatar');
+        if (otherUser) {
+          participantName = otherUser.name || participantName;
+          participantAvatar = otherUser.avatar || participantAvatar;
+        }
+      } catch {
+        // Use cached data if user lookup fails
+      }
+
       return {
         id: chat._id.toString(),
-        participantId: chat.participantIds[otherIndex] || chat.participantIds[0],
-        participantName: chat.participantNames?.[otherIndex] || 'Unknown User',
-        participantAvatar: chat.participantAvatars?.[otherIndex] || '',
+        participantId: otherParticipantId,
+        participantName,
+        participantAvatar: participantAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${participantName?.replace(/\s+/g, '')}`,
         lastMessage: chat.lastMessage,
         lastMessageAt: chat.lastMessageAt,
         createdAt: chat.createdAt
       };
-    });
-    
+    }));
+
     res.json(transformedChats);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -79,20 +100,20 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 // Get messages for a chat
 router.get('/:chatId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const messages = await ChatMessage.find({ 
-      chatId: req.params.chatId 
+    const messages = await ChatMessage.find({
+      chatId: req.params.chatId
     }).sort({ createdAt: 1 });
-    
+
     // Mark messages as read
     await ChatMessage.updateMany(
-      { 
-        chatId: req.params.chatId, 
+      {
+        chatId: req.params.chatId,
         senderId: { $ne: req.user?.id },
-        isRead: false 
+        isRead: false
       },
       { isRead: true }
     );
-    
+
     const transformedMessages = messages.map(msg => ({
       id: msg._id.toString(),
       senderId: msg.senderId,
@@ -104,7 +125,7 @@ router.get('/:chatId/messages', authenticate, async (req: AuthRequest, res: Resp
       createdAt: msg.createdAt,
       timestamp: msg.createdAt
     }));
-    
+
     res.json(transformedMessages);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -115,12 +136,12 @@ router.get('/:chatId/messages', authenticate, async (req: AuthRequest, res: Resp
 router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { senderId, message, senderName, senderAvatar } = req.body;
-    
+
     if (!message) {
       res.status(400).json({ error: 'Message is required' });
       return;
     }
-    
+
     const chatMessage = await ChatMessage.create({
       chatId: req.params.chatId,
       senderId: senderId || req.user?.id,
@@ -129,7 +150,7 @@ router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Res
       message,
       isRead: false
     });
-    
+
     // Update last message in chat
     await Chat.findByIdAndUpdate(req.params.chatId, {
       lastMessage: message,
@@ -153,7 +174,7 @@ router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Res
     if (io) {
       io.to(`chat:${req.params.chatId}`).emit('newMessage', messagePayload);
     }
-    
+
     res.status(201).json(messagePayload);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -164,12 +185,12 @@ router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Res
 router.get('/:chatId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const chat = await Chat.findById(req.params.chatId);
-    
+
     if (!chat) {
       res.status(404).json({ error: 'Chat not found' });
       return;
     }
-    
+
     res.json({
       id: chat._id.toString(),
       participantIds: chat.participantIds,

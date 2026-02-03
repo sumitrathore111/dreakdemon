@@ -37,6 +37,10 @@ export default function CreateTaskModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    if (selectedAssignees.length === 0) {
+      alert('Please assign at least one team member to this task');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -186,8 +190,12 @@ export default function CreateTaskModal({
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <User className="w-4 h-4 inline mr-1" />
-              Assignees
+              Assignee *
+              <span className="text-xs text-red-500 ml-1">(Required)</span>
             </label>
+            {selectedAssignees.length === 0 && (
+              <p className="text-xs text-red-500 mb-2">Please select at least one assignee</p>
+            )}
             <div className="flex flex-wrap gap-2">
               {members.map((member) => (
                 <button

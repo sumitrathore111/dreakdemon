@@ -1,11 +1,11 @@
 import {
-  BarChart2,
-  Calendar as CalendarIcon,
-  Kanban,
-  List,
-  Plus,
-  RefreshCw,
-  Search
+    BarChart2,
+    Calendar as CalendarIcon,
+    Kanban,
+    List,
+    Plus,
+    RefreshCw,
+    Search
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import BoardColumn from './BoardColumn';
@@ -13,7 +13,7 @@ import CreateTaskModal from './CreateTaskModal';
 import TaskDetailModal from './TaskDetailModal';
 import type { Board, KanbanTask, ProjectMember, ViewMode } from './kanban.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -34,6 +34,9 @@ export default function KanbanBoard({
   isProjectOwner,
   onViewChange
 }: KanbanBoardProps) {
+  // Debug: Log isProjectOwner received from parent
+  console.log('📋 KanbanBoard - isProjectOwner received:', isProjectOwner);
+
   const [loading, setLoading] = useState(true);
   const [board, setBoard] = useState<Board | null>(null);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
@@ -169,6 +172,18 @@ export default function KanbanBoard({
       return;
     }
 
+    // Get target column info to check if it's "Done" column
+    const targetColumn = board?.columns.find(c => c.id === targetColumnId);
+    const isDoneColumn = targetColumn?.title.toLowerCase() === 'done';
+
+    // Members cannot drag tasks directly to "Done" column
+    // Only the owner can move tasks to Done (via approval)
+    if (isDoneColumn && !isProjectOwner) {
+      alert('Only the project owner can move tasks to Done by approving them in the Review column.');
+      setDraggingTask(null);
+      return;
+    }
+
     try {
       const token = getToken();
       // Calculate new position (end of column)
@@ -204,8 +219,37 @@ export default function KanbanBoard({
   const handleCreateTask = async (taskData: Partial<KanbanTask>) => {
     if (!board || !showCreateTask) return;
 
+    console.log('🎯 handleCreateTask called with:', taskData);
+    console.log('   - taskData.assignees:', taskData.assignees);
+
     try {
       const token = getToken();
+
+      // Process assignees - handle multiple formats
+      const processedAssignees: string[] = [];
+      if (Array.isArray(taskData.assignees)) {
+        for (const a of taskData.assignees) {
+          if (typeof a === 'string') {
+            // Already a string ID
+            processedAssignees.push(a);
+          } else if (a && typeof a === 'object') {
+            // Object - try to get ID from various fields
+            const id = (a as any)._id || (a as any).userId || (a as any).id;
+            if (id) {
+              processedAssignees.push(id);
+            } else if ((a as any).email) {
+              // Lookup userId from members by email
+              const member = members.find(m => m.email === (a as any).email);
+              if (member?.userId) {
+                processedAssignees.push(member.userId);
+              }
+            }
+          }
+        }
+      }
+
+      console.log('   - processedAssignees:', processedAssignees);
+
       const res = await fetch(`${API_URL}/boards/${board._id}/tasks`, {
         method: 'POST',
         headers: {
@@ -220,9 +264,7 @@ export default function KanbanBoard({
             ? taskData.labels.map(l => typeof l === 'string' ? l : (l as any)?.id).filter(Boolean)
             : [],
           // Ensure assignees are strings (user IDs)
-          assignees: Array.isArray(taskData.assignees)
-            ? taskData.assignees.map(a => typeof a === 'string' ? a : (a as any)?._id || (a as any)?.userId).filter(Boolean)
-            : []
+          assignees: processedAssignees
         })
       });
 
@@ -663,6 +705,8 @@ export default function KanbanBoard({
                 column={column}
                 tasks={tasksByColumn[column.id] || []}
                 labels={board.labels}
+                currentUserId={currentUserId}
+                isProjectOwner={isProjectOwner}
                 onAddTask={(columnId) => setShowCreateTask({ columnId })}
                 onTaskClick={setSelectedTask}
                 onDragStart={handleDragStart}

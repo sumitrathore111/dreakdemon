@@ -1,7 +1,6 @@
 import {
   Activity,
   BarChart2,
-  Calendar,
   FileText,
   GitBranch,
   Kanban,
@@ -16,18 +15,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
 import { ActivityTimeline } from '../ActivityTimeline';
-import { CalendarView } from '../CalendarView';
 import { GitHubPanel } from '../GitHub';
 import { KanbanBoard } from '../KanbanBoard';
 import type { Board, KanbanTask, ProjectMember, ViewMode } from '../KanbanBoard/kanban.types';
+import InviteDeveloperModal from '../Modal/InviteDeveloperModal';
 import { ProjectAnalytics } from '../ProjectAnalytics';
 import { ProjectChat } from '../ProjectChat';
 import { ProjectFiles } from '../ProjectFiles';
 import { SprintPlanning } from '../SprintPlanning';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
 
-type TabType = 'board' | 'calendar' | 'sprints' | 'activity' | 'analytics' | 'github' | 'files' | 'chat' | 'members';
+type TabType = 'board' | 'sprints' | 'activity' | 'analytics' | 'github' | 'files' | 'chat' | 'members';
 
 interface JoinRequest {
   id: string;
@@ -50,16 +49,19 @@ export default function EnhancedProjectWorkspace() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<TabType>('board');
-  const [_viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [, setViewMode] = useState<ViewMode>('kanban');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [project, setProject] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [project, setProject] = useState<Record<string, any> | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [members, setMembers] = useState<ProjectMember[]>([]);
-  const [_selectedTask, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [, setSelectedTask] = useState<KanbanTask | null>(null);
+  const [githubRepoFullName, setGithubRepoFullName] = useState<string | undefined>(undefined);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [isCreator, setIsCreator] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   // Get auth token
   const getToken = () => localStorage.getItem('authToken');
@@ -112,7 +114,8 @@ export default function EnhancedProjectWorkspace() {
       setProject(projectData.project);
 
       // Map members first to check roles
-      const projectMembers: ProjectMember[] = projectData.project.members.map((m: any) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const projectMembers: ProjectMember[] = projectData.project.members.map((m: Record<string, any>) => ({
         _id: m._id,
         userId: m.userId?._id || m.userId,
         name: m.name || m.userId?.name,
@@ -122,24 +125,33 @@ export default function EnhancedProjectWorkspace() {
       }));
       setMembers(projectMembers);
 
-      // Check if current user is the creator (by owner field OR by being admin/owner in members)
-      const isOwnerByField = projectData.project.owner === user?.id ||
-        projectData.project.createdBy === user?.id ||
-        projectData.project.userId === user?.id;
+      // Check if current user is the creator/owner ONLY (not admin)
+      // Handle both string IDs and object IDs with ._id or .id
+      const ownerId = projectData.project.owner?._id || projectData.project.owner?.id || projectData.project.owner;
+      const createdById = projectData.project.createdBy?._id || projectData.project.createdBy?.id || projectData.project.createdBy;
+      const userIdField = projectData.project.userId?._id || projectData.project.userId?.id || projectData.project.userId;
+      const currentId = user?.id || (user as { _id?: string })?._id;
 
-      const isOwnerByMemberRole = projectMembers.some(m =>
-        (m.userId === user?.id || String(m.userId) === String(user?.id)) &&
-        (m.role === 'owner' || m.role === 'admin')
+      // Only compare if both values exist to avoid undefined === undefined being true
+      const isOwnerByField =
+        (ownerId && currentId && String(ownerId) === String(currentId)) ||
+        (createdById && currentId && String(createdById) === String(currentId)) ||
+        (userIdField && currentId && String(userIdField) === String(currentId));
+
+      // Only check for 'owner' role, NOT 'admin' - only owner can approve/reject
+      const isOwnerByMemberRole = currentId && projectMembers.some(m =>
+        m.userId && String(m.userId) === String(currentId) && m.role === 'owner'
       );
 
-      const creatorCheck = isOwnerByField || isOwnerByMemberRole;
+      const creatorCheck = !!(isOwnerByField || isOwnerByMemberRole);
       setIsCreator(creatorCheck);
 
       console.log('🔍 Creator Check Debug:', {
-        projectOwner: projectData.project.owner,
-        projectCreatedBy: projectData.project.createdBy,
-        projectUserId: projectData.project.userId,
-        currentUserId: user?.id,
+        rawOwner: projectData.project.owner,
+        ownerId,
+        createdById,
+        userIdField,
+        currentId,
         isOwnerByField,
         isOwnerByMemberRole,
         members: projectMembers,
@@ -155,7 +167,8 @@ export default function EnhancedProjectWorkspace() {
         if (joinReqRes.ok) {
           const joinReqData = await joinReqRes.json();
           console.log('📋 Join requests raw data:', joinReqData);
-          const requests = (joinReqData.requests || []).map((r: any) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const requests = (joinReqData.requests || []).map((r: Record<string, any>) => ({
             id: r._id || r.id,
             _id: r._id,
             userId: r.userId?._id || r.userId,
@@ -194,12 +207,26 @@ export default function EnhancedProjectWorkspace() {
           }
         }
       }
+
+      // Fetch GitHub connection status for this project
+      try {
+        const githubRes = await fetch(`${API_URL}/github/projects/${projectId}/status`, { headers });
+        if (githubRes.ok) {
+          const githubData = await githubRes.json();
+          if (githubData.connected && githubData.repoFullName) {
+            setGithubRepoFullName(githubData.repoFullName);
+          }
+        }
+      } catch (err) {
+        console.log('GitHub status fetch skipped:', err);
+      }
     } catch (err: unknown) {
       console.error('Error fetching project data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load project');
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, navigate, user?.id]);
 
   useEffect(() => {
@@ -240,9 +267,6 @@ export default function EnhancedProjectWorkspace() {
   // Handle view mode change
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
-    if (mode === 'calendar') {
-      setActiveTab('calendar');
-    }
   };
 
   // Handle approve join request
@@ -345,16 +369,15 @@ export default function EnhancedProjectWorkspace() {
     );
   }
 
-  const tabs: { id: TabType; label: string; icon: React.ReactNode; badge?: number }[] = [
+  const tabs: { id: TabType; label: string; icon: React.ReactNode; badge?: number; connected?: boolean }[] = [
     { id: 'board', label: 'Board', icon: <Kanban className="w-4 h-4" /> },
-    { id: 'calendar', label: 'Calendar', icon: <Calendar className="w-4 h-4" /> },
     { id: 'sprints', label: 'Sprints', icon: <Target className="w-4 h-4" /> },
-    { id: 'github', label: 'GitHub', icon: <GitBranch className="w-4 h-4" /> },
+    { id: 'github', label: 'GitHub', icon: <GitBranch className="w-4 h-4" />, connected: !!githubRepoFullName },
     { id: 'members', label: 'Members', icon: <Users className="w-4 h-4" />, badge: isCreator ? joinRequests.length : 0 },
-    { id: 'activity', label: 'Activity', icon: <Activity className="w-4 h-4" /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-4 h-4" /> },
+
     { id: 'files', label: 'Files', icon: <FileText className="w-4 h-4" /> },
-    { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4" /> },{ id: 'activity', label: 'Activity', icon: <Activity className="w-4 h-4" /> },
+    { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-4 h-4" /> },
   ];
 
   return (
@@ -372,6 +395,19 @@ export default function EnhancedProjectWorkspace() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {/* GitHub Connected Badge */}
+              {githubRepoFullName && (
+                <a
+                  href={`https://github.com/${githubRepoFullName}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition-colors"
+                  title={`Connected to ${githubRepoFullName}`}
+                >
+                  <GitBranch className="w-4 h-4" />
+                  <span className="hidden sm:inline">{githubRepoFullName.split('/')[1]}</span>
+                </a>
+              )}
               {/* Team avatars */}
               <div className="flex -space-x-2">
                 {members.slice(0, 4).map((member, index) => (
@@ -393,7 +429,10 @@ export default function EnhancedProjectWorkspace() {
                   </div>
                 )}
               </div>
-              <button className="flex items-center gap-2 px-3 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 text-sm">
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 text-sm"
+              >
                 <Users className="w-4 h-4" />
                 Invite
               </button>
@@ -421,6 +460,9 @@ export default function EnhancedProjectWorkspace() {
                     {tab.badge}
                   </span>
                 )}
+                {tab.connected && (
+                  <span className="ml-1 w-2 h-2 bg-green-500 rounded-full" title="Connected" />
+                )}
               </button>
             ))}
           </nav>
@@ -442,18 +484,6 @@ export default function EnhancedProjectWorkspace() {
           />
         )}
 
-        {/* Calendar Tab */}
-        {activeTab === 'calendar' && board && (
-          <div className="h-[calc(100vh-250px)]">
-            <CalendarView
-              tasks={tasks}
-              labels={board.labels}
-              members={members}
-              onTaskClick={(task: any) => handleTaskClick(task)}
-            />
-          </div>
-        )}
-
         {/* Sprints Tab */}
         {activeTab === 'sprints' && (
           <div className="h-[calc(100vh-250px)]">
@@ -470,13 +500,13 @@ export default function EnhancedProjectWorkspace() {
         {/* Activity Tab */}
         {activeTab === 'activity' && (
           <div className="h-[calc(100vh-250px)]">
-            <ActivityTimeline projectId={projectId!} />
+            <ActivityTimeline projectId={projectId!} includeGitHub={!!githubRepoFullName} />
           </div>
         )}
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
-          <ProjectAnalytics projectId={projectId!} />
+          <ProjectAnalytics projectId={projectId!} githubRepoFullName={githubRepoFullName} />
         )}
 
         {/* GitHub Tab */}
@@ -505,14 +535,8 @@ export default function EnhancedProjectWorkspace() {
         {/* Members Tab */}
         {activeTab === 'members' && (
           <div className="space-y-6">
-            {/* Debug Info - Remove after testing */}
-            <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-lg text-sm">
-              <p><strong>Debug:</strong> isCreator = {String(isCreator)}</p>
-              <p>joinRequests.length = {joinRequests.length}</p>
-              <p>User ID: {user?.id}</p>
-            </div>
-
-            {/* Pending Join Requests - Show for all users for now to debug */}
+            {/* Pending Join Requests - Only show to project owner */}
+            {isCreator && (
             <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
@@ -522,7 +546,6 @@ export default function EnhancedProjectWorkspace() {
                     {joinRequests.length}
                   </span>
                 )}
-                {!isCreator && <span className="text-xs text-gray-500">(Only visible to project owner)</span>}
               </h3>
 
               {joinRequests.length === 0 ? (
@@ -574,6 +597,7 @@ export default function EnhancedProjectWorkspace() {
                   </div>
                 )}
               </div>
+            )}
 
             {/* Current Members */}
             <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
@@ -607,6 +631,15 @@ export default function EnhancedProjectWorkspace() {
         )}
 
       </main>
+
+      {/* Invite Developer Modal */}
+      {showInviteModal && projectId && (
+        <InviteDeveloperModal
+          projectId={projectId}
+          projectTitle={project?.title || 'Project'}
+          onClose={() => setShowInviteModal(false)}
+        />
+      )}
     </div>
   );
 }

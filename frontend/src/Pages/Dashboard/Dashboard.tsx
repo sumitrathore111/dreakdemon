@@ -1,4 +1,4 @@
-import { Activity, Award, BarChart3, Calendar, Code, Code2, Flame, FolderOpen, MessageSquare, RefreshCw, Share2, ShoppingBag, Star, Target, Trophy, Users, Zap } from 'lucide-react';
+import { Activity, Award, BarChart3, Calendar, Code, Code2, Flame, FolderOpen, Map, MessageSquare, RefreshCw, Share2, Star, Target, Trophy, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
@@ -1074,30 +1074,30 @@ export default function DashboardComingSoon() {
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-          {/* Project Bazaar */}
-          <Link to="/dashboard/marketplace" className="group bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all">
+          {/* Learning Roadmaps */}
+          <Link to="/dashboard/roadmaps" className="group bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-white/20 rounded-xl">
-                <ShoppingBag className="w-6 h-6" />
+                <Map className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">Project Bazaar</h3>
-                <p className="text-emerald-100 text-sm">Buy & sell projects</p>
+                <h3 className="text-lg font-bold">Learning Roadmaps</h3>
+                <p className="text-emerald-100 text-sm">Your learning path</p>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex gap-6">
                 <div>
                   <p className="text-2xl font-bold">{projectStats?.created || 0}</p>
-                  <p className="text-xs text-emerald-200">Your Projects</p>
+                  <p className="text-xs text-emerald-200">Completed</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{codeArenaStats?.coins || 0}</p>
-                  <p className="text-xs text-emerald-200">Coins</p>
+                  <p className="text-2xl font-bold">{projectStats?.contributing || 0}</p>
+                  <p className="text-xs text-emerald-200">In Progress</p>
                 </div>
               </div>
               <div className="p-2 bg-white/10 rounded-full group-hover:bg-white/20 transition-colors">
-                <Zap className="w-5 h-5" />
+                <Target className="w-5 h-5" />
               </div>
             </div>
           </Link>

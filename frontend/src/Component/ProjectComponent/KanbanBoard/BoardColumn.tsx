@@ -13,6 +13,8 @@ interface BoardColumnProps {
   column: BoardColumnType;
   tasks: KanbanTask[];
   labels: BoardLabel[];
+  currentUserId?: string;
+  isProjectOwner?: boolean;
   onAddTask: (columnId: string) => void;
   onTaskClick: (task: KanbanTask) => void;
   onDragStart: (e: React.DragEvent, taskId: string, columnId: string) => void;
@@ -28,6 +30,8 @@ export default function BoardColumn({
   column,
   tasks,
   labels,
+  currentUserId,
+  isProjectOwner,
   onAddTask,
   onTaskClick,
   onDragStart,
@@ -44,6 +48,22 @@ export default function BoardColumn({
   const taskCount = tasks.length;
   const isOverLimit = column.taskLimit && taskCount > column.taskLimit;
   const isDragOver = dragOverColumnId === column.id;
+
+  // Sort tasks: current user's tasks first, then others
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const aIsCurrentUser = a.assignees?.some((assignee: any) => {
+      const id = typeof assignee === 'string' ? assignee : assignee?._id || assignee?.userId;
+      return id === currentUserId;
+    });
+    const bIsCurrentUser = b.assignees?.some((assignee: any) => {
+      const id = typeof assignee === 'string' ? assignee : assignee?._id || assignee?.userId;
+      return id === currentUserId;
+    });
+
+    if (aIsCurrentUser && !bIsCurrentUser) return -1; // a comes first
+    if (!aIsCurrentUser && bIsCurrentUser) return 1;  // b comes first
+    return a.position - b.position; // maintain original position order
+  });
 
   if (column.isCollapsed) {
     return (
@@ -170,16 +190,18 @@ export default function BoardColumn({
 
       {/* Tasks Container */}
       <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)] min-h-[100px]">
-        {tasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           <div className="flex items-center justify-center h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
             <p className="text-sm text-gray-400">Drop tasks here</p>
           </div>
         ) : (
-          tasks.map((task, index) => (
+          sortedTasks.map((task, index) => (
             <TaskCard
               key={typeof task._id === 'string' ? task._id : String(task._id) || `task-${index}`}
               task={task}
               labels={labels}
+              currentUserId={currentUserId}
+              isProjectOwner={isProjectOwner}
               onClick={() => onTaskClick(task)}
               onDragStart={(e) => onDragStart(e, task._id, column.id)}
               onDragEnd={onDragEnd}
@@ -188,16 +210,18 @@ export default function BoardColumn({
         )}
       </div>
 
-      {/* Add Task Footer */}
-      <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={() => onAddTask(column.id)}
-          className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-[#00ADB5] font-medium hover:bg-[#00ADB5]/10 rounded-lg transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Add Task
-        </button>
-      </div>
+      {/* Add Task Footer - Only show for project owner */}
+      {isProjectOwner && (
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => onAddTask(column.id)}
+            className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-[#00ADB5] font-medium hover:bg-[#00ADB5]/10 rounded-lg transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add Task
+          </button>
+        </div>
+      )}
     </div>
   );
 }

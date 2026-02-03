@@ -6,6 +6,7 @@ import { Board, BoardTask } from '../models/Board';
 import Project from '../models/Project';
 import ProjectActivity from '../models/ProjectActivity';
 import Sprint from '../models/Sprint';
+import emailNotifications from '../services/emailService';
 
 const router = express.Router();
 
@@ -358,16 +359,19 @@ router.post('/:boardId/tasks', auth, async (req: AuthRequest, res: Response) => 
     }
 
     // Validate and filter assignees - convert strings to ObjectIds
+    console.log('📥 Creating task - received assignees:', assignees);
     const validAssignees: mongoose.Types.ObjectId[] = [];
     if (Array.isArray(assignees)) {
       for (const assignee of assignees) {
         // Handle both string IDs and object format
         const assigneeId = typeof assignee === 'string' ? assignee : assignee?._id || assignee?.userId;
+        console.log('   - Processing assignee:', assignee, '-> assigneeId:', assigneeId, '-> isValid:', mongoose.Types.ObjectId.isValid(assigneeId));
         if (assigneeId && mongoose.Types.ObjectId.isValid(assigneeId)) {
           validAssignees.push(new mongoose.Types.ObjectId(assigneeId));
         }
       }
     }
+    console.log('📤 Valid assignees to save:', validAssignees);
 
     // Validate and filter labels - ensure they are strings
     const validLabels: string[] = Array.isArray(labels)
@@ -403,6 +407,32 @@ router.post('/:boardId/tasks', auth, async (req: AuthRequest, res: Response) => 
 
     await task.populate('assignees', 'name email avatar');
     await task.populate('reporter', 'name email avatar');
+
+    // Send email notifications to assignees
+    if (task.assignees && task.assignees.length > 0) {
+      const project = await Project.findById(board.projectId);
+      const projectTitle = project?.title || 'Project';
+      const assignedByName = req.user?.name || 'Someone';
+
+      for (const assignee of task.assignees as any[]) {
+        if (assignee.email && assignee._id.toString() !== userId) {
+          // Don't send email to yourself if you're assigning to yourself
+          try {
+            await emailNotifications.notifyTaskAssigned(
+              projectTitle,
+              title,
+              assignedByName,
+              priority || 'medium',
+              dueDate,
+              assignee.email
+            );
+            console.log(`📧 Sent task assignment email to ${assignee.email}`);
+          } catch (emailError) {
+            console.error(`Failed to send task assignment email to ${assignee.email}:`, emailError);
+          }
+        }
+      }
+    }
 
     await logActivity(
       board.projectId.toString(),
@@ -532,6 +562,17 @@ router.patch('/tasks/:taskId/move', auth, async (req: AuthRequest, res: Response
       return res.status(403).json({ message: 'Access denied' });
     }
 
+    // Check if target column is "Done" - only owner can move tasks to Done
+    const board = await Board.findById(task.boardId);
+    const doneColumn = board?.columns.find(c => c.title.toLowerCase() === 'done');
+    const reviewColumn = board?.columns.find(c => c.title.toLowerCase() === 'review');
+
+    if (doneColumn && columnId === doneColumn.id && access.role !== 'owner') {
+      return res.status(403).json({
+        message: 'Only the project owner can move tasks to Done. Tasks must be approved in Review column first.'
+      });
+    }
+
     const oldColumnId = task.columnId;
     const oldPosition = task.position;
 
@@ -565,9 +606,12 @@ router.patch('/tasks/:taskId/move', auth, async (req: AuthRequest, res: Response
     task.columnId = columnId;
     task.position = position;
 
-    // Mark as completed if moved to done column
-    const board = await Board.findById(task.boardId);
-    const doneColumn = board?.columns.find(c => c.title.toLowerCase() === 'done');
+    // Auto-set reviewStatus to 'pending' when task is moved to Review column
+    if (reviewColumn && columnId === reviewColumn.id) {
+      task.reviewStatus = 'pending';
+    }
+
+    // Mark as completed if moved to done column (only by owner through approval)
     if (doneColumn && columnId === doneColumn.id && !task.completedAt) {
       task.completedAt = new Date();
       task.completedBy = new mongoose.Types.ObjectId(userId);
@@ -682,6 +726,28 @@ router.post('/tasks/:taskId/submit-review', auth, async (req: AuthRequest, res: 
       task.boardId.toString(),
       taskId
     );
+
+    // Send email notification to project owner
+    try {
+      const project = await Project.findById(task.projectId).populate('owner', 'name email');
+      if (project && (project.owner as any).email) {
+        const ownerEmail = (project.owner as any).email;
+        const submitterName = req.user?.name || 'A team member';
+
+        // Don't send email if submitter is the owner
+        if ((project.owner as any)._id.toString() !== userId) {
+          await emailNotifications.notifyTaskSubmittedForReview(
+            project.title,
+            task.title,
+            submitterName,
+            ownerEmail
+          );
+          console.log(`📧 Sent task review notification email to owner: ${ownerEmail}`);
+        }
+      }
+    } catch (emailError) {
+      console.error('Failed to send task review notification email:', emailError);
+    }
 
     // Emit socket event
     const io = req.app.get('io');

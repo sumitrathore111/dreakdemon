@@ -1,9 +1,9 @@
-import { ArrowRight, Award, BookOpen, CheckCircle, ClipboardList, Code, Coins, Compass, FolderOpen, Gift, Globe, History, Lightbulb, Mail, MessageCircle, RefreshCw, Rocket, Search, ShoppingBag, Sparkles, Swords, Target, Trophy, UserPlus, Users, Zap } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, CheckCircle, ClipboardList, Code, Compass, FolderOpen, Gift, Globe, History, Lightbulb, Mail, Map, MessageCircle, RefreshCw, Search, Sparkles, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const NextStepDocumentation = () => {
-  type DocSection = 'getting-started' | 'creator-corner' | 'codearena' | 'project-bazaar' | 'developer-connect';
+  type DocSection = 'getting-started' | 'creator-corner' | 'codearena' | 'learning-roadmaps' | 'developer-connect';
   const [activeSection, setActiveSection] = useState<DocSection>('getting-started');
   const navigate = useNavigate();
 
@@ -11,7 +11,7 @@ const NextStepDocumentation = () => {
     { id: 'getting-started', icon: Compass, label: 'Getting Started', gradient: 'from-blue-500 to-cyan-500', description: 'Begin your journey' },
     { id: 'creator-corner', icon: Lightbulb, label: 'Creator Corner', gradient: 'from-purple-500 to-pink-500', description: 'Collaborate & build' },
     { id: 'codearena', icon: Swords, label: 'CodeArena', gradient: 'from-orange-500 to-red-500', description: 'Battle & earn coins' },
-    { id: 'project-bazaar', icon: ShoppingBag, label: 'Project Bazaar', gradient: 'from-emerald-500 to-teal-500', description: 'Learn & earn coins' },
+    { id: 'learning-roadmaps', icon: Map, label: 'Learning Roadmaps', gradient: 'from-emerald-500 to-teal-500', description: 'Your learning path' },
     { id: 'developer-connect', icon: Users, label: 'Developer Connect', gradient: 'from-indigo-500 to-purple-500', description: 'Network & connect' },
   ];
 
@@ -79,6 +79,11 @@ const NextStepDocumentation = () => {
           image: '📁'
         },
         {
+          heading: '📨 Project Invitations - Build Your Dream Team',
+          text: 'As a project owner, you can directly invite talented developers to join your project! Browse Developer Connect and send personalized invitations with a direct join link.\n\n✨ Invite Features:\n• Browse all developers from Developer Connect\n• Search and filter by skills\n• Send personalized invitation messages\n• Unique invite link for each developer\n• Invited users receive in-app message\n• Email notification with join button\n• Links expire after 7 days for security\n• Track pending invitations\n\n🔒 Only project owners can send invites - ensuring team quality control!',
+          image: '📨'
+        },
+        {
           heading: '💬 Team Chat - Seamless Communication',
           text: 'Stay connected with your team through built-in real-time chat! Discuss ideas, share resources, and coordinate tasks without leaving the platform.\n\n• Real-time messaging with team members\n• Share code snippets and files\n• Create task-specific discussion threads\n• Get notifications for important updates\n• Voice and video call integration (coming soon)\n• Keep all project communication in one place',
           image: '💬'
@@ -132,39 +137,39 @@ const NextStepDocumentation = () => {
         }
       ]
     },
-    'project-bazaar': {
-      title: 'Project Bazaar - Learn & Earn',
-      icon: ShoppingBag,
+    'learning-roadmaps': {
+      title: 'Learning Roadmaps - Your Path to Success',
+      icon: Map,
       gradient: 'from-emerald-500 to-teal-500',
       sections: [
         {
-          heading: '🎬 Learn Through Video Tutorials',
-          text: 'Welcome to Project Bazaar - your gateway to learning real-world projects! Watch comprehensive video tutorials created by experienced developers and learn how to build amazing projects from scratch.\n\n• Browse hundreds of project tutorials\n• Watch step-by-step video guides\n• Learn at your own pace\n• Access source code with explanations\n• Build your portfolio while learning',
-          image: '🎬'
+          heading: '🗺️ Structured Learning Paths',
+          text: 'Welcome to Learning Roadmaps - your personalized guide to mastering new technologies! Follow structured paths designed by experts to take you from beginner to pro.\n\n• Browse curated learning roadmaps\n• Follow step-by-step progression\n• Track your learning progress\n• Learn at your own pace\n• Get recommendations based on goals',
+          image: '🗺️'
         },
         {
-          heading: '📚 Project Categories',
-          text: 'Explore a wide variety of project tutorials across different technologies and difficulty levels!\n\n📦 Available Categories:\n• React/Next.js Projects\n• Full-Stack Web Apps\n• Mobile App Development\n• E-commerce Solutions\n• API & Backend Systems\n• Portfolio Websites\n• SaaS Applications\n• Real-time Applications',
+          heading: '📚 Technology Roadmaps',
+          text: 'Explore comprehensive roadmaps for various technologies and career paths!\n\n🛤️ Available Roadmaps:\n• Frontend Development (React, Vue, Angular)\n• Backend Development (Node.js, Python, Java)\n• Full-Stack Web Development\n• Mobile App Development\n• DevOps & Cloud Computing\n• Data Science & Machine Learning\n• System Design & Architecture\n• Competitive Programming',
           image: '📚'
         },
         {
-          heading: '⭐ Rate & Review Creators',
-          text: 'Help the community by rating and reviewing project tutorials! Your feedback helps creators improve and helps other learners find quality content.\n\n🌟 Rating System:\n• Rate tutorials from 1-5 stars\n• Write detailed reviews\n• Upvote helpful tutorials\n• Share your learning experience\n• Help creators earn more coins\n• Build a trusted community',
-          image: '⭐'
+          heading: '✅ Track Your Progress',
+          text: 'Mark topics as completed and visualize your learning journey! Stay motivated by seeing how far you\'ve come.\n\n📊 Progress Features:\n• Mark topics as completed\n• Visual progress indicators\n• Skill level tracking\n• Time spent learning\n• Achievement milestones\n• Resume where you left off',
+          image: '✅'
         },
         {
-          heading: '💰 Creators Earn Coins',
-          text: 'As a creator, share your knowledge and earn coins! Upload project tutorials with video guides and earn coins based on ratings and views.\n\n🎯 How Creators Earn:\n• Upload project with video tutorial\n• Earn coins for every view\n• Bonus coins for high ratings\n• Build your creator reputation\n• Get featured for top content\n• Withdraw or use coins on platform',
-          image: '💰'
+          heading: '🎯 Skill-Based Recommendations',
+          text: 'Get personalized roadmap suggestions based on your current skills and career goals!\n\n💡 Smart Recommendations:\n• Based on your skill gaps\n• Aligned with career goals\n• Industry-relevant paths\n• Trending technologies\n• Beginner-friendly options\n• Advanced specializations',
+          image: '🎯'
         },
         {
-          heading: '🚀 Become a Creator',
-          text: 'Share your expertise with the community! Create video tutorials for your projects and help others learn while earning coins.\n\n📹 Creator Benefits:\n• Easy video upload process\n• Reach thousands of learners\n• Earn coins from your content\n• Build your personal brand\n• Get recognition as an expert\n• Connect with your audience',
-          image: '🚀'
+          heading: '📖 Curated Resources',
+          text: 'Each roadmap step includes curated resources - articles, videos, tutorials, and projects to help you learn effectively.\n\n📦 Resource Types:\n• Video tutorials\n• Documentation links\n• Practice exercises\n• Mini-projects\n• Community discussions\n• Expert tips and tricks',
+          image: '📖'
         },
         {
-          heading: '🏆 Quality Learning Experience',
-          text: 'Every project tutorial is reviewed to ensure high-quality learning content. We prioritize clear explanations and practical skills.\n\n✅ Our Standards:\n• Clear video explanations\n• Well-documented code\n• Beginner-friendly content\n• Practical real-world projects\n• Regular content updates\n• Creator support available',
+          heading: '🏆 Earn Certificates',
+          text: 'Complete roadmaps and earn certificates to showcase your skills! Share your achievements with potential employers.\n\n🎓 Certificate Features:\n• Verified completion certificates\n• Shareable on LinkedIn\n• QR code verification\n• Skill endorsements\n• Portfolio integration\n• Professional recognition',
           image: '🏆'
         }
       ]
@@ -186,7 +191,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '💬 Direct Messaging',
-          text: 'Communicate seamlessly with other developers through our built-in messaging system. Start conversations, share ideas, and build relationships!\n\n• Send direct messages to any developer\n• Real-time chat interface\n• Share code snippets and resources\n• Discuss collaboration opportunities\n• Get help and mentorship\n• Keep all conversations organized\n• Notification system for new messages',
+          text: 'Communicate seamlessly with other developers through our built-in messaging system. Start conversations, share ideas, and build relationships!\n\n• Send direct messages to any developer\n• Real-time chat interface\n• Share code snippets and resources\n• Discuss collaboration opportunities\n• Get help and mentorship\n• Keep all conversations organized\n• Notification system for new messages\n• Receive project invitation links directly in chat',
           image: '💬'
         },
         {
@@ -206,7 +211,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '🤝 Collaboration Opportunities',
-          text: 'Developer Connect bridges you to Creator Corner and other platform features! Find collaborators for your projects and join exciting teams.\n\n💡 Networking Benefits:\n• Find project collaborators\n• Discover mentorship opportunities\n• Join coding communities\n• Participate in group learning\n• Build lasting relationships\n• Grow your professional circle\n• Access exclusive opportunities',
+          text: 'Developer Connect bridges you to Creator Corner and other platform features! Find collaborators for your projects and join exciting teams.\n\n💡 Networking Benefits:\n• Find project collaborators\n• Receive direct project invitations from owners\n• Join projects instantly via invite links\n• Discover mentorship opportunities\n• Join coding communities\n• Participate in group learning\n• Build lasting relationships\n• Grow your professional circle\n• Access exclusive opportunities',
           image: '🤝'
         }
       ]
@@ -351,33 +356,33 @@ const NextStepDocumentation = () => {
             </div>
           )}
 
-          {activeSection === 'project-bazaar' && (
+          {activeSection === 'learning-roadmaps' && (
             <div className="mb-8 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-6 sm:p-8 text-white shadow-2xl">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                  <ShoppingBag className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  <Map className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black">🎬 Learn Projects, Rate Creators, Earn Coins!</h3>
-                  <p className="text-white/90 font-medium">Watch video tutorials, learn from experts, and help creators earn through your ratings</p>
+                  <h3 className="text-xl sm:text-2xl font-black">🗺️ Your Personalized Learning Journey!</h3>
+                  <p className="text-white/90 font-medium">Follow structured roadmaps, track progress, and master new technologies step by step</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Video Tutorials</span>
+                  <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Curated Paths</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
-                  <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Learn Projects</span>
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Track Progress</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Rate Creators</span>
+                  <span className="font-bold text-sm sm:text-base">Earn Certificates</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl">
-                  <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">Earn Coins</span>
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-bold text-sm sm:text-base">Curated Resources</span>
                 </div>
               </div>
             </div>

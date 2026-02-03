@@ -1,24 +1,24 @@
 import { motion } from 'framer-motion';
 import {
-  AlertCircle,
-  BookmarkPlus,
-  BookOpen,
-  Check,
-  Code2,
-  ExternalLink,
-  Heart,
-  Mail,
-  MessageCircle,
-  MessageSquare,
-  Plus,
-  Search,
-  Send,
-  Share2,
-  Star,
-  Trash2,
-  TrendingUp,
-  UserMinus,
-  X
+    AlertCircle,
+    BookmarkPlus,
+    BookOpen,
+    Check,
+    Code2,
+    ExternalLink,
+    Heart,
+    Mail,
+    MessageCircle,
+    MessageSquare,
+    Plus,
+    Search,
+    Send,
+    Share2,
+    Star,
+    Trash2,
+    TrendingUp,
+    UserMinus,
+    X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -113,8 +113,9 @@ const renderMessageWithLinks = (text: string, isMe: boolean = false) => {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className={`underline hover:opacity-80 ${isMe ? 'text-cyan-100' : 'text-[#00ADB5]'}`}
+          className={`underline hover:opacity-80 break-all ${isMe ? 'text-cyan-100' : 'text-[#00ADB5]'}`}
           onClick={(e) => e.stopPropagation()}
+          style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}
         >
           {part}
         </a>
@@ -443,6 +444,29 @@ export default function DeveloperConnect() {
             const messageHandler = (payload: any) => {
               console.log('📩 Received new message:', payload);
               if (payload.chatId === chat.id && isMounted) {
+                // Skip if the message is from the current user (already added optimistically)
+                if (payload.senderId === user?.id) {
+                  // Just update the temp message with real ID if not already done
+                  setMessages(prev => {
+                    // Check if we already have this message by real ID
+                    const existsById = prev.some(m => m.id === payload.id);
+                    if (existsById) return prev;
+                    // Check if there's a matching temp message (same content from same user around same time)
+                    const tempIndex = prev.findIndex(m =>
+                      m.id?.startsWith('temp-') &&
+                      m.senderId === payload.senderId &&
+                      (m.message === payload.message || m.text === payload.message)
+                    );
+                    if (tempIndex !== -1) {
+                      // Replace temp message with real one
+                      const updated = [...prev];
+                      updated[tempIndex] = payload;
+                      return updated;
+                    }
+                    return prev;
+                  });
+                  return;
+                }
                 setMessages(prev => {
                   // Avoid duplicates
                   const exists = prev.some(m => m.id === payload.id);
@@ -1464,7 +1488,7 @@ export default function DeveloperConnect() {
                           <div className={`max-w-[70%] ${isMe ? 'mr-2' : ''}`}>
                             <motion.div
                               whileHover={{ scale: 1.01, y: -1 }}
-                              className={`px-4 py-2.5 relative group ${
+                              className={`px-4 py-2.5 relative group overflow-hidden ${
                                 isMe
                                   ? 'rounded-2xl rounded-tr-md text-white'
                                   : 'rounded-2xl rounded-tl-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
@@ -1476,7 +1500,7 @@ export default function DeveloperConnect() {
                                 boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
                               }}
                             >
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMessageWithLinks(msg.message || msg.content || msg.text, isMe)}</p>
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderMessageWithLinks(msg.message || msg.content || msg.text, isMe)}</p>
                               <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
                                 <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
                                   {msg.createdAt

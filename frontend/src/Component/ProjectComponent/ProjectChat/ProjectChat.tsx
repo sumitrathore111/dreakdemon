@@ -8,7 +8,7 @@ import {
     onNewMessage
 } from '../../../service/socketService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://nextstepbackend-qhxw.onrender.com/api';
 
 interface Message {
   id: string;

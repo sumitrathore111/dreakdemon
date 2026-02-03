@@ -73,10 +73,33 @@ export default function TaskDetailModal({
   const [reviewComment, setReviewComment] = useState('');
   const [reviewAction, setReviewAction] = useState<'approve' | 'changes'>('approve');
 
+  // Debug: Log review button visibility conditions
+  const currentColumn = columns.find(c => c.id === task.columnId);
+  const isReviewColumn = currentColumn?.title.toLowerCase() === 'review';
+  const shouldShowReviewButtons = isProjectOwner && (task.reviewStatus === 'pending' || (task.reviewStatus !== 'approved' && isReviewColumn));
+
+  console.log('🎯 TaskDetailModal Review Debug:', {
+    isProjectOwner,
+    taskReviewStatus: task.reviewStatus,
+    taskColumnId: task.columnId,
+    currentColumnTitle: currentColumn?.title,
+    isReviewColumn,
+    shouldShowReviewButtons
+  });
+
   // Active timer check
   const activeTimer = useMemo(() => {
     return task.timeEntries.find(t => t.userId === currentUserId && !t.endTime);
   }, [task.timeEntries, currentUserId]);
+
+  // Check if current user can edit the task (assignee or project owner)
+  const canEdit = useMemo(() => {
+    if (isProjectOwner) return true;
+    return task.assignees?.some((assignee: any) => {
+      const id = typeof assignee === 'string' ? assignee : assignee?._id || assignee?.userId;
+      return id === currentUserId;
+    });
+  }, [task.assignees, currentUserId, isProjectOwner]);
 
   // Subtask progress
   const subtaskProgress = useMemo(() => {
@@ -202,12 +225,14 @@ export default function TaskDetailModal({
                 </span>
               );
             })}
-            <button
-              onClick={() => setShowLabelPicker(!showLabelPicker)}
-              className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              <Plus className="w-3 h-3 inline" /> Label
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setShowLabelPicker(!showLabelPicker)}
+                className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <Plus className="w-3 h-3 inline" /> Label
+              </button>
+            )}
           </div>
 
           {/* Label Picker */}
@@ -228,7 +253,7 @@ export default function TaskDetailModal({
           )}
 
           {/* Title */}
-          {editingTitle ? (
+          {editingTitle && canEdit ? (
             <input
               type="text"
               value={title}
@@ -240,8 +265,8 @@ export default function TaskDetailModal({
             />
           ) : (
             <h2
-              onClick={() => setEditingTitle(true)}
-              className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer hover:text-[#00ADB5] pr-8"
+              onClick={() => canEdit && setEditingTitle(true)}
+              className={`text-xl font-bold text-gray-900 dark:text-white pr-8 ${canEdit ? 'cursor-pointer hover:text-[#00ADB5]' : ''}`}
             >
               {task.title}
             </h2>
@@ -279,39 +304,57 @@ export default function TaskDetailModal({
             </div>
 
             {/* Priority */}
-            <select
-              value={task.priority}
-              onChange={(e) => handlePriorityChange(e.target.value as any)}
-              className={`px-2 py-1 rounded-lg border text-sm ${priorityColors[task.priority]}`}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
+            {canEdit ? (
+              <select
+                value={task.priority}
+                onChange={(e) => handlePriorityChange(e.target.value as any)}
+                className={`px-2 py-1 rounded-lg border text-sm ${priorityColors[task.priority]}`}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            ) : (
+              <span className={`px-2 py-1 rounded-lg border text-sm ${priorityColors[task.priority]}`}>
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+              </span>
+            )}
 
             {/* Due date */}
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4 text-gray-400" />
-              <input
-                type="date"
-                value={task.dueDate ? task.dueDate.split('T')[0] : ''}
-                onChange={handleDueDateChange}
-                className="bg-transparent border-none text-sm text-gray-600 dark:text-gray-400"
-              />
+              {canEdit ? (
+                <input
+                  type="date"
+                  value={task.dueDate ? task.dueDate.split('T')[0] : ''}
+                  onChange={handleDueDateChange}
+                  className="bg-transparent border-none text-sm text-gray-600 dark:text-gray-400"
+                />
+              ) : (
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                </span>
+              )}
             </div>
 
             {/* Story points */}
             <div className="flex items-center gap-1">
               <span className="text-gray-400">Points:</span>
-              <input
-                type="number"
-                value={task.storyPoints || ''}
-                onChange={(e) => onUpdate(task._id, { storyPoints: parseInt(e.target.value) || undefined })}
-                className="w-12 bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 text-sm"
-                placeholder="0"
-                min="0"
-              />
+              {canEdit ? (
+                <input
+                  type="number"
+                  value={task.storyPoints || ''}
+                  onChange={(e) => onUpdate(task._id, { storyPoints: parseInt(e.target.value) || undefined })}
+                  className="w-12 bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 text-sm"
+                  placeholder="0"
+                  min="0"
+                />
+              ) : (
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {task.storyPoints || 0}
+                </span>
+              )}
             </div>
           </div>
 
@@ -352,8 +395,8 @@ export default function TaskDetailModal({
 
           {/* Review Actions */}
           <div className="mt-4 flex flex-wrap gap-2">
-            {/* Submit for Review - For assignees when task is not yet submitted */}
-            {!isProjectOwner && task.reviewStatus === 'not_submitted' && onSubmitForReview && (
+            {/* Submit for Review - Only for assignees when task is not yet submitted */}
+            {canEdit && !isProjectOwner && task.reviewStatus === 'not_submitted' && onSubmitForReview && (
               <button
                 onClick={() => onSubmitForReview(task._id)}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg transition-all"
@@ -363,8 +406,8 @@ export default function TaskDetailModal({
               </button>
             )}
 
-            {/* Re-submit after changes requested */}
-            {!isProjectOwner && task.reviewStatus === 'changes_requested' && onSubmitForReview && (
+            {/* Re-submit after changes requested - Only for assignees */}
+            {canEdit && !isProjectOwner && task.reviewStatus === 'changes_requested' && onSubmitForReview && (
               <button
                 onClick={() => onSubmitForReview(task._id)}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg transition-all"
@@ -374,8 +417,8 @@ export default function TaskDetailModal({
               </button>
             )}
 
-            {/* Approve & Request Changes - Only for project owner when pending */}
-            {isProjectOwner && task.reviewStatus === 'pending' && (
+            {/* Approve & Request Changes - Only for project owner when task is pending review or in Review column */}
+            {shouldShowReviewButtons && (
               <>
                 <button
                   onClick={() => {
@@ -459,7 +502,7 @@ export default function TaskDetailModal({
                 <MessageSquare className="w-4 h-4" />
                 Description
               </h3>
-              {editingDescription ? (
+              {editingDescription && canEdit ? (
                 <div>
                   <textarea
                     value={description}
@@ -487,10 +530,10 @@ export default function TaskDetailModal({
                 </div>
               ) : (
                 <div
-                  onClick={() => setEditingDescription(true)}
-                  className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 min-h-[80px]"
+                  onClick={() => canEdit && setEditingDescription(true)}
+                  className={`p-3 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[80px] ${canEdit ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''}`}
                 >
-                  {task.description || <span className="text-gray-400">Click to add description...</span>}
+                  {task.description || <span className="text-gray-400">{canEdit ? 'Click to add description...' : 'No description'}</span>}
                 </div>
               )}
             </div>
@@ -525,8 +568,9 @@ export default function TaskDetailModal({
                     className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     <button
-                      onClick={() => onToggleSubtask(task._id, subtask.id, !subtask.completed)}
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      onClick={() => canEdit && onToggleSubtask(task._id, subtask.id, !subtask.completed)}
+                      disabled={!canEdit}
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${!canEdit ? 'cursor-not-allowed opacity-60' : ''} ${
                         subtask.completed
                           ? 'bg-green-500 border-green-500 text-white'
                           : 'border-gray-300 dark:border-gray-600 hover:border-green-400'
@@ -541,23 +585,25 @@ export default function TaskDetailModal({
                 ))}
               </div>
 
-              {/* Add subtask form */}
-              <form onSubmit={handleSubtaskSubmit} className="mt-2 flex gap-2">
-                <input
-                  type="text"
-                  value={newSubtask}
-                  onChange={(e) => setNewSubtask(e.target.value)}
-                  placeholder="Add a subtask..."
-                  className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={!newSubtask.trim()}
-                  className="px-3 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg disabled:opacity-50 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </form>
+              {/* Add subtask form - only for editors */}
+              {canEdit && (
+                <form onSubmit={handleSubtaskSubmit} className="mt-2 flex gap-2">
+                  <input
+                    type="text"
+                    value={newSubtask}
+                    onChange={(e) => setNewSubtask(e.target.value)}
+                    placeholder="Add a subtask..."
+                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newSubtask.trim()}
+                    className="px-3 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg disabled:opacity-50 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* Comments */}
@@ -590,23 +636,25 @@ export default function TaskDetailModal({
                 ))}
               </div>
 
-              {/* Add comment form */}
-              <form onSubmit={handleCommentSubmit} className="mt-3">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment... Use @username to mention someone"
-                  className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 resize-none text-sm"
-                  rows={2}
-                />
-                <button
-                  type="submit"
-                  disabled={!newComment.trim()}
-                  className="mt-2 px-4 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg disabled:opacity-50 transition-all"
-                >
-                  Post Comment
-                </button>
-              </form>
+              {/* Add comment form - only for editors */}
+              {canEdit && (
+                <form onSubmit={handleCommentSubmit} className="mt-3">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write a comment... Use @username to mention someone"
+                    className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 resize-none text-sm"
+                    rows={2}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim()}
+                    className="mt-2 px-4 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg text-sm hover:shadow-lg disabled:opacity-50 transition-all"
+                  >
+                    Post Comment
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
@@ -627,31 +675,36 @@ export default function TaskDetailModal({
                     <span className="text-sm text-gray-700 dark:text-gray-300">{assignee.name || 'Unknown'}</span>
                   </div>
                 ))}
-                <button
-                  onClick={() => setShowAssigneePicker(!showAssigneePicker)}
-                  className="flex items-center gap-1 text-sm text-[#00ADB5] hover:text-cyan-600"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add assignee
-                </button>
-                {showAssigneePicker && (
-                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    {members.map((member) => (
-                      <button
-                        key={member.userId}
-                        onClick={() => handleAssigneeToggle(member.userId)}
-                        className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span>{member.name}</span>
-                        {task.assignees.some(a => a._id === member.userId) && (
-                          <Check className="w-4 h-4 ml-auto text-green-500" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                {/* Only project owner can add/change assignees */}
+                {isProjectOwner && (
+                  <>
+                    <button
+                      onClick={() => setShowAssigneePicker(!showAssigneePicker)}
+                      className="flex items-center gap-1 text-sm text-[#00ADB5] hover:text-cyan-600"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add assignee
+                    </button>
+                    {showAssigneePicker && (
+                      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        {members.map((member) => (
+                          <button
+                            key={member.userId}
+                            onClick={() => handleAssigneeToggle(member.userId)}
+                            className="w-full flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm"
+                          >
+                            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>{member.name}</span>
+                            {task.assignees.some(a => a._id === member.userId) && (
+                              <Check className="w-4 h-4 ml-auto text-green-500" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -671,22 +724,25 @@ export default function TaskDetailModal({
                     Estimated: {task.estimatedHours}h
                   </div>
                 )}
-                {activeTimer ? (
-                  <button
-                    onClick={() => onStopTimer(task._id, activeTimer.id)}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                  >
-                    <Pause className="w-4 h-4" />
-                    Stop Timer
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onStartTimer(task._id)}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                  >
-                    <Play className="w-4 h-4" />
-                    Start Timer
-                  </button>
+                {/* Only assignees and owner can use timer */}
+                {canEdit && (
+                  activeTimer ? (
+                    <button
+                      onClick={() => onStopTimer(task._id, activeTimer.id)}
+                      className="w-full flex items-center justify-center gap-2 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      <Pause className="w-4 h-4" />
+                      Stop Timer
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onStartTimer(task._id)}
+                      className="w-full flex items-center justify-center gap-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                    >
+                      <Play className="w-4 h-4" />
+                      Start Timer
+                    </button>
+                  )
                 )}
               </div>
             </div>
@@ -713,36 +769,38 @@ export default function TaskDetailModal({
               </div>
             </div>
 
-            {/* Delete */}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              {showDeleteConfirm ? (
-                <div className="space-y-2">
-                  <p className="text-sm text-red-600">Are you sure you want to delete this task?</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onDelete(task._id)}
-                      className="flex-1 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
+            {/* Delete - Only for assignees and owner */}
+            {canEdit && (
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                {showDeleteConfirm ? (
+                  <div className="space-y-2">
+                    <p className="text-sm text-red-600">Are you sure you want to delete this task?</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onDelete(task._id)}
+                        className="flex-1 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete Task
-                </button>
-              )}
-            </div>
+                ) : (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Task
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

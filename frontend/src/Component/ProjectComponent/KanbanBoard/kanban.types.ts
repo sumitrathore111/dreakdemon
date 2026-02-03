@@ -139,3 +139,69 @@ export interface DragItem {
   columnId: string;
   position: number;
 }
+
+// GitHub Integration Types
+export interface GitHubPRInfo {
+  number: number;
+  title: string;
+  state: 'open' | 'closed' | 'merged';
+  url: string;
+  author: string;
+  authorAvatar?: string;
+  branch: string;
+  baseBranch: string;
+  reviewStatus?: 'pending' | 'approved' | 'changes_requested';
+  checksStatus?: 'pending' | 'success' | 'failure';
+  createdAt: string;
+  updatedAt: string;
+  mergedAt?: string;
+}
+
+export interface GitHubCommitInfo {
+  sha: string;
+  message: string;
+  author: string;
+  authorAvatar?: string;
+  url: string;
+  date: string;
+}
+
+export interface GitHubIssueInfo {
+  number: number;
+  title: string;
+  state: 'open' | 'closed';
+  url: string;
+  labels: { name: string; color: string }[];
+  createdAt: string;
+}
+
+export interface TaskGitHubData {
+  linkedPRs: GitHubPRInfo[];
+  linkedCommits: GitHubCommitInfo[];
+  linkedIssue?: GitHubIssueInfo;
+}
+
+export interface GitHubContributor {
+  login: string;
+  avatarUrl: string;
+  name?: string;
+  commits: number;
+  prsOpened: number;
+  prsMerged: number;
+  prsReviewed: number;
+  linesAdded: number;
+  linesDeleted: number;
+  lastActivity: string;
+}
+
+export interface GitHubRepoStats {
+  totalCommits: number;
+  totalPRs: number;
+  openPRs: number;
+  mergedPRs: number;
+  totalIssues: number;
+  openIssues: number;
+  contributors: GitHubContributor[];
+  commitActivity: { date: string; count: number }[];
+  languageBreakdown: { language: string; percentage: number; color: string }[];
+}
