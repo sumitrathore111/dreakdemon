@@ -938,10 +938,10 @@ export default function HomePage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#00ADB5] transition-colors">
-                        Learn Fundamentals
+                        Learning Roadmaps
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                        Start with structured courses covering DSA, web development, and core programming concepts. Learn at your own pace with interactive tutorials.
+                        Start with structured roadmaps covering DSA, web development, and core programming concepts. Learn at your own pace with interactive tutorials.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['JavaScript', 'React', 'Node.js', 'DSA'].map((tag) => (

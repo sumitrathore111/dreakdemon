@@ -1,8 +1,5 @@
 import {
-  BarChart2,
-  Calendar as CalendarIcon,
   Kanban,
-  List,
   Plus,
   RefreshCw,
   Search
@@ -12,7 +9,7 @@ import { API_URL } from '../../../service/apiConfig';
 import BoardColumn from './BoardColumn';
 import CreateTaskModal from './CreateTaskModal';
 import TaskDetailModal from './TaskDetailModal';
-import type { Board, KanbanTask, ProjectMember, ViewMode } from './kanban.types';
+import type { Board, KanbanTask, ProjectMember } from './kanban.types';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -21,7 +18,6 @@ interface KanbanBoardProps {
   currentUserId: string;
   currentUserName: string;
   isProjectOwner: boolean; // NEW: Only owner can review tasks
-  onViewChange?: (view: ViewMode) => void;
 }
 
 export default function KanbanBoard({
@@ -30,8 +26,7 @@ export default function KanbanBoard({
   members,
   currentUserId,
   currentUserName,
-  isProjectOwner,
-  onViewChange
+  isProjectOwner
 }: KanbanBoardProps) {
   // Debug: Log isProjectOwner received from parent
   console.log('📋 KanbanBoard - isProjectOwner received:', isProjectOwner);
@@ -167,6 +162,17 @@ export default function KanbanBoard({
     setDragOverColumnId(null);
 
     if (!draggingTask || draggingTask.columnId === targetColumnId) {
+      setDraggingTask(null);
+      return;
+    }
+
+    // Check if task is being dragged FROM "Done" column
+    const sourceColumn = board?.columns.find(c => c.id === draggingTask.columnId);
+    const isFromDoneColumn = sourceColumn?.title.toLowerCase() === 'done';
+
+    // Prevent moving tasks OUT of Done column - completed tasks cannot be redone
+    if (isFromDoneColumn) {
+      alert('Completed tasks cannot be moved. Once a task is done, it cannot be redone.');
       setDraggingTask(null);
       return;
     }
@@ -612,35 +618,15 @@ export default function KanbanBoard({
     <div className="h-full flex flex-col">
       {/* Header/Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-        {/* View switcher */}
-        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
-          <button
-            className="p-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-lg shadow-sm"
-            title="Kanban View"
-          >
-            <Kanban className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onViewChange?.('list')}
-            className="p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 dark:text-gray-400 transition-all"
-            title="List View"
-          >
-            <List className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onViewChange?.('calendar')}
-            className="p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 dark:text-gray-400 transition-all"
-            title="Calendar View"
-          >
-            <CalendarIcon className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onViewChange?.('timeline')}
-            className="p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 dark:text-gray-400 transition-all"
-            title="Timeline View"
-          >
-            <BarChart2 className="w-5 h-5" />
-          </button>
+        {/* Board Title */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-lg">
+            <Kanban className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{board?.title || 'Board'}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{filteredTasks.length} tasks</p>
+          </div>
         </div>
 
         {/* Search */}
@@ -706,7 +692,13 @@ export default function KanbanBoard({
                 labels={board.labels}
                 currentUserId={currentUserId}
                 isProjectOwner={isProjectOwner}
-                onAddTask={(columnId) => setShowCreateTask({ columnId })}
+                onAddTask={(columnId) => {
+                  if (!isProjectOwner) {
+                    alert('Only the project owner can create tasks');
+                    return;
+                  }
+                  setShowCreateTask({ columnId });
+                }}
                 onTaskClick={setSelectedTask}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}

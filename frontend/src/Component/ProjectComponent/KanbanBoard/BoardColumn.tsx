@@ -1,11 +1,9 @@
 import {
-    ChevronLeft,
-    ChevronRight,
-    MoreHorizontal,
-    Plus,
-    Settings
+  ChevronLeft,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import TaskCard from './TaskCard';
 import type { BoardColumn as BoardColumnType, BoardLabel, KanbanTask } from './kanban.types';
 
@@ -21,7 +19,6 @@ interface BoardColumnProps {
   onDragEnd: (e: React.DragEvent) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, columnId: string) => void;
-  onColumnSettings?: (column: BoardColumnType) => void;
   onToggleCollapse?: (columnId: string) => void;
   dragOverColumnId?: string | null;
 }
@@ -38,11 +35,9 @@ export default function BoardColumn({
   onDragEnd,
   onDragOver,
   onDrop,
-  onColumnSettings,
   onToggleCollapse,
   dragOverColumnId
 }: BoardColumnProps) {
-  const [showMenu, setShowMenu] = useState(false);
   const columnRef = useRef<HTMLDivElement>(null);
 
   const taskCount = tasks.length;
@@ -137,45 +132,16 @@ export default function BoardColumn({
             <ChevronLeft className="w-4 h-4 text-gray-500" />
           </button>
 
-          {/* Add task button */}
-          <button
-            onClick={() => onAddTask(column.id)}
-            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-            title="Add task"
-          >
-            <Plus className="w-4 h-4 text-gray-500" />
-          </button>
-
-          {/* Column menu */}
-          <div className="relative">
+          {/* Add task button - Only for project owner */}
+          {isProjectOwner && (
             <button
-              onClick={() => setShowMenu(!showMenu)}
+              onClick={() => onAddTask(column.id)}
               className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+              title="Add task"
             >
-              <MoreHorizontal className="w-4 h-4 text-gray-500" />
+              <Plus className="w-4 h-4 text-gray-500" />
             </button>
-
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 py-1">
-                  <button
-                    onClick={() => {
-                      onColumnSettings?.(column);
-                      setShowMenu(false);
-                    }}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Column Settings
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -202,6 +168,7 @@ export default function BoardColumn({
               labels={labels}
               currentUserId={currentUserId}
               isProjectOwner={isProjectOwner}
+              columnTitle={column.title}
               onClick={() => onTaskClick(task)}
               onDragStart={(e) => onDragStart(e, task._id, column.id)}
               onDragEnd={onDragEnd}

@@ -42,7 +42,7 @@ router.get('/developers/:projectId', authenticate, async (req: AuthRequest, res:
 
     // Get pending invites to exclude already invited users
     const pendingInvites = await ProjectInvite.find({
-      projectId,
+      projectId: project._id, // Use actual project._id for querying
       status: 'pending'
     }).select('invitedUserId');
 
@@ -145,7 +145,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
 
     // Check if invite already exists and is pending
     const existingInvite = await ProjectInvite.findOne({
-      projectId,
+      projectId: project._id, // Use actual project._id for checking
       invitedUserId,
       status: 'pending'
     });
@@ -161,7 +161,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
 
     // Create the invite
     const invite = await ProjectInvite.create({
-      projectId,
+      projectId: project._id, // Always use actual project._id, not the input projectId (which could be ideaId)
       projectTitle: project.title,
       invitedUserId,
       invitedBy: req.user?.id,
@@ -417,8 +417,8 @@ router.post('/join/:inviteToken/accept', authenticate, async (req: AuthRequest, 
       // Notify project owner
       const io = getIO(req);
       if (io) {
-        io.to(`project:${invite.projectId}`).emit('member-joined', {
-          projectId: invite.projectId,
+        io.to(`project:${project._id}`).emit('member-joined', {
+          projectId: project._id,
           member: {
             userId: user._id,
             name: user.name,
@@ -432,7 +432,7 @@ router.post('/join/:inviteToken/accept', authenticate, async (req: AuthRequest, 
     res.json({
       success: true,
       message: 'You have joined the project!',
-      projectId: invite.projectId
+      projectId: project._id // Return actual project._id for correct redirect
     });
   } catch (error) {
     console.error('Error accepting invite via token:', error);

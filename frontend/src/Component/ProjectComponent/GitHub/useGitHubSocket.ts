@@ -57,7 +57,8 @@ export function useGitHubSocket({
     // Create socket connection
     const socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['websocket', 'polling']
+      transports: ['polling', 'websocket'], // Prefer polling first (more reliable on cloud hosts)
+      timeout: 20000,
     });
 
     socketRef.current = socket;

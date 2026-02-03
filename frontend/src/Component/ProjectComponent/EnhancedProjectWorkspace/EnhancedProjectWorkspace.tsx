@@ -1,15 +1,15 @@
 import {
-  Activity,
-  BarChart2,
-  FileText,
-  GitBranch,
-  Kanban,
-  MessageSquare,
-  Target,
-  UserCheck,
-  UserPlus,
-  Users,
-  UserX
+    Activity,
+    BarChart2,
+    FileText,
+    GitBranch,
+    Kanban,
+    MessageSquare,
+    Target,
+    UserCheck,
+    UserPlus,
+    Users,
+    UserX
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -18,7 +18,7 @@ import { API_URL } from '../../../service/apiConfig';
 import { ActivityTimeline } from '../ActivityTimeline';
 import { GitHubPanel } from '../GitHub';
 import { KanbanBoard } from '../KanbanBoard';
-import type { Board, KanbanTask, ProjectMember, ViewMode } from '../KanbanBoard/kanban.types';
+import type { Board, KanbanTask, ProjectMember } from '../KanbanBoard/kanban.types';
 import InviteDeveloperModal from '../Modal/InviteDeveloperModal';
 import { ProjectAnalytics } from '../ProjectAnalytics';
 import { ProjectChat } from '../ProjectChat';
@@ -48,7 +48,6 @@ export default function EnhancedProjectWorkspace() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<TabType>('board');
-  const [, setViewMode] = useState<ViewMode>('kanban');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -263,11 +262,6 @@ export default function EnhancedProjectWorkspace() {
     }
   };
 
-  // Handle view mode change
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-  };
-
   // Handle approve join request
   const handleApproveRequest = async (requestId: string) => {
     try {
@@ -479,7 +473,6 @@ export default function EnhancedProjectWorkspace() {
             currentUserId={user?.id || ''}
             currentUserName={user?.name || user?.email?.split('@')[0] || 'User'}
             isProjectOwner={isCreator}
-            onViewChange={handleViewModeChange}
           />
         )}
 

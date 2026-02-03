@@ -139,6 +139,7 @@ interface TaskCardProps {
   isDragging?: boolean;
   currentUserId?: string;
   isProjectOwner?: boolean;
+  columnTitle?: string;
 }
 
 export default function TaskCard({
@@ -149,7 +150,8 @@ export default function TaskCard({
   onDragEnd,
   isDragging,
   currentUserId,
-  isProjectOwner = false
+  isProjectOwner = false,
+  columnTitle
 }: TaskCardProps) {
   // Debug: Log full task data
   console.log('🎯 TaskCard FULL DATA for:', task.title);
@@ -157,10 +159,13 @@ export default function TaskCard({
   console.log('   - assignees length:', task.assignees?.length);
   console.log('   - full task:', JSON.stringify(task, null, 2));
 
-  // Check if current user can drag this task (assignee or project owner)
-  const canDrag = isProjectOwner || task.assignees?.some(a =>
+  // Check if task is in Done column - completed tasks cannot be moved
+  const isInDoneColumn = columnTitle?.toLowerCase() === 'done';
+
+  // Check if current user can drag this task (assignee or project owner, but NOT from Done column)
+  const canDrag = !isInDoneColumn && (isProjectOwner || task.assignees?.some(a =>
     a._id === currentUserId || (a as any).id === currentUserId || String(a._id) === currentUserId
-  );
+  ));
   const priorityColors = {
     low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -267,7 +272,7 @@ export default function TaskCard({
         ${isDragging ? 'opacity-50 rotate-3 scale-105' : ''}
         ${!canDrag ? 'cursor-default' : ''}
       `}
-      title={!canDrag ? 'Only assignees can move this task' : undefined}
+      title={isInDoneColumn ? 'Completed tasks cannot be moved' : !canDrag ? 'Only assignees can move this task' : undefined}
     >
       {/* Labels */}
       {taskLabels.length > 0 && (

@@ -12,11 +12,12 @@ export const initializeSocket = (): Socket => {
     console.log('🔌 Initializing socket connection to:', socketUrl);
 
     socket = io(socketUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Prefer polling first (more reliable on cloud hosts)
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      timeout: 20000,
     });
 
     socket.on('connect', () => {
