@@ -11,7 +11,7 @@ import {
     Users,
     UserX
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
 import { API_URL } from '../../../service/apiConfig';
@@ -42,6 +42,39 @@ interface JoinRequest {
   status: string;
 }
 
+// ============================================
+// Frontend cache for instant loading
+// ============================================
+const projectCache = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
+const boardCache = new Map<string, { board: Board | null; tasks: KanbanTask[]; timestamp: number }>();
+const CACHE_TTL = 60 * 1000; // 1 minute
+
+function getCachedProject(projectId: string) {
+  const entry = projectCache.get(projectId);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry.data;
+  }
+  projectCache.delete(projectId);
+  return null;
+}
+
+function setCachedProject(projectId: string, data: Record<string, unknown>) {
+  projectCache.set(projectId, { data, timestamp: Date.now() });
+}
+
+function getCachedBoard(projectId: string) {
+  const entry = boardCache.get(projectId);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry;
+  }
+  boardCache.delete(projectId);
+  return null;
+}
+
+function setCachedBoard(projectId: string, board: Board | null, tasks: KanbanTask[]) {
+  boardCache.set(projectId, { board, tasks, timestamp: Date.now() });
+}
+
 export default function EnhancedProjectWorkspace() {
   const { projectId } = useParams();
   const { user } = useAuth();
@@ -60,19 +93,18 @@ export default function EnhancedProjectWorkspace() {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [isCreator, setIsCreator] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const fetchingRef = useRef(false); // Prevent duplicate fetches
 
   // Get auth token
   const getToken = () => localStorage.getItem('authToken');
 
-  // Fetch project data
+  // Fetch project data - SUPERFAST with cache
   const fetchProjectData = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || fetchingRef.current) return;
+    fetchingRef.current = true;
 
     try {
-      setLoading(true);
-      setError(null);
       const token = getToken();
-
       if (!token) {
         setError('Please log in to view this project');
         navigate('/login');
@@ -83,6 +115,51 @@ export default function EnhancedProjectWorkspace() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
+
+      // CHECK CACHE FIRST - instant load!
+      const cachedProject = getCachedProject(projectId);
+      const cachedBoard = getCachedBoard(projectId);
+
+      if (cachedProject) {
+        // INSTANT UI with cached data
+        const projectData = cachedProject as { project: Record<string, unknown> };
+        setProject(projectData.project);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const projectMembers: ProjectMember[] = (projectData.project.members as any[]).map((m: Record<string, any>) => ({
+          _id: m._id,
+          userId: m.userId?._id || m.userId,
+          name: m.name || m.userId?.name,
+          email: m.email || m.userId?.email,
+          role: m.role,
+          avatar: m.avatar
+        }));
+        setMembers(projectMembers);
+
+        // Check creator status
+        const ownerId = (projectData.project as Record<string, unknown>).owner;
+        const currentId = user?.id || (user as { _id?: string })?._id;
+        const isOwnerByField = ownerId && currentId && String(ownerId) === String(currentId);
+        const isOwnerByMemberRole = currentId && projectMembers.some(m =>
+          m.userId && String(m.userId) === String(currentId) && m.role === 'owner'
+        );
+        setIsCreator(!!(isOwnerByField || isOwnerByMemberRole));
+
+        if (cachedBoard) {
+          setBoard(cachedBoard.board);
+          setTasks(cachedBoard.tasks);
+        }
+
+        setLoading(false); // INSTANT!
+
+        // Refresh in background (stale-while-revalidate pattern)
+        fetchFreshData(headers, projectId);
+        return;
+      }
+
+      // No cache - show loading briefly
+      setLoading(true);
+      setError(null);
 
       // Fetch project
       const projectRes = await fetch(`${API_URL}/projects/${projectId}`, { headers });
@@ -144,88 +221,148 @@ export default function EnhancedProjectWorkspace() {
       const creatorCheck = !!(isOwnerByField || isOwnerByMemberRole);
       setIsCreator(creatorCheck);
 
-      console.log('🔍 Creator Check Debug:', {
-        rawOwner: projectData.project.owner,
-        ownerId,
-        createdById,
-        userIdField,
-        currentId,
-        isOwnerByField,
-        isOwnerByMemberRole,
-        members: projectMembers,
-        isCreator: creatorCheck
+      // CACHE the project data for instant next load
+      setCachedProject(projectId, projectData);
+
+      // Show UI IMMEDIATELY - set loading to false right after critical project data
+      setLoading(false);
+
+      // Kick off ALL secondary fetches in parallel (non-blocking)
+      // Use Promise.allSettled so one failure doesn't block others
+      Promise.allSettled([
+        // Join requests
+        (async () => {
+          const joinReqRes = await fetch(`${API_URL}/join-requests/project/${projectId}`, { headers });
+          if (joinReqRes.ok) {
+            const joinReqData = await joinReqRes.json();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const requests = (joinReqData.requests || []).map((r: Record<string, any>) => ({
+              id: r._id || r.id,
+              _id: r._id,
+              userId: r.userId?._id || r.userId,
+              userName: r.userId?.name || r.userName,
+              userEmail: r.userId?.email || r.userEmail,
+              requestedAt: r.createdAt || r.requestedAt,
+              skills: r.skills,
+              experience: r.experience,
+              motivation: r.motivation || r.message,
+              message: r.message,
+              status: r.status
+            }));
+            const pendingRequests = requests.filter((r: JoinRequest) => !r.status || r.status === 'pending');
+            setJoinRequests(pendingRequests);
+          }
+        })(),
+        // Boards + tasks
+        (async () => {
+          const boardsRes = await fetch(`${API_URL}/boards/project/${projectId}`, { headers });
+          if (boardsRes.ok) {
+            const boards = await boardsRes.json();
+            if (boards.length > 0) {
+              const boardRes = await fetch(`${API_URL}/boards/${boards[0]._id}`, { headers });
+              if (boardRes.ok) {
+                const boardData = await boardRes.json();
+                const boardObj = boardData.board || boardData;
+                const tasksArr = boardData.tasks || [];
+                setBoard(boardObj);
+                setTasks(tasksArr);
+                // Cache board data
+                setCachedBoard(projectId, boardObj, tasksArr);
+              }
+            }
+          }
+        })(),
+        // GitHub status
+        (async () => {
+          const githubRes = await fetch(`${API_URL}/github/projects/${projectId}/status`, { headers });
+          if (githubRes.ok) {
+            const githubData = await githubRes.json();
+            if (githubData.connected && githubData.repoFullName) {
+              setGithubRepoFullName(githubData.repoFullName);
+            }
+          }
+        })()
+      ]).catch(() => {
+        // Silently ignore - UI already rendered
       });
 
-      // Always fetch join requests (for debugging - will filter display later)
-      console.log('🔍 Fetching join requests, isCreator:', creatorCheck);
-      try {
-        console.log('📋 Fetching join requests from:', `${API_URL}/join-requests/project/${projectId}`);
-        const joinReqRes = await fetch(`${API_URL}/join-requests/project/${projectId}`, { headers });
-        console.log('📋 Join requests response status:', joinReqRes.status);
-        if (joinReqRes.ok) {
-          const joinReqData = await joinReqRes.json();
-          console.log('📋 Join requests raw data:', joinReqData);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const requests = (joinReqData.requests || []).map((r: Record<string, any>) => ({
-            id: r._id || r.id,
-            _id: r._id,
-            userId: r.userId?._id || r.userId,
-            userName: r.userId?.name || r.userName,
-            userEmail: r.userId?.email || r.userEmail,
-            requestedAt: r.createdAt || r.requestedAt,
-            skills: r.skills,
-            experience: r.experience,
-            motivation: r.motivation || r.message,
-            message: r.message,
-            status: r.status
-          }));
-          console.log('📋 Mapped requests:', requests);
-          // Include requests that are pending OR have no status (default to pending)
-          const pendingRequests = requests.filter((r: JoinRequest) => !r.status || r.status === 'pending');
-          console.log('📋 Pending requests:', pendingRequests);
-          setJoinRequests(pendingRequests);
-        } else {
-          console.log('❌ Join requests fetch failed:', await joinReqRes.text());
-        }
-      } catch (err) {
-        console.error('Error fetching join requests:', err);
+      // UI is already visible - no need to wait for secondary fetches
+    } catch (err: unknown) {
+      console.error('Error fetching project data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load project');
+      setLoading(false);
+    } finally {
+      fetchingRef.current = false;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, navigate, user?.id]);
+
+  // Background refresh helper (stale-while-revalidate)
+  const fetchFreshData = async (headers: Record<string, string>, projectId: string) => {
+    try {
+      // Fetch fresh project data in background
+      const projectRes = await fetch(`${API_URL}/projects/${projectId}`, { headers });
+      if (projectRes.ok) {
+        const projectData = await projectRes.json();
+        setProject(projectData.project);
+        setCachedProject(projectId, projectData);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const projectMembers: ProjectMember[] = projectData.project.members.map((m: Record<string, any>) => ({
+          _id: m._id,
+          userId: m.userId?._id || m.userId,
+          name: m.name || m.userId?.name,
+          email: m.email || m.userId?.email,
+          role: m.role,
+          avatar: m.avatar
+        }));
+        setMembers(projectMembers);
       }
 
-      // Fetch boards
+      // Fetch fresh board data
       const boardsRes = await fetch(`${API_URL}/boards/project/${projectId}`, { headers });
       if (boardsRes.ok) {
         const boards = await boardsRes.json();
         if (boards.length > 0) {
-          // Fetch board with tasks
           const boardRes = await fetch(`${API_URL}/boards/${boards[0]._id}`, { headers });
           if (boardRes.ok) {
             const boardData = await boardRes.json();
-            setBoard(boardData.board || boardData);
-            setTasks(boardData.tasks || []);
+            const boardObj = boardData.board || boardData;
+            const tasksArr = boardData.tasks || [];
+            setBoard(boardObj);
+            setTasks(tasksArr);
+            setCachedBoard(projectId, boardObj, tasksArr);
           }
         }
       }
 
-      // Fetch GitHub connection status for this project
-      try {
-        const githubRes = await fetch(`${API_URL}/github/projects/${projectId}/status`, { headers });
-        if (githubRes.ok) {
-          const githubData = await githubRes.json();
-          if (githubData.connected && githubData.repoFullName) {
-            setGithubRepoFullName(githubData.repoFullName);
-          }
-        }
-      } catch (err) {
-        console.log('GitHub status fetch skipped:', err);
+      // Fetch join requests
+      const joinReqRes = await fetch(`${API_URL}/join-requests/project/${projectId}`, { headers });
+      if (joinReqRes.ok) {
+        const joinReqData = await joinReqRes.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const requests = (joinReqData.requests || []).map((r: Record<string, any>) => ({
+          id: r._id || r.id,
+          _id: r._id,
+          userId: r.userId?._id || r.userId,
+          userName: r.userId?.name || r.userName,
+          userEmail: r.userId?.email || r.userEmail,
+          requestedAt: r.createdAt || r.requestedAt,
+          skills: r.skills,
+          experience: r.experience,
+          motivation: r.motivation || r.message,
+          message: r.message,
+          status: r.status
+        }));
+        const pendingRequests = requests.filter((r: JoinRequest) => !r.status || r.status === 'pending');
+        setJoinRequests(pendingRequests);
       }
-    } catch (err: unknown) {
-      console.error('Error fetching project data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load project');
+    } catch {
+      // Silently ignore background refresh errors
     } finally {
-      setLoading(false);
+      fetchingRef.current = false;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, navigate, user?.id]);
+  };
 
   useEffect(() => {
     if (!user) {

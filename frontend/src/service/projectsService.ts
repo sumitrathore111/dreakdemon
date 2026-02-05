@@ -1,5 +1,32 @@
 import { apiRequest } from './api';
 
+// ============================================
+// Members cache for fast loading
+// ============================================
+const membersCache = new Map<string, { data: ProjectMember[]; timestamp: number }>();
+const MEMBERS_CACHE_TTL = 60 * 1000; // 60 seconds
+
+function getCachedMembers(projectId: string): ProjectMember[] | null {
+  const entry = membersCache.get(projectId);
+  if (entry && Date.now() - entry.timestamp < MEMBERS_CACHE_TTL) {
+    return entry.data;
+  }
+  membersCache.delete(projectId);
+  return null;
+}
+
+function setCachedMembers(projectId: string, members: ProjectMember[]): void {
+  membersCache.set(projectId, { data: members, timestamp: Date.now() });
+}
+
+export function invalidateMembersCache(projectId?: string): void {
+  if (projectId) {
+    membersCache.delete(projectId);
+  } else {
+    membersCache.clear();
+  }
+}
+
 // Types
 export interface Project {
   id: string;
@@ -211,11 +238,19 @@ export async function updateIssueStatus(
   }
 }
 
-// Get project members
+// Get project members (with caching)
 export async function getProjectMembers(projectId: string): Promise<ProjectMember[]> {
+  // Check cache first
+  const cached = getCachedMembers(projectId);
+  if (cached !== null) {
+    return cached;
+  }
+
   try {
     const response = await apiRequest(`/projects/${projectId}/members`);
-    return response.members || [];
+    const members = response.members || [];
+    setCachedMembers(projectId, members);
+    return members;
   } catch (error) {
     console.error('Error fetching members:', error);
     return [];

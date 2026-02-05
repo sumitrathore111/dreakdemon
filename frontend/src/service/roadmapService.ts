@@ -1,5 +1,48 @@
 import { apiRequest } from './api';
 
+// ==================== CLIENT-SIDE CACHE ====================
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const clientCache = new Map<string, CacheEntry<any>>();
+const STALE_TIME = 60 * 1000;   // 1 minute - data is fresh
+const CACHE_TIME = 5 * 60 * 1000; // 5 minutes - keep in cache
+
+async function cachedRequest<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const cached = clientCache.get(key);
+  const now = Date.now();
+
+  // Return cached data immediately if fresh
+  if (cached && (now - cached.timestamp) < STALE_TIME) {
+    return cached.data;
+  }
+
+  // If stale but still in cache, return stale and revalidate in background
+  if (cached && (now - cached.timestamp) < CACHE_TIME) {
+    // Revalidate in background
+    fetcher().then(data => {
+      clientCache.set(key, { data, timestamp: Date.now() });
+    }).catch(() => {});
+    return cached.data;
+  }
+
+  // Fetch fresh data
+  const data = await fetcher();
+  clientCache.set(key, { data, timestamp: now });
+  return data;
+}
+
+// Prefetch function - call on hover or route preload
+export function prefetchRoadmaps(): void {
+  cachedRequest('roadmaps:all', () => apiRequest('/roadmaps?')).catch(() => {});
+}
+
+export function prefetchRoadmap(slug: string): void {
+  cachedRequest(`roadmap:${slug}`, () => apiRequest(`/roadmaps/${slug}`)).catch(() => {});
+}
+
 // Types
 export interface Resource {
   title: string;
@@ -155,7 +198,7 @@ export interface DashboardData {
 
 // API Functions
 
-// Get all roadmaps
+// Get all roadmaps - with client-side caching
 export const getAllRoadmaps = async (filters?: {
   category?: string;
   difficulty?: string;
@@ -168,12 +211,14 @@ export const getAllRoadmaps = async (filters?: {
   if (filters?.featured) params.append('featured', 'true');
   if (filters?.search) params.append('search', filters.search);
 
-  return apiRequest(`/roadmaps?${params.toString()}`);
+  const cacheKey = `roadmaps:${params.toString() || 'all'}`;
+  return cachedRequest(cacheKey, () => apiRequest(`/roadmaps?${params.toString()}`));
 };
 
-// Get single roadmap with details
+// Get single roadmap with details - with client-side caching
 export const getRoadmapBySlug = async (slug: string): Promise<RoadmapDetail> => {
-  return apiRequest(`/roadmaps/${slug}`);
+  const cacheKey = `roadmap:${slug}`;
+  return cachedRequest(cacheKey, () => apiRequest(`/roadmaps/${slug}`));
 };
 
 // Get topic detail

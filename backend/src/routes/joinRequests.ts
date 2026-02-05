@@ -5,6 +5,30 @@ import JoinRequest from '../models/JoinRequest';
 import Project from '../models/Project';
 import User from '../models/User';
 import emailNotifications from '../services/emailService';
+import { invalidateMembersCache } from './projects';
+
+// ============================================
+// In-memory cache for join requests (fast loading)
+// ============================================
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30 * 1000; // 30 seconds (shorter due to status changes)
+
+function getCache(key: string): any | null {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry.data;
+  }
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+function invalidateJoinRequestsCache(): void {
+  cache.clear();
+}
 
 // Helper to get socket.io instance from app
 const getIO = (req: AuthRequest): SocketIOServer | null => {
@@ -26,14 +50,29 @@ const findProject = async (projectIdOrIdeaId: string) => {
 
 const router = Router();
 
-// Get all join requests (for debugging or admin)
+// Get all join requests (for debugging or admin) - CACHED
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Try cache first
+    const cached = getCache('all-requests');
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.set('Cache-Control', 'private, max-age=15');
+      res.json(cached);
+      return;
+    }
+
     const requests = await JoinRequest.find()
       .populate('projectId', 'title')
       .populate('userId', 'name email')
       .sort({ createdAt: -1 });
-    res.json({ requests });
+
+    const response = { requests };
+    setCache('all-requests', response);
+
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'private, max-age=15');
+    res.json(response);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -122,6 +161,9 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     } catch (emailError) {
       console.error('Failed to send join request email notification:', emailError);
     }
+
+    // Invalidate cache after new request
+    invalidateJoinRequestsCache();
 
     res.status(201).json({ request });
   } catch (error: any) {
@@ -253,6 +295,9 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
         const savedProject = await project.save();
         console.log('📋 Project saved with', savedProject.members.length, 'members');
 
+        // Invalidate members cache for this project
+        invalidateMembersCache(project._id.toString());
+
         // Emit real-time event for new member
         const io = getIO(req);
         if (io) {
@@ -303,6 +348,9 @@ router.put('/:requestId/respond', authenticate, async (req: AuthRequest, res: Re
     } catch (emailError) {
       console.error('Failed to send join request status email notification:', emailError);
     }
+
+    // Invalidate caches after status change
+    invalidateJoinRequestsCache();
 
     res.json({ request, project: status === 'approved' ? project : undefined });
   } catch (error: any) {

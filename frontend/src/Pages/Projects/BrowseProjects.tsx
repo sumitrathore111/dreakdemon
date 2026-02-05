@@ -1,22 +1,49 @@
 import jsPDF from 'jspdf';
 import {
-    Calendar,
-    CheckCircle,
-    Clock,
-    Code2,
-    Filter,
-    Lightbulb,
-    Search,
-    Star,
-    TrendingUp,
-    Users
+  Calendar,
+  CheckCircle,
+  Clock,
+  Code2,
+  Filter,
+  Lightbulb,
+  Search,
+  Star,
+  TrendingUp,
+  Users
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { getSocket, initializeSocket, joinUserRoom, leaveUserRoom } from '../../service/socketService';
+
+// CREATOR CORNER CACHE - 60 second TTL for instant revisit loading
+interface CreatorCornerCache {
+  projects: Project[];
+  myIdeas: any[];
+  myProjects: Project[];
+  userJoinRequests: Record<string, any>;
+  completedCount: number;
+  completedTasks: any[];
+  timestamp: number;
+}
+
+const CACHE_TTL = 60000; // 60 seconds
+let creatorCornerCache: CreatorCornerCache | null = null;
+
+const getCachedCreatorCorner = (): CreatorCornerCache | null => {
+  if (!creatorCornerCache) return null;
+  if (Date.now() - creatorCornerCache.timestamp > CACHE_TTL) {
+    creatorCornerCache = null;
+    return null;
+  }
+  return creatorCornerCache;
+};
+
+const setCachedCreatorCorner = (data: Omit<CreatorCornerCache, 'timestamp'>) => {
+  creatorCornerCache = { ...data, timestamp: Date.now() };
+};
 
 
 interface Project {
@@ -155,25 +182,310 @@ export default function BrowseProjects() {
 
   const categories = ['All', 'Web Development', 'Mobile App', 'AI/ML', 'Data Science', 'Game Development', 'IoT', 'Blockchain'];
 
-  // Memoize loadUserAccessStatus for socket callback
-  const refreshAccessStatus = useCallback(() => {
-    loadUserAccessStatus();
-  }, [user]);
+  // Flag to prevent duplicate fetches
+  const fetchingRef = useRef(false);
+
+  // SUPERFAST: Cache-first loading with background refresh
+  const loadAllDataOptimized = useCallback(async (skipCache = false) => {
+    if (!user) return;
+    if (fetchingRef.current && !skipCache) return;
+
+    // CHECK CACHE FIRST - instant load!
+    if (!skipCache) {
+      const cached = getCachedCreatorCorner();
+      if (cached) {
+        // INSTANT UI from cache
+        setProjects(cached.projects);
+        setMyIdeas(cached.myIdeas);
+        setMyProjects(cached.myProjects);
+        setUserJoinRequests(cached.userJoinRequests);
+        setCompletedCount(cached.completedCount);
+        setCompletedTasks(cached.completedTasks);
+        setLoading(false);
+        // Refresh in background (stale-while-revalidate)
+        loadAllDataOptimized(true);
+        return;
+      }
+    }
+
+    fetchingRef.current = true;
+    if (!skipCache) setLoading(true);
+
+    try {
+      // STEP 1: Fetch all base data in parallel (3 API calls instead of 4+ sequential)
+      const [allIdeas, allJoinRequests, completedData] = await Promise.all([
+        fetchAllIdeas(),
+        fetchAllJoinRequests(),
+        fetchCompletedTasksData(user.id)
+      ]);
+
+      // STEP 2: Process ideas locally (no additional API calls)
+      const approvedIdeas = allIdeas.filter((idea: any) => idea.status === 'approved');
+      const userIdeas = allIdeas.filter((idea: any) => idea.userId === user.id);
+      const userApprovedIdeas = allIdeas.filter((idea: any) =>
+        String(idea.userId) === String(user.id) && idea.status === 'approved'
+      );
+
+      // STEP 3: Build project/idea maps upfront
+      const ideaToProjectMap: Record<string, string> = {};
+      const projectToIdeaMap: Record<string, string> = {};
+      approvedIdeas.forEach((idea: any) => {
+        if (idea.projectId) {
+          ideaToProjectMap[idea.id] = idea.projectId;
+          projectToIdeaMap[idea.projectId] = idea.id;
+        }
+      });
+
+      // STEP 4: Build user access status from join requests (fast, no API calls)
+      const userRequests = allJoinRequests.filter((req: any) => {
+        const reqUserId = typeof req.userId === 'object' ? (req.userId.id || req.userId._id) : req.userId;
+        return String(reqUserId) === String(user.id);
+      });
+
+      const requestsMap: Record<string, any> = {};
+      userRequests.forEach((req: any) => {
+        if (!req.projectId) return;
+        const reqProjectId = typeof req.projectId === 'object'
+          ? (req.projectId?.id || req.projectId?._id || req.projectId)
+          : req.projectId;
+        if (!reqProjectId) return;
+        const ideaId = projectToIdeaMap[String(reqProjectId)] || String(reqProjectId);
+        requestsMap[ideaId] = req;
+        requestsMap[String(reqProjectId)] = req;
+      });
+
+      // STEP 5: Build projects IMMEDIATELY with placeholder member count (show UI fast!)
+      const approvedProjectsOptimistic = approvedIdeas.map((idea: any) => ({
+        id: idea.id,
+        projectId: idea.projectId || idea.id,
+        title: idea.title,
+        description: idea.description,
+        category: idea.category,
+        creator: idea.userName,
+        creatorId: String(idea.userId),
+        members: 1, // Placeholder - will update in background
+        status: 'Active',
+        progress: 0,
+        tags: [idea.category],
+        createdAt: idea.submittedAt || new Date().toISOString()
+      }));
+
+      const userProjectsOptimistic = userApprovedIdeas.map((idea: any) => ({
+        id: idea.id,
+        projectId: idea.projectId || idea.id,
+        title: idea.title,
+        description: idea.description,
+        category: idea.category,
+        creator: idea.userName,
+        creatorId: String(idea.userId),
+        members: 1, // Placeholder - will update in background
+        status: 'Active',
+        progress: 0,
+        tags: [idea.category],
+        createdAt: idea.submittedAt || new Date().toISOString()
+      }));
+
+      // STEP 6: Update UI IMMEDIATELY with optimistic data (FAST!)
+      setProjects(approvedProjectsOptimistic);
+      setMyIdeas(userIdeas);
+      setMyProjects(userProjectsOptimistic);
+      setUserJoinRequests(requestsMap);
+      setCompletedCount(completedData.count);
+      setCompletedTasks(completedData.completedTasks);
+      setLoading(false); // Show content NOW!
+
+      // STEP 7: Fetch member counts in background (non-blocking)
+      const allProjectIds = new Set<string>();
+      approvedIdeas.forEach((idea: any) => {
+        allProjectIds.add(idea.projectId || idea.id);
+      });
+
+      const memberPromises = Array.from(allProjectIds).map(async (projectId) => {
+        try {
+          const members = await getProjectMembers(projectId);
+          return { projectId, members };
+        } catch {
+          return { projectId, members: [] };
+        }
+      });
+
+      const memberResults = await Promise.all(memberPromises);
+      const projectMembersMap = new Map<string, any[]>();
+      memberResults.forEach(({ projectId, members }) => {
+        projectMembersMap.set(projectId, members);
+      });
+
+      // STEP 8: Update projects with real member counts
+      const approvedProjectsFinal = approvedIdeas.map((idea: any) => {
+        const actualProjectId = idea.projectId || idea.id;
+        const members = projectMembersMap.get(actualProjectId) || [];
+        return {
+          id: idea.id,
+          projectId: actualProjectId,
+          title: idea.title,
+          description: idea.description,
+          category: idea.category,
+          creator: idea.userName,
+          creatorId: String(idea.userId),
+          members: members.length || 1,
+          status: 'Active',
+          progress: 0,
+          tags: [idea.category],
+          createdAt: idea.submittedAt || new Date().toISOString()
+        };
+      });
+
+      const userProjectsFinal = userApprovedIdeas.map((idea: any) => {
+        const actualProjectId = idea.projectId || idea.id;
+        const members = projectMembersMap.get(actualProjectId) || [];
+        return {
+          id: idea.id,
+          projectId: actualProjectId,
+          title: idea.title,
+          description: idea.description,
+          category: idea.category,
+          creator: idea.userName,
+          creatorId: String(idea.userId),
+          members: members.length || 1,
+          status: 'Active',
+          progress: 0,
+          tags: [idea.category],
+          createdAt: idea.submittedAt || new Date().toISOString()
+        };
+      });
+
+      // STEP 9: Build memberships from real member data
+      const membershipSet = new Set<string>();
+      approvedIdeas.forEach((project: any) => {
+        const actualProjectId = project.projectId || project.id;
+        const members = projectMembersMap.get(actualProjectId) || [];
+        const isMember = members.some((m: any) => m.userId && String(m.userId) === String(user.id));
+        if (isMember) {
+          membershipSet.add(project.id);
+          if (project.projectId) {
+            membershipSet.add(project.projectId);
+          }
+        }
+      });
+
+      // STEP 10: Fetch pending join requests in parallel
+      const pendingRequestPromises = userProjectsFinal.map(async (project) => {
+        try {
+          const requests = await fetchJoinRequests(project.projectId || project.id);
+          const pendingCount = requests.filter((r: any) => r.status === 'pending').length;
+          return { projectId: project.id, pendingCount };
+        } catch {
+          return { projectId: project.id, pendingCount: 0 };
+        }
+      });
+
+      const pendingResults = await Promise.all(pendingRequestPromises);
+      const pendingCounts: Record<string, number> = {};
+      pendingResults.forEach(({ projectId, pendingCount }) => {
+        if (pendingCount > 0) {
+          pendingCounts[projectId] = pendingCount;
+        }
+      });
+
+      // STEP 11: Final state update with complete data
+      setProjects(approvedProjectsFinal);
+      setMyProjects(userProjectsFinal);
+      setProjectPendingRequests(pendingCounts);
+      setUserMemberships(membershipSet);
+
+      // CACHE for instant revisit
+      setCachedCreatorCorner({
+        projects: approvedProjectsFinal,
+        myIdeas: userIdeas,
+        myProjects: userProjectsFinal,
+        userJoinRequests: requestsMap,
+        completedCount: completedData.count,
+        completedTasks: completedData.completedTasks
+      });
+    } catch (error) {
+      console.error('Error loading Creator Corner data:', error);
+    } finally {
+      setLoading(false);
+      fetchingRef.current = false;
+    }
+  }, [user, fetchAllIdeas, fetchAllJoinRequests, fetchCompletedTasksData, getProjectMembers, fetchJoinRequests]);
+
+  // Lightweight refresh for just access status (used by socket events)
+  const refreshAccessStatus = useCallback(async () => {
+    if (!user) return;
+    try {
+      const [allIdeas, allJoinRequests] = await Promise.all([
+        fetchAllIdeas(),
+        fetchAllJoinRequests()
+      ]);
+
+      const approvedIdeas = allIdeas.filter((idea: any) => idea.status === 'approved');
+
+      // Fetch members in parallel
+      const memberPromises = approvedIdeas.map(async (idea: any) => {
+        const actualProjectId = idea.projectId || idea.id;
+        try {
+          const members = await getProjectMembers(actualProjectId);
+          return { idea, members };
+        } catch {
+          return { idea, members: [] };
+        }
+      });
+
+      const results = await Promise.all(memberPromises);
+
+      const projectToIdeaMap: Record<string, string> = {};
+      approvedIdeas.forEach((idea: any) => {
+        if (idea.projectId) {
+          projectToIdeaMap[idea.projectId] = idea.id;
+        }
+      });
+
+      const userRequests = allJoinRequests.filter((req: any) => {
+        const reqUserId = typeof req.userId === 'object' ? (req.userId.id || req.userId._id) : req.userId;
+        return String(reqUserId) === String(user.id);
+      });
+
+      const requestsMap: Record<string, any> = {};
+      userRequests.forEach((req: any) => {
+        if (!req.projectId) return;
+        const reqProjectId = typeof req.projectId === 'object'
+          ? (req.projectId?.id || req.projectId?._id || req.projectId)
+          : req.projectId;
+        if (!reqProjectId) return;
+        const ideaId = projectToIdeaMap[String(reqProjectId)] || String(reqProjectId);
+        requestsMap[ideaId] = req;
+        requestsMap[String(reqProjectId)] = req;
+      });
+
+      const membershipSet = new Set<string>();
+      results.forEach(({ idea, members }) => {
+        const isMember = members.some((m: any) => m.userId && String(m.userId) === String(user.id));
+        if (isMember) {
+          membershipSet.add(idea.id);
+          if (idea.projectId) {
+            membershipSet.add(idea.projectId);
+          }
+        }
+      });
+
+      setUserJoinRequests(requestsMap);
+      setUserMemberships(membershipSet);
+    } catch (error) {
+      console.error('Error refreshing access status:', error);
+    }
+  }, [user, fetchAllIdeas, fetchAllJoinRequests, getProjectMembers]);
 
   useEffect(() => {
-    loadApprovedProjects();
-    loadMyIdeas();
-    loadMyProjects();
-    loadUserAccessStatus();
-    loadCompletedData();
+    loadAllDataOptimized();
 
-    // Refresh user access status every 10 seconds as fallback
+    // Refresh user access status every 30 seconds as fallback (reduced for performance)
     const refreshInterval = setInterval(() => {
-      loadUserAccessStatus();
-    }, 10000);
+      refreshAccessStatus();
+    }, 30000);
 
     return () => clearInterval(refreshInterval);
-  }, [user]);
+  }, [loadAllDataOptimized, refreshAccessStatus]);
 
   // Real-time socket listener for join request updates
   useEffect(() => {
@@ -241,264 +553,21 @@ export default function BrowseProjects() {
     if (location && (location as any).state && (location as any).state.refreshIdeas) {
       (async () => {
         try {
-          await loadApprovedProjects();
-          await loadMyIdeas();
-          await loadMyProjects();
+          await loadAllDataOptimized();
         } finally {
           // clear the navigation state so refresh only runs once
           navigate(location.pathname, { replace: true, state: {} });
         }
       })();
     }
-  }, [location]);
+  }, [location, loadAllDataOptimized, navigate]);
 
   // Subscribe to context refresh signal so lists reload automatically
   useEffect(() => {
     if (typeof ideasRefreshSignal === 'number') {
-      (async () => {
-        try {
-          await loadApprovedProjects();
-          await loadMyIdeas();
-          await loadMyProjects();
-        } catch (err) {
-          console.error('Error refreshing ideas on signal:', err);
-        }
-      })();
+      loadAllDataOptimized();
     }
-  }, [ideasRefreshSignal]);
-
-  const loadCompletedData = async () => {
-    if (!user) return;
-    try {
-      // Fetch verified completed tasks from backend (only verified=true tasks count)
-      const data = await fetchCompletedTasksData(user.id);
-      setCompletedCount(data.count);
-      setCompletedTasks(data.completedTasks);
-    } catch (error) {
-      console.error('Error loading completed data:', error);
-    }
-  };
-
-  const loadApprovedProjects = async () => {
-    setLoading(true);
-    try {
-      const allIdeas = await fetchAllIdeas();
-      // Convert approved ideas to projects
-      const approvedIdeas = allIdeas.filter((idea: any) => idea.status === 'approved');
-
-      // Get member count for each project
-      const approvedProjects = await Promise.all(
-        approvedIdeas.map(async (idea: any) => {
-          try {
-            // Use actual project ID (not idea ID) for member queries
-            const actualProjectId = idea.projectId || idea.id;
-            const members = await getProjectMembers(actualProjectId);
-            return {
-              id: idea.id,
-              projectId: actualProjectId, // Store actual project ID for lookups
-              title: idea.title,
-              description: idea.description,
-              category: idea.category,
-              creator: idea.userName,
-              creatorId: String(idea.userId),
-              members: members.length,
-              status: 'Active',
-              progress: 0,
-              tags: [idea.category],
-              createdAt: idea.submittedAt || new Date().toISOString()
-            };
-          } catch (error) {
-            console.error(`Error fetching members for project ${idea.id}:`, error);
-            // Fallback to 1 if there's an error fetching members
-            const actualProjectId = idea.projectId || idea.id;
-            return {
-              id: idea.id,
-              projectId: actualProjectId, // Store actual project ID for lookups
-              title: idea.title,
-              description: idea.description,
-              category: idea.category,
-              creator: idea.userName,
-              creatorId: String(idea.userId),
-              members: 1,
-              status: 'Active',
-              progress: 0,
-              tags: [idea.category],
-              createdAt: idea.submittedAt || new Date().toISOString()
-            };
-          }
-        })
-      );
-
-      setProjects(approvedProjects);
-    } catch (error) {
-      console.error('Error loading approved projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadMyIdeas = async () => {
-    if (!user) return;
-
-    try {
-      const allIdeas = await fetchAllIdeas();
-      // Filter to show only current user's ideas
-      const userIdeas = allIdeas.filter((idea: any) => idea.userId === user.id);
-      setMyIdeas(userIdeas);
-    } catch (error) {
-      console.error('Error loading user ideas:', error);
-    }
-  };
-
-  const loadMyProjects = async () => {
-    if (!user) return;
-
-    try {
-      const allIdeas = await fetchAllIdeas();
-      // Show projects where user is the creator (their approved ideas)
-      const userApprovedIdeas = allIdeas.filter((idea: any) => String(idea.userId) === String(user.id) && idea.status === 'approved');
-
-      // Get member count for each project
-      const userProjects = await Promise.all(
-        userApprovedIdeas.map(async (idea: any) => {
-          try {
-            // Use actual project ID (not idea ID) for member queries
-            const actualProjectId = idea.projectId || idea.id;
-            const members = await getProjectMembers(actualProjectId);
-            return {
-              id: idea.id,
-              projectId: actualProjectId, // Store actual project ID for lookups
-              title: idea.title,
-              description: idea.description,
-              category: idea.category,
-              creator: idea.userName,
-              creatorId: String(idea.userId),
-              members: members.length,
-              status: 'Active',
-              progress: 0,
-              tags: [idea.category],
-              createdAt: idea.submittedAt || new Date().toISOString()
-            };
-          } catch (error) {
-            console.error(`Error fetching members for project ${idea.id}:`, error);
-            // Fallback to 1 if there's an error fetching members
-            const actualProjectId = idea.projectId || idea.id;
-            return {
-              id: idea.id,
-              projectId: actualProjectId, // Store actual project ID for lookups
-              title: idea.title,
-              description: idea.description,
-              category: idea.category,
-              creator: idea.userName,
-              creatorId: String(idea.userId),
-              members: 1,
-              status: 'Active',
-              progress: 0,
-              tags: [idea.category],
-              createdAt: idea.submittedAt || new Date().toISOString()
-            };
-          }
-        })
-      );
-
-      setMyProjects(userProjects);
-
-      // Load pending join requests count for each project (for creator's notification badges)
-      const pendingCounts: Record<string, number> = {};
-      for (const project of userProjects) {
-        try {
-          const requests = await fetchJoinRequests(project.projectId || project.id);
-          const pendingCount = requests.filter((r: any) => r.status === 'pending').length;
-          if (pendingCount > 0) {
-            pendingCounts[project.id] = pendingCount;
-          }
-        } catch (error) {
-          console.error(`Error fetching requests for project ${project.id}:`, error);
-        }
-      }
-      setProjectPendingRequests(pendingCounts);
-    } catch (error) {
-      console.error('Error loading user projects:', error);
-    }
-  };
-
-  const loadUserAccessStatus = async () => {
-    if (!user) return;
-
-    try {
-      // Get all join requests by current user
-      const allRequests = await fetchAllJoinRequests();
-      // Handle userId as either populated object or plain string
-      const userRequests = allRequests.filter((req: any) => {
-        const reqUserId = typeof req.userId === 'object' ? (req.userId.id || req.userId._id) : req.userId;
-        return String(reqUserId) === String(user.id);
-      });
-      console.log('User requests found:', userRequests.length, 'for user:', user.id);
-
-      // Get all ideas to create a mapping between idea IDs and project IDs
-      const allIdeas = await fetchAllIdeas();
-      const approvedProjects = allIdeas.filter((idea: any) => idea.status === 'approved');
-
-      // Create maps: ideaId -> projectId and projectId -> ideaId
-      const ideaToProjectMap: Record<string, string> = {};
-      const projectToIdeaMap: Record<string, string> = {};
-      approvedProjects.forEach((idea: any) => {
-        if (idea.projectId) {
-          ideaToProjectMap[idea.id] = idea.projectId;
-          projectToIdeaMap[idea.projectId] = idea.id;
-        }
-      });
-
-      // Create a map of ideaId -> request data (since UI uses idea IDs)
-      const requestsMap: Record<string, any> = {};
-      userRequests.forEach((req: any) => {
-        // Extract projectId - could be populated object or plain string, handle null
-        if (!req.projectId) return; // Skip if projectId is null/undefined
-        const reqProjectId = typeof req.projectId === 'object'
-          ? (req.projectId?.id || req.projectId?._id || req.projectId)
-          : req.projectId;
-        if (!reqProjectId) return; // Skip if we couldn't extract a valid projectId
-        // Map the project ID back to idea ID for UI lookup
-        const ideaId = projectToIdeaMap[String(reqProjectId)] || String(reqProjectId);
-        console.log('Mapping request:', { reqProjectId, ideaId, status: req.status });
-        // Store by both ideaId AND projectId to ensure lookup works
-        requestsMap[ideaId] = req;
-        requestsMap[String(reqProjectId)] = req;
-      });
-      console.log('Final requestsMap:', requestsMap);
-      setUserJoinRequests(requestsMap);
-
-      const membershipSet = new Set<string>();
-
-      // Check each project for membership using actual project ID
-      for (const project of approvedProjects) {
-        const actualProjectId = project.projectId || project.id;
-        const members = await getProjectMembers(actualProjectId);
-        // Use string comparison for userId - add null check for m.userId
-        const isMember = members.some((m: any) => m.userId && String(m.userId) === String(user.id));
-        console.log('Member check for project:', {
-          ideaId: project.id,
-          projectId: actualProjectId,
-          membersCount: members.length,
-          memberUserIds: members.filter((m: any) => m.userId).map((m: any) => String(m.userId)),
-          currentUserId: String(user.id),
-          isMember
-        });
-        if (isMember) {
-          // Store BOTH the idea ID and project ID in memberships to ensure lookup works
-          membershipSet.add(project.id);
-          if (project.projectId) {
-            membershipSet.add(project.projectId);
-          }
-        }
-      }
-
-      console.log('Final membershipSet:', Array.from(membershipSet));
-      setUserMemberships(membershipSet);
-    } catch (error) {
-      console.error('Error loading user access status:', error);
-    }
-  };
+  }, [ideasRefreshSignal, loadAllDataOptimized]);
 
   const requestToJoin = async (_projectId: string) => {
     if (!user) {
@@ -554,7 +623,7 @@ export default function BrowseProjects() {
     }
   };
 
-  const getProjectButtonState = (ideaId: string, actualProjectId: string | undefined, creatorId: string) => {
+  const getProjectButtonState = useCallback((ideaId: string, actualProjectId: string | undefined, creatorId: string) => {
     // Check using both ideaId AND actualProjectId for membership and requests
     const isMemberByIdeaId = userMemberships.has(ideaId);
     const isMemberByProjectId = actualProjectId ? userMemberships.has(actualProjectId) : false;
@@ -564,28 +633,12 @@ export default function BrowseProjects() {
     const requestByProjectId = actualProjectId ? userJoinRequests[actualProjectId] : undefined;
     const request = requestByIdeaId || requestByProjectId;
 
-    console.log('Button state check:', {
-      ideaId,
-      actualProjectId,
-      creatorId,
-      userId: user?.id,
-      isCreator: String(creatorId) === String(user?.id),
-      isMemberByIdeaId,
-      isMemberByProjectId,
-      isMember,
-      hasRequestByIdeaId: !!requestByIdeaId,
-      hasRequestByProjectId: !!requestByProjectId,
-      requestStatus: request?.status,
-      allMemberships: Array.from(userMemberships),
-      allRequestKeys: Object.keys(userJoinRequests)
-    });
     if (!user) return { text: 'Login to Join', disabled: true, action: 'login' };
     // Use String() comparison for consistent matching
     if (String(creatorId) === String(user.id)) return { text: 'Manage →', disabled: false, action: 'manage' };
     if (isMember) return { text: 'Open Workspace ', disabled: false, action: 'open' };
 
     if (request) {
-      console.log('Found request:', request.status);
       if (request.status === 'approved') {
         // When request is approved, show Open Workspace directly
         return { text: 'Open Workspace ', disabled: false, action: 'open' };
@@ -597,7 +650,7 @@ export default function BrowseProjects() {
     }
 
     return { text: 'Request to Join', disabled: false, action: 'request' };
-  };
+  }, [user, userMemberships, userJoinRequests]);
 
   const showProjectDetails = (project: Project) => {
     setSelectedProjectForDetails(project);
@@ -657,31 +710,53 @@ export default function BrowseProjects() {
       setSelectedProject(null);
 
       // Reload access status to show pending state
-      await loadUserAccessStatus();
+      await refreshAccessStatus();
     } catch (error: any) {
       console.error('❌ Application submission failed:', error);
       alert(error.message || 'Failed to submit application');
     }
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || project.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
+  // Debounced search for better performance
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Represent user's ideas as completed-task entries (for display in My Projects)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 150);
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
 
-  // Only show projects in My Projects tab (not ideas)
-  // const combinedMyWork: Project[] = [...myProjects, ...myIdeasAsProjects];
+  // Memoized filtered projects - only recalculates when dependencies change
+  const filteredProjects = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase();
+    const categoryLower = selectedCategory.toLowerCase();
+    return projects.filter(project => {
+      const matchesSearch = !debouncedSearch ||
+        project.title.toLowerCase().includes(searchLower) ||
+        project.description.toLowerCase().includes(searchLower);
+      const matchesCategory = selectedCategory === 'all' || project.category.toLowerCase() === categoryLower;
+      return matchesSearch && matchesCategory;
+    });
+  }, [projects, debouncedSearch, selectedCategory]);
 
-  const completedByProject: Record<string, any[]> = completedTasks.reduce((acc: Record<string, any[]>, t: any) => {
-    const key = t.projectId || t.projectTitle || 'Unknown Project';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(t);
-    return acc;
-  }, {});
+  // Memoized completed tasks grouped by project
+  const completedByProject = useMemo(() => {
+    return completedTasks.reduce((acc: Record<string, any[]>, t: any) => {
+      const key = t.projectId || t.projectTitle || 'Unknown Project';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(t);
+      return acc;
+    }, {});
+  }, [completedTasks]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4 md:p-6">

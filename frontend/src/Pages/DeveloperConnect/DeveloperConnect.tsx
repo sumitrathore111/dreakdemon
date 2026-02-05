@@ -20,7 +20,7 @@ import {
     UserMinus,
     X
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import CustomSelect from '../../Component/Global/CustomSelect';
 import { useAuth } from '../../Context/AuthContext';
@@ -29,6 +29,32 @@ import { apiRequest } from '../../service/api';
 import { getSocket, initializeSocket } from '../../service/socketService';
 import { approveJoinRequest, createStudyGroup, deleteStudyGroup, getAllStudyGroups, rejectJoinRequest, removeMember, requestJoinStudyGroup } from '../../service/studyGroupsService';
 import type { DeveloperProfile } from '../../types/developerConnect';
+
+// ============================================
+// Frontend cache for INSTANT loading
+// ============================================
+interface CachedPageData {
+  developers: DeveloperProfile[];
+  studyGroups: any[];
+  techReviews: any[];
+  helpRequests: any[];
+  timestamp: number;
+}
+
+let pageDataCache: CachedPageData | null = null;
+const CACHE_TTL = 60 * 1000; // 60 seconds
+
+function getCachedPageData(): CachedPageData | null {
+  if (pageDataCache && Date.now() - pageDataCache.timestamp < CACHE_TTL) {
+    return pageDataCache;
+  }
+  pageDataCache = null;
+  return null;
+}
+
+function setCachedPageData(data: Omit<CachedPageData, 'timestamp'>): void {
+  pageDataCache = { ...data, timestamp: Date.now() };
+}
 
 // Helper function to format timestamps
 const formatTimestamp = (timestamp: any): string => {
@@ -131,6 +157,8 @@ export default function DeveloperConnect() {
 
   const [activeTab, setActiveTab] = useState<'directory' | 'messages' | 'groups' | 'reviews'>('directory');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [lookingForFilter, setLookingForFilter] = useState('');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -142,6 +170,17 @@ export default function DeveloperConnect() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<any[]>([]);
+
+  // Debounce search for performance
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 150);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
 
   // Pagination
   const [displayLimit, setDisplayLimit] = useState(12);
@@ -339,22 +378,44 @@ export default function DeveloperConnect() {
     }
   }, [chatId, user?.id]);
 
-  // Fetch ALL initial data in one optimized call
+  // Fetch ALL initial data - SUPERFAST with cache-first pattern
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        // CHECK CACHE FIRST - instant load!
+        const cached = getCachedPageData();
+        if (cached) {
+          // INSTANT UI from cache
+          setDevelopers(cached.developers);
+          setStudyGroups(cached.studyGroups);
+          setTechReviews(cached.techReviews);
+          setHelpRequests(cached.helpRequests);
+          setLoading(false);
+
+          // Refresh in background (stale-while-revalidate)
+          refreshDataInBackground();
+          return;
+        }
+
+        // No cache - show loading briefly
         setLoading(true);
         setError(null);
 
         // Use optimized endpoint that fetches everything in parallel
         const data = await apiRequest('/developers/init/page-data');
 
-        console.log('Developer Connect data loaded:', data);
-
         setDevelopers(data.developers || []);
         setStudyGroups(data.studyGroups || []);
         setTechReviews(data.techReviews || []);
         setHelpRequests(data.helpRequests || []);
+
+        // Cache for next visit
+        setCachedPageData({
+          developers: data.developers || [],
+          studyGroups: data.studyGroups || [],
+          techReviews: data.techReviews || [],
+          helpRequests: data.helpRequests || []
+        });
 
         if (!data.developers || data.developers.length === 0) {
           setError('No developers found. The community is waiting for you!');
@@ -370,15 +431,49 @@ export default function DeveloperConnect() {
             apiRequest('/developers/help-requests').catch(() => ({ requests: [] }))
           ]);
 
-          setDevelopers(developersData || []);
-          setStudyGroups(groupsData.groups || []);
-          setTechReviews(reviewsData.reviews || []);
-          setHelpRequests(requestsData.requests || []);
+          const devs = developersData || [];
+          const groups = groupsData.groups || [];
+          const reviews = reviewsData.reviews || [];
+          const requests = requestsData.requests || [];
+
+          setDevelopers(devs);
+          setStudyGroups(groups);
+          setTechReviews(reviews);
+          setHelpRequests(requests);
+
+          // Cache fallback data too
+          setCachedPageData({
+            developers: devs,
+            studyGroups: groups,
+            techReviews: reviews,
+            helpRequests: requests
+          });
         } catch (fallbackErr) {
           setError('Failed to load developers: ' + (err instanceof Error ? err.message : String(err)));
         }
       } finally {
         setLoading(false);
+      }
+    };
+
+    // Background refresh helper
+    const refreshDataInBackground = async () => {
+      try {
+        const data = await apiRequest('/developers/init/page-data');
+
+        setDevelopers(data.developers || []);
+        setStudyGroups(data.studyGroups || []);
+        setTechReviews(data.techReviews || []);
+        setHelpRequests(data.helpRequests || []);
+
+        setCachedPageData({
+          developers: data.developers || [],
+          studyGroups: data.studyGroups || [],
+          techReviews: data.techReviews || [],
+          helpRequests: data.helpRequests || []
+        });
+      } catch {
+        // Silently ignore background refresh errors - we already have cached data
       }
     };
 
@@ -740,22 +835,30 @@ export default function DeveloperConnect() {
     }
   }, [selectedGroup?.id, user]);
 
+  // MEMOIZED filtering for performance - only recomputes when dependencies change
+  const filteredDevelopers = useMemo(() => {
+    const queryLower = debouncedSearch.toLowerCase();
+    return developers.filter(dev => {
+      const devSkills = dev.skills || [];
+      const devLookingFor = dev.lookingFor || '';
 
-  const filteredDevelopers = developers.filter(dev => {
-    const devSkills = dev.skills || [];
-    const devLookingFor = dev.lookingFor || '';
+      const matchesSearch = !debouncedSearch ||
+        (dev.name || '').toLowerCase().includes(queryLower) ||
+        devSkills.some(s => s.toLowerCase().includes(queryLower));
+      const matchesSkills = selectedSkills.length === 0 ||
+        selectedSkills.some(s => devSkills.includes(s));
+      const matchesLookingFor = !lookingForFilter || devLookingFor.includes(lookingForFilter);
 
-    const matchesSearch = (dev.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         devSkills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesSkills = selectedSkills.length === 0 ||
-                         selectedSkills.some(s => devSkills.includes(s));
-    const matchesLookingFor = !lookingForFilter || devLookingFor.includes(lookingForFilter);
+      return matchesSearch && matchesSkills && matchesLookingFor;
+    });
+  }, [developers, debouncedSearch, selectedSkills, lookingForFilter]);
 
-    return matchesSearch && matchesSkills && matchesLookingFor;
-  });
+  // MEMOIZED display slice
+  const displayedDevelopers = useMemo(() =>
+    filteredDevelopers.slice(0, displayLimit),
+    [filteredDevelopers, displayLimit]
+  );
 
-  // Apply display limit for pagination
-  const displayedDevelopers = filteredDevelopers.slice(0, displayLimit);
   const canLoadMore = filteredDevelopers.length > displayLimit;
 
   const allSkills = ['React', 'Node.js', 'Python', 'Java', 'MongoDB', 'TypeScript', 'AWS', 'Machine Learning'];

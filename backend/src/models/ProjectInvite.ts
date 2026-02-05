@@ -65,6 +65,6 @@ ProjectInviteSchema.index({ projectId: 1, invitedUserId: 1 }, { unique: true });
 ProjectInviteSchema.index({ invitedUserId: 1, status: 1 });
 ProjectInviteSchema.index({ invitedBy: 1 });
 ProjectInviteSchema.index({ expiresAt: 1 });
-ProjectInviteSchema.index({ inviteToken: 1 }, { unique: true });
+// `inviteToken` already has `unique: true` in schema field definition
 
 export default mongoose.model<IProjectInvite>('ProjectInvite', ProjectInviteSchema);

@@ -250,7 +250,7 @@ const LearningProgressSchema: Schema = new Schema({
 });
 
 // Indexes
-RoadmapSchema.index({ slug: 1 });
+// `slug` already has `unique: true` in schema field definition
 RoadmapSchema.index({ category: 1, isPublished: 1 });
 RoadmapSchema.index({ isFeatured: 1, isPublished: 1 });
 TopicSchema.index({ roadmapId: 1, phase: 1, order: 1 });

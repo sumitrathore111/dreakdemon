@@ -10,15 +10,37 @@ import {
     TrendingUp,
     Users
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CustomSelect from '../../Component/Global/CustomSelect';
 import {
     CATEGORY_LABELS,
     DIFFICULTY_LABELS,
     getAllRoadmaps,
+    prefetchRoadmap,
     type Roadmap
 } from '../../service/roadmapService';
+
+// Component-level cache for instant revisit
+interface RoadmapCache {
+  roadmaps: Roadmap[];
+  timestamp: number;
+}
+const CACHE_TTL = 60000; // 60 seconds
+let roadmapListCache: RoadmapCache | null = null;
+
+const getCachedRoadmaps = (): Roadmap[] | null => {
+  if (!roadmapListCache) return null;
+  if (Date.now() - roadmapListCache.timestamp > CACHE_TTL) {
+    roadmapListCache = null;
+    return null;
+  }
+  return roadmapListCache.roadmaps;
+};
+
+const setCachedRoadmaps = (roadmaps: Roadmap[]) => {
+  roadmapListCache = { roadmaps, timestamp: Date.now() };
+};
 
 const categoryOptions = [
   { value: 'all', label: 'All Categories' },
@@ -32,26 +54,58 @@ const difficultyOptions = [
 
 export default function RoadmapList() {
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
-  const [filteredRoadmaps, setFilteredRoadmaps] = useState<Roadmap[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const fetchingRef = useRef(false);
 
-  const loadRoadmaps = useCallback(async () => {
+  // Debounce search for performance
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 150);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery]);
+
+  // Cache-first loading with background refresh
+  const loadRoadmaps = useCallback(async (skipCache = false) => {
+    if (fetchingRef.current && !skipCache) return;
+
+    // CHECK CACHE FIRST - instant load!
+    if (!skipCache) {
+      const cached = getCachedRoadmaps();
+      if (cached) {
+        setRoadmaps(cached);
+        setLoading(false);
+        // Refresh in background (stale-while-revalidate)
+        loadRoadmaps(true);
+        return;
+      }
+    }
+
+    fetchingRef.current = true;
+    if (!skipCache) setLoading(true);
+
     try {
-      setLoading(true);
       const data = await getAllRoadmaps();
       setRoadmaps(data);
-      setFilteredRoadmaps(data);
+      setCachedRoadmaps(data);
     } catch (error) {
       console.error('Error loading roadmaps:', error);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
   }, []);
 
-  const applyFilters = useCallback(() => {
+  // MEMOIZED filtering - only recalculates when dependencies change
+  const filteredRoadmaps = useMemo(() => {
     let filtered = [...roadmaps];
 
     if (selectedCategory !== 'all') {
@@ -62,8 +116,8 @@ export default function RoadmapList() {
       filtered = filtered.filter(r => r.difficulty === selectedDifficulty);
     }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(
         r =>
           r.title.toLowerCase().includes(query) ||
@@ -72,25 +126,23 @@ export default function RoadmapList() {
       );
     }
 
-    setFilteredRoadmaps(filtered);
-  }, [roadmaps, searchQuery, selectedCategory, selectedDifficulty]);
+    return filtered;
+  }, [roadmaps, debouncedSearch, selectedCategory, selectedDifficulty]);
 
   useEffect(() => {
     loadRoadmaps();
   }, [loadRoadmaps]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-
-  const stats = {
+  // MEMOIZED stats - only recalculates when roadmaps change
+  const stats = useMemo(() => ({
     totalRoadmaps: roadmaps.length,
     totalTopics: roadmaps.reduce((sum, r) => sum + r.totalTopics, 0),
     totalResources: roadmaps.reduce((sum, r) => sum + r.totalResources, 0),
     totalLearners: roadmaps.reduce((sum, r) => sum + r.enrolledCount, 0)
-  };
+  }), [roadmaps]);
 
-  const featuredRoadmaps = roadmaps.filter(r => r.isFeatured);
+  // MEMOIZED featured roadmaps
+  const featuredRoadmaps = useMemo(() => roadmaps.filter(r => r.isFeatured), [roadmaps]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
@@ -185,6 +237,7 @@ export default function RoadmapList() {
                 key={roadmap._id}
                 to={`/dashboard/roadmaps/${roadmap.slug}`}
                 className="block"
+                onMouseEnter={() => prefetchRoadmap(roadmap.slug)}
               >
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -317,7 +370,10 @@ export default function RoadmapList() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * index }}
             >
-              <Link to={`/dashboard/roadmaps/${roadmap.slug}`}>
+              <Link
+                to={`/dashboard/roadmaps/${roadmap.slug}`}
+                onMouseEnter={() => prefetchRoadmap(roadmap.slug)}
+              >
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] dark:hover:border-[#00ADB5] transition-all hover:shadow-lg group h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div

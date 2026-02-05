@@ -7,10 +7,50 @@ import emailNotifications from '../services/emailService';
 
 const router = Router();
 
-// Get all ideas (with optional filters)
+// ============================================
+// In-memory cache for ideas (fast loading)
+// ============================================
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+function getCache(key: string): any | null {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
+    return entry.data;
+  }
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+function invalidateIdeasCache(): void {
+  // Clear all ideas-related cache entries
+  for (const key of cache.keys()) {
+    if (key.startsWith('ideas:')) {
+      cache.delete(key);
+    }
+  }
+}
+
+// Get all ideas (with optional filters) - CACHED
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status, category, userId, limit = 50, page = 1 } = req.query;
+
+    // Build cache key from query params
+    const cacheKey = `ideas:list:${status || 'all'}:${category || 'all'}:${userId || 'all'}:${page}:${limit}`;
+
+    // Try cache first
+    const cached = getCache(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.set('Cache-Control', 'private, max-age=60');
+      res.json(cached);
+      return;
+    }
 
     let query: any = {};
 
@@ -28,13 +68,20 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 
     const total = await Idea.countDocuments(query);
 
-    res.json({
+    const response = {
       ideas,
       total,
       page: Number(page),
       limit: Number(limit),
       totalPages: Math.ceil(total / Number(limit))
-    });
+    };
+
+    // Cache the response
+    setCache(cacheKey, response);
+
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'private, max-age=60');
+    res.json(response);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -81,6 +128,9 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     });
 
     await idea.save();
+
+    // Invalidate cache after new idea
+    invalidateIdeasCache();
 
     // Send email notification to admins about new idea (async, don't wait)
     try {
@@ -133,6 +183,9 @@ router.put('/:ideaId', authenticate, async (req: AuthRequest, res: Response): Pr
       },
       { new: true }
     );
+
+    // Invalidate cache after update
+    invalidateIdeasCache();
 
     res.json({
       message: 'Idea updated successfully',
@@ -231,6 +284,9 @@ router.put('/:ideaId/status', authenticate, async (req: AuthRequest, res: Respon
       console.error('Failed to send idea status email notification:', emailError);
     }
 
+    // Invalidate cache after status change
+    invalidateIdeasCache();
+
     res.json({
       message: `Idea ${status} successfully`,
       idea: updatedIdea
@@ -256,6 +312,9 @@ router.delete('/:ideaId', authenticate, async (req: AuthRequest, res: Response):
     }
 
     await Idea.findByIdAndDelete(req.params.ideaId);
+
+    // Invalidate cache after delete
+    invalidateIdeasCache();
 
     res.json({ message: 'Idea and associated project deleted successfully' });
   } catch (error: any) {

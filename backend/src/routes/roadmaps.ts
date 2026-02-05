@@ -2,14 +2,38 @@ import express, { Response } from 'express';
 import mongoose from 'mongoose';
 import { auth, AuthRequest, optionalAuth } from '../middleware/auth';
 import {
-  CareerInfo,
-  InterviewQuestion,
-  LearningProgress,
-  Roadmap,
-  Topic
+    CareerInfo,
+    InterviewQuestion,
+    LearningProgress,
+    Roadmap,
+    Topic
 } from '../models/Roadmap';
 
 const router = express.Router();
+
+// ==================== IN-MEMORY CACHE ====================
+interface CacheEntry<T> {
+  data: T;
+  expires: number;
+}
+
+const cache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL_LIST = 5 * 60 * 1000;   // 5 minutes for list
+const CACHE_TTL_DETAIL = 2 * 60 * 1000; // 2 minutes for detail
+
+function getCache<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCache<T>(key: string, data: T, ttl: number): void {
+  cache.set(key, { data, expires: Date.now() + ttl });
+}
 
 // Badge type for type safety
 interface Badge {
@@ -20,47 +44,59 @@ interface Badge {
 
 // ==================== ROADMAP ROUTES ====================
 
-// Get all roadmaps (public)
+// Get all roadmaps (public) - with caching
 router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { category, difficulty, featured, search } = req.query;
+    const cacheKey = `roadmaps:${category || 'all'}:${difficulty || 'all'}:${featured || ''}:${search || ''}`;
 
-    const filter: any = { isPublished: true };
+    // Try to get from cache first (for unauthenticated or base data)
+    let roadmaps = getCache<any[]>(cacheKey);
 
-    if (category && category !== 'all') {
-      filter.category = category;
-    }
-    if (difficulty && difficulty !== 'all') {
-      filter.difficulty = difficulty;
-    }
-    if (featured === 'true') {
-      filter.isFeatured = true;
-    }
-    if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search as string, 'i')] } }
-      ];
+    if (!roadmaps) {
+      const filter: any = { isPublished: true };
+
+      if (category && category !== 'all') {
+        filter.category = category;
+      }
+      if (difficulty && difficulty !== 'all') {
+        filter.difficulty = difficulty;
+      }
+      if (featured === 'true') {
+        filter.isFeatured = true;
+      }
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search as string, 'i')] } }
+        ];
+      }
+
+      roadmaps = await Roadmap.find(filter)
+        .sort({ isFeatured: -1, enrolledCount: -1, createdAt: -1 })
+        .lean();
+
+      // Cache the base roadmaps list
+      setCache(cacheKey, roadmaps, CACHE_TTL_LIST);
     }
 
-    const roadmaps = await Roadmap.find(filter)
-      .sort({ isFeatured: -1, enrolledCount: -1, createdAt: -1 })
-      .lean();
+    // Set cache headers for browser
+    res.set('Cache-Control', 'public, max-age=60');
 
     // If user is authenticated, add their progress
     if (req.user) {
       const userId = req.user._id;
       const progressList = await LearningProgress.find({
         userId,
-        roadmapId: { $in: roadmaps.map(r => r._id) }
+        roadmapId: { $in: roadmaps.map((r: any) => r._id) }
       }).lean();
 
       const progressMap = new Map(
         progressList.map(p => [p.roadmapId.toString(), p])
       );
 
-      const roadmapsWithProgress = roadmaps.map(roadmap => {
+      const roadmapsWithProgress = roadmaps.map((roadmap: any) => {
         const progress = progressMap.get(roadmap._id.toString());
         const totalTopics = roadmap.totalTopics || 1;
         const completedTopics = progress?.completedTopics?.length || 0;
@@ -86,44 +122,58 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Get single roadmap with topics (public)
+// Get single roadmap with topics (public) - with caching
 router.get('/:slug', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { slug } = req.params;
+    const cacheKey = `roadmap:${slug}`;
 
-    const roadmap = await Roadmap.findOne({ slug, isPublished: true }).lean();
+    // Try to get cached base data
+    let cachedData = getCache<{
+      roadmap: any;
+      topicsByPhase: any;
+      careerInfo: any;
+      questionStats: any;
+    }>(cacheKey);
 
-    if (!roadmap) {
-      return res.status(404).json({ error: 'Roadmap not found' });
+    if (!cachedData) {
+      const roadmap = await Roadmap.findOne({ slug, isPublished: true }).lean();
+
+      if (!roadmap) {
+        return res.status(404).json({ error: 'Roadmap not found' });
+      }
+
+      // Run all independent queries in parallel for faster load
+      const [topics, careerInfo, questionStats] = await Promise.all([
+        Topic.find({ roadmapId: roadmap._id }).sort({ phase: 1, order: 1 }).lean(),
+        CareerInfo.find({ roadmapId: roadmap._id }).lean(),
+        InterviewQuestion.aggregate([
+          { $match: { roadmapId: roadmap._id } },
+          { $group: { _id: '$difficulty', count: { $sum: 1 } } }
+        ])
+      ]);
+
+      // Group topics by phase
+      const topicsByPhase = {
+        beginner: topics.filter(t => t.phase === 'beginner'),
+        intermediate: topics.filter(t => t.phase === 'intermediate'),
+        advanced: topics.filter(t => t.phase === 'advanced'),
+        interview: topics.filter(t => t.phase === 'interview')
+      };
+
+      cachedData = { roadmap, topicsByPhase, careerInfo, questionStats };
+      setCache(cacheKey, cachedData, CACHE_TTL_DETAIL);
     }
 
-    // Get all topics for this roadmap
-    const topics = await Topic.find({ roadmapId: roadmap._id })
-      .sort({ phase: 1, order: 1 })
-      .lean();
+    // Set cache headers
+    res.set('Cache-Control', 'public, max-age=30');
 
-    // Group topics by phase
-    const topicsByPhase = {
-      beginner: topics.filter(t => t.phase === 'beginner'),
-      intermediate: topics.filter(t => t.phase === 'intermediate'),
-      advanced: topics.filter(t => t.phase === 'advanced'),
-      interview: topics.filter(t => t.phase === 'interview')
-    };
-
-    // Get career info
-    const careerInfo = await CareerInfo.find({ roadmapId: roadmap._id }).lean();
-
-    // Get question count by difficulty
-    const questionStats = await InterviewQuestion.aggregate([
-      { $match: { roadmapId: roadmap._id } },
-      { $group: { _id: '$difficulty', count: { $sum: 1 } } }
-    ]);
-
+    // Fetch user progress separately (always fresh)
     let userProgress: any = null;
     if (req.user) {
       const progress = await LearningProgress.findOne({
         userId: req.user._id,
-        roadmapId: roadmap._id
+        roadmapId: cachedData.roadmap._id
       }).lean();
 
       if (progress) {
@@ -136,7 +186,7 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res: Response) => {
           completedTopics: progress.completedTopics,
           completedTopicIds: Array.from(completedTopicIds),
           progressPercent: Math.round(
-            (progress.completedTopics.length / (roadmap.totalTopics || 1)) * 100
+            (progress.completedTopics.length / (cachedData.roadmap.totalTopics || 1)) * 100
           ),
           startedAt: progress.startedAt,
           lastAccessedAt: progress.lastAccessedAt,
@@ -147,10 +197,7 @@ router.get('/:slug', optionalAuth, async (req: AuthRequest, res: Response) => {
     }
 
     res.json({
-      roadmap,
-      topicsByPhase,
-      careerInfo,
-      questionStats,
+      ...cachedData,
       userProgress
     });
   } catch (error: any) {

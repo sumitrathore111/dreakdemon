@@ -1,10 +1,37 @@
 import { Activity, Award, BarChart3, Calendar, Code, Code2, Flame, FolderOpen, Map, MessageSquare, RefreshCw, Share2, Star, Target, Trophy, Users } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { apiRequest } from '../../service/api';
+
+// DASHBOARD CACHE - 60 second TTL for instant revisit loading
+interface DashboardCache {
+  codeArenaStats: any;
+  projectStats: any;
+  weeklyProgress: any[];
+  monthlyStats: any[];
+  earnedBadges: any[];
+  completedTasksCount: number;
+  timestamp: number;
+}
+
+const CACHE_TTL = 60000; // 60 seconds
+let dashboardCache: DashboardCache | null = null;
+
+const getCachedDashboard = (): DashboardCache | null => {
+  if (!dashboardCache) return null;
+  if (Date.now() - dashboardCache.timestamp > CACHE_TTL) {
+    dashboardCache = null;
+    return null;
+  }
+  return dashboardCache;
+};
+
+const setCachedDashboard = (data: Omit<DashboardCache, 'timestamp'>) => {
+  dashboardCache = { ...data, timestamp: Date.now() };
+};
 
 // Badge Definitions
 const BADGE_DEFINITIONS = [
@@ -230,10 +257,29 @@ export default function DashboardComingSoon() {
   };
 
   // Calculate real analytics from user data - wrapped in useCallback for real-time updates
-  const calculateRealAnalytics = useCallback(async (isManualRefresh = false) => {
+  const calculateRealAnalytics = useCallback(async (isManualRefresh = false, skipCache = false) => {
     if (!user) return;
 
     try {
+      // CHECK CACHE FIRST - instant load!
+      if (!isManualRefresh && !skipCache) {
+        const cached = getCachedDashboard();
+        if (cached) {
+          // INSTANT UI from cache
+          setCodeArenaStats(cached.codeArenaStats);
+          setProjectStats(cached.projectStats);
+          setWeeklyProgress(cached.weeklyProgress);
+          setMonthlyStats(cached.monthlyStats);
+          setEarnedBadges(cached.earnedBadges);
+          setCompletedTasksCount(cached.completedTasksCount);
+          setLoading(false);
+          setLastUpdated(new Date());
+          // Refresh in background (stale-while-revalidate)
+          calculateRealAnalytics(true, true);
+          return;
+        }
+      }
+
       if (isManualRefresh) {
         setIsRefreshing(true);
       } else {
@@ -483,6 +529,36 @@ export default function DashboardComingSoon() {
         challenges: solvedChallenges
       });
 
+      // CACHE dashboard data for instant revisit
+      const monthlyStatsData = [
+        { name: 'Code Challenges', value: solvedChallenges, color: '#3b82f6', percentage: totalActivities > 0 ? Math.round((solvedChallenges / totalActivities) * 100) : 0 },
+        { name: 'Battle Wins', value: battleWins, color: '#10b981', percentage: totalActivities > 0 ? Math.round((battleWins / totalActivities) * 100) : 0 },
+        { name: 'Projects Created', value: userCreatedProjects.length, color: '#f59e0b', percentage: totalActivities > 0 ? Math.round((userCreatedProjects.length / totalActivities) * 100) : 0 },
+        { name: 'Collaborations', value: contributingProjects, color: '#8b5cf6', percentage: totalActivities > 0 ? Math.round((contributingProjects / totalActivities) * 100) : 0 }
+      ];
+      setCachedDashboard({
+        codeArenaStats: {
+          challengesSolved: solvedChallenges,
+          coins: userWallet?.coins || 0,
+          battleWins,
+          submissions: userSubmissions?.length || 0,
+          acceptanceRate: userSubmissions?.length ? Math.round((acceptedSubmissions / userSubmissions.length) * 100) : 0,
+          todaysSolved,
+          totalSolved: solvedChallenges
+        },
+        projectStats: {
+          created: userCreatedProjects.length,
+          approved: approvedProjects,
+          contributing: contributingProjects,
+          total: userCreatedProjects.length + contributingProjects,
+          pendingReview: userCreatedProjects?.filter((p: any) => p.status === 'pending').length || 0
+        },
+        weeklyProgress: last7Days,
+        monthlyStats: monthlyStatsData,
+        earnedBadges: userprofile?.badges || [],
+        completedTasksCount: tasksCount
+      });
+
     } catch (error) {
       console.error('Error calculating analytics:', error);
     } finally {
@@ -617,7 +693,8 @@ export default function DashboardComingSoon() {
     return { skills, performanceData, achievements, activityData };
   };
 
-  const chartData = generateChartData();
+  // MEMOIZED chart data - only recalculates when dependencies change
+  const chartData = useMemo(() => generateChartData(), [codeArenaStats, projectStats, userprofile?.streakCount]);
 
   // Advanced Chart Components removed - were unused (RadialProgressChart, SkillComparisonChart, PerformanceTrendGraph, AchievementTimeline)
 

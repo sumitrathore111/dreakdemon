@@ -11,6 +11,33 @@ const getIO = (req: AuthRequest): SocketIOServer | null => {
   return req.app.get('io') as SocketIOServer | null;
 };
 
+// ============================================
+// In-memory cache for project members (fast loading)
+// ============================================
+const membersCache = new Map<string, { data: any; timestamp: number }>();
+const MEMBERS_CACHE_TTL = 60 * 1000; // 1 minute
+
+function getMembersCache(projectId: string): any | null {
+  const entry = membersCache.get(projectId);
+  if (entry && Date.now() - entry.timestamp < MEMBERS_CACHE_TTL) {
+    return entry.data;
+  }
+  membersCache.delete(projectId);
+  return null;
+}
+
+function setMembersCache(projectId: string, data: any): void {
+  membersCache.set(projectId, { data, timestamp: Date.now() });
+}
+
+export function invalidateMembersCache(projectId?: string): void {
+  if (projectId) {
+    membersCache.delete(projectId);
+  } else {
+    membersCache.clear();
+  }
+}
+
 const router = Router();
 
 // Get all projects (with filters)
@@ -277,15 +304,25 @@ router.get('/:projectId/role/:userId', authenticate, async (req: AuthRequest, re
   }
 });
 
-// Get project members
+// Get project members - CACHED
 router.get('/:projectId/members', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const projectId = req.params.projectId;
 
-    const project = await Project.findById(req.params.projectId)
+    // Try cache first
+    const cached = getMembersCache(projectId);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.set('Cache-Control', 'private, max-age=30');
+      res.json(cached);
+      return;
+    }
+
+    const project = await Project.findById(projectId)
       .populate('members.userId', 'name email _id');
 
     if (!project) {
-      console.log('❌ Project not found:', req.params.projectId);
+      console.log('❌ Project not found:', projectId);
       res.status(404).json({ error: 'Project not found' });
       return;
     }
@@ -307,8 +344,14 @@ router.get('/:projectId/members', authenticate, async (req: AuthRequest, res: Re
       };
     });
 
-    console.log('📋 Found project with', mappedMembers.length, 'members:', mappedMembers.map((m: any) => ({ userId: m.userId, name: m.name })));
-    res.json({ members: mappedMembers });
+    const response = { members: mappedMembers };
+
+    // Cache the response
+    setMembersCache(projectId, response);
+
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'private, max-age=30');
+    res.json(response);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -364,6 +407,9 @@ router.post('/:projectId/join', authenticate, async (req: AuthRequest, res: Resp
 
     await project.save();
 
+    // Invalidate members cache for this project
+    invalidateMembersCache(req.params.projectId);
+
     res.json({
       message: 'Successfully joined the project',
       project
@@ -392,6 +438,9 @@ router.post('/:projectId/leave', authenticate, async (req: AuthRequest, res: Res
     // Remove member
     project.members = project.members.filter(m => m.userId.toString() !== req.user?.id);
     await project.save();
+
+    // Invalidate members cache for this project
+    invalidateMembersCache(req.params.projectId);
 
     res.json({ message: 'Successfully left the project' });
   } catch (error: any) {
@@ -434,6 +483,9 @@ router.delete('/:projectId/members/:memberId', authenticate, async (req: AuthReq
     // Remove the member
     project.members = project.members.filter(m => m.userId.toString() !== memberIdToRemove);
     await project.save();
+
+    // Invalidate members cache for this project
+    invalidateMembersCache(req.params.projectId);
 
     // Emit socket event for real-time update
     const io = getIO(req);
