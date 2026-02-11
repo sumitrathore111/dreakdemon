@@ -1,18 +1,21 @@
 import nodemailer from 'nodemailer';
 
 // Email configuration - lazy initialization to ensure env vars are loaded
+// Using Brevo (formerly Sendinblue) SMTP
 let transporter: nodemailer.Transporter | null = null;
 
 const getTransporter = () => {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.BREVO_EMAIL, // Your Brevo login email
+        pass: process.env.BREVO_API_KEY // Your Brevo SMTP key
       }
     });
-    console.log('📧 Email transporter initialized with:', process.env.EMAIL_USER);
+    console.log('📧 Brevo email transporter initialized with:', process.env.BREVO_EMAIL);
   }
   return transporter;
 };
@@ -475,15 +478,15 @@ export const sendEmail = async (
   to: string,
   template: EmailTemplate
 ): Promise<boolean> => {
-  // Skip if email is not configured
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('📧 Email not configured, skipping notification');
+  // Skip if Brevo email is not configured
+  if (!process.env.BREVO_EMAIL || !process.env.BREVO_API_KEY) {
+    console.log('📧 Brevo email not configured, skipping notification');
     return false;
   }
 
   try {
     await getTransporter().sendMail({
-      from: `"SkillUpX" <${process.env.EMAIL_USER}>`,
+      from: `"SkillUpX" <${process.env.BREVO_EMAIL}>`,
       to,
       subject: template.subject,
       html: template.html
