@@ -3,7 +3,7 @@ import GitHubIntegration, { ProjectGitHubConnection } from '../models/GitHubInte
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || 'Ov23liUCOv2SlyGPyI1s';
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '619c17b059ac1b9d43703d8f0fd50b0d0f4ba834';
-const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'https://https://nextstepbackend-qhxw.onrender.com/api/github/callback';
+const GITHUB_REDIRECT_URI = process.env.GITHUB_REDIRECT_URI || 'https://nextstepbackend-qhxw.onrender.com/api/github/callback';
 // Use a stable fallback key for development - in production, set ENCRYPTION_KEY env var
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
 
