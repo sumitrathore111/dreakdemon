@@ -1,12 +1,16 @@
-import { MoreVertical, Send, Users } from 'lucide-react';
+import { Check, MoreVertical, Pencil, Send, Trash2, Users, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { API_URL } from '../../../service/apiConfig';
 import {
-  initializeSocket,
-  joinProjectRoom,
-  leaveProjectRoom,
-  offNewMessage,
-  onNewMessage
+    initializeSocket,
+    joinProjectRoom,
+    leaveProjectRoom,
+    offMessageDeleted,
+    offMessageEdited,
+    offNewMessage,
+    onMessageDeleted,
+    onMessageEdited,
+    onNewMessage
 } from '../../../service/socketService';
 
 interface Message {
@@ -15,6 +19,7 @@ interface Message {
   senderId: string;
   senderName: string;
   timestamp: string | Date;
+  updatedAt?: string | Date;
 }
 
 interface ProjectMember {
@@ -46,6 +51,8 @@ export function ProjectChat({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,6 +62,54 @@ export function ProjectChat({
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  // Edit message
+  const handleEditMessage = async (messageId: string) => {
+    if (!editText.trim()) return;
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/projects/${projectId}/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: editText.trim() })
+      });
+
+      if (response.ok) {
+        setMessages(prev => prev.map(m =>
+          m.id === messageId ? { ...m, text: editText.trim(), updatedAt: new Date().toISOString() } : m
+        ));
+        setEditingMessageId(null);
+        setEditText('');
+      }
+    } catch (err) {
+      console.error('Failed to edit message:', err);
+    }
+  };
+
+  // Delete message
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Delete this message?')) return;
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/projects/${projectId}/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+      }
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+    }
+  };
 
   // Fetch messages (isInitial = true for first load, false for polling)
   const fetchMessages = useCallback(async (isInitial = true) => {
@@ -171,6 +226,24 @@ export function ProjectChat({
 
     onNewMessage(handleNewMessage);
 
+    // Listen for message deletions
+    const handleMessageDeleted = (data: { messageId: string }) => {
+      console.log('🗑️ Real-time message deleted:', data.messageId);
+      setMessages(prev => prev.filter(m => m.id !== data.messageId));
+    };
+
+    onMessageDeleted(handleMessageDeleted);
+
+    // Listen for message edits
+    const handleMessageEdited = (data: { id: string; text: string; updatedAt: string }) => {
+      console.log('✏️ Real-time message edited:', data.id);
+      setMessages(prev => prev.map(m =>
+        m.id === data.id ? { ...m, text: data.text, updatedAt: data.updatedAt } : m
+      ));
+    };
+
+    onMessageEdited(handleMessageEdited);
+
     // Polling fallback - less frequent (15 seconds) since we have sockets
     const pollInterval = setInterval(() => {
       fetchMessages(false); // false = silent polling, no loading state
@@ -181,6 +254,8 @@ export function ProjectChat({
       clearInterval(pollInterval);
       leaveProjectRoom(projectId);
       offNewMessage(handleNewMessage);
+      offMessageDeleted(handleMessageDeleted);
+      offMessageEdited(handleMessageEdited);
     };
   }, [projectId, fetchMessages]);
 
@@ -364,11 +439,12 @@ export function ProjectChat({
                 const isOwn = message.senderId === currentUserId || String(message.senderId) === String(currentUserId);
                 const member = getMember(message.senderId);
                 const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId;
+                const isEditing = editingMessageId === message.id;
 
                 return (
                   <div
                     key={message.id}
-                    className={`flex items-end gap-2 ${isOwn ? 'justify-end' : 'justify-start'}`}
+                    className={`flex items-end gap-2 ${isOwn ? 'justify-end' : 'justify-start'} group`}
                   >
                     {!isOwn && showAvatar && (
                       <div className={`w-8 h-8 rounded-full ${getMemberColor(message.senderId)} flex items-center justify-center text-white text-sm font-medium flex-shrink-0`}>
@@ -381,19 +457,68 @@ export function ProjectChat({
                     )}
                     {!isOwn && !showAvatar && <div className="w-8" />}
 
-                    <div className={`max-w-[70%] ${isOwn ? 'order-1' : ''}`}>
+                    <div className={`max-w-[70%] ${isOwn ? 'order-1' : ''} relative`}>
                       {!isOwn && showAvatar && (
                         <p className="text-xs text-gray-500 mb-1 ml-1">{message.senderName}</p>
                       )}
-                      <div
-                        className={`px-4 py-2 rounded-2xl ${
-                          isOwn
-                            ? 'bg-teal-500 text-white rounded-br-md'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md'
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
-                      </div>
+
+                      {isEditing ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleEditMessage(message.id);
+                              if (e.key === 'Escape') { setEditingMessageId(null); setEditText(''); }
+                            }}
+                          />
+                          <button onClick={() => handleEditMessage(message.id)} className="p-1.5 bg-teal-500 text-white rounded-full hover:bg-teal-600">
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => { setEditingMessageId(null); setEditText(''); }} className="p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-full hover:bg-gray-400">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            className={`px-4 py-2 rounded-2xl ${
+                              isOwn
+                                ? 'bg-teal-500 text-white rounded-br-md'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                            {message.updatedAt && (
+                              <p className={`text-[10px] mt-1 ${isOwn ? 'text-teal-100' : 'text-gray-400'}`}>(edited)</p>
+                            )}
+                          </div>
+
+                          {/* Edit/Delete menu for own messages */}
+                          {isOwn && !message.id.startsWith('temp-') && (
+                            <div className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                              <button
+                                onClick={() => { setEditingMessageId(message.id); setEditText(message.text); }}
+                                className="p-1.5 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+                                title="Edit"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMessage(message.id)}
+                                className="p-1.5 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-600 dark:text-gray-300 hover:text-red-500"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+
                       <p className={`text-xs text-gray-400 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}>
                         {formatTime(message.timestamp)}
                       </p>

@@ -10,7 +10,6 @@ import {
     Star,
     Swords,
     Target,
-    TrendingUp,
     Trophy,
     Users
 } from 'lucide-react';
@@ -664,9 +663,9 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
                         <p className="text-xs text-gray-500 dark:text-white">{player.problemsSolved} solved</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-[#00ADB5] dark:text-[#00ADB5]">
-                      <TrendingUp className="w-3 h-3" />
-                      <span className="text-sm font-medium">{player.rating}</span>
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <span className="text-sm">🪙</span>
+                      <span className="text-sm font-medium">{player.coins || player.totalCoins || 0}</span>
                     </div>
                   </div>
                 );

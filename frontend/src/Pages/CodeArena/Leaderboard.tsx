@@ -1,14 +1,13 @@
 import { motion } from 'framer-motion';
 import {
-  Award,
-  Calendar,
-  Clock,
-  Crown,
-  Loader2,
-  Medal,
-  Star,
-  TrendingUp,
-  Trophy
+    Award,
+    Calendar,
+    Clock,
+    Crown,
+    Loader2,
+    Medal,
+    Star,
+    Trophy
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
@@ -17,7 +16,7 @@ import { useDataContext } from '../../Context/UserDataContext';
 const Leaderboard = () => {
   const { user } = useAuth();
   const { fetchGlobalLeaderboard, fetchWeeklyLeaderboard, fetchMonthlyLeaderboard, getUserWallet } = useDataContext();
-  
+
   const [activeTab, setActiveTab] = useState<'global' | 'weekly' | 'monthly'>('global');
   const [rankings, setRankings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +26,10 @@ const Leaderboard = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      
+
       try {
         let data: any[] = [];
-        
+
         switch (activeTab) {
           case 'global':
             data = await fetchGlobalLeaderboard();
@@ -84,7 +83,7 @@ const Leaderboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
@@ -127,14 +126,14 @@ const Leaderboard = () => {
       </motion.div>
 
       {/* Top 3 Podium */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">Top Performers</h3>
-        
+
         <div className="flex items-end justify-center gap-4 md:gap-8">
           {/* 2nd Place */}
           {rankings[1] && (
@@ -157,7 +156,7 @@ const Leaderboard = () => {
               </p>
               <p className="text-gray-600 dark:text-white text-xs">Level {rankings[1]?.level}</p>
               <div className="mt-3 h-20 w-20 md:w-24 rounded-t-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center">
-                <span className="text-[#00ADB5] font-bold text-lg">{rankings[1]?.rating}</span>
+                <span className="text-[#00ADB5] font-bold text-lg">🪙 {rankings[1]?.coins || rankings[1]?.totalCoins || 0}</span>
                 <span className="text-gray-600 dark:text-white text-xs">{rankings[1]?.problemsSolved} solved</span>
               </div>
             </motion.div>
@@ -183,7 +182,7 @@ const Leaderboard = () => {
               </p>
               <p className="text-gray-600 dark:text-white text-xs">Level {rankings[0]?.level}</p>
               <div className="mt-3 h-28 w-24 md:w-28 rounded-t-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 shadow-md flex flex-col items-center justify-center">
-                <span className="text-[#00ADB5] font-bold text-xl">{rankings[0]?.rating}</span>
+                <span className="text-[#00ADB5] font-bold text-xl">🪙 {rankings[0]?.coins || rankings[0]?.totalCoins || 0}</span>
                 <span className="text-gray-600 dark:text-white text-xs">{rankings[0]?.problemsSolved} solved</span>
               </div>
             </motion.div>
@@ -210,7 +209,7 @@ const Leaderboard = () => {
               </p>
               <p className="text-gray-600 dark:text-white text-xs">Level {rankings[2]?.level}</p>
               <div className="mt-3 h-16 w-20 md:w-24 rounded-t-xl bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 flex flex-col items-center justify-center">
-                <span className="text-[#00ADB5] font-bold text-lg">{rankings[2]?.rating}</span>
+                <span className="text-[#00ADB5] font-bold text-lg">🪙 {rankings[2]?.coins || rankings[2]?.totalCoins || 0}</span>
                 <span className="text-gray-600 dark:text-white text-xs">{rankings[2]?.problemsSolved} solved</span>
               </div>
             </motion.div>
@@ -235,7 +234,7 @@ const Leaderboard = () => {
                   {myRank?.rank || '?'}
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-gray-900 dark:text-white font-semibold text-lg">{wallet?.userName || 'You'}</p>
                 <p className="text-sm text-gray-500 dark:text-white">Your Current Rank</p>
@@ -244,8 +243,8 @@ const Leaderboard = () => {
 
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <p className="text-[#00ADB5] font-bold text-xl">{myRank?.rating || wallet?.coins || 1000}</p>
-                <p className="text-xs text-gray-500">Rating</p>
+                <p className="text-[#00ADB5] font-bold text-xl">🪙 {wallet?.coins || 0}</p>
+                <p className="text-xs text-gray-500">Coins</p>
               </div>
               <div className="text-center">
                 <p className="text-emerald-600 font-bold text-xl">{myRank?.problemsSolved || 0}</p>
@@ -261,7 +260,7 @@ const Leaderboard = () => {
       )}
 
       {/* Rankings List */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -271,7 +270,7 @@ const Leaderboard = () => {
         <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300">
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-5">Player</div>
-          <div className="col-span-2 text-center">Rating</div>
+          <div className="col-span-2 text-center">Coins</div>
           <div className="col-span-2 text-center hidden sm:block">Solved</div>
           <div className="col-span-2 text-center hidden sm:block">Wins</div>
         </div>
@@ -337,11 +336,11 @@ const Leaderboard = () => {
                   </div>
                 </div>
 
-                {/* Rating */}
+                {/* Coins */}
                 <div className="col-span-2 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <TrendingUp className="w-4 h-4 text-[#00ADB5]" />
-                    <span className="text-[#00ADB5] font-bold">{player.rating}</span>
+                    <span className="text-amber-500">🪙</span>
+                    <span className="text-[#00ADB5] font-bold">{player.coins || player.totalCoins || 0}</span>
                   </div>
                 </div>
 
@@ -361,7 +360,7 @@ const Leaderboard = () => {
       </motion.div>
 
       {/* Rewards Info */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
@@ -371,15 +370,15 @@ const Leaderboard = () => {
           <Award className="w-5 h-5 text-amber-600" />
           Weekly Rewards
         </h3>
-        
+
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { rank: '1st Place', coins: 100, icon: Crown, bgColor: 'bg-amber-50 dark:bg-amber-900/30', iconBg: 'bg-amber-500', borderColor: 'border-amber-200 dark:border-amber-700' },
             { rank: '2nd Place', coins: 50, icon: Medal, bgColor: 'bg-gray-50 dark:bg-gray-700', iconBg: 'bg-gray-500', borderColor: 'border-gray-200 dark:border-gray-600' },
             { rank: '3rd Place', coins: 200, icon: Medal, bgColor: 'bg-orange-50 dark:bg-orange-900/30', iconBg: 'bg-orange-500', borderColor: 'border-orange-200 dark:border-orange-700' },
           ].map((reward, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 + i * 0.1 }}

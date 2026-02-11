@@ -1,12 +1,12 @@
 import {
-  Clock,
-  Play,
-  Plus,
-  RefreshCw,
-  Target,
-  Trophy,
-  X,
-  Zap
+    Clock,
+    Play,
+    Plus,
+    RefreshCw,
+    Target,
+    Trophy,
+    X,
+    Zap
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { API_URL } from '../../../service/apiConfig';
@@ -185,9 +185,9 @@ export default function SprintPlanning({
   }
 
   return (
-    <div className="h-full flex gap-4 overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row gap-4 overflow-hidden">
       {/* Backlog Panel */}
-      <div className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <div className="w-full lg:w-80 flex-shrink-0 bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden flex flex-col max-h-[40vh] lg:max-h-full">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Target className="w-5 h-5 text-gray-500" />
@@ -254,12 +254,12 @@ export default function SprintPlanning({
         {/* Active Sprint */}
         {activeSprint && (
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-200 dark:border-teal-800">
-              <div className="flex items-center justify-between">
+            <div className="p-3 sm:p-4 bg-teal-50 dark:bg-teal-900/20 border-b border-teal-200 dark:border-teal-800">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Zap className="w-5 h-5 text-teal-500" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                       {activeSprint.name}
                     </h3>
                     <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">
@@ -272,7 +272,7 @@ export default function SprintPlanning({
                     </p>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-sm text-gray-500">
                     {getDaysRemaining(activeSprint.endDate)} days remaining
                   </p>
@@ -286,31 +286,31 @@ export default function SprintPlanning({
               {(() => {
                 const stats = getSprintStats(activeSprint._id);
                 return (
-                  <div className="grid grid-cols-4 gap-4 mt-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mt-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Tasks</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                         {stats.completed}/{stats.taskCount}
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Progress</p>
-                      <p className="text-xl font-bold text-teal-600">
+                      <p className="text-lg sm:text-xl font-bold text-teal-600">
                         {stats.progress}%
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Points</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                         {stats.completedPoints}/{stats.totalPoints}
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
                       <button
                         onClick={() => handleCompleteSprint(activeSprint._id)}
-                        className="w-full h-full flex items-center justify-center gap-2 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
+                        className="w-full h-full flex items-center justify-center gap-1 sm:gap-2 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg text-sm sm:text-base"
                       >
-                        <Trophy className="w-5 h-5" />
+                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                         Complete
                       </button>
                     </div>
@@ -328,7 +328,7 @@ export default function SprintPlanning({
                 if (taskId) onTaskMoveToSprint(taskId, activeSprint._id);
               }}
             >
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(tasksBySprint[activeSprint._id] || []).map((task) => (
                   <div
                     key={task._id}
@@ -368,9 +368,9 @@ export default function SprintPlanning({
           const stats = getSprintStats(sprint._id);
           return (
             <div key={sprint._id} className="bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+              <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Clock className="w-5 h-5 text-gray-500" />
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {sprint.name}
@@ -385,7 +385,7 @@ export default function SprintPlanning({
                   <button
                     onClick={() => handleStartSprint(sprint._id)}
                     disabled={!!activeSprint}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm w-full sm:w-auto justify-center"
                   >
                     <Play className="w-4 h-4" />
                     Start Sprint
@@ -401,7 +401,7 @@ export default function SprintPlanning({
                   if (taskId) onTaskMoveToSprint(taskId, sprint._id);
                 }}
               >
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {(tasksBySprint[sprint._id] || []).map((task) => (
                     <div
                       key={task._id}

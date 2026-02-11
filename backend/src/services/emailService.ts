@@ -367,17 +367,91 @@ const emailTemplates = {
     `, 'New Challenge')
   }),
 
-  // Message notifications
+  // Message notifications - Direct Messages
   newMessage: (senderName: string, preview: string): EmailTemplate => ({
     subject: `💬 New Message from ${senderName}`,
     html: getEmailWrapper(`
-      <h2 style="color: #333; margin-bottom: 20px;">New Message!</h2>
+      <h2 style="color: #333; margin-bottom: 20px;">New Direct Message!</h2>
       <p style="color: #666; line-height: 1.6;">You have a new message from <strong>${senderName}</strong>:</p>
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
         <p style="color: #666; margin: 0; font-style: italic;">"${preview.substring(0, 100)}${preview.length > 100 ? '...' : ''}"</p>
       </div>
       <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/messages" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">Reply Now</a>
     `, 'New Message')
+  }),
+
+  // Developer Connect Chat
+  newDeveloperConnectMessage: (senderName: string, preview: string): EmailTemplate => ({
+    subject: `🔗 Developer Connect: Message from ${senderName}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 50px;">🔗</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Developer Connect Message</h2>
+      <p style="color: #666; line-height: 1.6; text-align: center;"><strong>${senderName}</strong> sent you a message:</p>
+      <div style="background: linear-gradient(135deg, #00ADB515 0%, #00d4ff15 100%); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #00ADB5;">
+        <p style="color: #666; margin: 0; font-style: italic;">"${preview.substring(0, 100)}${preview.length > 100 ? '...' : ''}"</p>
+      </div>
+      <div style="text-align: center;">
+        <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/developer-connect" style="display: inline-block; background: linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">Continue Chat</a>
+      </div>
+    `, 'Developer Connect')
+  }),
+
+  // Marketplace Chat
+  newMarketplaceMessage: (senderName: string, preview: string): EmailTemplate => ({
+    subject: `🛒 Marketplace: Message from ${senderName}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 50px;">🛒</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Marketplace Message</h2>
+      <p style="color: #666; line-height: 1.6; text-align: center;"><strong>${senderName}</strong> is interested in your listing:</p>
+      <div style="background: linear-gradient(135deg, #f59e0b15 0%, #fbbf2415 100%); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+        <p style="color: #666; margin: 0; font-style: italic;">"${preview.substring(0, 100)}${preview.length > 100 ? '...' : ''}"</p>
+      </div>
+      <div style="text-align: center;">
+        <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/marketplace" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">View Conversation</a>
+      </div>
+    `, 'Marketplace Chat')
+  }),
+
+  // Study Group Chat
+  newStudyGroupMessage: (senderName: string, groupName: string, preview: string): EmailTemplate => ({
+    subject: `📚 ${groupName}: New message from ${senderName}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 50px;">📚</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center;">Study Group Message</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 20px;">${groupName}</p>
+      <p style="color: #666; line-height: 1.6; text-align: center;"><strong>${senderName}</strong> posted:</p>
+      <div style="background: linear-gradient(135deg, #10b98115 0%, #34d39915 100%); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+        <p style="color: #666; margin: 0; font-style: italic;">"${preview.substring(0, 100)}${preview.length > 100 ? '...' : ''}"</p>
+      </div>
+      <div style="text-align: center;">
+        <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/study-groups" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">Join Discussion</a>
+      </div>
+    `, 'Study Group')
+  }),
+
+  // Project Team Chat
+  newProjectMessage: (senderName: string, projectTitle: string, preview: string): EmailTemplate => ({
+    subject: `🚀 ${projectTitle}: Message from ${senderName}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 50px;">🚀</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center;">Project Team Message</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 20px;">${projectTitle}</p>
+      <p style="color: #666; line-height: 1.6; text-align: center;"><strong>${senderName}</strong> says:</p>
+      <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+        <p style="color: #666; margin: 0; font-style: italic;">"${preview.substring(0, 100)}${preview.length > 100 ? '...' : ''}"</p>
+      </div>
+      <div style="text-align: center;">
+        <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/projects" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px;">Open Project Chat</a>
+      </div>
+    `, 'Project Chat')
   }),
 
   // Project Invite notification
@@ -648,9 +722,33 @@ export const emailNotifications = {
     return sendBulkEmail(recipientEmails, template);
   },
 
-  // Message notifications
+  // Message notifications - Direct Messages
   notifyNewMessage: async (senderName: string, preview: string, recipientEmail: string) => {
     const template = emailTemplates.newMessage(senderName, preview);
+    return sendEmail(recipientEmail, template);
+  },
+
+  // Developer Connect Chat
+  notifyDeveloperConnectMessage: async (senderName: string, preview: string, recipientEmail: string) => {
+    const template = emailTemplates.newDeveloperConnectMessage(senderName, preview);
+    return sendEmail(recipientEmail, template);
+  },
+
+  // Marketplace Chat
+  notifyMarketplaceMessage: async (senderName: string, preview: string, recipientEmail: string) => {
+    const template = emailTemplates.newMarketplaceMessage(senderName, preview);
+    return sendEmail(recipientEmail, template);
+  },
+
+  // Study Group Chat
+  notifyStudyGroupMessage: async (senderName: string, groupName: string, preview: string, recipientEmail: string) => {
+    const template = emailTemplates.newStudyGroupMessage(senderName, groupName, preview);
+    return sendEmail(recipientEmail, template);
+  },
+
+  // Project Team Chat
+  notifyProjectMessage: async (senderName: string, projectTitle: string, preview: string, recipientEmail: string) => {
+    const template = emailTemplates.newProjectMessage(senderName, projectTitle, preview);
     return sendEmail(recipientEmail, template);
   },
 

@@ -729,6 +729,28 @@ router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: 
       console.log('📨 [POST] Message emitted to socket room');
     }
 
+    // Send email notification to other project members (async, don't wait)
+    try {
+      const project = await Project.findById(projectId);
+      if (project) {
+        const otherMemberIds = project.members
+          .filter((m: any) => m.userId?.toString() !== req.user?.id)
+          .map((m: any) => m.userId);
+        const recipients = await User.find({ _id: { $in: otherMemberIds } }).select('email');
+        const emails = recipients.map(r => r.email).filter(Boolean) as string[];
+        emails.forEach(email => {
+          emailNotifications.notifyProjectMessage(
+            senderName,
+            project.title,
+            req.body.text.trim(),
+            email
+          );
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send project message email notification:', emailError);
+    }
+
     res.status(201).json({
       message: {
         id: message._id.toString(),
@@ -740,6 +762,87 @@ router.post('/:projectId/messages', authenticate, async (req: AuthRequest, res: 
     });
   } catch (error: unknown) {
     console.error('📨 [POST] Error:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Edit project message
+router.patch('/:projectId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      res.status(400).json({ error: 'Message text is required' });
+      return;
+    }
+
+    const message = await Message.findById(req.params.messageId);
+
+    if (!message) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can edit their message
+    if (message.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only edit your own messages' });
+      return;
+    }
+
+    message.text = text.trim();
+    message.content = text.trim();
+    await message.save();
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.projectId}`).emit('message-edited', {
+        id: message._id.toString(),
+        text: message.text,
+        updatedAt: message.updatedAt
+      });
+    }
+
+    res.json({
+      message: {
+        id: message._id.toString(),
+        text: message.text,
+        updatedAt: message.updatedAt
+      }
+    });
+  } catch (error: unknown) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Delete project message
+router.delete('/:projectId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+
+    if (!message) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can delete their message
+    if (message.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only delete your own messages' });
+      return;
+    }
+
+    await message.deleteOne();
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`project:${req.params.projectId}`).emit('message-deleted', {
+        messageId: req.params.messageId
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error: unknown) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

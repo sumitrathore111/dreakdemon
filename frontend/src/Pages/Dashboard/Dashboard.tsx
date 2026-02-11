@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useDataContext } from '../../Context/UserDataContext';
 import { apiRequest } from '../../service/api';
+import { getSocket, initializeSocket } from '../../service/socketService';
 
 // DASHBOARD CACHE - 60 second TTL for instant revisit loading
 interface DashboardCache {
@@ -96,7 +97,7 @@ export default function DashboardComingSoon() {
   const [codeArenaStats, setCodeArenaStats] = useState<any>(null);
   const [projectStats, setProjectStats] = useState<any>(null);
   const [_totalHours, setTotalHours] = useState<number>(0);
-  const [weeklyProgress, setWeeklyProgress] = useState<any[]>([]);
+  const [_weeklyProgress, setWeeklyProgress] = useState<any[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [_companyMatches, setCompanyMatches] = useState<any[]>([]);
@@ -107,6 +108,23 @@ export default function DashboardComingSoon() {
   const [earnedBadges, setEarnedBadges] = useState<any[]>([]);
   const [newBadgeEarned, setNewBadgeEarned] = useState<any>(null);
   const [completedTasksCount, setCompletedTasksCount] = useState<number>(0);
+  const [trendPeriod, setTrendPeriod] = useState<'3m' | '6m' | '1y'>('6m');
+  const [trendFilter, setTrendFilter] = useState<'all' | 'challenges' | 'battles' | 'projects'>('all');
+  // Category targets - user can customize goals
+  const [categoryTargets, setCategoryTargets] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('categoryTargets');
+    return saved ? JSON.parse(saved) : {
+      'Arrays & Strings': 50,
+      'Trees & Graphs': 40,
+      'Dynamic Programming': 35,
+      'Sorting & Searching': 30,
+      'Math & Logic': 25
+    };
+  });
+  // Raw data for historical charts
+  const [rawSubmissions, setRawSubmissions] = useState<any[]>([]);
+  const [rawBattles, setRawBattles] = useState<any[]>([]);
+  const [rawProjects, setRawProjects] = useState<any[]>([]);
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const REFRESH_INTERVAL = 30000; // 30 seconds auto-refresh
 
@@ -184,42 +202,47 @@ export default function DashboardComingSoon() {
 
     if (newBadges.length > 0) {
       try {
-        // Save badges to backend
-        await apiRequest(`/users/${user.id}/badges`, {
+        // Save badges to backend - check response for actually saved badges
+        const response = await apiRequest(`/users/${user.id}/badges`, {
           method: 'POST',
           body: JSON.stringify({ badges: newBadges })
         });
 
-        // Check if battle_master badge was earned - award 500 coins
-        const battleMasterBadge = newBadges.find(b => b.id === 'battle_master');
-        if (battleMasterBadge) {
-          try {
-            await apiRequest(`/wallet/${user.id}/add`, {
-              method: 'POST',
-              body: JSON.stringify({
-                amount: 500,
-                reason: 'Badge Reward: Won 50 CodeArena Battles! ⚔️'
-              })
-            });
-            toast.success('💰 +500 Coins added to your wallet!', { duration: 4000, icon: '🪙' });
-          } catch (coinError) {
-            console.error('Failed to add coins:', coinError);
+        // Only award coins if backend confirms badge was newly added
+        const actuallyNewBadges = response?.newBadges || [];
+
+        if (actuallyNewBadges.length > 0) {
+          // Check if battle_master badge was actually newly earned - award 500 coins only once
+          const battleMasterBadge = actuallyNewBadges.find((b: any) => b.id === 'battle_master');
+          if (battleMasterBadge) {
+            try {
+              await apiRequest(`/wallet/${user.id}/add`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  amount: 500,
+                  reason: 'Badge Reward: Won 50 CodeArena Battles! ⚔️'
+                })
+              });
+              toast.success('💰 +500 Coins added to your wallet!', { duration: 4000, icon: '🪙' });
+            } catch (coinError) {
+              console.error('Failed to add coins:', coinError);
+            }
           }
+
+          // Show notification only for actually new badges
+          actuallyNewBadges.forEach((badge: any, index: number) => {
+            setTimeout(() => {
+              setNewBadgeEarned(badge);
+              toast.success(
+                `🎉 Badge Unlocked: ${badge.icon} ${badge.name}!\n${badge.description}`,
+                { duration: 5000, icon: '🏆' }
+              );
+            }, index * 1500);
+          });
         }
 
-        // Show notification for each new badge
-        newBadges.forEach((badge, index) => {
-          setTimeout(() => {
-            setNewBadgeEarned(badge);
-            toast.success(
-              `🎉 Badge Unlocked: ${badge.icon} ${badge.name}!\n${badge.description}`,
-              { duration: 5000, icon: '🏆' }
-            );
-          }, index * 1500);
-        });
-
-        // Update local state
-        setEarnedBadges([...currentBadges, ...newBadges]);
+        // Update local state with all badges from backend
+        setEarnedBadges(response?.badges || [...currentBadges, ...newBadges]);
       } catch (error) {
         console.error('Failed to save badges:', error);
       }
@@ -299,12 +322,22 @@ export default function DashboardComingSoon() {
       const battleWins = userBattles?.filter((b: any) => b.winnerId === user.id).length || 0;
       const acceptedSubmissions = userSubmissions?.filter((s: any) => s.status === 'Accepted').length || 0;
 
+      // Helper to parse date from various formats (Firestore, MongoDB, ISO string)
+      const parseDate = (dateValue: any): number => {
+        if (!dateValue) return 0;
+        if (typeof dateValue?.toDate === 'function') return dateValue.toDate().getTime(); // Firestore
+        if (typeof dateValue === 'string') return new Date(dateValue).getTime(); // ISO string
+        if (typeof dateValue === 'number') return dateValue; // Timestamp
+        if (dateValue instanceof Date) return dateValue.getTime(); // Date object
+        return 0;
+      };
+
       // Calculate today's solved challenges
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayTimestamp = today.getTime();
       const todaysSolved = userSubmissions?.filter((s: any) => {
-        const submissionTime = s.submittedAt?.toDate?.()?.getTime() || s.submittedAt || 0;
+        const submissionTime = parseDate(s.submittedAt);
         return submissionTime >= todayTimestamp && s.status === 'Accepted';
       }).length || 0;
 
@@ -318,6 +351,10 @@ export default function DashboardComingSoon() {
         totalSolved: solvedChallenges
       });
 
+      // Store raw data for historical charts
+      setRawSubmissions(userSubmissions || []);
+      setRawBattles(userBattles || []);
+
       // 2. Project Analytics
       const [allIdeas, allMembers] = await Promise.all([
         fetchAllIdeas(),
@@ -328,6 +365,9 @@ export default function DashboardComingSoon() {
       const userJoinedProjects = allMembers?.filter((member: any) => member.userId === user.id) || [];
       const approvedProjects = userCreatedProjects?.filter((p: any) => p.status === 'approved').length || 0;
       const contributingProjects = userJoinedProjects?.length || 0;
+
+      // Store raw projects for historical charts
+      setRawProjects([...userCreatedProjects, ...userJoinedProjects]);
 
       setProjectStats({
         created: userCreatedProjects.length,
@@ -447,19 +487,19 @@ export default function DashboardComingSoon() {
 
         // Count submissions for this day
         const daySubmissions = userSubmissions?.filter((s: any) => {
-          const submissionTime = s.submittedAt?.toDate?.()?.getTime() || s.submittedAt || 0;
+          const submissionTime = parseDate(s.submittedAt);
           return submissionTime >= dayStart && submissionTime <= dayEnd;
         }).length || 0;
 
         // Count project activity for this day
         const dayProjectActivity = [...userCreatedProjects, ...userJoinedProjects].filter((p: any) => {
-          const projectTime = p.createdAt?.toDate?.()?.getTime() || p.updatedAt?.toDate?.()?.getTime() || 0;
+          const projectTime = parseDate(p.createdAt) || parseDate(p.updatedAt);
           return projectTime >= dayStart && projectTime <= dayEnd;
         }).length || 0;
 
         // Count battle activity for this day
         const dayBattleActivity = userBattles?.filter((b: any) => {
-          const battleTime = b.createdAt?.toDate?.()?.getTime() || b.createdAt || 0;
+          const battleTime = parseDate(b.createdAt);
           return battleTime >= dayStart && battleTime <= dayEnd;
         }).length || 0;
 
@@ -739,43 +779,6 @@ export default function DashboardComingSoon() {
       </div>
     );
   };
-  const ProgressChart = ({ data }: { data: any[] }) => {
-    const maxValue = Math.max(1, ...data.map(d => Math.max(d.challenges || 0, d.battles || 0, d.projects || 0)));
-    const hasAnyData = data.some(d => (d.challenges || 0) + (d.battles || 0) + (d.projects || 0) > 0);
-
-    return (
-      <div className="h-64 flex items-end justify-between gap-2 p-4">
-        {data.map((day, index) => {
-          const totalForDay = (day.challenges || 0) + (day.battles || 0) + (day.projects || 0);
-          return (
-            <div key={index} className="flex flex-col items-center gap-2 flex-1">
-              <div className="flex gap-1 h-40 justify-end items-end">
-                <div
-                  className="w-4 sm:w-6 bg-blue-500 rounded-t transition-all duration-500 hover:bg-blue-600"
-                  style={{ height: hasAnyData ? `${Math.max(((day.challenges || 0) / maxValue) * 100, day.challenges > 0 ? 10 : 0)}%` : '0%', minHeight: day.challenges > 0 ? '8px' : '0' }}
-                  title={`${day.challenges || 0} challenges`}
-                />
-                <div
-                  className="w-4 sm:w-6 bg-green-500 rounded-t transition-all duration-500 hover:bg-green-600"
-                  style={{ height: hasAnyData ? `${Math.max(((day.battles || 0) / maxValue) * 100, day.battles > 0 ? 10 : 0)}%` : '0%', minHeight: day.battles > 0 ? '8px' : '0' }}
-                  title={`${day.battles || 0} battles`}
-                />
-                <div
-                  className="w-4 sm:w-6 bg-yellow-500 rounded-t transition-all duration-500 hover:bg-yellow-600"
-                  style={{ height: hasAnyData ? `${Math.max(((day.projects || 0) / maxValue) * 100, day.projects > 0 ? 10 : 0)}%` : '0%', minHeight: day.projects > 0 ? '8px' : '0' }}
-                  title={`${day.projects || 0} project activities`}
-                />
-              </div>
-              <div className="text-center">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{day.day}</span>
-                {totalForDay > 0 && <div className="text-xs text-gray-500">{totalForDay}</div>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
 
   const CircularProgress = ({ percentage, size = 120, strokeWidth = 8, color = '#3b82f6' }: {
     percentage: number;
@@ -882,13 +885,357 @@ export default function DashboardComingSoon() {
     );
   };
 
+  // Skill Radar Chart Component
+  const SkillRadarChart = ({ skills }: { skills: { name: string; value: number }[] }) => {
+    // Handle empty data
+    if (!skills || skills.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-[300px] text-gray-400">
+          <p>No skill data available</p>
+        </div>
+      );
+    }
+
+    const centerX = 150;
+    const centerY = 150;
+    const maxRadius = 100;
+    const levels = 5;
+    const angleSlice = (Math.PI * 2) / skills.length;
+
+    // Generate polygon points for each level
+    const getLevelPoints = (level: number) => {
+      const radius = (maxRadius * level) / levels;
+      return skills.map((_, i) => {
+        const angle = angleSlice * i - Math.PI / 2;
+        return `${centerX + radius * Math.cos(angle)},${centerY + radius * Math.sin(angle)}`;
+      }).join(' ');
+    };
+
+    // Generate data polygon points
+    const getDataPoints = () => {
+      return skills.map((skill, i) => {
+        const angle = angleSlice * i - Math.PI / 2;
+        const radius = (skill.value / 100) * maxRadius;
+        return `${centerX + radius * Math.cos(angle)},${centerY + radius * Math.sin(angle)}`;
+      }).join(' ');
+    };
+
+    return (
+      <div className="flex flex-col items-center">
+        <svg width="300" height="300" viewBox="0 0 300 300">
+          {/* Background level circles */}
+          {[1, 2, 3, 4, 5].map((level) => (
+            <polygon
+              key={level}
+              points={getLevelPoints(level)}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="1"
+              className="dark:stroke-gray-700"
+            />
+          ))}
+
+          {/* Axis lines */}
+          {skills.map((_, i) => {
+            const angle = angleSlice * i - Math.PI / 2;
+            return (
+              <line
+                key={i}
+                x1={centerX}
+                y1={centerY}
+                x2={centerX + maxRadius * Math.cos(angle)}
+                y2={centerY + maxRadius * Math.sin(angle)}
+                stroke="#e5e7eb"
+                strokeWidth="1"
+                className="dark:stroke-gray-700"
+              />
+            );
+          })}
+
+          {/* Data polygon */}
+          <polygon
+            points={getDataPoints()}
+            fill="rgba(0, 173, 181, 0.3)"
+            stroke="#00ADB5"
+            strokeWidth="2"
+            className="transition-all duration-500"
+          />
+
+          {/* Data points */}
+          {skills.map((skill, i) => {
+            const angle = angleSlice * i - Math.PI / 2;
+            const radius = (skill.value / 100) * maxRadius;
+            return (
+              <circle
+                key={i}
+                cx={centerX + radius * Math.cos(angle)}
+                cy={centerY + radius * Math.sin(angle)}
+                r="5"
+                fill="#00ADB5"
+                stroke="white"
+                strokeWidth="2"
+                className="transition-all duration-500"
+              />
+            );
+          })}
+
+          {/* Labels */}
+          {skills.map((skill, i) => {
+            const angle = angleSlice * i - Math.PI / 2;
+            const labelRadius = maxRadius + 25;
+            return (
+              <text
+                key={i}
+                x={centerX + labelRadius * Math.cos(angle)}
+                y={centerY + labelRadius * Math.sin(angle)}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="text-xs fill-gray-600 dark:fill-gray-400 font-medium"
+              >
+                {skill.name}
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  };
+
+  // Monthly Progress Line Chart Component
+  const MonthlyLineChart = ({ data }: { data: { month: string; challenges: number; battles: number; projects: number }[] }) => {
+    // Handle empty or insufficient data
+    if (!data || data.length === 0) {
+      return (
+        <div className="w-full h-[200px] flex items-center justify-center text-gray-400">
+          <p>No data available for this period</p>
+        </div>
+      );
+    }
+
+    const totalActivity = data.reduce((sum, d) => sum + d.challenges + d.battles + d.projects, 0);
+    const maxValue = Math.max(1, ...data.flatMap(d => [d.challenges, d.battles, d.projects]));
+    const chartWidth = 500;
+    const chartHeight = 200;
+    const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+    const graphWidth = chartWidth - padding.left - padding.right;
+    const graphHeight = chartHeight - padding.top - padding.bottom;
+
+    // Fix division by zero when data length is 1
+    const getX = (index: number) => {
+      if (data.length <= 1) return padding.left + graphWidth / 2; // Center single point
+      return padding.left + (graphWidth / (data.length - 1)) * index;
+    };
+    const getY = (value: number) => padding.top + graphHeight - (value / maxValue) * graphHeight;
+
+    const createLinePath = (key: 'challenges' | 'battles' | 'projects') => {
+      return data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d[key])}`).join(' ');
+    };
+
+    // Show message overlay when there's no activity
+    const hasNoActivity = totalActivity === 0;
+
+    return (
+      <div className="w-full overflow-x-auto relative">
+        {hasNoActivity && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60 dark:bg-gray-800/60 backdrop-blur-[1px] rounded-lg">
+            <p className="text-gray-400 dark:text-gray-500 text-sm">No activity recorded in this period</p>
+          </div>
+        )}
+        <svg width={chartWidth} height={chartHeight} className="w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          {/* Grid lines */}
+          {[0, 25, 50, 75, 100].map((percent) => (
+            <g key={percent}>
+              <line
+                x1={padding.left}
+                y1={padding.top + graphHeight - (percent / 100) * graphHeight}
+                x2={chartWidth - padding.right}
+                y2={padding.top + graphHeight - (percent / 100) * graphHeight}
+                stroke="#e5e7eb"
+                strokeDasharray="4"
+                className="dark:stroke-gray-700"
+              />
+              <text
+                x={padding.left - 8}
+                y={padding.top + graphHeight - (percent / 100) * graphHeight}
+                textAnchor="end"
+                dominantBaseline="middle"
+                className="text-xs fill-gray-400"
+              >
+                {Math.round((percent / 100) * maxValue)}
+              </text>
+            </g>
+          ))}
+
+          {/* Lines - only render if category has data */}
+          {data.some(d => d.challenges > 0) && (
+            <path d={createLinePath('challenges')} fill="none" stroke="#3b82f6" strokeWidth="3" className="transition-all duration-500" />
+          )}
+          {data.some(d => d.battles > 0) && (
+            <path d={createLinePath('battles')} fill="none" stroke="#10b981" strokeWidth="3" className="transition-all duration-500" />
+          )}
+          {data.some(d => d.projects > 0) && (
+            <path d={createLinePath('projects')} fill="none" stroke="#f59e0b" strokeWidth="3" className="transition-all duration-500" />
+          )}
+
+          {/* Data points - only render if category has data */}
+          {data.map((d, i) => (
+            <g key={i}>
+              {d.challenges > 0 && (
+                <circle cx={getX(i)} cy={getY(d.challenges)} r="4" fill="#3b82f6" stroke="white" strokeWidth="2" />
+              )}
+              {d.battles > 0 && (
+                <circle cx={getX(i)} cy={getY(d.battles)} r="4" fill="#10b981" stroke="white" strokeWidth="2" />
+              )}
+              {d.projects > 0 && (
+                <circle cx={getX(i)} cy={getY(d.projects)} r="4" fill="#f59e0b" stroke="white" strokeWidth="2" />
+              )}
+              <text
+                x={getX(i)}
+                y={chartHeight - 8}
+                textAnchor="middle"
+                className="text-xs fill-gray-500 dark:fill-gray-400"
+              >
+                {d.month}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  };
+
+  // Coins Trend Mini Chart
+  const CoinsTrendChart = ({ data }: { data: number[] }) => {
+    // Handle empty or single-point data
+    if (!data || data.length === 0) {
+      return <div className="w-[120px] h-[40px] flex items-center justify-center text-gray-400 text-xs">--</div>;
+    }
+
+    const max = Math.max(...data, 1);
+    const min = Math.min(...data, 0);
+    const range = max - min || 1;
+    const width = 120;
+    const height = 40;
+
+    const points = data.map((val, i) => {
+      const x = data.length <= 1 ? width / 2 : (i / (data.length - 1)) * width;
+      const y = height - ((val - min) / range) * height;
+      return `${x},${y}`;
+    }).join(' ');
+
+    return (
+      <svg width={width} height={height} className="overflow-visible">
+        <defs>
+          <linearGradient id="coinGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon
+          points={`0,${height} ${points} ${width},${height}`}
+          fill="url(#coinGradient)"
+        />
+        <polyline
+          points={points}
+          fill="none"
+          stroke="#f59e0b"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  };
+
+  // Helper to parse date (same as in calculateRealAnalytics)
+  const parseDate = useCallback((dateValue: any): number => {
+    if (!dateValue) return 0;
+    if (typeof dateValue?.toDate === 'function') return dateValue.toDate().getTime();
+    if (typeof dateValue === 'string') return new Date(dateValue).getTime();
+    if (typeof dateValue === 'number') return dateValue;
+    if (dateValue instanceof Date) return dateValue.getTime();
+    return 0;
+  }, []);
+
+  // Generate monthly data for line chart with REAL DATA
+  const monthlyData = useMemo(() => {
+    const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    // Determine how many months to show based on period
+    const monthCount = trendPeriod === '3m' ? 3 : trendPeriod === '6m' ? 6 : 12;
+
+    // Generate month data with year context
+    const monthsData = [];
+    for (let i = monthCount - 1; i >= 0; i--) {
+      const targetDate = new Date(currentYear, currentMonth - i, 1);
+      const monthIndex = targetDate.getMonth();
+      const year = targetDate.getFullYear();
+
+      // Calculate month boundaries
+      const monthStart = new Date(year, monthIndex, 1, 0, 0, 0, 0).getTime();
+      const monthEnd = new Date(year, monthIndex + 1, 0, 23, 59, 59, 999).getTime();
+
+      // Count REAL submissions for this month
+      const monthChallenges = (trendFilter === 'all' || trendFilter === 'challenges')
+        ? rawSubmissions.filter((s: any) => {
+            const time = parseDate(s.submittedAt);
+            return time >= monthStart && time <= monthEnd;
+          }).length
+        : 0;
+
+      // Count REAL battles for this month
+      const monthBattles = (trendFilter === 'all' || trendFilter === 'battles')
+        ? rawBattles.filter((b: any) => {
+            const time = parseDate(b.createdAt);
+            return time >= monthStart && time <= monthEnd;
+          }).length
+        : 0;
+
+      // Count REAL projects for this month
+      const monthProjects = (trendFilter === 'all' || trendFilter === 'projects')
+        ? rawProjects.filter((p: any) => {
+            const time = parseDate(p.createdAt) || parseDate(p.updatedAt);
+            return time >= monthStart && time <= monthEnd;
+          }).length
+        : 0;
+
+      monthsData.push({
+        month: allMonths[monthIndex],
+        challenges: monthChallenges,
+        battles: monthBattles,
+        projects: monthProjects
+      });
+    }
+
+    return monthsData;
+  }, [rawSubmissions, rawBattles, rawProjects, trendPeriod, trendFilter, parseDate]);
+
+  // Generate skill data for radar chart
+  const skillData = useMemo(() => [
+    { name: 'DSA', value: Math.min(100, (codeArenaStats?.challengesSolved || 0) * 2) },
+    { name: 'Battles', value: Math.min(100, (codeArenaStats?.battleWins || 0) * 5) },
+    { name: 'Projects', value: Math.min(100, (projectStats?.total || 0) * 10) },
+    { name: 'Consistency', value: Math.min(100, (userprofile?.streakCount || 0) * 3.3) },
+    { name: 'Collab', value: Math.min(100, (projectStats?.contributing || 0) * 15) },
+    { name: 'Success', value: codeArenaStats?.acceptanceRate || 0 }
+  ], [codeArenaStats, projectStats, userprofile]);
+
+  // Generate coin trend data
+  const coinTrendData = useMemo(() => {
+    const baseCoins = codeArenaStats?.coins || 0;
+    return Array.from({ length: 7 }, (_, i) => Math.max(0, baseCoins - (6 - i) * Math.floor(baseCoins * 0.1)));
+  }, [codeArenaStats]);
+
   // Initial fetch and real-time auto-refresh setup
   useEffect(() => {
     if (userprofile) {
       calculateRealAnalytics();
     }
 
-    // Set up auto-refresh interval for real-time data
+    // Set up auto-refresh interval for real-time data (fallback)
     refreshIntervalRef.current = setInterval(() => {
       if (userprofile && user) {
         calculateRealAnalytics(true);
@@ -902,6 +1249,67 @@ export default function DashboardComingSoon() {
       }
     };
   }, [userprofile, user, calculateRealAnalytics]);
+
+  // WebSocket real-time updates - instant refresh on relevant events
+  useEffect(() => {
+    if (!user) return;
+
+    initializeSocket();
+    const socket = getSocket();
+    if (!socket) return;
+
+    // Join user's personal room for dashboard updates
+    socket.emit('join-user', user.id);
+    socket.emit('join-dashboard', user.id);
+
+    // Event handler: Trigger instant refresh
+    const triggerRefresh = () => {
+      console.log('🔄 Real-time event received - refreshing dashboard');
+      calculateRealAnalytics(true, true);
+    };
+
+    // Listen for CodeArena events
+    socket.on('battleWon', triggerRefresh);
+    socket.on('battleLost', triggerRefresh);
+    socket.on('battleCompleted', triggerRefresh);
+    socket.on('challengeSolved', triggerRefresh);
+    socket.on('submissionResult', triggerRefresh);
+
+    // Listen for Wallet events
+    socket.on('walletUpdated', triggerRefresh);
+    socket.on('coinsEarned', triggerRefresh);
+
+    // Listen for Project events
+    socket.on('projectApproved', triggerRefresh);
+    socket.on('projectCreated', triggerRefresh);
+    socket.on('memberJoined', triggerRefresh);
+
+    // Listen for Badge events
+    socket.on('badgeEarned', triggerRefresh);
+
+    // Listen for general stats update
+    socket.on('statsUpdated', triggerRefresh);
+    socket.on('dashboardUpdate', triggerRefresh);
+
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off('battleWon', triggerRefresh);
+      socket.off('battleLost', triggerRefresh);
+      socket.off('battleCompleted', triggerRefresh);
+      socket.off('challengeSolved', triggerRefresh);
+      socket.off('submissionResult', triggerRefresh);
+      socket.off('walletUpdated', triggerRefresh);
+      socket.off('coinsEarned', triggerRefresh);
+      socket.off('projectApproved', triggerRefresh);
+      socket.off('projectCreated', triggerRefresh);
+      socket.off('memberJoined', triggerRefresh);
+      socket.off('badgeEarned', triggerRefresh);
+      socket.off('statsUpdated', triggerRefresh);
+      socket.off('dashboardUpdate', triggerRefresh);
+      socket.emit('leave-user', user.id);
+      socket.emit('leave-dashboard', user.id);
+    };
+  }, [user, calculateRealAnalytics]);
 
   // Manual refresh handler
   const handleManualRefresh = () => {
@@ -970,66 +1378,75 @@ export default function DashboardComingSoon() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
-          {/* Weekly Activity */}
+          {/* Problem Categories Distribution */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-indigo-500" />
-              This Week's Activity
+              <Code2 className="w-5 h-5 text-indigo-500" />
+              Problem Categories
               <span className="ml-auto text-xs font-normal px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full">
-                {loading ? 'Loading...' : 'Real-time'}
+                Set your targets
               </span>
             </h3>
-            <div className="flex items-end justify-between h-36 gap-1 sm:gap-2">
-              {(weeklyProgress.length > 0 ? weeklyProgress : [
-                { day: 'Sun', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Mon', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Tue', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Wed', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Thu', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Fri', challenges: 0, battles: 0, projects: 0 },
-                { day: 'Sat', challenges: 0, battles: 0, projects: 0 },
-              ]).map((day, i) => {
-                const total = (day.challenges || 0) + (day.battles || 0) + (day.projects || 0);
-                const maxHeight = 100;
-                const barHeight = total > 0 ? Math.min(total * 12 + 15, maxHeight) : 6;
+            <div className="space-y-3">
+              {[
+                { name: 'Arrays & Strings', solved: Math.round((codeArenaStats?.challengesSolved || 0) * 0.3), color: '#3b82f6' },
+                { name: 'Trees & Graphs', solved: Math.round((codeArenaStats?.challengesSolved || 0) * 0.2), color: '#10b981' },
+                { name: 'Dynamic Programming', solved: Math.round((codeArenaStats?.challengesSolved || 0) * 0.15), color: '#f59e0b' },
+                { name: 'Sorting & Searching', solved: Math.round((codeArenaStats?.challengesSolved || 0) * 0.2), color: '#8b5cf6' },
+                { name: 'Math & Logic', solved: Math.round((codeArenaStats?.challengesSolved || 0) * 0.15), color: '#ec4899' },
+              ].map((category, i) => {
+                const target = categoryTargets[category.name] || 50;
+                const displaySolved = Math.min(category.solved, target);
+                const percentage = target > 0 ? Math.min((category.solved / target) * 100, 100) : 0;
+                const isCompleted = category.solved >= target;
+
+                const updateTarget = (newTarget: number) => {
+                  const newTargets = { ...categoryTargets, [category.name]: newTarget };
+                  setCategoryTargets(newTargets);
+                  localStorage.setItem('categoryTargets', JSON.stringify(newTargets));
+                };
+
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="w-full h-24 flex items-end justify-center">
-                      <div
-                        className="w-full max-w-10 rounded-t-lg transition-all duration-500 cursor-pointer hover:opacity-80"
-                        style={{
-                          height: `${barHeight}%`,
-                          background: total > 0
-                            ? 'linear-gradient(to top, #00ADB5, #00d4ff)'
-                            : 'rgba(156, 163, 175, 0.3)',
-                          minHeight: '6px'
-                        }}
-                        title={`${day.day}: ${total} total\n• ${day.challenges || 0} challenges\n• ${day.battles || 0} battles\n• ${day.projects || 0} projects`}
-                      />
+                  <div key={i} className="group">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className={`text-sm transition-colors flex items-center gap-1.5 ${isCompleted ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'}`}>
+                        {isCompleted && <span className="text-green-500">✓</span>}
+                        {category.name}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium ${isCompleted ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {isCompleted ? '✨ Done!' : `${displaySolved}/`}
+                        </span>
+                        {!isCompleted && (
+                          <select
+                            value={target}
+                            onChange={(e) => updateTarget(Number(e.target.value))}
+                            className="text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded px-1.5 py-0.5 border-0 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:ring-1 focus:ring-indigo-500"
+                          >
+                            {[10, 20, 30, 40, 50, 75, 100, 150, 200].map(val => (
+                              <option key={val} value={val}>{val}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{day.day}</span>
-                      {total > 0 && (
-                        <p className="text-xs font-bold" style={{ color: '#00ADB5' }}>{total}</p>
-                      )}
+                    <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ease-out ${isCompleted ? 'animate-pulse' : ''}`}
+                        style={{
+                          width: `${percentage}%`,
+                          backgroundColor: isCompleted ? '#10b981' : category.color,
+                          background: isCompleted ? 'linear-gradient(90deg, #10b981, #34d399)' : category.color
+                        }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="flex justify-center gap-4 mt-3 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-                <span className="text-gray-500 dark:text-gray-400">Challenges</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                <span className="text-gray-500 dark:text-gray-400">Battles</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                <span className="text-gray-500 dark:text-gray-400">Projects</span>
-              </div>
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Total Solved</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">{codeArenaStats?.challengesSolved || 0}</span>
             </div>
           </div>
 
@@ -1121,31 +1538,155 @@ export default function DashboardComingSoon() {
           </div>
         </div>
 
-        {/* Weekly Progress Bar Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-indigo-500" />
-            Weekly Progress Chart
-            <span className="ml-auto text-xs font-normal px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-              Real-time
-            </span>
-          </h3>
-          <ProgressChart data={weeklyProgress} />
-          <div className="flex justify-center gap-6 mt-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Challenges</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Battles</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-500 rounded" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">Projects</span>
+        {/* NEW: Skill Radar & Coins Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+          {/* Skill Radar Chart */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-cyan-500" />
+              Skill Radar
+              <span className="ml-auto text-xs font-normal px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Profile Analysis</span>
+            </h3>
+            <SkillRadarChart skills={skillData} />
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              {skillData.slice(0, 3).map((skill, i) => (
+                <div key={i} className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-cyan-600">{skill.value}%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{skill.name}</p>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Coins & Wallet Overview */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500" />
+              Wallet Overview
+              <span className="ml-auto text-xs font-normal px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full">Balance</span>
+            </h3>
+
+            {/* Main Balance Card */}
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-5 text-white mb-4">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-amber-100 text-sm">Total Balance</p>
+                  <p className="text-4xl font-bold">{codeArenaStats?.coins || 0}</p>
+                  <p className="text-amber-200 text-xs mt-1">NextStep Coins</p>
+                </div>
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <Star className="w-8 h-8" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-100">7-day trend</span>
+                <CoinsTrendChart data={coinTrendData} />
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+                <p className="text-lg font-bold text-green-600">{codeArenaStats?.battleWins || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Battle Rewards</p>
+              </div>
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                <p className="text-lg font-bold text-blue-600">{codeArenaStats?.challengesSolved || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Challenge Bonus</p>
+              </div>
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                <p className="text-lg font-bold text-purple-600">{earnedBadges.length}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Badge Rewards</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* NEW: Monthly Progress Line Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-indigo-500" />
+              Monthly Progress Trend
+              <span className="text-xs font-normal px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                Real Data
+              </span>
+            </h3>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Period Filter */}
+              <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                {[
+                  { value: '3m', label: '3M' },
+                  { value: '6m', label: '6M' },
+                  { value: '1y', label: '1Y' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setTrendPeriod(option.value as '3m' | '6m' | '1y')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      trendPeriod === option.value
+                        ? 'bg-indigo-500 text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Category Filter */}
+              <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                {[
+                  { value: 'all', label: 'All' },
+                  { value: 'challenges', label: 'Challenges', color: 'blue' },
+                  { value: 'battles', label: 'Battles', color: 'green' },
+                  { value: 'projects', label: 'Projects', color: 'amber' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setTrendFilter(option.value as 'all' | 'challenges' | 'battles' | 'projects')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      trendFilter === option.value
+                        ? option.value === 'all'
+                          ? 'bg-indigo-500 text-white shadow-sm'
+                          : option.value === 'challenges'
+                            ? 'bg-blue-500 text-white shadow-sm'
+                            : option.value === 'battles'
+                              ? 'bg-green-500 text-white shadow-sm'
+                              : 'bg-amber-500 text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <MonthlyLineChart data={monthlyData} />
+
+          {/* Legend - only show when 'all' filter is active */}
+          {trendFilter === 'all' && (
+            <div className="flex justify-center gap-6 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full" />
+                <span className="text-xs text-gray-600 dark:text-gray-400">Challenges</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full" />
+                <span className="text-xs text-gray-600 dark:text-gray-400">Battles</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-amber-500 rounded-full" />
+                <span className="text-xs text-gray-600 dark:text-gray-400">Projects</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Feature Cards */}

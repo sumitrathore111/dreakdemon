@@ -1,24 +1,25 @@
 import { motion } from 'framer-motion';
 import {
-    AlertCircle,
-    BookmarkPlus,
-    BookOpen,
-    Check,
-    Code2,
-    ExternalLink,
-    Heart,
-    Mail,
-    MessageCircle,
-    MessageSquare,
-    Plus,
-    Search,
-    Send,
-    Share2,
-    Star,
-    Trash2,
-    TrendingUp,
-    UserMinus,
-    X
+  AlertCircle,
+  BookmarkPlus,
+  BookOpen,
+  Check,
+  Code2,
+  ExternalLink,
+  Heart,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  Pencil,
+  Plus,
+  Search,
+  Send,
+  Share2,
+  Star,
+  Trash2,
+  TrendingUp,
+  UserMinus,
+  X
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -161,11 +162,14 @@ export default function DeveloperConnect() {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [lookingForFilter, setLookingForFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'rank' | 'newest' | 'roadmap' | 'codearena' | 'creator'>('rank');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
   const [developers, setDevelopers] = useState<DeveloperProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -352,11 +356,27 @@ export default function DeveloperConnect() {
         }
       };
 
+      const handleMessageDeleted = (data: { messageId: string; chatId: string }) => {
+        if (data.chatId === chatId) {
+          setMessages(prev => prev.filter(m => m.id !== data.messageId));
+        }
+      };
+
+      const handleMessageEdited = (data: { messageId: string; chatId: string; message: string }) => {
+        if (data.chatId === chatId) {
+          setMessages(prev => prev.map(m =>
+            m.id === data.messageId ? { ...m, message: data.message, text: data.message, content: data.message, isEdited: true } : m
+          ));
+        }
+      };
+
       socket.on('connect', handleConnect);
       socket.on('disconnect', handleDisconnect);
       socket.on('userTyping', handleTyping);
       socket.on('userStopTyping', handleStopTyping);
       socket.on('messageRead', handleMessageRead);
+      socket.on('messageDeleted', handleMessageDeleted);
+      socket.on('messageEdited', handleMessageEdited);
       socket.on('onlineUsers', handleOnlineUsers);
       socket.on('userOnline', handleUserOnline);
       socket.on('userOffline', handleUserOffline);
@@ -370,6 +390,8 @@ export default function DeveloperConnect() {
         socket.off('userTyping', handleTyping);
         socket.off('userStopTyping', handleStopTyping);
         socket.off('messageRead', handleMessageRead);
+        socket.off('messageDeleted', handleMessageDeleted);
+        socket.off('messageEdited', handleMessageEdited);
         socket.off('onlineUsers', handleOnlineUsers);
         socket.off('userOnline', handleUserOnline);
         socket.off('userOffline', handleUserOffline);
@@ -835,23 +857,47 @@ export default function DeveloperConnect() {
     }
   }, [selectedGroup?.id, user]);
 
-  // MEMOIZED filtering for performance - only recomputes when dependencies change
+  // MEMOIZED filtering and sorting for performance
   const filteredDevelopers = useMemo(() => {
     const queryLower = debouncedSearch.toLowerCase();
-    return developers.filter(dev => {
+    let filtered = developers.filter(dev => {
       const devSkills = dev.skills || [];
       const devLookingFor = dev.lookingFor || '';
+      const devInstitute = dev.institute || '';
 
       const matchesSearch = !debouncedSearch ||
         (dev.name || '').toLowerCase().includes(queryLower) ||
-        devSkills.some(s => s.toLowerCase().includes(queryLower));
+        devSkills.some(s => s.toLowerCase().includes(queryLower)) ||
+        devInstitute.toLowerCase().includes(queryLower);
       const matchesSkills = selectedSkills.length === 0 ||
         selectedSkills.some(s => devSkills.includes(s));
       const matchesLookingFor = !lookingForFilter || devLookingFor.includes(lookingForFilter);
 
       return matchesSearch && matchesSkills && matchesLookingFor;
     });
-  }, [developers, debouncedSearch, selectedSkills, lookingForFilter]);
+
+    // Sort based on selected sort option
+    switch (sortBy) {
+      case 'rank':
+        filtered.sort((a, b) => (a.combinedRank || 999) - (b.combinedRank || 999));
+        break;
+      case 'roadmap':
+        filtered.sort((a, b) => (b.roadmapTopicsCompleted || 0) - (a.roadmapTopicsCompleted || 0));
+        break;
+      case 'codearena':
+        filtered.sort((a, b) => (b.challenges_solved || 0) - (a.challenges_solved || 0));
+        break;
+      case 'creator':
+        filtered.sort((a, b) => (b.creatorTasksCompleted || 0) - (a.creatorTasksCompleted || 0));
+        break;
+      case 'newest':
+      default:
+        // Keep original order (by createdAt from backend)
+        break;
+    }
+
+    return filtered;
+  }, [developers, debouncedSearch, selectedSkills, lookingForFilter, sortBy]);
 
   // MEMOIZED display slice
   const displayedDevelopers = useMemo(() =>
@@ -974,6 +1020,20 @@ export default function DeveloperConnect() {
             ]}
             className="w-full sm:min-w-[180px] sm:w-auto"
           />
+
+          {/* Sort By */}
+          <CustomSelect
+            value={sortBy}
+            onChange={(value) => setSortBy(value as 'rank' | 'newest' | 'roadmap' | 'codearena' | 'creator')}
+            options={[
+              { value: 'rank', label: '🏆 Top Ranked' },
+              { value: 'roadmap', label: '📚 Roadmap Progress' },
+              { value: 'codearena', label: '💻 CodeArena' },
+              { value: 'creator', label: '🚀 Creator Corner' },
+              { value: 'newest', label: '🆕 Newest' }
+            ]}
+            className="w-full sm:min-w-[180px] sm:w-auto"
+          />
         </div>
 
         {/* Selected Skills Tags */}
@@ -1020,15 +1080,27 @@ export default function DeveloperConnect() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+            className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${
+              dev.isCurrentUser
+                ? 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-400 dark:ring-purple-500'
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+            }`}
           >
+            {/* Current User Badge */}
+            {dev.isCurrentUser && (
+              <div className="mb-3 -mt-2 -mx-2">
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 rounded-full">
+                  ⭐ This is you
+                </span>
+              </div>
+            )}
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3 flex-1">
                 <img
                   src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
                   alt={dev.name || 'Developer'}
-                  className="w-12 h-12 rounded-full"
+                  className={`w-12 h-12 rounded-full ${dev.isCurrentUser ? 'ring-2 ring-purple-400' : ''}`}
                 />
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
@@ -1042,31 +1114,38 @@ export default function DeveloperConnect() {
                 </div>
               </div>
               <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
-                <Code2 className="w-4 h-4" />
-                <span className="text-sm font-semibold">{dev.challenges_solved || dev.codeArenaStats?.problemsSolved || 0}</span>
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-sm font-semibold">#{dev.combinedRank || 'N/A'}</span>
               </div>
             </div>
 
             {/* Bio */}
-            <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{dev.bio || 'No bio available'}</p>
+            <p className="text-sm text-gray-600 dark:text-white mb-4">{dev.bio || 'About yourself'}</p>
 
-            {/* CodeArena Stats */}
+            {/* Stats Grid - 3 columns */}
             <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(0, 173, 181, 0.1)' }}>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <p className="text-gray-600 dark:text-white">Problems Solved</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.challenges_solved || dev.codeArenaStats?.problemsSolved || 0}</p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="text-center">
+                  <p className="text-gray-500 dark:text-gray-400">Roadmap</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{dev.roadmapTopicsCompleted || 0}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">topics</p>
                 </div>
-                <div>
-                  <p className="text-gray-600 dark:text-white">Rank</p>
-                  <p className="font-bold text-gray-900 dark:text-white">#{dev.marathon_rank || dev.codeArenaStats?.rank || 'N/A'}</p>
+                <div className="text-center">
+                  <p className="text-gray-500 dark:text-gray-400">CodeArena</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{dev.challenges_solved || 0}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">solved</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-500 dark:text-gray-400">Creator</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{dev.creatorTasksCompleted || 0}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">tasks</p>
                 </div>
               </div>
             </div>
 
             {/* Skills */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
               <div className="flex flex-wrap gap-1">
                 {(dev.skills || []).length > 0 ? (
                   <>
@@ -1086,33 +1165,10 @@ export default function DeveloperConnect() {
                     )}
                   </>
                 ) : (
-                  <span className="text-xs text-gray-400 dark:text-gray-500">No skills added</span>
+                  <span className="text-sm text-gray-400 dark:text-gray-500">No skills added</span>
                 )}
               </div>
             </div>
-
-            {/* Badges */}
-            {(dev.badges && dev.badges.length > 0) && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Badges</p>
-                <div className="flex flex-wrap gap-1">
-                  {dev.badges.slice(0, 4).map((badge: any, idx: number) => (
-                    <span
-                      key={idx}
-                      className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border border-purple-200 dark:border-purple-800"
-                      title={badge.description}
-                    >
-                      {badge.icon} {badge.name}
-                    </span>
-                  ))}
-                  {dev.badges.length > 4 && (
-                    <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
-                      +{dev.badges.length - 4} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Looking For */}
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -1124,16 +1180,25 @@ export default function DeveloperConnect() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                onClick={() => {
-                  setSelectedChat(dev.userId);
-                  setActiveTab('messages');
-                }}
-                className="flex-1 px-3 py-2 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:opacity-90 flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
-                <MessageSquare className="w-4 h-4" />
-                Message
-              </button>
+              {dev.isCurrentUser ? (
+                <button
+                  onClick={() => toast.success('Check your profile in Profile section!')}
+                  className="flex-1 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  ⭐ Your Profile
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSelectedChat(dev.userId);
+                    setActiveTab('messages');
+                  }}
+                  className="flex-1 px-3 py-2 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:opacity-90 flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
+                  <MessageSquare className="w-4 h-4" />
+                  Message
+                </button>
+              )}
               <button
                 onClick={() => {
                   setActiveTab('reviews');
@@ -1273,6 +1338,39 @@ export default function DeveloperConnect() {
         setNewMessage(messageContent);
         setMessages(prev => prev.filter(m => m.id !== tempId));
         toast.error('Failed to send message. Please try again.');
+      }
+    };
+
+    const handleEditMessage = async (messageId: string) => {
+      if (!editingText.trim() || !chatId) return;
+      try {
+        await apiRequest(`/chats/${chatId}/messages/${messageId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ message: editingText.trim() }),
+        });
+        setMessages(prev => prev.map(m =>
+          m.id === messageId ? { ...m, message: editingText.trim(), text: editingText.trim(), content: editingText.trim(), isEdited: true } : m
+        ));
+        setEditingMessageId(null);
+        setEditingText('');
+        toast.success('Message updated');
+      } catch (error) {
+        console.error('Error editing message:', error);
+        toast.error('Failed to edit message');
+      }
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+      if (!chatId || !confirm('Delete this message?')) return;
+      try {
+        await apiRequest(`/chats/${chatId}/messages/${messageId}`, {
+          method: 'DELETE',
+        });
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+        toast.success('Message deleted');
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        toast.error('Failed to delete message');
       }
     };
 
@@ -1588,42 +1686,87 @@ export default function DeveloperConnect() {
                             />
                           )}
 
-                          <div className={`max-w-[70%] ${isMe ? 'mr-2' : ''}`}>
-                            <motion.div
-                              whileHover={{ scale: 1.01, y: -1 }}
-                              className={`px-4 py-2.5 relative group overflow-hidden ${
-                                isMe
-                                  ? 'rounded-2xl rounded-tr-md text-white'
-                                  : 'rounded-2xl rounded-tl-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
-                              }`}
-                              style={isMe ? {
-                                background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
-                                boxShadow: '0 4px 20px rgba(0, 173, 181, 0.25)'
-                              } : {
-                                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
-                              }}
-                            >
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderMessageWithLinks(msg.message || msg.content || msg.text, isMe)}</p>
-                              <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
-                                <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
-                                  {msg.createdAt
-                                    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                                {/* Read receipt indicators for sent messages */}
-                                {isMe && (
-                                  <span className="text-[10px] text-cyan-100 ml-1">
-                                    {status === 'read' ? (
-                                      <span title="Read">✓✓</span>
-                                    ) : status === 'delivered' ? (
-                                      <span title="Delivered" className="opacity-70">✓✓</span>
-                                    ) : (
-                                      <span title="Sent" className="opacity-50">✓</span>
-                                    )}
-                                  </span>
-                                )}
+                          <div className={`max-w-[70%] ${isMe ? 'mr-2' : ''} relative group`}>
+                            {editingMessageId === msg.id ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleEditMessage(msg.id);
+                                    if (e.key === 'Escape') { setEditingMessageId(null); setEditingText(''); }
+                                  }}
+                                />
+                                <button onClick={() => handleEditMessage(msg.id)} className="p-1.5 bg-[#00ADB5] text-white rounded-full hover:bg-[#00969d]">
+                                  <Check className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => { setEditingMessageId(null); setEditingText(''); }} className="p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-full hover:bg-gray-400">
+                                  <X className="w-4 h-4" />
+                                </button>
                               </div>
-                            </motion.div>
+                            ) : (
+                              <>
+                                <motion.div
+                                  whileHover={{ scale: 1.01, y: -1 }}
+                                  className={`px-4 py-2.5 overflow-hidden ${
+                                    isMe
+                                      ? 'rounded-2xl rounded-tr-md text-white'
+                                      : 'rounded-2xl rounded-tl-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-100 dark:border-gray-600'
+                                  }`}
+                                  style={isMe ? {
+                                    background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
+                                    boxShadow: '0 4px 20px rgba(0, 173, 181, 0.25)'
+                                  } : {
+                                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)'
+                                  }}
+                                >
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderMessageWithLinks(msg.message || msg.content || msg.text, isMe)}</p>
+                                  {msg.isEdited && <p className={`text-[10px] mt-1 ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>(edited)</p>}
+                                  <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : ''}`}>
+                                    <p className={`text-[10px] ${isMe ? 'text-cyan-100' : 'text-gray-400'}`}>
+                                      {msg.createdAt
+                                        ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                        : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    {/* Read receipt indicators for sent messages */}
+                                    {isMe && (
+                                      <span className="text-[10px] text-cyan-100 ml-1">
+                                        {status === 'read' ? (
+                                          <span title="Read">✓✓</span>
+                                        ) : status === 'delivered' ? (
+                                          <span title="Delivered" className="opacity-70">✓✓</span>
+                                        ) : (
+                                          <span title="Sent" className="opacity-50">✓</span>
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
+                                </motion.div>
+
+                                {/* Edit/Delete menu for own messages */}
+                                {isMe && !msg.id.startsWith('temp-') && (
+                                  <div className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <button
+                                      onClick={() => { setEditingMessageId(msg.id); setEditingText(msg.message || msg.content || msg.text || ''); }}
+                                      className="p-1.5 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+                                      title="Edit"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteMessage(msg.id)}
+                                      className="p-1.5 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-600 dark:text-gray-300 hover:text-red-500"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
 
                           {isMe && (

@@ -582,7 +582,107 @@ router.post('/:id/messages', authenticate, async (req: AuthRequest, res: Respons
       });
     }
 
+    // Send email notification to other group members (async, don't wait)
+    try {
+      const otherMembers = group.members.filter(m => m.userId !== req.user!.id);
+      const memberIds = otherMembers.map(m => m.userId);
+      const recipients = await User.find({ _id: { $in: memberIds } }).select('email');
+      const emails = recipients.map(r => r.email).filter(Boolean) as string[];
+      if (emails.length > 0) {
+        emails.forEach(email => {
+          emailNotifications.notifyStudyGroupMessage(
+            senderName || req.user?.name || 'Someone',
+            group.name,
+            message.trim(),
+            email
+          );
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send study group message email notification:', emailError);
+    }
+
     res.status(201).json({ message: formattedMessage });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Edit group message
+router.patch('/:id/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
+    }
+
+    const groupMessage = await GroupMessage.findById(req.params.messageId);
+
+    if (!groupMessage) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can edit their message
+    if (groupMessage.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only edit your own messages' });
+      return;
+    }
+
+    groupMessage.message = message.trim();
+    await groupMessage.save();
+
+    // Emit real-time event
+    const io = getIO(req);
+    if (io) {
+      io.to(`group:${req.params.id}`).emit('groupMessageEdited', {
+        groupId: req.params.id,
+        messageId: groupMessage._id.toString(),
+        message: groupMessage.message,
+        updatedAt: groupMessage.updatedAt
+      });
+    }
+
+    res.json({
+      id: groupMessage._id.toString(),
+      message: groupMessage.message,
+      updatedAt: groupMessage.updatedAt
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete group message
+router.delete('/:id/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const groupMessage = await GroupMessage.findById(req.params.messageId);
+
+    if (!groupMessage) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can delete their message
+    if (groupMessage.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only delete your own messages' });
+      return;
+    }
+
+    await groupMessage.deleteOne();
+
+    // Emit real-time event
+    const io = getIO(req);
+    if (io) {
+      io.to(`group:${req.params.id}`).emit('groupMessageDeleted', {
+        groupId: req.params.id,
+        messageId: req.params.messageId
+      });
+    }
+
+    res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

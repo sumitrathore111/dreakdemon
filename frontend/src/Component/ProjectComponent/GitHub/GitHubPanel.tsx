@@ -1,23 +1,23 @@
 import {
-    Activity,
-    AlertCircle,
-    ChevronDown,
-    ChevronUp,
-    ExternalLink,
-    GitBranch,
-    GitCommit,
-    GitMerge,
-    GitPullRequest,
-    Loader2,
-    RefreshCw,
-    Settings
+  Activity,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  GitBranch,
+  GitCommit,
+  GitMerge,
+  GitPullRequest,
+  Loader2,
+  RefreshCw,
+  Settings
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    getProjectGitHubStatus,
-    getRepositoryBranches,
-    getRepositoryCommits,
-    getRepositoryPullRequests
+  getProjectGitHubStatus,
+  getRepositoryBranches,
+  getRepositoryCommits,
+  getRepositoryPullRequests
 } from '../../../service/githubService';
 import GitHubActivityFeed from './GitHubActivityFeed';
 import GitHubSettings from './GitHubSettings';
@@ -30,11 +30,8 @@ interface GitHubPanelProps {
 
 interface GitHubConnectionStatus {
   connected: boolean;
-  repository?: {
-    fullName: string;
-    url: string;
-    private: boolean;
-  };
+  repoFullName?: string;
+  repoUrl?: string;
   webhookActive?: boolean;
   syncSettings?: {
     syncIssues: boolean;
@@ -147,11 +144,11 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
 
   // Load repository data when connection status is available and connected
   useEffect(() => {
-    if (connectionStatus?.connected && connectionStatus?.repository?.fullName) {
-      loadRepositoryData(connectionStatus.repository.fullName);
+    if (connectionStatus?.connected && connectionStatus?.repoFullName) {
+      loadRepositoryData(connectionStatus.repoFullName);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionStatus?.connected, connectionStatus?.repository?.fullName]);
+  }, [connectionStatus?.connected, connectionStatus?.repoFullName]);
 
   // Manual refresh function
   const handleRefresh = useCallback(() => {
@@ -233,15 +230,8 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
               <GitBranch className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">{connectionStatus.repository?.fullName}</h3>
+              <h3 className="text-lg font-semibold">{connectionStatus.repoFullName}</h3>
               <div className="flex items-center gap-3 mt-1 text-sm text-gray-300">
-                <span className={`px-2 py-0.5 rounded-full text-xs ${
-                  connectionStatus.repository?.private
-                    ? 'bg-yellow-500/20 text-yellow-300'
-                    : 'bg-green-500/20 text-green-300'
-                }`}>
-                  {connectionStatus.repository?.private ? 'Private' : 'Public'}
-                </span>
                 <span className={`flex items-center gap-1 ${
                   connectionStatus.webhookActive ? 'text-green-400' : 'text-yellow-400'
                 }`}>
@@ -254,7 +244,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
             </div>
           </div>
           <a
-            href={connectionStatus.repository?.url}
+            href={connectionStatus.repoUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -505,7 +495,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
       )}
 
       {activeTab === 'activity' && (
-        <GitHubActivityFeed projectId={projectId} limit={50} />
+        <GitHubActivityFeed projectId={projectId} repoFullName={connectionStatus?.repoFullName} limit={50} />
       )}
 
       {activeTab === 'settings' && isOwner && (

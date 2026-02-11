@@ -836,9 +836,81 @@ router.post('/chats/:chatId/messages', authenticate, async (req: AuthRequest, re
       $inc: { [`unreadCount.${recipientId}`]: 1 }
     });
 
+    // Send email notification to recipient (async, don't wait)
+    if (recipientId) {
+      try {
+        const recipient = await User.findById(recipientId).select('email');
+        if (recipient?.email) {
+          emailNotifications.notifyMarketplaceMessage(
+            senderName || req.user?.name || 'Someone',
+            content,
+            recipient.email
+          );
+        }
+      } catch (emailError) {
+        console.error('Failed to send marketplace chat email notification:', emailError);
+      }
+    }
+
     res.json({ message });
   } catch (error: any) {
     console.error('Error sending message:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Edit marketplace message
+router.patch('/chats/:chatId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      res.status(400).json({ error: 'Message content is required' });
+      return;
+    }
+
+    const message = await MarketplaceMessage.findById(req.params.messageId);
+
+    if (!message) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can edit their message
+    if (message.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only edit your own messages' });
+      return;
+    }
+
+    message.message = content.trim();
+    await message.save();
+
+    res.json({ message });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete marketplace message
+router.delete('/chats/:chatId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const message = await MarketplaceMessage.findById(req.params.messageId);
+
+    if (!message) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can delete their message
+    if (message.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only delete your own messages' });
+      return;
+    }
+
+    await message.deleteOne();
+
+    res.json({ success: true });
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });

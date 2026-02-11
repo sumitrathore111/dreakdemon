@@ -7,27 +7,47 @@ import GitHubIntegration, { GitHubActivity, ProjectGitHubConnection } from '../m
 import Project from '../models/Project';
 import User from '../models/User';
 import {
-  closeGitHubIssue,
-  createGitHubIssue,
-  createWebhook,
-  decryptToken,
-  deleteWebhook,
-  encryptToken,
-  exchangeCodeForToken,
-  generateWebhookSecret,
-  getGitHubAuthUrl,
-  getGitHubUser,
-  getProjectGitHubConnection,
-  getRepositoryBranches,
-  getRepositoryCommits,
-  getRepositoryIssues,
-  getRepositoryPullRequests,
-  getUserGitHubIntegration,
-  getUserRepositories,
-  verifyWebhookSignature
+    closeGitHubIssue,
+    createGitHubIssue,
+    createWebhook,
+    decryptToken,
+    deleteWebhook,
+    encryptToken,
+    exchangeCodeForToken,
+    generateWebhookSecret,
+    getGitHubAuthUrl,
+    getGitHubUser,
+    getProjectGitHubConnection,
+    getRepositoryBranches,
+    getRepositoryCommits,
+    getRepositoryIssues,
+    getRepositoryPullRequests,
+    getUserGitHubIntegration,
+    getUserRepositories,
+    verifyWebhookSignature
 } from '../services/githubService';
 
 const router = Router();
+
+// Helper function to get access token (tries current user, then falls back to project owner)
+async function getAccessTokenForRepo(userId: string, repoFullName: string): Promise<string | null> {
+  // First try current user's GitHub integration
+  let integration = await getUserGitHubIntegration(userId);
+
+  if (!integration) {
+    // Fall back to project owner's integration
+    const projectConnection = await ProjectGitHubConnection.findOne({ repoFullName });
+    if (projectConnection) {
+      integration = await getUserGitHubIntegration(projectConnection.connectedBy.toString());
+    }
+  }
+
+  if (!integration) {
+    return null;
+  }
+
+  return decryptToken(integration.accessToken);
+}
 
 // ==========================================
 // GITHUB OAUTH AUTHENTICATION
@@ -200,13 +220,12 @@ router.get('/repos/:owner/:repo/commits', authenticate, async (req: AuthRequest,
     const userId = req.user?.id;
     const { owner, repo } = req.params;
     const { sha, since, until, page = 1, perPage = 30 } = req.query;
+    const repoFullName = `${owner}/${repo}`;
 
-    const integration = await getUserGitHubIntegration(userId!);
-    if (!integration) {
+    const accessToken = await getAccessTokenForRepo(userId!, repoFullName);
+    if (!accessToken) {
       return res.status(400).json({ message: 'GitHub not connected' });
     }
-
-    const accessToken = decryptToken(integration.accessToken);
     const commits = await getRepositoryCommits(accessToken, owner, repo, {
       sha: sha as string,
       since: since as string,
@@ -242,13 +261,12 @@ router.get('/repos/:owner/:repo/pulls', authenticate, async (req: AuthRequest, r
     const userId = req.user?.id;
     const { owner, repo } = req.params;
     const { state = 'all' } = req.query;
+    const repoFullName = `${owner}/${repo}`;
 
-    const integration = await getUserGitHubIntegration(userId!);
-    if (!integration) {
+    const accessToken = await getAccessTokenForRepo(userId!, repoFullName);
+    if (!accessToken) {
       return res.status(400).json({ message: 'GitHub not connected' });
     }
-
-    const accessToken = decryptToken(integration.accessToken);
     const pulls = await getRepositoryPullRequests(accessToken, owner, repo, state as any);
 
     const simplifiedPulls = pulls.map(pr => ({
@@ -281,13 +299,12 @@ router.get('/repos/:owner/:repo/issues', authenticate, async (req: AuthRequest, 
     const userId = req.user?.id;
     const { owner, repo } = req.params;
     const { state = 'all' } = req.query;
+    const repoFullName = `${owner}/${repo}`;
 
-    const integration = await getUserGitHubIntegration(userId!);
-    if (!integration) {
+    const accessToken = await getAccessTokenForRepo(userId!, repoFullName);
+    if (!accessToken) {
       return res.status(400).json({ message: 'GitHub not connected' });
     }
-
-    const accessToken = decryptToken(integration.accessToken);
     const issues = await getRepositoryIssues(accessToken, owner, repo, state as any);
 
     // Filter out pull requests (they appear in issues API)
@@ -321,13 +338,12 @@ router.get('/repos/:owner/:repo/branches', authenticate, async (req: AuthRequest
   try {
     const userId = req.user?.id;
     const { owner, repo } = req.params;
+    const repoFullName = `${owner}/${repo}`;
 
-    const integration = await getUserGitHubIntegration(userId!);
-    if (!integration) {
+    const accessToken = await getAccessTokenForRepo(userId!, repoFullName);
+    if (!accessToken) {
       return res.status(400).json({ message: 'GitHub not connected' });
     }
-
-    const accessToken = decryptToken(integration.accessToken);
     const branches = await getRepositoryBranches(accessToken, owner, repo);
 
     res.json({ branches: branches.map(b => ({ name: b.name, protected: b.protected })) });
@@ -342,13 +358,12 @@ router.get('/repos/:owner/:repo/contributors', authenticate, async (req: AuthReq
   try {
     const userId = req.user?.id;
     const { owner, repo } = req.params;
+    const repoFullName = `${owner}/${repo}`;
 
-    const integration = await getUserGitHubIntegration(userId!);
-    if (!integration) {
+    const accessToken = await getAccessTokenForRepo(userId!, repoFullName);
+    if (!accessToken) {
       return res.status(400).json({ message: 'GitHub not connected' });
     }
-
-    const accessToken = decryptToken(integration.accessToken);
 
     // Fetch contributors from GitHub API
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contributors?per_page=50`, {
@@ -554,6 +569,7 @@ router.get('/projects/:projectId/status', authenticate, async (req: AuthRequest,
       connected: true,
       repoFullName: connection.repoFullName,
       repoUrl: connection.repoUrl,
+      webhookActive: !!connection.webhookId,
       syncSettings: connection.syncSettings,
       connectedAt: connection.connectedAt,
       lastSyncAt: connection.lastSyncAt

@@ -3,6 +3,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import Chat from '../models/Chat';
 import ChatMessage from '../models/ChatMessage';
 import User from '../models/User';
+import emailNotifications from '../services/emailService';
 
 const router = Router();
 
@@ -175,7 +176,108 @@ router.post('/:chatId/messages', authenticate, async (req: AuthRequest, res: Res
       io.to(`chat:${req.params.chatId}`).emit('newMessage', messagePayload);
     }
 
+    // Send email notification to the other participant (async, don't wait)
+    try {
+      const chat = await Chat.findById(req.params.chatId);
+      if (chat) {
+        const sendingUserId = senderId || req.user?.id;
+        const otherParticipantId = chat.participantIds.find(id => id !== sendingUserId);
+        if (otherParticipantId) {
+          const recipient = await User.findById(otherParticipantId).select('email');
+          if (recipient?.email) {
+            emailNotifications.notifyDeveloperConnectMessage(
+              senderName || req.user?.name || 'Someone',
+              message,
+              recipient.email
+            );
+          }
+        }
+      }
+    } catch (emailError) {
+      console.error('Failed to send chat message email notification:', emailError);
+    }
+
     res.status(201).json(messagePayload);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Edit message
+router.patch('/:chatId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
+    }
+
+    const chatMessage = await ChatMessage.findById(req.params.messageId);
+
+    if (!chatMessage) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can edit their message
+    if (chatMessage.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only edit your own messages' });
+      return;
+    }
+
+    chatMessage.message = message.trim();
+    await chatMessage.save();
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`chat:${req.params.chatId}`).emit('messageEdited', {
+        messageId: chatMessage._id.toString(),
+        chatId: req.params.chatId,
+        message: chatMessage.message,
+        updatedAt: chatMessage.updatedAt
+      });
+    }
+
+    res.json({
+      id: chatMessage._id.toString(),
+      message: chatMessage.message,
+      updatedAt: chatMessage.updatedAt
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete message
+router.delete('/:chatId/messages/:messageId', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const chatMessage = await ChatMessage.findById(req.params.messageId);
+
+    if (!chatMessage) {
+      res.status(404).json({ error: 'Message not found' });
+      return;
+    }
+
+    // Only sender can delete their message
+    if (chatMessage.senderId !== req.user?.id) {
+      res.status(403).json({ error: 'You can only delete your own messages' });
+      return;
+    }
+
+    await chatMessage.deleteOne();
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`chat:${req.params.chatId}`).emit('messageDeleted', {
+        messageId: req.params.messageId,
+        chatId: req.params.chatId
+      });
+    }
+
+    res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

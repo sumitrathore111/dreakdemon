@@ -32,9 +32,8 @@ export default function CreateTaskModal({
   const [dueDate, setDueDate] = useState('');
   const [estimatedHours, setEstimatedHours] = useState('');
   const [storyPoints, setStoryPoints] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     if (selectedAssignees.length === 0) {
@@ -42,21 +41,17 @@ export default function CreateTaskModal({
       return;
     }
 
-    setLoading(true);
-    try {
-      await onCreate({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        priority,
-        labels: selectedLabels,
-        assignees: selectedAssignees as any,
-        dueDate: dueDate || undefined,
-        estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
-        storyPoints: storyPoints ? parseInt(storyPoints) : undefined
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Call onCreate immediately - parent handles optimistic update
+    onCreate({
+      title: title.trim(),
+      description: description.trim() || undefined,
+      priority,
+      labels: selectedLabels,
+      assignees: selectedAssignees as any,
+      dueDate: dueDate || undefined,
+      estimatedHours: estimatedHours ? parseFloat(estimatedHours) : undefined,
+      storyPoints: storyPoints ? parseInt(storyPoints) : undefined
+    });
   };
 
   const toggleLabel = (labelId: string) => {
@@ -271,10 +266,10 @@ export default function CreateTaskModal({
             </button>
             <button
               type="submit"
-              disabled={!title.trim() || loading}
+              disabled={!title.trim()}
               className="px-4 py-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white font-medium rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {loading ? 'Creating...' : 'Create Task'}
+              Create Task
             </button>
           </div>
         </form>

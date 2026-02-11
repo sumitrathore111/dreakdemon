@@ -1,10 +1,13 @@
 import { Response, Router } from 'express';
 import mongoose from 'mongoose';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { BoardTask } from '../models/Board';
 import Endorsement from '../models/Endorsement';
 import HelpRequest from '../models/HelpRequest';
+import { LearningProgress } from '../models/Roadmap';
 import TechReview from '../models/TechReview';
 import User from '../models/User';
+import UserProgress from '../models/UserProgress';
 
 const router = Router();
 
@@ -15,10 +18,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 
     let query: any = {};
 
-    // Don't include current user in results
-    if (req.user?.id) {
-      query._id = { $ne: req.user.id };
-    }
+    // Include all users (including current user for ranking visibility)
 
     if (search) {
       query.$or = [
@@ -259,56 +259,150 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
   try {
     const userId = req.user?.id;
 
-    // Fetch all data in parallel
-    const [users, studyGroupsData, endorsementsData, techReviewsData, helpRequestsData] = await Promise.all([
-      // Get developers (excluding current user)
-      User.find(userId ? { _id: { $ne: userId } } : {})
-        .select('name email bio skills languages institute location avatar githubUsername createdAt marathon_rank challenges_solved yearOfStudy badges rating')
+    // Fetch all data in parallel including ranking data
+    const [users, studyGroupsData, endorsementsData, techReviewsData, helpRequestsData, allLearningProgress, allCodeArenaSolved, allCompletedTasks] = await Promise.all([
+      // Get all developers (including current user for ranking visibility)
+      User.find({})
+        .select('name email bio skills languages institute location avatar githubUsername createdAt marathon_rank challenges_solved yearOfStudy badges rating battlesWon battlesLost')
         .limit(50)
         .sort({ createdAt: -1 }),
 
-      // Get study groups (remove isActive filter since field may not exist)
+      // Get study groups
       (async () => {
         try {
           const StudyGroup = require('../models/StudyGroup').default;
-          return await StudyGroup.find({})
-            .sort({ createdAt: -1 })
-            .limit(20);
-        } catch {
-          return [];
-        }
+          return await StudyGroup.find({}).sort({ createdAt: -1 }).limit(20);
+        } catch { return []; }
       })(),
 
-      // Get user's endorsements (keep for backward compatibility)
+      // Get user's endorsements
       userId ? Endorsement.find({ recipientId: userId }).sort({ createdAt: -1 }).limit(20) : Promise.resolve([]),
 
       // Get tech reviews
       TechReview.find({}).sort({ createdAt: -1 }).limit(30),
 
       // Get help requests
-      HelpRequest.find({ isResolved: false }).sort({ createdAt: -1 }).limit(20)
+      HelpRequest.find({ isResolved: false }).sort({ createdAt: -1 }).limit(20),
+
+      // Get all learning progress for ranking (Roadmap topics)
+      LearningProgress.aggregate([
+        { $group: { _id: '$userId', completedTopicsCount: { $sum: { $size: '$completedTopics' } } } }
+      ]),
+
+      // Get CodeArena solved challenges count per user from UserProgress
+      UserProgress.aggregate([
+        { $project: { userId: 1, solvedCount: { $size: { $ifNull: ['$solvedChallenges', []] } } } },
+        { $group: { _id: '$userId', totalSolved: { $sum: '$solvedCount' } } }
+      ]),
+
+      // Get all completed tasks with user info for Creator Corner ranking (BoardTask from Creator Corner)
+      BoardTask.find({ completedAt: { $exists: true, $ne: null } }).select('assignees reporter completedBy').lean()
     ]);
 
-    // Transform developers
-    const developers = users.map((user: any) => ({
-      userId: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      bio: user.bio || 'Developer on NextStep',
-      skills: user.skills || [],
-      languages: user.languages || [],
-      institute: user.institute || 'Not specified',
-      location: user.location || 'Not specified',
-      avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name?.replace(/\s+/g, '') || 'User'}`,
-      githubUsername: user.githubUsername || '',
-      isOnline: Math.random() > 0.5,
-      joinedDate: user.createdAt || new Date(),
-      badges: user.badges || [],
-      rating: user.rating || 0,
-      marathon_rank: user.marathon_rank || 0,
-      challenges_solved: user.challenges_solved || 0,
-      yearOfStudy: user.yearOfStudy || 0
-    }));
+    // Create lookup maps for quick access
+    const learningProgressMap = new Map<string, number>();
+    (allLearningProgress || []).forEach((item: any) => {
+      learningProgressMap.set(item._id.toString(), item.completedTopicsCount || 0);
+    });
+
+    const codeArenaMap = new Map<string, number>();
+    (allCodeArenaSolved || []).forEach((item: any) => {
+      codeArenaMap.set(item._id.toString(), item.totalSolved || 0);
+    });
+
+    // Build completedTasksMap manually from completed BoardTasks (Creator Corner)
+    const completedTasksMap = new Map<string, number>();
+    const completedTasksList = allCompletedTasks || [];
+    completedTasksList.forEach((task: any) => {
+      // Count for completedBy (the user who marked it complete)
+      if (task.completedBy) {
+        const id = task.completedBy.toString();
+        completedTasksMap.set(id, (completedTasksMap.get(id) || 0) + 1);
+      }
+      // Also count for each user in assignees array
+      else if (task.assignees && Array.isArray(task.assignees)) {
+        task.assignees.forEach((userId: any) => {
+          const id = userId.toString();
+          completedTasksMap.set(id, (completedTasksMap.get(id) || 0) + 1);
+        });
+      }
+      // Fallback to reporter if no completedBy or assignees
+      else if (task.reporter) {
+        const id = task.reporter.toString();
+        completedTasksMap.set(id, (completedTasksMap.get(id) || 0) + 1);
+      }
+    });
+
+    // Debug log
+    console.log('Ranking data:', {
+      roadmapUsers: allLearningProgress?.length || 0,
+      codeArenaUsers: allCodeArenaSolved?.length || 0,
+      totalCompletedBoardTasks: completedTasksList.length,
+      usersWithCompletedTasks: completedTasksMap.size,
+      completedTasksSample: completedTasksList.slice(0, 3).map((t: any) => ({
+        completedBy: t.completedBy?.toString(),
+        assignees: t.assignees?.length || 0,
+        reporter: t.reporter?.toString()
+      }))
+    });
+
+    // Calculate scores and transform developers
+    const developersWithScores = users.map((user: any) => {
+      const roadmapTopics = learningProgressMap.get(user._id.toString()) || 0;
+      // Use UserProgress data first, fallback to User.challenges_solved
+      const codeArenaSolved = codeArenaMap.get(user._id.toString()) || user.challenges_solved || 0;
+      const creatorTasksCompleted = completedTasksMap.get(user._id.toString()) || 0;
+
+      // Combined score: weighted sum
+      // Roadmap topics: 2 points each
+      // CodeArena problems: 3 points each
+      // Creator Corner tasks: 5 points each
+      const combinedScore = (roadmapTopics * 2) + (codeArenaSolved * 3) + (creatorTasksCompleted * 5);
+
+      return {
+        userId: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        bio: user.bio || 'Developer on NextStep',
+        skills: user.skills || [],
+        languages: user.languages || [],
+        institute: user.institute || 'Not specified',
+        location: user.location || 'Not specified',
+        avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name?.replace(/\s+/g, '') || 'User'}`,
+        githubUsername: user.githubUsername || '',
+        isOnline: Math.random() > 0.5,
+        isCurrentUser: user._id.toString() === userId,
+        joinedDate: user.createdAt || new Date(),
+        badges: user.badges || [],
+        rating: user.rating || 0,
+        marathon_rank: user.marathon_rank || 0,
+        challenges_solved: codeArenaSolved,
+        yearOfStudy: user.yearOfStudy || 0,
+        battlesWon: user.battlesWon || 0,
+        battlesLost: user.battlesLost || 0,
+        // New ranking fields
+        roadmapTopicsCompleted: roadmapTopics,
+        creatorTasksCompleted: creatorTasksCompleted,
+        combinedScore: combinedScore,
+        combinedRank: 0 // Will be set after sorting
+      };
+    });
+
+    // Sort by combined score and assign ranks
+    developersWithScores.sort((a, b) => b.combinedScore - a.combinedScore);
+    developersWithScores.forEach((dev, index) => {
+      dev.combinedRank = index + 1;
+    });
+
+    // Keep original order (by createdAt) but with ranks assigned
+    const developers = users.map((user: any) => {
+      const devWithScore = developersWithScores.find(d => d.userId === user._id.toString());
+      return devWithScore || {
+        userId: user._id.toString(),
+        name: user.name,
+        combinedRank: developersWithScores.length + 1
+      };
+    });
 
     // Transform study groups - include ALL fields needed by frontend
     const studyGroups = (studyGroupsData || []).map((group: any) => ({

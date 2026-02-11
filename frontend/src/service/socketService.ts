@@ -116,6 +116,18 @@ export const onJoinRequestUpdated = (callback: (data: any) => void): void => {
   }
 };
 
+export const onMessageDeleted = (callback: (data: any) => void): void => {
+  if (socket) {
+    socket.on('message-deleted', callback);
+  }
+};
+
+export const onMessageEdited = (callback: (data: any) => void): void => {
+  if (socket) {
+    socket.on('message-edited', callback);
+  }
+};
+
 // Remove event listeners
 export const offNewMessage = (callback?: (data: any) => void): void => {
   if (socket) {
@@ -150,6 +162,18 @@ export const offMemberJoined = (callback?: (data: any) => void): void => {
 export const offJoinRequestUpdated = (callback?: (data: any) => void): void => {
   if (socket) {
     socket.off('join-request-updated', callback);
+  }
+};
+
+export const offMessageDeleted = (callback?: (data: any) => void): void => {
+  if (socket) {
+    socket.off('message-deleted', callback);
+  }
+};
+
+export const offMessageEdited = (callback?: (data: any) => void): void => {
+  if (socket) {
+    socket.off('message-edited', callback);
   }
 };
 

@@ -30,6 +30,15 @@ export interface DeveloperProfile {
   marathon_score?: number;
   marathon_rank?: number;
   streakCount?: number;
+  battlesWon?: number;
+  battlesLost?: number;
+
+  // Combined Ranking Stats
+  roadmapTopicsCompleted?: number;
+  creatorTasksCompleted?: number;
+  combinedScore?: number;
+  combinedRank?: number;
+  isCurrentUser?: boolean;
 
   // Skills & Expertise
   skills: string[];

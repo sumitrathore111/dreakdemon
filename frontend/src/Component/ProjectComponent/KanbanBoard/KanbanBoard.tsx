@@ -1,8 +1,8 @@
 import {
-  Kanban,
-  Plus,
-  RefreshCw,
-  Search
+    Kanban,
+    Plus,
+    RefreshCw,
+    Search
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_URL } from '../../../service/apiConfig';
@@ -220,41 +220,74 @@ export default function KanbanBoard({
     setDraggingTask(null);
   };
 
-  // Create task
+  // Create task - OPTIMISTIC UPDATE for instant UI feedback
   const handleCreateTask = async (taskData: Partial<KanbanTask>) => {
     if (!board || !showCreateTask) return;
 
-    console.log('🎯 handleCreateTask called with:', taskData);
-    console.log('   - taskData.assignees:', taskData.assignees);
+    const columnId = showCreateTask.columnId;
+    const token = getToken();
 
-    try {
-      const token = getToken();
-
-      // Process assignees - handle multiple formats
-      const processedAssignees: string[] = [];
-      if (Array.isArray(taskData.assignees)) {
-        for (const a of taskData.assignees) {
-          if (typeof a === 'string') {
-            // Already a string ID
-            processedAssignees.push(a);
-          } else if (a && typeof a === 'object') {
-            // Object - try to get ID from various fields
-            const id = (a as any)._id || (a as any).userId || (a as any).id;
-            if (id) {
-              processedAssignees.push(id);
-            } else if ((a as any).email) {
-              // Lookup userId from members by email
-              const member = members.find(m => m.email === (a as any).email);
-              if (member?.userId) {
-                processedAssignees.push(member.userId);
-              }
+    // Process assignees - handle multiple formats
+    const processedAssignees: string[] = [];
+    if (Array.isArray(taskData.assignees)) {
+      for (const a of taskData.assignees) {
+        if (typeof a === 'string') {
+          processedAssignees.push(a);
+        } else if (a && typeof a === 'object') {
+          const id = (a as any)._id || (a as any).userId || (a as any).id;
+          if (id) {
+            processedAssignees.push(id);
+          } else if ((a as any).email) {
+            const member = members.find(m => m.email === (a as any).email);
+            if (member?.userId) {
+              processedAssignees.push(member.userId);
             }
           }
         }
       }
+    }
 
-      console.log('   - processedAssignees:', processedAssignees);
+    // Create optimistic task for INSTANT UI update
+    const tempId = `temp-${Date.now()}`;
+    const currentMember = members.find(m => m.userId === currentUserId);
+    const reporter = { _id: currentUserId, name: currentUserName, email: currentMember?.email || '', avatar: currentMember?.avatar };
 
+    const optimisticTask: KanbanTask = {
+      _id: tempId,
+      boardId: board._id,
+      columnId,
+      projectId,
+      title: taskData.title || '',
+      description: taskData.description,
+      priority: taskData.priority || 'medium',
+      position: (tasksByColumn[columnId]?.length || 0),
+      labels: [],
+      assignees: processedAssignees.map(id => {
+        const member = members.find(m => m.userId === id);
+        return { _id: id, name: member?.name || 'Unknown', email: member?.email || '', avatar: member?.avatar };
+      }),
+      reporter,
+      subtasks: [],
+      checklists: [],
+      comments: [],
+      timeEntries: [],
+      totalTimeSpent: 0,
+      attachments: [],
+      watchers: [],
+      reviewStatus: 'not_submitted',
+      dueDate: taskData.dueDate,
+      estimatedHours: taskData.estimatedHours,
+      storyPoints: taskData.storyPoints,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // INSTANT: Close modal and add task to UI
+    setShowCreateTask(null);
+    setTasks(prev => [...prev, optimisticTask]);
+
+    // Background: Make actual API call
+    try {
       const res = await fetch(`${API_URL}/boards/${board._id}/tasks`, {
         method: 'POST',
         headers: {
@@ -263,12 +296,10 @@ export default function KanbanBoard({
         },
         body: JSON.stringify({
           ...taskData,
-          columnId: showCreateTask.columnId,
-          // Ensure labels are strings (label IDs)
+          columnId,
           labels: Array.isArray(taskData.labels)
             ? taskData.labels.map(l => typeof l === 'string' ? l : (l as any)?.id).filter(Boolean)
             : [],
-          // Ensure assignees are strings (user IDs)
           assignees: processedAssignees
         })
       });
@@ -277,12 +308,15 @@ export default function KanbanBoard({
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to create task');
       }
+
       const newTask = await res.json();
-      setTasks(prev => [...prev, newTask]);
-      setShowCreateTask(null);
+      // Replace optimistic task with real task from server
+      setTasks(prev => prev.map(t => t._id === tempId ? newTask : t));
     } catch (err) {
       console.error('Error creating task:', err);
-      throw err; // Re-throw so CreateTaskModal can handle it
+      // Remove optimistic task on failure
+      setTasks(prev => prev.filter(t => t._id !== tempId));
+      alert('Failed to create task. Please try again.');
     }
   };
 
