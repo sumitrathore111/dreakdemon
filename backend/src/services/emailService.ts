@@ -1,24 +1,5 @@
-import nodemailer from 'nodemailer';
-
-// Email configuration - lazy initialization to ensure env vars are loaded
-// Using Brevo (formerly Sendinblue) SMTP
-let transporter: nodemailer.Transporter | null = null;
-
-const getTransporter = () => {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_EMAIL, // Your Brevo login email
-        pass: process.env.BREVO_API_KEY // Your Brevo SMTP key
-      }
-    });
-    console.log('📧 Brevo email transporter initialized with:', process.env.BREVO_EMAIL);
-  }
-  return transporter;
-};
+// Using Brevo HTTP API (works on Render - SMTP is blocked)
+// No nodemailer needed - using fetch directly
 
 // Email templates
 interface EmailTemplate {
@@ -473,36 +454,55 @@ const emailTemplates = {
   })
 };
 
-// Main email sending function
+// Main email sending function using Brevo HTTP API
+// (SMTP is blocked on Render, so we use HTTP API instead)
 export const sendEmail = async (
   to: string,
   template: EmailTemplate
 ): Promise<boolean> => {
-  // Skip if Brevo email is not configured
-  if (!process.env.BREVO_EMAIL || !process.env.BREVO_API_KEY) {
-    console.log('📧 Brevo email not configured, skipping notification');
-    console.log('📧 BREVO_EMAIL:', process.env.BREVO_EMAIL ? 'SET' : 'NOT SET');
-    console.log('📧 BREVO_API_KEY:', process.env.BREVO_API_KEY ? 'SET' : 'NOT SET');
+  // Skip if Brevo API key is not configured
+  if (!process.env.BREVO_API_KEY) {
+    console.log('📧 Brevo API key not configured, skipping notification');
     return false;
   }
 
+  const senderEmail = process.env.BREVO_EMAIL || 'noreply@skillupx.com';
+
   try {
-    console.log(`📧 Attempting to send email to: ${to}`);
-    console.log(`📧 From: ${process.env.BREVO_EMAIL}`);
+    console.log(`📧 Attempting to send email via Brevo API to: ${to}`);
+    console.log(`📧 From: ${senderEmail}`);
     console.log(`📧 Subject: ${template.subject}`);
 
-    const info = await getTransporter().sendMail({
-      from: `"SkillUpX" <${process.env.BREVO_EMAIL}>`,
-      to,
-      subject: template.subject,
-      html: template.html
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'SkillUpX',
+          email: senderEmail
+        },
+        to: [{ email: to }],
+        subject: template.subject,
+        htmlContent: template.html
+      })
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('📧 Brevo API error:', errorData);
+      return false;
+    }
+
+    const result = await response.json();
     console.log(`📧 Email sent successfully to ${to}`);
-    console.log(`📧 Message ID: ${info.messageId}`);
+    console.log(`📧 Message ID: ${result.messageId}`);
     return true;
   } catch (error: any) {
     console.error('📧 Email sending failed:', error.message || error);
-    console.error('📧 Full error:', JSON.stringify(error, null, 2));
     return false;
   }
 };
