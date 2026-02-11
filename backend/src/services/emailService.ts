@@ -481,20 +481,28 @@ export const sendEmail = async (
   // Skip if Brevo email is not configured
   if (!process.env.BREVO_EMAIL || !process.env.BREVO_API_KEY) {
     console.log('📧 Brevo email not configured, skipping notification');
+    console.log('📧 BREVO_EMAIL:', process.env.BREVO_EMAIL ? 'SET' : 'NOT SET');
+    console.log('📧 BREVO_API_KEY:', process.env.BREVO_API_KEY ? 'SET' : 'NOT SET');
     return false;
   }
 
   try {
-    await getTransporter().sendMail({
+    console.log(`📧 Attempting to send email to: ${to}`);
+    console.log(`📧 From: ${process.env.BREVO_EMAIL}`);
+    console.log(`📧 Subject: ${template.subject}`);
+
+    const info = await getTransporter().sendMail({
       from: `"SkillUpX" <${process.env.BREVO_EMAIL}>`,
       to,
       subject: template.subject,
       html: template.html
     });
     console.log(`📧 Email sent successfully to ${to}`);
+    console.log(`📧 Message ID: ${info.messageId}`);
     return true;
-  } catch (error) {
-    console.error('📧 Email sending failed:', error);
+  } catch (error: any) {
+    console.error('📧 Email sending failed:', error.message || error);
+    console.error('📧 Full error:', JSON.stringify(error, null, 2));
     return false;
   }
 };
