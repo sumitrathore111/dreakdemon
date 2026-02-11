@@ -497,9 +497,9 @@ export const sendEmail = async (
       return false;
     }
 
-    const result = await response.json();
+    const result = await response.json() as { messageId?: string };
     console.log(`📧 Email sent successfully to ${to}`);
-    console.log(`📧 Message ID: ${result.messageId}`);
+    console.log(`📧 Message ID: ${result.messageId || 'N/A'}`);
     return true;
   } catch (error: any) {
     console.error('📧 Email sending failed:', error.message || error);
