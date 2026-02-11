@@ -123,7 +123,37 @@ const emailTemplates = {
     `, 'Task Review')
   }),
 
-  // Idea notifications
+  // Idea notifications - Pending review (sent to admins)
+  newIdeaPendingReview: (ideaTitle: string, submitterName: string, category: string): EmailTemplate => ({
+    subject: `🔔 New Idea Needs Review: ${ideaTitle}`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 60px;">📝</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center; font-size: 24px;">New Idea Submitted for Review</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 25px;">A user has submitted a new idea that needs your approval.</p>
+
+      <div style="background: linear-gradient(135deg, #fff3cd15 0%, #ffc10715 100%); padding: 25px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 20px;">📌 ${ideaTitle}</h3>
+        <div style="margin-top: 15px;">
+          <span style="background: #ffc107; color: #333; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-right: 8px;">📂 ${category}</span>
+          <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">👤 by ${submitterName}</span>
+        </div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #e2e3e515 0%, #cfd9df15 100%); padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px dashed #6c757d;">
+        <p style="color: #6c757d; margin: 0; font-weight: 500;">⏳ Status: PENDING REVIEW</p>
+      </div>
+
+      <p style="color: #666; line-height: 1.8; text-align: center;">Please review this idea and approve or reject it. Approved ideas will be visible to all users in Creator Corner.</p>
+
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${process.env.FRONTEND_URL || 'https://skillupx.vercel.app'}/dashboard/admin" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">🔍 Review Idea Now</a>
+      </div>
+    `, 'New Idea Pending Review')
+  }),
+
+  // Idea approved (sent to all users)
   newIdea: (ideaTitle: string, submitterName: string, category: string): EmailTemplate => ({
     subject: `💡 Brilliant Idea Alert! Check Out: ${ideaTitle}`,
     html: getEmailWrapper(`
@@ -427,7 +457,7 @@ const emailTemplates = {
 
   // Help Request notifications
   newHelpRequest: (title: string, category: string, requesterName: string): EmailTemplate => ({
-    subject: `🆘 New Help Request: ${title}`,
+    subject: `New Help Request: ${title}`,
     html: getEmailWrapper(`
       <h2 style="color: #333; margin-bottom: 20px;">Someone Needs Help!</h2>
       <p style="color: #666; line-height: 1.6;">A new help request has been posted:</p>
@@ -542,10 +572,16 @@ export const emailNotifications = {
     return sendEmail(recipientEmail, template);
   },
 
-  // Idea notifications
-  notifyNewIdea: async (ideaTitle: string, submitterName: string, category: string, adminEmails: string[]) => {
-    const template = emailTemplates.newIdea(ideaTitle, submitterName, category);
+  // Idea notifications - Pending review (sent to admins when idea is submitted)
+  notifyNewIdeaPendingReview: async (ideaTitle: string, submitterName: string, category: string, adminEmails: string[]) => {
+    const template = emailTemplates.newIdeaPendingReview(ideaTitle, submitterName, category);
     return sendBulkEmail(adminEmails, template);
+  },
+
+  // Idea approved (sent to all users when idea is approved)
+  notifyNewIdea: async (ideaTitle: string, submitterName: string, category: string, userEmails: string[]) => {
+    const template = emailTemplates.newIdea(ideaTitle, submitterName, category);
+    return sendBulkEmail(userEmails, template);
   },
 
   notifyIdeaStatusUpdate: async (ideaTitle: string, newStatus: string, reviewerName: string, submitterEmail: string) => {

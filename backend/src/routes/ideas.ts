@@ -132,12 +132,12 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     // Invalidate cache after new idea
     invalidateIdeasCache();
 
-    // Send email notification to admins about new idea (async, don't wait)
+    // Send email notification to admins about new pending idea (async, don't wait)
     try {
       const admins = await User.find({ role: 'admin' }).select('email');
       const adminEmails = admins.map(a => a.email).filter(Boolean);
       if (adminEmails.length > 0) {
-        emailNotifications.notifyNewIdea(title, req.user?.name || 'Someone', category, adminEmails);
+        emailNotifications.notifyNewIdeaPendingReview(title, req.user?.name || 'Someone', category, adminEmails);
       }
     } catch (emailError) {
       console.error('Failed to send new idea email notifications:', emailError);
