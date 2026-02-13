@@ -47,7 +47,7 @@ const io = new SocketIOServer(httpServer, {
       'https://skillupx.online'
       'https://skillupx.vercel.app',
       'http://localhost:5173',
-      'http://localhost:5174'
+      'http://localhost:5174',
     ],
     methods: ['GET', 'POST'],
     credentials: true
