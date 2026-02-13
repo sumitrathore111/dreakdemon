@@ -44,7 +44,7 @@ const io = new SocketIOServer(httpServer, {
   cors: {
     origin: [
       'https://www.skillupx.online',
-      'https://skillupx.online'
+      'https://skillupx.online',
       'https://skillupx.vercel.app',
       'http://localhost:5173',
       'http://localhost:5174',
