@@ -246,6 +246,8 @@ app.set('io', io);
 app.use(helmet());
 app.use(cors({
   origin: [
+    'https://skillupx.online',
+    'https://www.skillupx.online',
     'https://skillupx.vercel.app',
     'http://localhost:5173',
     'http://localhost:5174',
