@@ -43,10 +43,11 @@ const PORT = process.env.PORT || 5000;
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: [
+      'https://www.skillupx.online',
       'https://skillupx.vercel.app',
       'http://localhost:5173',
-      'http://localhost:5174',
-      'https://www.skillupx.online'
+      'http://localhost:5174'
+      
     ],
     methods: ['GET', 'POST'],
     credentials: true
