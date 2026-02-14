@@ -43,6 +43,8 @@ const PORT = process.env.PORT || 5000;
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: [
+      'https://skillupx.online',
+      'https://www.skillupx.online',
       'https://skillupx.vercel.app',
       'http://localhost:5173',
       'http://localhost:5174',
@@ -244,6 +246,8 @@ app.set('io', io);
 app.use(helmet());
 app.use(cors({
   origin: [
+    'https://skillupx.online',
+    'https://www.skillupx.online',
     'https://skillupx.vercel.app',
     'http://localhost:5173',
     'http://localhost:5174',
