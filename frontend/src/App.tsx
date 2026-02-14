@@ -1,9 +1,9 @@
 import { type JSX, Suspense, lazy } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import React from "react";
 import Navigation from "./Component/Nevigation";
 import ToastProvider from "./Component/ToastProvider";
-
 
 import { AuthProvider, useAuth } from "./Context/AuthContext";
 import { BattleGuardProvider } from "./Context/BattleGuardContext";
@@ -11,6 +11,7 @@ import { ThemeProvider } from "./Context/ThemeContext";
 import { DataProvider } from "./Context/UserDataContext";
 
 import { AnimatePresence } from "framer-motion";
+import ConsentBanner from "./Component/ConsentBanner";
 import RematchNotification from "./Component/Global/RematchNotification";
 import ScrollToTop from "./Component/ScrollToTop";
 import DashboardComingSoon from "./Pages/Dashboard/Dashboard";
@@ -38,6 +39,10 @@ const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const DeveloperConnect = lazy(() => import("./Pages/DeveloperConnect/DeveloperConnect"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
+
+// Legal pages
+const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
+const TermsAndConditions = lazy(() => import("./Pages/TermsAndConditions"));
 
 // Marketplace pages
 // const MarketplaceBazaar = lazy(() => import("./Pages/Marketplace/MarketplaceBazaar"));
@@ -72,6 +77,8 @@ function PublicLayout() {
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/TechUpdate" element={<TechUpdate />} />
             <Route path="/documentation" element={<Documentation />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/login" element={<LoginRedirect />} />
             <Route path="/signup" element={<SignupRedirect />} />
             <Route path="*" element={<Navigate to="/" />} />
@@ -215,9 +222,9 @@ function PublicLayout() {
                 &copy; 2024 SkillUpX. All rights reserved.
               </p>
               <div className="flex gap-6 text-sm text-muted-foreground dark:text-gray-500">
-                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Privacy Policy</a>
-                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Terms of Service</a>
-                <a href="#" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Cookie Policy</a>
+                <a href="/privacy-policy" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Privacy Policy</a>
+                <a href="/terms-and-conditions" className="hover:text-primary transition-colors duration-200 relative after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-0.5 after:bg-gradient-to-r after:from-[#00ADB5] after:to-purple-500 after:rounded-full after:transition-all after:duration-300 focus:after:w-full active:after:w-full" onClick={e => { e.currentTarget.classList.add('after:w-full'); setTimeout(() => e.currentTarget.classList.remove('after:w-full'), 400); }}>Terms & Conditions</a>
+                
               </div>
             </div>
           </div>
@@ -256,9 +263,9 @@ const App: React.FC = () => {
           <BattleGuardProvider>
             <ToastProvider />
             <ScrollToTop />
+            <ConsentBanner />
             <Suspense fallback={<div className="dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
               <AnimatePresence mode="wait" >
-
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/*" element={<PublicLayout />} />
