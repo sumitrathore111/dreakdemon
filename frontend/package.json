@@ -6,7 +6,7 @@
   "homepage": "https://moohhiit.github.io/NextStep/",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
@@ -29,12 +29,14 @@
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-helmet-async": "^2.0.5",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.8.0",
     "socket.io-client": "^4.8.3",
     "three": "^0.180.0",
     "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vite-plugin-prerender": "^1.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

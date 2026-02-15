@@ -1,6 +1,7 @@
-import { Shield, Lock, Eye, Bell, UserCheck, FileText, Mail, ChevronRight, Sparkles, CheckCircle } from "lucide-react";
+import { Bell, CheckCircle, ChevronRight, Eye, FileText, Lock, Mail, Shield, Sparkles, UserCheck } from "lucide-react";
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
+import SEO from "../Component/SEO";
 
 // Animated Section Component
 const PolicySection = memo(({ icon: Icon, title, children, index }: {
@@ -57,6 +58,13 @@ PolicySection.displayName = 'PolicySection';
 const PrivacyPolicy: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      <SEO
+        title="Privacy Policy"
+        description="SkillUpX Privacy Policy – Learn how we collect, use, protect, and handle your personal data. Your privacy matters to us."
+        keywords="privacy policy, data protection, personal information, SkillUpX privacy, user data, cookies, GDPR compliant, CCPA compliance, 256-bit encryption, data security, user rights, data deletion request, cookie policy, third-party data sharing, analytics cookies, preference cookies, data portability, privacy rights, secure coding platform, SkillUpX data protection officer"
+        canonicalUrl="/privacy-policy"
+        noIndex={false}
+      />
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20 text-center">

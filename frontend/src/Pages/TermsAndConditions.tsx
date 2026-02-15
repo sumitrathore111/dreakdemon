@@ -1,6 +1,7 @@
-import { FileText, Scale, Shield, AlertCircle, BookOpen, Users, Ban, RefreshCw, Mail, ChevronRight, Sparkles, CheckCircle, Info } from "lucide-react";
+import { AlertCircle, Ban, BookOpen, CheckCircle, ChevronRight, FileText, Info, Mail, RefreshCw, Scale, Shield, Sparkles, Users } from "lucide-react";
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
+import SEO from "../Component/SEO";
 
 // Animated Section Component
 const TermSection = memo(({ icon: Icon, title, children, index }: {
@@ -57,6 +58,13 @@ TermSection.displayName = 'TermSection';
 const TermsAndConditions: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <SEO
+        title="Terms and Conditions"
+        description="SkillUpX Terms and Conditions – Read our terms of service, user agreement, and usage rules for the platform."
+        keywords="terms and conditions, terms of service, user agreement, SkillUpX terms, usage rules, legal, intellectual property rights, account termination policy, prohibited activities, dispute resolution, verified certificates terms, user eligibility, content ownership, India jurisdiction, coding platform terms, free platform terms, user conduct policy, fair use policy, certificate revocation policy, data retention policy"
+        canonicalUrl="/terms-and-conditions"
+        noIndex={false}
+      />
       {/* Hero Section - Clean, No Animations */}
       <section className="relative py-20">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 text-center">

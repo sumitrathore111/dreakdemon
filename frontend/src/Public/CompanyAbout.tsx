@@ -1,5 +1,6 @@
 import { BookOpen, Globe, Lightbulb, Shield, Users, Zap } from "lucide-react";
 import { useState } from "react";
+import SEO from "../Component/SEO";
 
 export function AboutPage() {
     // Timeline milestones
@@ -100,6 +101,30 @@ export function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+      <SEO
+        title="About SkillUpX – Our Story, Mission, Team & Platform Features"
+        description="Learn about SkillUpX – India's free developer platform with CodeArena coding battles, project collaboration, learning roadmaps, Developer Connect, tech reviews, and 3000+ DSA questions. Meet our team and discover our mission."
+        keywords="about SkillUpX, CodeArena, project collaboration, learning roadmaps, Developer Connect, tech reviews, developer community, coding platform, tech education, our team, our story, collaboration, innovation, real-world projects, student empowerment platform, open source education, India ed-tech startup, skill development company, coding education mission, developer mentorship India, practical education platform, about coding platform India, SkillUpX founders, SkillUpX journey"
+        canonicalUrl="/about"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About SkillUpX",
+          "description": "Empowering the next generation of tech professionals through practical education and industry mentorship.",
+          "url": "https://skillupx.online/about"
+        }}
+      />
+
+      {/* SEO H1 - Above the fold */}
+      <section className="pt-28 pb-10 px-8 lg:px-16 text-center">
+        <h1 className="text-4xl lg:text-5xl font-extrabold text-[#00ADB5]">
+          About SkillUpX
+        </h1>
+        <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Empowering the next generation of tech professionals through practical education, real-world projects, and industry mentorship.
+        </p>
+      </section>
+
       {/* Story Section */}
       <div
         ref={(el) => observe("story", el)}
@@ -130,7 +155,10 @@ export function AboutPage() {
         <div className="overflow-hidden rounded-2xl shadow-lg relative">
           <img
             src="https://i.pinimg.com/736x/e8/7e/c4/e87ec4c9d80e8e3da206a9c67e368226.jpg"
-            alt="Students working"
+            alt="Students collaborating on a project together at SkillUpX"
+            loading="lazy"
+            width={736}
+            height={384}
             className="w-full h-96 object-cover transform transition-transform duration-1000 hover:scale-105"
             style={{ transform: "translateZ(0)", willChange: "transform" }}
           />
@@ -212,7 +240,10 @@ export function AboutPage() {
         <div className="overflow-hidden rounded-2xl shadow">
           <img
             src="https://res.cloudinary.com/doytvgisa/image/upload/v1758624468/Gemini_Generated_Image_c414u6c414u6c414_elixe0.png"
-            alt="Mission"
+            alt="SkillUpX mission - empowering developers through practical education and growth"
+            loading="lazy"
+            width={800}
+            height={384}
             className="w-full h-96 object-cover transform transition-transform duration-1000 hover:scale-105"
           />
         </div>
@@ -230,7 +261,10 @@ export function AboutPage() {
         <div className="order-2 lg:order-1 overflow-hidden rounded-2xl shadow">
           <img
             src="https://i.pinimg.com/1200x/81/29/92/812992f44a2cd6e6787b8b61209abf48.jpg"
-            alt="Students working"
+            alt="Students focused on coding and problem-solving skills"
+            loading="lazy"
+            width={1200}
+            height={384}
             className="w-full h-96 object-cover transform transition-transform duration-1000 hover:scale-105"
           />
         </div>
@@ -315,25 +349,39 @@ export function AboutPage() {
         <h2 className="text-4xl font-extrabold text-center mb-10 text-[#00ADB5]">Meet the Team</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Aman Sharma" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Portrait of Aman Sharma, Founder and CEO of SkillUpX" loading="lazy" width={80} height={80} className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
             <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Aman Sharma</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-2">Founder & CEO</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Visionary leader passionate about empowering students and driving innovation in education.</p>
           </div>
           <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
-            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Priya Verma" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Portrait of Priya Verma, Head of Community at SkillUpX" loading="lazy" width={80} height={80} className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
             <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Priya Verma</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-2">Head of Community</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Building a vibrant, inclusive community and supporting every learner’s journey.</p>
           </div>
           <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
-            <img src="https://randomuser.me/api/portraits/men/65.jpg" alt="Rahul Singh" className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
+            <img src="https://randomuser.me/api/portraits/men/65.jpg" alt="Portrait of Rahul Singh, Lead Developer at SkillUpX" loading="lazy" width={80} height={80} className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-[#00ADB5]" />
             <h3 className="text-xl font-bold mb-2 text-[#00ADB5]">Rahul Singh</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-2">Lead Developer</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Tech enthusiast focused on building robust, scalable solutions for SkillUpX.</p>
           </div>
         </div>
       </div>
+
+      {/* CTA Section */}
+      <section className="py-16 px-8 lg:px-16 text-center bg-gradient-to-r from-[#00ADB5]/10 to-purple-500/10 dark:from-[#00ADB5]/5 dark:to-purple-500/5">
+        <h2 className="text-3xl font-bold text-[#00ADB5] mb-4">Ready to Skill Up?</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-xl mx-auto">Join 150+ developers already leveling up their skills with SkillUpX. Start your journey today — it's completely free.</p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <a href="/signup" className="px-8 py-3 bg-[#00ADB5] hover:bg-[#009a9a] text-white rounded-lg font-bold transition-all duration-300 hover:shadow-lg hover:shadow-[#00ADB5]/25">
+            Get Started Free
+          </a>
+          <a href="/contact" className="px-8 py-3 border-2 border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5] hover:text-white rounded-lg font-bold transition-all duration-300">
+            Contact Us
+          </a>
+        </div>
+      </section>
     </div>
   );
 }

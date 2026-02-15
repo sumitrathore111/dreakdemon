@@ -1,6 +1,7 @@
 import { ArrowRight, Award, BookOpen, CheckCircle, ClipboardList, Code, Compass, FolderOpen, Gift, Globe, History, Lightbulb, Mail, Map, MessageCircle, RefreshCw, Search, Sparkles, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEO from "../Component/SEO";
 
 const NextStepDocumentation = () => {
   type DocSection = 'getting-started' | 'creator-corner' | 'codearena' | 'learning-roadmaps' | 'developer-connect';
@@ -48,7 +49,7 @@ const NextStepDocumentation = () => {
         },
         {
           heading: '🤝 Join Our Community',
-          text: 'SkillUpX is more than a platform - it\'s a community of passionate developers!\n\n🌍 What You Get:\n• Connect with 12,000+ active developers\n• Find mentors and collaborators\n• Share knowledge and learn together\n• Participate in community events\n• Get help when you\'re stuck\n\n🚀 Ready to begin?\nCreate your account now and take your first step towards becoming a better developer!',
+          text: 'SkillUpX is more than a platform - it\'s a community of passionate developers!\n\n🌍 What You Get:\n• Connect with active developers worldwide\n• Find mentors and collaborators\n• Share knowledge and learn together\n• Participate in community events\n• Get help when you\'re stuck\n\n🚀 Ready to begin?\nCreate your account now and take your first step towards becoming a better developer!',
           image: '🤝'
         }
       ]
@@ -181,7 +182,7 @@ const NextStepDocumentation = () => {
       sections: [
         {
           heading: '🌐 Global Developer Network',
-          text: 'Connect with thousands of developers from around the world! Developer Connect is your gateway to building meaningful professional relationships, finding collaborators, and growing your network.\n\n• Browse 12,000+ developer profiles\n• Filter by skills, location, and year of study\n• View detailed profiles with tech stacks\n• Share and discover tech reviews\n• Connect with like-minded developers\n• Build your professional network',
+          text: 'Connect with thousands of developers from around the world! Developer Connect is your gateway to building meaningful professional relationships, finding collaborators, and growing your network.\n\n• Browse developer profiles\n• Filter by skills, location, and year of study\n• View detailed profiles with tech stacks\n• Share and discover tech reviews\n• Connect with like-minded developers\n• Build your professional network',
           image: '🌐'
         },
         {
@@ -223,6 +224,19 @@ const NextStepDocumentation = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <SEO
+        title="Documentation – Getting Started, CodeArena, Creator Corner & More"
+        description="Complete documentation for SkillUpX platform. Learn how to use CodeArena for coding battles & DSA practice, Creator Corner for projects, Learning Roadmaps for interview prep & career paths, and Developer Connect."
+        keywords="SkillUpX documentation, how to use SkillUpX, CodeArena guide, Creator Corner guide, learning roadmaps, developer connect, DSA practice guide, interview preparation guide, career paths, coding battles guide, platform tutorial, coins system guide, rewards system, verified certificates guide, study groups guide, tech reviews, direct messaging, project collaboration guide, 1v1 battle guide, leaderboard system, profile setup guide, Project Bazaar guide, getting started SkillUpX, welcome bonus 1000 coins, badges and ranks, rematch system, global ranking, team chat, project invitations, skill-based recommendations, curated resources, certificate download LinkedIn"
+        canonicalUrl="/documentation"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          "name": "SkillUpX Documentation",
+          "description": "Complete guide to using SkillUpX platform - CodeArena, Creator Corner, Learning Roadmaps, and Developer Connect.",
+          "url": "https://skillupx.online/documentation"
+        }}
+      />
       {/* Animated Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-cyan-400/10 dark:from-blue-600/10 dark:to-cyan-600/5 rounded-full blur-3xl animate-blob" />

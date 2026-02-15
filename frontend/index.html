@@ -1,20 +1,340 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SkillUpX</title>
+
+    <!-- Preconnect for faster loading (Core Web Vitals boost) -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+
+    <!-- Primary SEO Meta Tags -->
+    <title>SkillUpX – CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews | Free Platform</title>
+    <meta name="description" content="SkillUpX – Free developer platform for coding battles, project collaboration & career growth. Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews, and explore career paths. Join 150+ developers & growing!" />
+    <meta name="keywords" content="SkillUpX, skillup, skill up, skillupx online, CodeArena, CodeArena coding battle, CodeArena 1v1, CodeArena online, code arena, coding arena, coding battle arena, 1v1 coding battle online, real-time coding battle, coding duel platform, collaboration, project collaboration, project collaboration platform, team collaboration, collaborate on projects, real-world project collaboration, developer collaboration, coding collaboration, open source collaboration, Creator Corner collaboration, collaboration platform for developers, roadmap, learning roadmap, developer roadmap, career roadmap, coding roadmap, React roadmap, Node.js roadmap, full stack roadmap, frontend roadmap, backend roadmap, DSA roadmap, interview roadmap, learning path, curated roadmap, Developer Connect, developer connect platform, connect with developers, developer networking, developer community, developer network India, developer social network, find developers, tech community, tech review, tech reviews, technology review, code review, project review, software review, tech news, tech updates, latest tech news, AI tech review, coding platform review, DSA practice online free, data structures and algorithms, competitive programming, interview preparation free, career path for software engineers, full stack developer projects, open source projects, coding practice platform, best coding platform for students, verified certificates free, coding coins rewards, global leaderboard, portfolio building, MERN stack projects, JavaScript React Node TypeScript, skill development platform India, Project Bazaar, study groups, coding bootcamp alternative, system design interview prep, mock interviews, project-based learning, free coding certificate India, endorsed skills platform, sprint management, coding community platform, online coding platform 2026, developer tools, code practice free, learn to code India, programming challenges, DSA questions free" />
+    <meta name="author" content="SkillUpX" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
+    <link rel="canonical" href="https://skillupx.online/" />
+
+    <!-- Geo & Language targeting -->
+    <meta name="geo.region" content="IN" />
+    <meta name="geo.placename" content="India" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="3 days" />
+    <meta name="rating" content="general" />
+    <meta name="distribution" content="global" />
+    <meta name="coverage" content="Worldwide" />
+    <meta name="target" content="all" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="alternate" hreflang="en" href="https://skillupx.online/" />
+    <link rel="alternate" hreflang="x-default" href="https://skillupx.online/" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://skillupx.online/" />
+    <meta property="og:title" content="SkillUpX – CodeArena Battles, Project Collaboration, Roadmaps, Developer Connect & Tech Reviews" />
+    <meta property="og:description" content="Battle 1v1 in CodeArena, collaborate on real-world projects, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 100% free platform for all developers!" />
+    <meta property="og:image" content="https://res.cloudinary.com/dvwmbidka/image/upload/e_sharpen:150/skillupx-og-banner_re2t6u" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SkillUpX – CodeArena Coding Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews" />
+    <meta property="og:site_name" content="SkillUpX" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://skillupx.online/" />
+    <meta name="twitter:title" content="SkillUpX – CodeArena 1v1 Battles, Collaboration, Roadmaps, Developer Connect & Tech Reviews" />
+    <meta name="twitter:description" content="Battle in CodeArena, collaborate on real-world projects, follow learning roadmaps, connect with developers, read tech reviews. Practice DSA questions, earn coding coins & certificates. 100% free!" />
+    <meta name="twitter:image" content="https://res.cloudinary.com/dvwmbidka/image/upload/e_sharpen:150/skillupx-og-banner_re2t6u" />
+    <meta name="twitter:image:alt" content="SkillUpX – CodeArena, Collaboration, Roadmaps, Developer Connect & Tech Reviews Platform" />
+
+    <!-- PWA & Mobile -->
+    <meta name="theme-color" content="#00ADB5" />
+    <meta name="msapplication-TileColor" content="#00ADB5" />
+    <meta name="msapplication-TileImage" content="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
+    <link rel="apple-touch-icon" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SkillUpX" />
+    <meta name="application-name" content="SkillUpX" />
+
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "SkillUpX",
+      "alternateName": ["SkillUp X", "SkillUp", "Skill Up", "Skill Up X", "skillupx", "skillup"],
+      "url": "https://skillupx.online",
+      "logo": "https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg",
+      "description": "SkillUpX is a free developer platform featuring CodeArena 1v1 coding battles, real-world project collaboration, curated learning roadmaps, Developer Connect networking, and tech reviews. Practice DSA questions and build real-world skills.",
+      "email": "contact@SkillUpX.com",
+      "telephone": "+918756824350",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IN"
+      },
+      "sameAs": [
+        "https://www.instagram.com/skillupx1.0"
+      ],
+      "foundingDate": "2022",
+      "numberOfEmployees": {
+        "@type": "QuantitativeValue",
+        "value": "10+"
+      }
+    }
+    </script>
+
+    <!-- Structured Data - WebSite (enables Google Sitelinks Search Box) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "SkillUpX",
+      "alternateName": ["SkillUp", "Skill Up", "Skill Up X", "SkillUpX Platform", "SkillUpX India", "skillup", "skill up coding", "skillup platform"],
+      "url": "https://skillupx.online",
+      "description": "Free platform with CodeArena coding battles, project collaboration, learning roadmaps, Developer Connect, tech reviews & DSA practice questions.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://skillupx.online/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data - EducationalOrganization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "SkillUpX",
+      "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up Platform"],
+      "url": "https://skillupx.online",
+      "description": "SkillUpX is a free platform featuring CodeArena 1v1 coding battles, real-world project collaboration via Creator Corner, curated learning roadmaps, Developer Connect networking, and tech reviews for developers.",
+      "areaServed": "Worldwide",
+      "teaches": [
+        "Data Structures and Algorithms",
+        "Web Development",
+        "Full Stack Development",
+        "Software Engineering",
+        "Competitive Programming",
+        "Interview Preparation",
+        "Career Development",
+        "Open Source Contributing",
+        "React Development",
+        "Node.js Development"
+      ]
+    }
+    </script>
+
+    <!-- Structured Data - FAQ (Boosts Google Rich Snippets) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is SkillUpX (SkillUp)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SkillUpX (also known as SkillUp X or SkillUp) is a free developer platform to skill up your coding. Practice DSA questions, participate in 1v1 coding battles in CodeArena, collaborate on real-world projects, prepare for tech interviews with curated roadmaps, and explore career paths. Skill up with our growing developer community."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I practice DSA questions on SkillUpX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SkillUpX offers Data Structures and Algorithms practice questions across all difficulty levels — easy, medium, and hard. Practice in CodeArena through 1v1 coding battles, solo practice mode, and topic-wise problem sets covering arrays, trees, graphs, dynamic programming, and more."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is CodeArena?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "CodeArena is SkillUpX's real-time 1v1 coding battle arena. You can challenge other developers, solve DSA problems competitively, earn coins, climb global leaderboards, and improve your coding speed and problem-solving skills."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does SkillUpX help with interview preparation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SkillUpX provides curated Learning Roadmaps with interview questions, career paths, and topic-wise preparation guides. You get access to common interview questions for top tech companies, coding challenges, and skills assessment to help you land your dream tech job."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I collaborate on real-world projects?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! SkillUpX's Creator Corner lets you submit project ideas, join existing projects, form teams, collaborate with developers worldwide, and earn verified certificates after completing 50 tasks. Build a meaningful portfolio with real-world experience."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is SkillUpX (SkillUp) free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SkillUpX (SkillUp) is completely free to skill up your coding. You get 1000 welcome coins on signup, access to all DSA questions, coding battles, project collaboration, learning roadmaps, interview preparation, and developer community features at no cost. Skill up for free!"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Developer Connect on SkillUpX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Developer Connect is SkillUpX's networking feature that lets you connect with developers worldwide. Find collaborators for projects, endorse each other's skills, share profiles, join study groups, and build your professional developer network — all for free."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are Learning Roadmaps on SkillUpX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Learning Roadmaps on SkillUpX are curated step-by-step guides for mastering different tech stacks and career paths. Roadmaps are available for React, Node.js, Full Stack Development, DSA, System Design, Frontend, Backend, DevOps, and more. Each roadmap includes resources, interview questions, and milestone tracking."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do Tech Reviews work on SkillUpX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tech Reviews on SkillUpX is a community-driven section where developers can read and write reviews on programming languages, frameworks, tools, libraries, and technologies. Get honest tech reviews from real developers, compare technologies, and make informed decisions for your projects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does project collaboration work on SkillUpX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SkillUpX offers project collaboration through Creator Corner where you can submit project ideas, browse existing projects in Project Bazaar, join teams, collaborate with developers worldwide using sprint management, and earn verified certificates. It's a complete collaboration platform for building real-world projects."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data - BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://skillupx.online/" },
+        { "@type": "ListItem", "position": 2, "name": "About", "item": "https://skillupx.online/about" },
+        { "@type": "ListItem", "position": 3, "name": "Contact", "item": "https://skillupx.online/contact" },
+        { "@type": "ListItem", "position": 4, "name": "Documentation", "item": "https://skillupx.online/documentation" },
+        { "@type": "ListItem", "position": 5, "name": "Tech Updates", "item": "https://skillupx.online/TechUpdate" }
+      ]
+    }
+    </script>
+
+    <!-- Structured Data - SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SkillUpX",
+      "alternateName": ["SkillUp", "Skill Up", "SkillUp X"],
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser",
+      "url": "https://skillupx.online",
+      "description": "SkillUpX – Free developer platform with CodeArena 1v1 coding battles, real-world project collaboration, curated learning roadmaps, Developer Connect networking, tech reviews, and DSA practice questions.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      },
+      "featureList": [
+        "CodeArena – Real-time 1v1 Coding Battles",
+        "CodeArena Solo Practice Mode",
+        "3000+ DSA Practice Questions",
+        "Project Collaboration via Creator Corner",
+        "Real-World Project Collaboration",
+        "Team Collaboration & Sprint Management",
+        "Learning Roadmaps – React, Node.js, Full Stack, DSA",
+        "Career Roadmaps & Interview Preparation",
+        "Developer Connect – Networking Platform",
+        "Tech Reviews – Community Technology Reviews",
+        "Tech Updates – Latest Tech News & Tutorials",
+        "Verified Certificates on Project Completion",
+        "Global Leaderboards & Coding Coins",
+        "Study Groups for Developers",
+        "Endorsed Skills & Developer Profiles",
+        "Project Bazaar – Browse & Join Projects"
+      ]
+    }
+    </script>
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSE31EYVW2"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-CSE31EYVW2'); // Replace with your Measurement ID
+      gtag('config', 'G-CSE31EYVW2');
     </script>
   </head>
   <body>
+    <!-- Noscript fallback for SEO crawlers that don't execute JS -->
+    <noscript>
+      <div style="padding:40px;text-align:center;font-family:sans-serif">
+        <h1>SkillUpX – CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews</h1>
+        <p>SkillUpX is a free developer platform. Battle 1v1 in CodeArena, collaborate on real-world projects, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews, and explore career paths. Join our growing developer community!</p>
+
+        <h2>CodeArena – 1v1 Coding Battles</h2>
+        <p>CodeArena is SkillUpX's real-time 1v1 coding battle arena. Challenge other developers, solve 3000+ DSA problems competitively, earn coding coins, climb global leaderboards, and sharpen your problem-solving skills. CodeArena supports solo practice mode and competitive coding duels.</p>
+
+        <h2>Project Collaboration – Creator Corner</h2>
+        <p>Collaborate on real-world projects with developers worldwide through Creator Corner. Submit project ideas, browse Project Bazaar, form teams, use sprint management, and earn verified certificates after completing 50 tasks. SkillUpX's collaboration platform helps you build a meaningful portfolio.</p>
+
+        <h2>Learning Roadmaps</h2>
+        <p>Follow curated learning roadmaps for React, Node.js, Full Stack Development, DSA, System Design, Frontend, Backend, and more. Each roadmap includes step-by-step guides, interview preparation questions, career milestones, and resource recommendations to accelerate your development journey.</p>
+
+        <h2>Developer Connect</h2>
+        <p>Developer Connect is SkillUpX's networking platform. Connect with developers worldwide, find project collaborators, endorse each other's skills, join study groups, share developer profiles, and build your professional network in the tech community.</p>
+
+        <h2>Tech Reviews</h2>
+        <p>Read and write tech reviews on programming languages, frameworks, tools, and libraries. SkillUpX's Tech Reviews section features honest, community-driven technology reviews to help you make informed decisions for your projects. Stay updated with the latest tech news and coding tutorials.</p>
+
+        <h2>More Features</h2>
+        <ul style="list-style:none;padding:0">
+          <li><strong>3000+ DSA Questions</strong> – Arrays, Trees, Graphs, Dynamic Programming, and more</li>
+          <li><strong>Verified Certificates</strong> – Earn certificates on project completion</li>
+          <li><strong>Coding Coins & Leaderboards</strong> – Earn rewards, climb global rankings</li>
+          <li><strong>Career Paths</strong> – Explore career roadmaps for software engineers</li>
+          <li><strong>Interview Preparation</strong> – Curated questions for top tech companies</li>
+          <li><strong>Study Groups</strong> – Learn together with motivation and accountability</li>
+        </ul>
+
+        <h2>Quick Links</h2>
+        <nav>
+          <a href="/about">About Us</a> |
+          <a href="/contact">Contact</a> |
+          <a href="/documentation">Documentation</a> |
+          <a href="/TechUpdate">Tech Updates & Reviews</a> |
+          <a href="/privacy-policy">Privacy Policy</a> |
+          <a href="/terms-and-conditions">Terms & Conditions</a>
+        </nav>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

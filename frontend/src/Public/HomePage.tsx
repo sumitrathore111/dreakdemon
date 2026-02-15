@@ -1,13 +1,14 @@
-import { ArrowRight, Award, BookOpen, CheckCircle, Code, Lightbulb, Map, Play, Rocket, Sparkles, Swords, TrendingUp, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CheckCircle, Code, Globe, Lightbulb, Map, MessageSquare, Play, Rocket, Shield, Sparkles, Star, Swords, TrendingUp, Trophy, Users, Zap } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import SEO from "../Component/SEO";
 import { FeatureCard, TestimonialCard } from "../components/HomePage/Cards";
 import { useRevealAnimation } from "../components/hooks/useRevealAnimation";
 import {
-    features as homePageFeatures,
-    galleryImages as homePageGallery,
-    testimonials as homePageTestimonials,
-    statistics
+  features as homePageFeatures,
+  galleryImages as homePageGallery,
+  testimonials as homePageTestimonials,
+  statistics
 } from "../data/homePageData";
 
 // Custom Hook for Parallax Scroll Effect
@@ -28,11 +29,18 @@ const useMousePosition = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    let frameId: number;
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      });
     };
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(frameId);
+    };
   }, []);
 
   return mousePosition;
@@ -429,7 +437,7 @@ const HeroSection = memo(() => {
                 {/* Floating Stats Card */}
                 <div className="absolute -top-4 -right-4 bg-gradient-to-br from-white to-cyan-50/50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 animate-float-delayed">
                   <div className="text-center">
-                    <div className="text-3xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent mb-1">500+</div>
+                    <div className="text-3xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent mb-1">50+</div>
                     <div className="text-xs font-bold text-gray-800 dark:text-white">Live Projects</div>
                     <div className="text-xs text-[#00ADB5] font-semibold">Real experience</div>
                   </div>
@@ -453,6 +461,21 @@ HeroSection.displayName = 'HeroSection';
 export default function HomePage() {
   const [activeService, setActiveService] = useState(0);
 
+  const homeStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "SkillUpX (SkillUp X) – Skill Up Your Coding | DSA Practice, Battles & Projects",
+    "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up X"],
+    "description": "SkillUpX (SkillUp) – Skill up your coding! Practice DSA questions, 1v1 coding battles in CodeArena, collaborate on real-world projects, interview preparation with curated roadmaps, and explore career paths.",
+    "url": "https://skillupx.online/",
+    "mainEntity": {
+      "@type": "EducationalOrganization",
+      "name": "SkillUpX",
+      "alternateName": ["SkillUp", "Skill Up", "SkillUp X"],
+      "url": "https://skillupx.online"
+    }
+  };
+
   const services = [
     {
       id: 'creator-corner',
@@ -464,7 +487,7 @@ export default function HomePage() {
       color: 'from-[#00ADB5] to-cyan-600',
       lightBg: 'bg-[#00ADB5]/10',
       textColor: 'text-[#00ADB5]',
-      stats: '500+ Ideas',
+      stats: '50+ Ideas',
       features: ['Post project ideas', 'Find collaborators', 'Expert feedback', 'Build portfolio'],
       link: '/projects'
     },
@@ -492,7 +515,7 @@ export default function HomePage() {
       color: 'from-blue-500 to-indigo-600',
       lightBg: 'bg-blue-500/10',
       textColor: 'text-blue-600 dark:text-blue-400',
-      stats: '3000+ Problems',
+      stats: '200+ Problems',
       features: ['1v1 battles', 'DSA challenges', 'Leaderboard', 'Skill ratings'],
       link: '/code-arena'
     },
@@ -514,6 +537,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      <SEO
+        title="SkillUpX – CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews"
+        description="SkillUpX – Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 200+ DSA questions & growing. Free platform for all developers!"
+        keywords="SkillUpX, CodeArena, CodeArena coding battle, CodeArena 1v1, code arena, coding arena, coding battle arena, 1v1 coding battle, real-time coding battle, coding duel, collaboration, project collaboration, project collaboration platform, team collaboration, collaborate on projects, real-world project collaboration, developer collaboration, Creator Corner, roadmap, learning roadmap, developer roadmap, career roadmap, coding roadmap, React roadmap, Node.js roadmap, full stack roadmap, DSA roadmap, interview roadmap, Developer Connect, developer connect platform, connect with developers, developer networking, developer community, developer network, tech review, tech reviews, technology review, code review, tech news, tech updates, DSA practice, data structures algorithms, 200+ DSA problems, competitive programming, interview preparation, career path, full stack development, open source projects, verified certificates, coding coins, global leaderboard, portfolio building, MERN stack projects, JavaScript React Node.js, leetcode alternative free, hackerrank alternative, skill development platform, Project Bazaar, study groups, coding bootcamp alternative, system design, mock interview, developer community India, best coding platform 2026, project-based learning, sprint management, endorsed skills, coding community"
+        canonicalUrl="/"
+        structuredData={homeStructuredData}
+      />
       {/* Hero Section */}
       <HeroSection />
 
@@ -638,6 +668,9 @@ export default function HomePage() {
                     <img
                       src={service.image}
                       alt={service.title}
+                      loading="lazy"
+                      width={600}
+                      height={400}
                       className="w-full h-full object-cover"
                     />
                     {/* Gradient Overlay */}
@@ -732,7 +765,7 @@ export default function HomePage() {
         {
           icon: "📈",
           title: "Build Your Portfolio",
-          description: "Showcase 500+ real projects on your profile to impress employers and land better jobs",
+          description: "Showcase real projects on your profile to impress employers and land better jobs",
           color: "border-orange-300",
           bg: "bg-orange-50",
           image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
@@ -763,7 +796,7 @@ export default function HomePage() {
         }
       ].map((benefit, idx) => (
         <div key={idx} className={`rounded-2xl shadow-md ${benefit.bg} dark:bg-gray-900 border ${benefit.color} dark:border-gray-700 px-5 py-6 flex flex-col items-center`}>
-          <img src={benefit.image} alt={benefit.title} className="w-full h-24 object-cover rounded-xl mb-3 shadow" />
+          <img src={benefit.image} alt={benefit.title} loading="lazy" width={400} height={96} className="w-full h-24 object-cover rounded-xl mb-3 shadow" />
           <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow -mt-6 border-2 border-[#00ADB5]/30">
             <span className="text-xl text-gray-900 dark:text-white">{benefit.icon}</span>
           </div>
@@ -801,7 +834,7 @@ export default function HomePage() {
         {
           icon: "📈",
           title: "Build Your Portfolio",
-          description: "Showcase 500+ real projects on your profile to impress employers and land better jobs",
+          description: "Showcase real projects on your profile to impress employers and land better jobs",
           color: "border-orange-300",
           bg: "bg-orange-50",
           image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
@@ -848,6 +881,9 @@ export default function HomePage() {
               <img
                 src={benefit.image}
                 alt={benefit.title}
+                loading="lazy"
+                width={400}
+                height={96}
                 className="w-full h-24 object-cover rounded-xl mb-3 shadow-md transition-transform duration-700 group-hover:scale-105 group-hover:brightness-110 z-10"
               />
               <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow-md -mt-6 z-10 border-2 border-[#00ADB5]/30 group-hover:border-[#00ADB5] transition-all duration-300">
@@ -901,7 +937,10 @@ export default function HomePage() {
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
                   <img
                     src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80"
-                    alt="Developer working"
+                    alt="Developer working on code at a laptop"
+                    loading="lazy"
+                    width={600}
+                    height={256}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -957,7 +996,10 @@ export default function HomePage() {
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80"
-                      alt="Learning"
+                      alt="Student learning coding skills online with SkillUpX"
+                      loading="lazy"
+                      width={500}
+                      height={192}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -980,7 +1022,7 @@ export default function HomePage() {
                         Practice & Battle
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                        Sharpen your skills in CodeArena! Compete in real-time coding battles, solve 3000+ DSA problems, and climb the global leaderboard.
+                        Sharpen your skills in CodeArena! Compete in real-time coding battles, solve 200+ DSA problems, and climb the global leaderboard.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['1v1 Battles', 'Tournaments', 'DSA', 'Algorithms'].map((tag) => (
@@ -995,7 +1037,10 @@ export default function HomePage() {
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80"
-                      alt="Coding"
+                      alt="Code editor showing programming syntax for DSA practice"
+                      loading="lazy"
+                      width={500}
+                      height={192}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -1018,7 +1063,7 @@ export default function HomePage() {
                         Collaborate & Build
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                        Join teams, contribute to 500+ real open-source projects, and build applications that go live. Get hands-on experience that matters.
+                        Join teams, contribute to real open-source projects, and build applications that go live. Get hands-on experience that matters.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['Teamwork', 'Open Source', 'Git', 'Deployment'].map((tag) => (
@@ -1033,7 +1078,10 @@ export default function HomePage() {
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&q=80"
-                      alt="Team collaboration"
+                      alt="Team of developers collaborating on a real-world project"
+                      loading="lazy"
+                      width={500}
+                      height={192}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -1071,7 +1119,10 @@ export default function HomePage() {
                   <div className="mt-6 rounded-xl overflow-hidden">
                     <img
                       src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80"
-                      alt="Success"
+                      alt="Professional celebrating career success after SkillUpX certification"
+                      loading="lazy"
+                      width={500}
+                      height={192}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -1163,7 +1214,7 @@ export default function HomePage() {
                   <div className="relative text-center">
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <div className="relative">
-                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="SkillUpX Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg" />
+                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="SkillUpX Logo" loading="lazy" width={80} height={80} className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg" />
                         <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
                           <CheckCircle className="w-5 h-5 text-white" />
                         </div>
@@ -1247,7 +1298,10 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/20 to-cyan-600/10" />
               <img
                 src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80"
-                alt="Team collaboration"
+                alt="Team collaborating around a table discussing project ideas"
+                loading="lazy"
+                width={500}
+                height={300}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
@@ -1291,7 +1345,10 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/30 to-cyan-600/20" />
                 <img
                   src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&q=80"
-                  alt="Code competition"
+                  alt="Laptop showing code for a coding competition on SkillUpX"
+                  loading="lazy"
+                  width={500}
+                  height={350}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -1334,14 +1391,14 @@ export default function HomePage() {
               </h2>
 
               <p className="text-sm lg:text-base text-gray-300 leading-relaxed">
-                Challenge yourself and compete against other developers in real-time coding battles. Practice with thousands of DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
+                Challenge yourself and compete against other developers in real-time coding battles. Practice with 200+ DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
               </p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { icon: "⚡", label: "1v1 Battles", desc: "Real-time coding duels", color: "from-yellow-400 to-orange-500" },
                   { icon: "🏆", label: "Tournaments", desc: "Compete globally", color: "from-purple-400 to-pink-500" },
-                  { icon: "🎯", label: "3000+ Problems", desc: "DSA to interview prep", color: "from-blue-400 to-cyan-500" },
+                  { icon: "🎯", label: "200+ Problems", desc: "DSA to interview prep", color: "from-blue-400 to-cyan-500" },
                   { icon: "💰", label: "Win Coins", desc: "Rewards & recognition", color: "from-green-400 to-emerald-500" }
                 ].map((item, idx) => (
                   <div
@@ -1410,6 +1467,9 @@ export default function HomePage() {
                 <img
                   src={image.url}
                   alt={image.alt}
+                  loading="lazy"
+                  width={400}
+                  height={300}
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-125 group-hover:rotate-3 transition-all duration-1000"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -1497,6 +1557,213 @@ export default function HomePage() {
 
 
 
+      {/* Platform Impact - Stats & Numbers Section */}
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
+              <Star className="w-4 h-4" /> Growing Community
+            </span>
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+              Trusted by <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Developers Across India</span> & Beyond
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Join a growing community of developers who are leveling up their coding skills, building projects, and advancing their careers on SkillUpX.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {[
+              { value: "100+", label: "Active Developers", icon: <Users className="w-6 h-6" />, color: "from-cyan-500 to-teal-500" },
+              { value: "300+", label: "CodeArena Battles Played", icon: <Swords className="w-6 h-6" />, color: "from-red-500 to-orange-500" },
+              { value: "200+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
+              { value: "30+", label: "Collaborative Projects Built", icon: <Rocket className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" }
+            ].map((stat, i) => (
+              <div key={i} className="group relative bg-white dark:bg-gray-800/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
+                <div className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  {stat.icon}
+                </div>
+                <p className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2">{stat.value}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: <Globe className="w-5 h-5" />, title: "Developers Across India", desc: "From Delhi to Chennai, Mumbai to Kolkata — SkillUpX connects developers from across India for coding practice and collaboration." },
+              { icon: <Award className="w-5 h-5" />, title: "Measurable Skill Growth", desc: "Developers who practice on SkillUpX regularly show real improvement in DSA problem-solving speed and code quality." },
+              { icon: <TrendingUp className="w-5 h-5" />, title: "Better Interview Preparation", desc: "Our CodeArena battles and structured roadmaps help developers prepare for technical interviews at top companies and Indian IT firms." }
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-4 bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-gray-800/40 dark:to-gray-800/20 rounded-xl p-6 border border-cyan-100 dark:border-gray-700/50">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-1">
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-1">{item.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* What Makes SkillUpX Unique - Highlights Section */}
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 dark:from-black dark:via-gray-900 dark:to-black relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500 rounded-full blur-[128px]" />
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-teal-500 rounded-full blur-[128px]" />
+        </div>
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-cyan-400 text-sm font-semibold mb-6">
+              <Shield className="w-4 h-4" /> All-In-One Platform
+            </span>
+            <h2 className="text-4xl lg:text-5xl font-black text-white mb-6">
+              What Makes <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">SkillUpX</span> Unique
+            </h2>
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              SkillUpX is the only free platform that combines competitive coding, project collaboration, learning roadmaps, developer networking, and tech reviews — everything a developer needs in one place.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                icon: <Swords className="w-6 h-6" />,
+                title: "CodeArena — Live 1v1 Coding Battles",
+                desc: "Go beyond solo practice. Challenge developers to real-time 1v1 battles, solve DSA problems under pressure, earn XP, climb the leaderboard, and prove your skills competitively.",
+                color: "from-red-500 to-orange-500"
+              },
+              {
+                icon: <Users className="w-6 h-6" />,
+                title: "Creator Corner — Real Project Collaboration",
+                desc: "Build portfolio-worthy projects with real teammates. Manage tasks with Kanban boards, plan sprints, review code, and ship applications — just like professional dev teams.",
+                color: "from-blue-500 to-indigo-500"
+              },
+              {
+                icon: <Map className="w-6 h-6" />,
+                title: "Structured Learning Roadmaps",
+                desc: "Follow step-by-step roadmaps for MERN Stack, Full Stack, DSA Mastery, AI/ML, and Frontend Engineering. Track progress with milestones, earn certifications, and never feel lost.",
+                color: "from-teal-500 to-cyan-500"
+              },
+              {
+                icon: <Globe className="w-6 h-6" />,
+                title: "Developer Connect & Tech Reviews",
+                desc: "Network with developers across India, find mentors, join study groups, and read honest community-driven tech reviews on tools, frameworks, and courses to make better career decisions.",
+                color: "from-purple-500 to-pink-500"
+              }
+            ].map((item, i) => (
+              <div key={i} className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-cyan-500/40 transition-all duration-500 hover:bg-white/10">
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                <p className="text-gray-400 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-14">
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 hover:-translate-y-1 text-lg"
+            >
+              Start Building for Free <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Community Activity Feed Section */}
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
+              <Sparkles className="w-4 h-4" /> Live on SkillUpX
+            </span>
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+              See What Developers Are <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Building Right Now</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Real activity from the SkillUpX community — battles won, projects launched, roadmaps completed, and developers connecting every day.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Activity Feed */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Recent Activity
+              </h3>
+              {[
+                { icon: <Swords className="w-4 h-4" />, text: "Arjun won a CodeArena battle against Sneha — solved Binary Search in 4 min", time: "2 min ago", color: "bg-red-500/10 text-red-500" },
+                { icon: <Rocket className="w-4 h-4" />, text: "Team InnovatorsHub launched their MERN e-commerce project on Creator Corner", time: "15 min ago", color: "bg-blue-500/10 text-blue-500" },
+                { icon: <Map className="w-4 h-4" />, text: "Priya completed the Full Stack Development Roadmap — earned certificate", time: "32 min ago", color: "bg-teal-500/10 text-teal-500" },
+                { icon: <Users className="w-4 h-4" />, text: "DevSquad study group reached 50 members on Developer Connect", time: "1 hr ago", color: "bg-purple-500/10 text-purple-500" },
+                { icon: <MessageSquare className="w-4 h-4" />, text: "Rahul posted a tech review: \"React 19 vs Next.js 15 — Which to Learn in 2026\"", time: "2 hrs ago", color: "bg-orange-500/10 text-orange-500" },
+                { icon: <Trophy className="w-4 h-4" />, text: "Vikram climbed to #3 on the CodeArena leaderboard this week", time: "3 hrs ago", color: "bg-yellow-500/10 text-yellow-600" }
+              ].map((activity, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300">
+                  <div className={`w-9 h-9 rounded-lg ${activity.color} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                    {activity.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{activity.text}</p>
+                    <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Popular Categories & Skills */}
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-cyan-500" /> Trending Skills on SkillUpX
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    "React.js", "Node.js", "Data Structures", "Algorithms", "Python", "JavaScript",
+                    "TypeScript", "MongoDB", "REST APIs", "System Design", "Dynamic Programming",
+                    "Machine Learning", "Docker", "Git & GitHub", "Tailwind CSS", "Next.js"
+                  ].map((skill, i) => (
+                    <span key={i} className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-cyan-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors duration-300 cursor-default">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-cyan-500" /> Popular Learning Paths
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    { path: "MERN Stack Developer Roadmap", enrolled: "45+", difficulty: "Intermediate", color: "from-green-500 to-emerald-500" },
+                    { path: "DSA Interview Preparation", enrolled: "80+", difficulty: "All Levels", color: "from-blue-500 to-indigo-500" },
+                    { path: "AI & Machine Learning Path", enrolled: "25+", difficulty: "Advanced", color: "from-purple-500 to-pink-500" },
+                    { path: "Frontend React Developer", enrolled: "60+", difficulty: "Beginner", color: "from-orange-500 to-red-500" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300 group">
+                      <div className={`w-2 h-12 rounded-full bg-gradient-to-b ${item.color} flex-shrink-0`} />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{item.path}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{item.enrolled} enrolled • {item.difficulty}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-4xl mx-auto">
@@ -1521,7 +1788,7 @@ export default function HomePage() {
               },
               {
                 q: "How do real projects work?",
-                a: "Browse 500+ open projects posted by developers, apply to join teams, collaborate with other students, and build actual applications that go live."
+                a: "Browse open projects posted by developers, apply to join teams, collaborate with other students, and build actual applications that go live."
               },
               {
                 q: "Do I get certificates?",
@@ -1568,8 +1835,12 @@ export default function HomePage() {
             <div className="absolute inset-0 opacity-20">
               <img
                 src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80"
-                alt="Dark tech background"
+                alt=""
+                loading="lazy"
+                width={1200}
+                height={800}
                 className="w-full h-full object-cover"
+                aria-hidden="true"
               />
             </div>
 
@@ -1597,7 +1868,7 @@ export default function HomePage() {
                     </span>
                   </h2>
                   <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                    Join thousands of successful developers who started their journey with SkillUpX.
+                    Join our growing community of developers building their careers with SkillUpX.
                     Your future in tech starts today.
                   </p>
                 </div>
@@ -1615,7 +1886,7 @@ export default function HomePage() {
                   </Link>
 
                   <div className="text-center">
-                    <div className="text-sm text-gray-400 mb-1">Join 12,000+ students</div>
+                    <div className="text-sm text-gray-400 mb-1">Join 150+ students & growing</div>
                     <div className="flex items-center justify-center gap-1">
                       {Array.from({ length: 5 }, (_, i) => (
                         <span key={i} className="text-yellow-400 animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}>★</span>

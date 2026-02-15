@@ -1,8 +1,22 @@
 import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
+import SEO from "../Component/SEO";
 
 export function ContactUs() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      <SEO
+        title="Contact Us – Get in Touch with SkillUpX"
+        description="Have questions about SkillUpX? Contact us via phone, email, or WhatsApp. We're here to help you with coding battles, projects, DSA practice, interview prep, and more."
+        keywords="contact SkillUpX, support, help, email, phone, reach us, developer support, coding help, WhatsApp support, customer support India, office hours, get in touch, feedback, contact coding platform, SkillUpX phone number, SkillUpX email address, developer community support, technical support, coding platform contact, SkillUpX India office, join SkillUpX, report issue, partnership inquiry"
+        canonicalUrl="/contact"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact SkillUpX",
+          "description": "Get in touch with SkillUpX for questions about coding battles, projects, and learning.",
+          "url": "https://skillupx.online/contact"
+        }}
+      />
       {/* Hero Section */}
       <section
         className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"

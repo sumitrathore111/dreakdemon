@@ -1,5 +1,6 @@
 import { Bot, Calendar, ChevronRight, Code, Newspaper, RefreshCw, Search, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import SEO from "../Component/SEO";
 
 // Animated Background
 const AnimatedBackground = () => (
@@ -150,6 +151,19 @@ const TechUpdate = () => {
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+      <SEO
+        title="Tech Updates & Reviews – Latest Technology News, AI & Coding | SkillUpX"
+        description="Read tech reviews and stay ahead with the latest tech news, AI research, coding tutorials, and technology updates. Community-driven tech reviews on SkillUpX – honest reviews from real developers."
+        keywords="tech review, tech reviews, technology review, code review, software review, coding platform review, tech news, technology updates, AI news, coding news, programming articles, developer updates, machine learning, web development, latest tech, research papers, AI research papers 2026, coding tutorials, developer blog, artificial intelligence updates, data science news, software development news, curated tech articles, SkillUpX tech reviews, honest tech reviews, developer technology reviews, framework reviews, programming language reviews"
+        canonicalUrl="/TechUpdate"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Tech Updates - SkillUpX",
+          "description": "Latest technology news, AI research, and coding tutorials curated for developers.",
+          "url": "https://skillupx.online/TechUpdate"
+        }}
+      />
       {/* Enhanced Animated Background with Grid Overlay and Blobs */}
       <AnimatedBackground />
       {/* Removed grid overlay for a cleaner look */}
@@ -347,6 +361,9 @@ const TechUpdate = () => {
                   <img
                     src={article.image}
                     alt={article.title}
+                    loading="lazy"
+                    width={800}
+                    height={600}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover:brightness-110"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop';
