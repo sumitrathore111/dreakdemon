@@ -195,8 +195,24 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
     );
   }
 
-  // Not connected - show connection setup
+  // Not connected - show connection setup (owner only) or info message for members
   if (!connectionStatus?.connected) {
+    if (!isOwner) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+            <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              GitHub Not Connected
+            </h3>
+            <p className="text-gray-500 max-w-md mx-auto">
+              Only the project owner can connect a GitHub repository to this project. Please contact the project owner to set up GitHub integration.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
