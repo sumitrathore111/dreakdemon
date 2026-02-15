@@ -515,7 +515,7 @@ export default function HomePage() {
       color: 'from-blue-500 to-indigo-600',
       lightBg: 'bg-blue-500/10',
       textColor: 'text-blue-600 dark:text-blue-400',
-      stats: '200+ Problems',
+      stats: '3000+ Problems',
       features: ['1v1 battles', 'DSA challenges', 'Leaderboard', 'Skill ratings'],
       link: '/code-arena'
     },
@@ -539,8 +539,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <SEO
         title="SkillUpX –Learn by doing grow by contributing,CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews"
-        description="SkillUpX – Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 200+ DSA questions & growing. Free platform for all developers!"
-        keywords="SkillUpX, CodeArena, CodeArena coding battle, CodeArena 1v1, code arena, coding arena, coding battle arena, 1v1 coding battle, real-time coding battle, coding duel, coding competition online, live coding challenge, peer coding, pair programming platform, project collaboration, project collaboration platform, team collaboration, real-world project collaboration, developer collaboration, Creator Corner, full stack project collaboration, learning roadmap, developer roadmap, career roadmap, coding roadmap, React roadmap, Node.js roadmap, full stack roadmap, DSA roadmap, interview roadmap, Developer Connect, developer connect platform, connect with developers, developer networking, developer community, developer network India, developer networking platform India, DSA practice, DSA practice platform, DSA questions for interview, data structures algorithms, 200+ DSA problems, competitive programming, competitive coding India, interview preparation, career path, full stack development, open source projects, verified certificates, coding coins, coding leaderboard, global leaderboard, coding portfolio builder, developer portfolio platform, portfolio building, MERN stack projects, MERN stack project ideas, JavaScript React Node.js, leetcode alternative free, leetcode alternative India, hackerrank alternative free, skill development platform, coding practice website, online coding platform free, free coding platform India 2026, Project Bazaar, study groups, coding bootcamp alternative, system design, mock interview, developer community India, best coding platform 2026, project-based learning, sprint management, endorsed skills, coding community, learn to code free, coding for beginners, web development projects, gamified coding platform, earn while coding, coding rewards platform, placement preparation, campus placement coding, student developer platform, fresher developer projects, hackathon alternative, build projects online, learn React free, learn Node.js free, open source for beginners, developer resume builder, job ready skills, industry ready projects, hands on coding, learn by doing, grow by contributing, team projects for students, coding mentorship, full stack web development, agile project management, kanban board for developers, collaborative coding, algorithm practice, coding interview preparation, top coding websites India, best coding websites 2026, Python DSA practice, Java coding practice, C++ competitive programming, JavaScript projects beginners, real time code editor, code marketplace, GitHub projects students, software engineering projects, daily coding challenge, weekly coding contest, coding community India"
+        description="SkillUpX – Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 3000+ DSA questions & growing. Free platform for all developers!"
+        keywords="SkillUpX, CodeArena, CodeArena coding battle, CodeArena 1v1, code arena, coding arena, coding battle arena, 1v1 coding battle, real-time coding battle, coding duel, coding competition online, live coding challenge, peer coding, pair programming platform, project collaboration, project collaboration platform, team collaboration, real-world project collaboration, developer collaboration, Creator Corner, full stack project collaboration, learning roadmap, developer roadmap, career roadmap, coding roadmap, React roadmap, Node.js roadmap, full stack roadmap, DSA roadmap, interview roadmap, Developer Connect, developer connect platform, connect with developers, developer networking, developer community, developer network India, developer networking platform India, DSA practice, DSA practice platform, DSA questions for interview, data structures algorithms, 3000+ DSA problems, competitive programming, competitive coding India, interview preparation, career path, full stack development, open source projects, verified certificates, coding coins, coding leaderboard, global leaderboard, coding portfolio builder, developer portfolio platform, portfolio building, MERN stack projects, MERN stack project ideas, JavaScript React Node.js, leetcode alternative free, leetcode alternative India, hackerrank alternative free, skill development platform, coding practice website, online coding platform free, free coding platform India 2026, Project Bazaar, study groups, coding bootcamp alternative, system design, mock interview, developer community India, best coding platform 2026, project-based learning, sprint management, endorsed skills, coding community, learn to code free, coding for beginners, web development projects, gamified coding platform, earn while coding, coding rewards platform, placement preparation, campus placement coding, student developer platform, fresher developer projects, hackathon alternative, build projects online, learn React free, learn Node.js free, open source for beginners, developer resume builder, job ready skills, industry ready projects, hands on coding, learn by doing, grow by contributing, team projects for students, coding mentorship, full stack web development, agile project management, kanban board for developers, collaborative coding, algorithm practice, coding interview preparation, top coding websites India, best coding websites 2026, Python DSA practice, Java coding practice, C++ competitive programming, JavaScript projects beginners, real time code editor, code marketplace, GitHub projects students, software engineering projects, daily coding challenge, weekly coding contest, coding community India"
         canonicalUrl="/"
         structuredData={homeStructuredData}
       />
@@ -1022,7 +1022,7 @@ export default function HomePage() {
                         Practice & Battle
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                        Sharpen your skills in CodeArena! Compete in real-time coding battles, solve 200+ DSA problems, and climb the global leaderboard.
+                        Sharpen your skills in CodeArena! Compete in real-time coding battles, solve 3000+ DSA problems, and climb the global leaderboard.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['1v1 Battles', 'Tournaments', 'DSA', 'Algorithms'].map((tag) => (
@@ -1391,14 +1391,14 @@ export default function HomePage() {
               </h2>
 
               <p className="text-sm lg:text-base text-gray-300 leading-relaxed">
-                Challenge yourself and compete against other developers in real-time coding battles. Practice with 200+ DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
+                Challenge yourself and compete against other developers in real-time coding battles. Practice with 3000+ DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
               </p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { icon: "⚡", label: "1v1 Battles", desc: "Real-time coding duels", color: "from-yellow-400 to-orange-500" },
                   { icon: "🏆", label: "Tournaments", desc: "Compete globally", color: "from-purple-400 to-pink-500" },
-                  { icon: "🎯", label: "200+ Problems", desc: "DSA to interview prep", color: "from-blue-400 to-cyan-500" },
+                  { icon: "🎯", label: "3000+ Problems", desc: "DSA to interview prep", color: "from-blue-400 to-cyan-500" },
                   { icon: "💰", label: "Win Coins", desc: "Rewards & recognition", color: "from-green-400 to-emerald-500" }
                 ].map((item, idx) => (
                   <div
@@ -1576,7 +1576,7 @@ export default function HomePage() {
             {[
               { value: "100+", label: "Active Developers", icon: <Users className="w-6 h-6" />, color: "from-cyan-500 to-teal-500" },
               { value: "300+", label: "CodeArena Battles Played", icon: <Swords className="w-6 h-6" />, color: "from-red-500 to-orange-500" },
-              { value: "200+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
+              { value: "3000+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
               { value: "30+", label: "Collaborative Projects Built", icon: <Rocket className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" }
             ].map((stat, i) => (
               <div key={i} className="group relative bg-white dark:bg-gray-800/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
