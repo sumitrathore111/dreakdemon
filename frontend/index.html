@@ -7,11 +7,30 @@
 
     <!-- Preconnect for faster loading (Core Web Vitals boost) -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+    <!-- Preload critical hero image for faster LCP -->
+    <link rel="preload" as="image" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" type="image/svg+xml" />
+
+    <!-- Critical CSS - Inline for instant first paint (eliminates blank screen) -->
+    <style>
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+      html{-webkit-text-size-adjust:100%;line-height:1.5;-webkit-font-smoothing:antialiased}
+      body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#111827;color:#f9fafb;min-height:100vh}
+      #root{min-height:100vh}
+      .app-skeleton{display:flex;flex-direction:column;min-height:100vh;background:#111827}
+      .skeleton-nav{height:64px;background:#1f2937;border-bottom:1px solid #374151;display:flex;align-items:center;padding:0 24px}
+      .skeleton-logo{width:120px;height:32px;background:#374151;border-radius:6px;animation:shimmer 1.5s infinite}
+      .skeleton-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 20px}
+      .skeleton-title{width:min(500px,80%);height:40px;background:#1f2937;border-radius:8px;animation:shimmer 1.5s infinite}
+      .skeleton-text{width:min(600px,90%);height:20px;background:#1f2937;border-radius:6px;animation:shimmer 1.5s infinite;animation-delay:.2s}
+      .skeleton-btn{width:180px;height:44px;background:#00ADB5;border-radius:8px;opacity:.3;animation:shimmer 1.5s infinite;animation-delay:.4s}
+      @keyframes shimmer{0%{opacity:.4}50%{opacity:.7}100%{opacity:.4}}
+    </style>
 
     <!-- Primary SEO Meta Tags -->
     <title>SkillUpX – CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews | Free Platform</title>
@@ -124,20 +143,49 @@
       "name": "SkillUpX",
       "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up Platform"],
       "url": "https://skillupx.online",
+      "logo": "https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg",
+      "image": "https://res.cloudinary.com/dvwmbidka/image/upload/e_sharpen:150/skillupx-og-banner_re2t6u",
       "description": "SkillUpX is a free platform featuring CodeArena 1v1 coding battles, real-world project collaboration via Creator Corner, curated learning roadmaps, Developer Connect networking, and tech reviews for developers.",
-      "areaServed": "Worldwide",
-      "teaches": [
-        "Data Structures and Algorithms",
-        "Web Development",
-        "Full Stack Development",
-        "Software Engineering",
-        "Competitive Programming",
-        "Interview Preparation",
-        "Career Development",
-        "Open Source Contributing",
-        "React Development",
-        "Node.js Development"
-      ]
+      "email": "contact@SkillUpX.com",
+      "telephone": "+918756824350",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IN"
+      },
+      "areaServed": {
+        "@type": "Place",
+        "name": "Worldwide"
+      },
+      "sameAs": [
+        "https://www.instagram.com/skillupx1.0"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Free Developer Courses & Tools",
+        "itemListElement": [
+          {
+            "@type": "Course",
+            "name": "Data Structures and Algorithms",
+            "description": "Practice 3000+ DSA questions across arrays, trees, graphs, dynamic programming and more",
+            "provider": { "@type": "Organization", "name": "SkillUpX" },
+            "isAccessibleForFree": true
+          },
+          {
+            "@type": "Course",
+            "name": "Full Stack Web Development",
+            "description": "Learn React, Node.js, databases, and DevOps with curated roadmaps and real projects",
+            "provider": { "@type": "Organization", "name": "SkillUpX" },
+            "isAccessibleForFree": true
+          },
+          {
+            "@type": "Course",
+            "name": "Interview Preparation",
+            "description": "Curated interview questions, coding challenges, and career roadmaps for tech companies",
+            "provider": { "@type": "Organization", "name": "SkillUpX" },
+            "isAccessibleForFree": true
+          }
+        ]
+      }
     }
     </script>
 
@@ -238,14 +286,17 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://skillupx.online/" },
-        { "@type": "ListItem", "position": 2, "name": "CodeArena", "item": "https://skillupx.online/codearena" },
-        { "@type": "ListItem", "position": 3, "name": "Learning Roadmaps", "item": "https://skillupx.online/roadmaps" },
-        { "@type": "ListItem", "position": 4, "name": "About", "item": "https://skillupx.online/about" },
+         { "@type": "ListItem", "position": 2, "name": "Login", "item": "https://skillupx.online/login" },
+        { "@type": "ListItem", "position": 3, "name": "Sign Up", "item": "https://skillupx.online/signup" },
+         { "@type": "ListItem", "position": 4, "name": "About", "item": "https://skillupx.online/about" },
         { "@type": "ListItem", "position": 5, "name": "Contact", "item": "https://skillupx.online/contact" },
-        { "@type": "ListItem", "position": 6, "name": "Documentation", "item": "https://skillupx.online/documentation" },
-        { "@type": "ListItem", "position": 7, "name": "Tech Updates", "item": "https://skillupx.online/TechUpdate" },
-        { "@type": "ListItem", "position": 8, "name": "Login", "item": "https://skillupx.online/login" },
-        { "@type": "ListItem", "position": 9, "name": "Sign Up", "item": "https://skillupx.online/signup" }
+         { "@type": "ListItem", "position": 6, "name": "Documentation", "item": "https://skillupx.online/documentation" },
+        { "@type": "ListItem", "position": 7, "name": "Tech Updates", "item": "https://skillupx.online/TechUpdate" }
+        { "@type": "ListItem", "position": 8, "name": "CodeArena", "item": "https://skillupx.online/codearena" },
+        { "@type": "ListItem", "position": 9, "name": "Learning Roadmaps", "item": "https://skillupx.online/roadmaps" },
+
+
+
       ]
     }
     </script>
@@ -353,13 +404,22 @@
     }
     </script>
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CSE31EYVW2"></script>
+    <!-- Google Analytics (deferred to not block rendering) -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-CSE31EYVW2');
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var s = document.createElement('script');
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-CSE31EYVW2';
+          s.async = true;
+          document.head.appendChild(s);
+          s.onload = function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-CSE31EYVW2', { send_page_view: true });
+          };
+        }, 100);
+      });
     </script>
   </head>
   <body>
@@ -409,7 +469,18 @@
         </nav>
       </div>
     </noscript>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading skeleton - replaced by React on hydration -->
+      <div class="app-skeleton" aria-label="Loading SkillUpX">
+        <div class="skeleton-nav"><div class="skeleton-logo"></div></div>
+        <div class="skeleton-main">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text" style="width:min(400px,70%)"></div>
+          <div class="skeleton-btn"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

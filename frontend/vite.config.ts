@@ -35,7 +35,17 @@ export default defineConfig({
     },
     // Inline small assets for fewer HTTP requests
     assetsInlineLimit: 4096,
-    // Enable source maps for debugging (disable in prod if needed)
+    // Disable source maps in production for smaller bundles
     sourcemap: false,
+    // Enable CSS code splitting for faster initial load
+    cssCodeSplit: true,
+    // Minify with esbuild (faster than terser)
+    minify: 'esbuild',
+    // Target modern browsers for smaller output
+    target: 'es2020',
+  },
+  // Optimize dependency pre-bundling
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
   },
 })

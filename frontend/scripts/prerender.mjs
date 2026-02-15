@@ -249,7 +249,7 @@ function prerenderRoute(html, route) {
   // React's createRoot().render() will replace this content when the app hydrates.
   if (route.rootContent) {
     html = html.replace(
-      '<div id="root"></div>',
+      /<div id="root">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,
       `<div id="root">${route.rootContent}</div>`
     );
   }
