@@ -34,10 +34,9 @@ Allow: /terms-and-conditions
 Allow: /assets/
 Allow: /manifest.json
 
-# Googlebot specific
+# Googlebot specific (Googlebot does not support Crawl-delay)
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 1
 
 # Bingbot specific
 User-agent: Bingbot
