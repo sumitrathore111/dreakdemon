@@ -29,7 +29,7 @@ const SEO: React.FC<SEOProps> = ({
   structuredData,
   noIndex = false,
 }) => {
-  const fullTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;
+  const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const fullCanonical = canonicalUrl ? `${BASE_URL}${canonicalUrl}` : BASE_URL;
 
   return (
