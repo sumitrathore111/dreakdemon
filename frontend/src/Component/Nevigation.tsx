@@ -91,7 +91,7 @@ export default function DashboardLayout() {
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
           <div className="relative flex items-center justify-between p-4">
             <div className="flex items-center gap-3 min-w-0">
-              <Link to="/" className="flex-shrink-0 flex items-center justify-start">
+              <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center justify-start">
                 <img
                   src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
                   alt="App Logo"
@@ -102,6 +102,7 @@ export default function DashboardLayout() {
               {!isMinimized && (
                 <Link
                   to="/"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   className="text-xl font-bold text-gray-800 dark:text-white transition-all duration-300 truncate"
                 >
                   SkillUpX

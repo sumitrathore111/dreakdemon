@@ -38,7 +38,7 @@ const PublicNavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                   <Link to="/" className="flex items-center space-x-2">
+                   <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                             <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                         </div>
