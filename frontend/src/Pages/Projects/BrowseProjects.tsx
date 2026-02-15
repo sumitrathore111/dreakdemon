@@ -1262,7 +1262,7 @@ export default function BrowseProjects() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{idea.title}</h3>
-                          <p className="text-sm text-gray-600 dark:text-white mb-3">{idea.description}</p>
+                          <div className="text-sm text-gray-600 dark:text-white mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: idea.description }} />
                           <p className="text-xs text-gray-500 dark:text-gray-300">
                             📅 Submitted on {new Date(idea.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>

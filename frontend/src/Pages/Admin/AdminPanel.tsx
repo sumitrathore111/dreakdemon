@@ -787,7 +787,7 @@ export default function AdminPanel() {
                             {idea.status.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-3">{idea.description}</p>
+                        <div className="text-gray-600 dark:text-gray-400 mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: idea.description }} />
 
                         <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1">
@@ -1554,7 +1554,7 @@ export default function AdminPanel() {
 
                   <div>
                     <label className="text-sm font-semibold text-gray-600">Description</label>
-                    <p className="text-gray-700">{selectedIdea.description}</p>
+                    <div className="text-gray-700 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selectedIdea.description }} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

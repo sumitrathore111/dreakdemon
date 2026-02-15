@@ -69,7 +69,7 @@ function PublicLayout() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-background dark:bg-gray-900 flex flex-col" style={{ overflowX: 'clip' }}>
       <PublicNavBar />
 
       <main className="flex-grow" role="main">

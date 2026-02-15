@@ -536,7 +536,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900" style={{ overflowX: 'clip' }}>
       <SEO
         title="SkillUpX –Learn by doing grow by contributing,CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews"
         description="SkillUpX – Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 3000+ DSA questions & growing. Free platform for all developers!"
