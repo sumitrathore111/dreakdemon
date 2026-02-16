@@ -345,7 +345,7 @@ export function AboutPage() {
         </div>
       </div>
       {/* Meet the Team Section */}
-      <div className="bg-gray-50 dark:bg-gray-800 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
+      {/* <div className="bg-gray-50 dark:bg-gray-800 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
         <h2 className="text-4xl font-extrabold text-center mb-10 text-[#00ADB5]">Meet the Team</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">
@@ -367,7 +367,7 @@ export function AboutPage() {
             <p className="text-gray-600 dark:text-gray-400 text-sm">Tech enthusiast focused on building robust, scalable solutions for SkillUpX.</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* CTA Section */}
       <section className="py-16 px-8 lg:px-16 text-center bg-gradient-to-r from-[#00ADB5]/10 to-purple-500/10 dark:from-[#00ADB5]/5 dark:to-purple-500/5">
