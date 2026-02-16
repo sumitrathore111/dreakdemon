@@ -5,6 +5,16 @@ export interface IUser extends Document {
   password: string;
   name: string;
   phone: string;
+  // Google OAuth fields
+  googleId?: string;
+  authProvider: 'email' | 'google';
+  // OTP fields
+  otp?: string;
+  otpExpiry?: Date;
+  isEmailVerified: boolean;
+  // Password reset fields
+  resetOtp?: string;
+  resetOtpExpiry?: Date;
   location: string;
   institute: string;
   bio: string;
@@ -65,9 +75,19 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true },
+  password: { type: String, required: function(this: any) { return this.authProvider === 'email'; } },
   name: { type: String, required: true },
   phone: { type: String, default: '9999999999' },
+  // Google OAuth fields
+  googleId: { type: String, sparse: true },
+  authProvider: { type: String, enum: ['email', 'google'], default: 'email' },
+  // OTP fields
+  otp: { type: String },
+  otpExpiry: { type: Date },
+  isEmailVerified: { type: Boolean, default: false },
+  // Password reset fields
+  resetOtp: { type: String },
+  resetOtpExpiry: { type: Date },
   location: { type: String, default: 'Location' },
   institute: { type: String, default: 'University Name' },
   bio: { type: String, default: 'About yourself' },
