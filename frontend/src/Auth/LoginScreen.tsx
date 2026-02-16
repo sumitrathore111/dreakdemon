@@ -68,7 +68,7 @@ export default function Login() {
         googleId: decoded.sub,
         email: decoded.email,
         name: decoded.name,
-        avatar: decoded.picture
+        avatar: ''
       });
 
       await refreshUser();
