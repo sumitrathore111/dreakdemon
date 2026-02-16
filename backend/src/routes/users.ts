@@ -80,7 +80,7 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
             id: issueData._id,
             title: issueData.title,
             projectTitle: project.title,
-            projectId: project._id,
+            projectId: project._id.toString(), // Ensure string ID for consistent grouping
             completedAt: issueData.completedAt,
             verifiedAt: issueData.verifiedAt,
             verifiedByName: issueData.verifiedByName,
@@ -102,11 +102,16 @@ router.get('/:userId/completed-tasks', authenticate, async (req: AuthRequest, re
 
     for (const task of kanbanTasks) {
       count++;
+      // Extract projectId properly - after populate, projectId is an object
+      const populatedProject = task.projectId as any;
+      const projectIdString = populatedProject?._id?.toString() || populatedProject?.toString() || '';
+      const projectTitle = populatedProject?.title || 'Unknown Project';
+
       completedTasks.push({
         id: task._id,
         title: task.title,
-        projectTitle: (task.projectId as any)?.title || 'Unknown Project',
-        projectId: task.projectId,
+        projectTitle: projectTitle,
+        projectId: projectIdString, // Use string ID, not populated object
         completedAt: task.completedAt,
         reviewedAt: task.reviewedAt,
         reviewedBy: task.reviewedBy,
