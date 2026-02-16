@@ -881,7 +881,7 @@ export default function AdminPanel() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{project.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{project.description}</p>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 prose prose-sm dark:prose-invert max-w-none line-clamp-3" dangerouslySetInnerHTML={{ __html: project.description }} />
 
                         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
@@ -1163,7 +1163,7 @@ export default function AdminPanel() {
                                 {project.status === 'pending_verification' ? 'PENDING' : project.status === 'published' ? 'APPROVED' : project.status.toUpperCase()}
                               </span>
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{project.description}</p>
+                            <div className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-[#00ADB5]">${project.price}</p>
@@ -1340,7 +1340,7 @@ export default function AdminPanel() {
 
                   <div>
                     <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Description</label>
-                    <p className="text-gray-700 dark:text-gray-300">{selectedMarketplaceProject.description}</p>
+                    <div className="text-gray-700 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedMarketplaceProject.description }} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
