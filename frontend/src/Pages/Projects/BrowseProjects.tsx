@@ -909,7 +909,16 @@ export default function BrowseProjects() {
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 truncate">{project.title}</h3>
-                      <p className="text-gray-600 dark:text-white text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{project.description.replace(/<[^>]*>/g, '')}</p>
+                      <p className="text-gray-600 dark:text-white text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">
+                        {stripHtmlTags(project.description)}
+                      </p>
+                    // Helper to strip HTML tags from a string
+                    function stripHtmlTags(html: string): string {
+                      if (!html) return '';
+                      const div = document.createElement('div');
+                      div.innerHTML = html;
+                      return div.textContent || div.innerText || '';
+                    }
                     </div>
                     <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap ml-2">
                       {project.status}
