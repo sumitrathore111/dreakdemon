@@ -6,7 +6,7 @@ import { useAuth } from "../Context/AuthContext";
 import { loginWithGoogle, sendSignupOTP, verifySignupOTP } from "../service/auth";
 
 // Google OAuth Client ID - should be in env
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "44260358109-l0qenhtfphvg3nsek757bsm9eunb9rlc.apps.googleusercontent.com";
 
 interface GoogleCredentialResponse {
   credential?: string;
