@@ -909,7 +909,7 @@ export default function BrowseProjects() {
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 truncate">{project.title}</h3>
-                      <p className="text-gray-600 dark:text-white text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{project.description.replace(/<[^>]*>/g, '')}</p>
+                      <div className="text-gray-600 dark:text-white text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
                     </div>
                     <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap ml-2">
                       {project.status}
@@ -1209,7 +1209,7 @@ export default function BrowseProjects() {
                               CREATOR
                             </span>
                           </div>
-                          <p className="text-gray-600 dark:text-white text-sm">{project.description}</p>
+                          <div className="text-gray-600 dark:text-white text-sm prose prose-sm dark:prose-invert max-w-none line-clamp-2" dangerouslySetInnerHTML={{ __html: project.description }} />
                         </div>
                       </div>
 
@@ -1455,9 +1455,7 @@ export default function BrowseProjects() {
               {/* Project Description */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Description</h3>
-                <p className="text-gray-700 dark:text-white leading-relaxed bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
-                  {selectedProjectForDetails.description}
-                </p>
+                <div className="text-gray-700 dark:text-white leading-relaxed bg-gray-50 dark:bg-gray-800 p-4 rounded-xl prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProjectForDetails.description }} />
               </div>
 
               {/* Project Info Grid */}
