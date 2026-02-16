@@ -157,11 +157,11 @@ export default function Signup() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-8">
-        <div className="w-full max-w-md lg:max-w-5xl flex flex-col lg:flex-row rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl bg-white dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-800">
 
           {/* Left Side - Branding Panel */}
-          <div className="hidden lg:flex lg:w-[340px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-8 flex-col relative">
+          <div className="hidden lg:flex lg:w-[240px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-5 flex-col relative">
             {/* Decorative elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
               <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/5 rounded-full"></div>
@@ -170,53 +170,53 @@ export default function Signup() {
 
             <div className="relative z-10 flex flex-col h-full">
               {/* Logo */}
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg mb-10">
+              <div className="w-11 h-11 bg-white rounded-lg flex items-center justify-center shadow-md mb-6">
                 <img
                   src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
-                  className="w-9 h-9"
+                  className="w-7 h-7"
                   alt="Logo"
                 />
               </div>
 
               {/* Welcome Text */}
-              <h1 className="text-3xl font-bold text-white mb-3">Welcome!</h1>
-              <p className="text-white/80 text-sm leading-relaxed mb-12">
+              <h1 className="text-2xl font-bold text-white mb-2">Welcome!</h1>
+              <p className="text-white/80 text-xs leading-relaxed mb-6">
                 Create your account and<br />start your journey with us.
               </p>
 
               {/* Steps Indicator */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                     step === 'details'
                       ? 'bg-white text-[#00ADB5]'
                       : 'bg-white/20 text-white'
                   }`}>
                     {step === 'otp' ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     ) : '1'}
                   </div>
-                  <span className={`text-sm font-medium ${step === 'details' ? 'text-white' : 'text-white/60'}`}>Details</span>
+                  <span className={`text-xs font-medium ${step === 'details' ? 'text-white' : 'text-white/60'}`}>Details</span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                     step === 'otp'
                       ? 'bg-white text-[#00ADB5]'
                       : 'bg-white/20 text-white/60'
                   }`}>
                     2
                   </div>
-                  <span className={`text-sm font-medium ${step === 'otp' ? 'text-white' : 'text-white/60'}`}>Verify</span>
+                  <span className={`text-xs font-medium ${step === 'otp' ? 'text-white' : 'text-white/60'}`}>Verify</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Side - Form */}
-          <div className="flex-1 p-5 sm:p-8 lg:p-12">
+          <div className="flex-1 p-4 sm:p-6 lg:p-8">
             {/* Mobile Header with Logo and Progress */}
             <div className="lg:hidden mb-6">
               <div className="flex items-center justify-between mb-4">
@@ -278,15 +278,14 @@ export default function Signup() {
                     <div className="hidden lg:flex w-7 h-7 rounded-full bg-[#00ADB5] text-white items-center justify-center text-xs font-bold flex-shrink-0 mt-1">
                       1
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex justify-center">
                       <GoogleLogin
                         onSuccess={handleGoogleSuccess}
                         onError={handleGoogleError}
                         theme="outline"
-                        size="large"
+                        size="medium"
                         text="signup_with"
                         shape="rectangular"
-                        width="100%"
                       />
                     </div>
                   </div>

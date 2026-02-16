@@ -176,11 +176,11 @@ export default function Login() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-8">
-        <div className="w-full max-w-md lg:max-w-5xl flex flex-col lg:flex-row rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl bg-white dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-800">
 
           {/* Left Side - Branding Panel */}
-          <div className="hidden lg:flex lg:w-[340px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-8 flex-col relative">
+          <div className="hidden lg:flex lg:w-[240px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-5 flex-col relative">
             {/* Decorative elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
               <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/5 rounded-full"></div>
@@ -189,44 +189,44 @@ export default function Login() {
 
             <div className="relative z-10 flex flex-col h-full">
               {/* Logo */}
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg mb-10">
+              <div className="w-11 h-11 bg-white rounded-lg flex items-center justify-center shadow-md mb-6">
                 <img
                   src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
-                  className="w-9 h-9"
+                  className="w-7 h-7"
                   alt="Logo"
                 />
               </div>
 
               {/* Welcome Text */}
-              <h1 className="text-3xl font-bold text-white mb-3">Welcome Back!</h1>
-              <p className="text-white/80 text-sm leading-relaxed mb-12">
+              <h1 className="text-2xl font-bold text-white mb-2">Welcome Back!</h1>
+              <p className="text-white/80 text-xs leading-relaxed mb-8">
                 Sign in to continue your<br />journey with us.
               </p>
 
               {/* Features */}
-              <div className="space-y-4 mt-auto">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="space-y-3 mt-auto">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm text-white/80">Secure & Fast</span>
+                  <span className="text-xs text-white/80">Secure & Fast</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm text-white/80">Access Anywhere</span>
+                  <span className="text-xs text-white/80">Access Anywhere</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Side - Form */}
-          <div className="flex-1 p-5 sm:p-8 lg:p-12">
+          <div className="flex-1 p-4 sm:p-6 lg:p-8">
             {/* Mobile Header with Logo */}
             <div className="lg:hidden mb-6">
               <div className="flex items-center justify-center">
@@ -261,15 +261,14 @@ export default function Login() {
             )}
 
             {/* Google Sign In */}
-            <div className="mb-5">
+            <div className="mb-5 flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
                 theme="outline"
-                size="large"
+                size="medium"
                 text="signin_with"
                 shape="rectangular"
-                width="100%"
               />
             </div>
 
