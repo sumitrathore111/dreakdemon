@@ -382,8 +382,12 @@ router.post('/login', loginValidation, async (req: Request, res: Response): Prom
       return;
     }
 
-    // Check if email is verified (skip for Google auth users)
-    if (!user.isEmailVerified && user.authProvider !== 'google') {
+    // Check if email is verified
+    // Allow: verified users, Google users, OR legacy users (registered before OTP system)
+    const isLegacyUser = !user.otp && !user.otpExpiry && user.password && user.password !== 'TEMP_PASSWORD';
+    const canLogin = user.isEmailVerified || user.authProvider === 'google' || isLegacyUser;
+
+    if (!canLogin) {
       res.status(401).json({ error: 'Please verify your email first. Check your inbox for the OTP.' });
       return;
     }
