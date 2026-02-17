@@ -8,15 +8,15 @@ export interface User {
   avatar?: string;
 }
 
-export async function signupWithEmail(email: string, password: string, name: string): Promise<User> {
-  const response = await apiRequest('/auth/signup', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, name })
-  });
-
-  saveAuthToken(response.token);
-  return response.user;
-}
+// Direct signup is deprecated - use OTP-based signup instead
+// export async function signupWithEmail(email: string, password: string, name: string): Promise<User> {
+//   const response = await apiRequest('/auth/signup', {
+//     method: 'POST',
+//     body: JSON.stringify({ email, password, name })
+//   });
+//   saveAuthToken(response.token);
+//   return response.user;
+// }
 
 export async function loginWithEmail(email: string, password: string): Promise<User> {
   const response = await apiRequest('/auth/login', {

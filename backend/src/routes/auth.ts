@@ -347,40 +347,17 @@ router.post('/reset-password', async (req: Request, res: Response): Promise<void
 // EXISTING AUTH ROUTES
 // ============================================
 
-// Signup
+// Signup - Deprecated: Use OTP-based signup instead
+// This route is kept for backward compatibility but redirects to OTP flow
 router.post('/signup', signupValidation, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      res.status(400).json({ error: 'User already exists' });
-      return;
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-      name
+    // Direct signup without OTP is no longer allowed
+    // Users must use the OTP-based signup flow
+    res.status(400).json({
+      error: 'Direct signup is disabled. Please use OTP verification to register.',
+      useOtpFlow: true
     });
-
-    // Generate token
-    const token = generateToken(user._id.toString(), user.email, user.name, user.role);
-
-    res.status(201).json({
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role
-      },
-      token
-    });
+    return;
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -395,6 +372,12 @@ router.post('/login', loginValidation, async (req: Request, res: Response): Prom
     const user = await User.findOne({ email });
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    // Check if email is verified (skip for Google auth users)
+    if (!user.isEmailVerified && user.authProvider !== 'google') {
+      res.status(401).json({ error: 'Please verify your email first. Check your inbox for the OTP.' });
       return;
     }
 
