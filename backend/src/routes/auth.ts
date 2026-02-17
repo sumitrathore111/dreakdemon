@@ -108,11 +108,18 @@ router.post('/signup/send-otp', async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Check if user already exists and is verified
+    // Check if user already exists and is verified or has completed registration
     const existingUser = await User.findOne({ email });
-    if (existingUser && existingUser.isEmailVerified) {
-      res.status(400).json({ error: 'Email already registered. Please login.' });
-      return;
+    if (existingUser) {
+      // User is verified OR has a real password (not temp) OR uses Google auth
+      const hasCompletedRegistration = existingUser.isEmailVerified ||
+        (existingUser.password && existingUser.password !== 'TEMP_PASSWORD') ||
+        existingUser.authProvider === 'google';
+
+      if (hasCompletedRegistration) {
+        res.status(400).json({ error: 'Email already registered. Please login.' });
+        return;
+      }
     }
 
     const otp = generateOTP();
