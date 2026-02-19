@@ -1,5 +1,5 @@
-import { ArrowRight, Award, BookOpen, CheckCircle, Code, Globe, Lightbulb, Map, MessageSquare, Play, Rocket, Shield, Sparkles, Star, Swords, TrendingUp, Trophy, Users, Zap } from "lucide-react";
-import { memo, useEffect, useRef, useState } from "react";
+import { ArrowRight, Award, BarChart3, BookOpen, CheckCircle, ChevronLeft, Code, Globe, Lightbulb, Map, MessageSquare, Rocket, Search, Shield, Sparkles, Star, Swords, Target, TrendingUp, Trophy, Users, Zap } from "lucide-react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../Component/SEO";
 import { FeatureCard, TestimonialCard } from "../components/HomePage/Cards";
@@ -10,105 +10,6 @@ import {
   testimonials as homePageTestimonials,
   statistics
 } from "../data/homePageData";
-
-// Custom Hook for Parallax Scroll Effect
-const useParallax = () => {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return scrollY;
-};
-
-// Custom Hook for Mouse Position
-const useMousePosition = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    let frameId: number;
-    const handleMouseMove = (e: MouseEvent) => {
-      cancelAnimationFrame(frameId);
-      frameId = requestAnimationFrame(() => {
-        setMousePosition({ x: e.clientX, y: e.clientY });
-      });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      cancelAnimationFrame(frameId);
-    };
-  }, []);
-
-  return mousePosition;
-};
-
-// Animated Counter Component
-const AnimatedCounter = ({ target, suffix = "", duration = 2000 }: { target: number; suffix?: string; duration?: number }) => {
-  const [count, setCount] = useState(0);
-  /**
-   * @param {{ target: number, suffix?: string, duration?: number }} props
-   */
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          let start = 0;
-          const increment = target / (duration / 16);
-          const timer = setInterval(() => {
-            start += increment;
-            if (start >= target) {
-              setCount(target);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(start));
-            }
-          }, 16);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target, duration, hasAnimated]);
-
-  return <div ref={ref}>{count}{suffix}</div>;
-};
-
-// Floating Element with Mouse Follow
-const FloatingElement = ({ children, className, intensity = 20 }: { children: React.ReactNode; className?: string; intensity?: number }) => {
-  const mousePosition = useMousePosition();
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    setOffset({
-      x: (mousePosition.x - centerX) / intensity,
-      y: (mousePosition.y - centerY) / intensity
-    });
-  }, [mousePosition, intensity]);
-
-  return (
-    <div
-      className={className}
-      style={{
-        transform: `translate(${offset.x}px, ${offset.y}px)`,
-        transition: 'transform 0.3s ease-out'
-      }}
-    >
-      {children}
-    </div>
-  );
-};
 
 // Statistics Card Component
 const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: number }) => {
@@ -154,304 +55,1114 @@ const StatCard = memo(({ stat, index }: { stat: typeof statistics[0]; index: num
 
 StatCard.displayName = 'StatCard';
 
-// Hero Section Component
-const HeroSection = memo(() => {
-  const { ref, isVisible } = useRevealAnimation();
-  const scrollY = useParallax();
+// Interactive Dashboard Mockup Component
+const DashboardMockup = memo(() => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const sidebarItems = [
+    { id: 'dashboard', icon: BarChart3, label: 'DashBoard' },
+    { id: 'creator', icon: Code, label: 'Creator Corner' },
+    { id: 'connect', icon: Users, label: 'Developer Connect' },
+    { id: 'arena', icon: Swords, label: 'CodeArena' },
+    { id: 'roadmaps', icon: Map, label: 'Learning Roadmaps' },
+    { id: 'query', icon: MessageSquare, label: 'Query' },
+    { id: 'profile', icon: Shield, label: 'Profile Info' },
+  ];
+
+  // Dashboard Content
+  const DashboardContent = () => (
+    <div className="p-4 space-y-4">
+      {/* Welcome Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-white text-base font-semibold flex items-center gap-2">
+            Welcome back, Amit! <span className="text-lg">👋</span>
+          </h3>
+          <p className="text-gray-500 text-xs">Here's your progress overview</p>
+        </div>
+        <div className="flex items-center gap-2 px-2.5 py-1 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[10px] text-[#00ADB5]">Just now</span>
+        </div>
+      </div>
+
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-[#1a3a4a] to-[#0d2535] rounded-lg p-3 border border-[#00ADB5]/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Code className="w-4 h-4 text-[#00ADB5]" />
+            <span className="text-[10px] text-gray-400">Challenges Solved</span>
+          </div>
+          <div className="text-2xl font-bold text-white">5</div>
+        </div>
+        <div className="bg-gradient-to-br from-[#3a2a1a] to-[#251a0d] rounded-lg p-3 border border-yellow-500/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Trophy className="w-4 h-4 text-yellow-500" />
+            <span className="text-[10px] text-gray-400">Battle Wins</span>
+          </div>
+          <div className="text-2xl font-bold text-white">73</div>
+        </div>
+        <div className="bg-gradient-to-br from-[#1a2a3a] to-[#0d1a25] rounded-lg p-3 border border-blue-500/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Rocket className="w-4 h-4 text-blue-400" />
+            <span className="text-[10px] text-gray-400">Projects</span>
+          </div>
+          <div className="text-2xl font-bold text-white">2</div>
+        </div>
+        <div className="bg-gradient-to-br from-[#2a1a3a] to-[#1a0d25] rounded-lg p-3 border border-purple-500/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4 text-purple-400" />
+            <span className="text-[10px] text-gray-400">Day Streak</span>
+          </div>
+          <div className="text-2xl font-bold text-white">0</div>
+        </div>
+      </div>
+
+      {/* Problem Categories & Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Problem Categories */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-[#00ADB5]" />
+              <span className="text-xs text-white font-medium">Problem Categories</span>
+            </div>
+            <span className="text-[9px] text-[#00ADB5] cursor-pointer hover:underline">Set your targets</span>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              { name: 'Arrays & Strings', done: 2, total: 20, color: 'bg-blue-500' },
+              { name: 'Trees & Graphs', done: 1, total: 20, color: 'bg-green-500' },
+              { name: 'Dynamic Programming', done: 1, total: 20, color: 'bg-orange-500' },
+              { name: 'Sorting & Searching', done: 1, total: 75, color: 'bg-blue-400' },
+              { name: 'Math & Logic', done: 1, total: 100, color: 'bg-red-400' },
+            ].map((cat, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-400 w-28 truncate">{cat.name}</span>
+                <div className="flex-1 h-1 bg-[#1a2535] rounded-full overflow-hidden">
+                  <div className={`h-full ${cat.color} rounded-full`} style={{ width: `${(cat.done / cat.total) * 100}%` }} />
+                </div>
+                <span className="text-[9px] text-gray-500 w-12 text-right">{cat.done}/ {cat.total}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Performance */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center gap-2 mb-3">
+            <Target className="w-4 h-4 text-[#00ADB5]" />
+            <span className="text-xs text-white font-medium">Performance</span>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-gray-400">Acceptance Rate</span>
+                <span className="text-[10px] text-green-400 font-medium">100%</span>
+              </div>
+              <div className="h-1.5 bg-[#1a2535] rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-gray-400">Projects Approved</span>
+                <span className="text-[10px] text-purple-400 font-medium">100%</span>
+              </div>
+              <div className="h-1.5 bg-[#1a2535] rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 rounded-full" style={{ width: '100%' }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-gray-400">Streak Goal</span>
+                <span className="text-[10px] text-gray-500 font-medium">0%</span>
+              </div>
+              <div className="h-1.5 bg-[#1a2535] rounded-full overflow-hidden">
+                <div className="h-full bg-gray-600 rounded-full" style={{ width: '0%' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Creator Corner Content
+  const CreatorContent = () => (
+    <div className="p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-white text-base font-semibold">Project Collaboration Hub</h3>
+          <p className="text-[10px] text-gray-500">Join exciting projects or submit your own idea</p>
+        </div>
+        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00ADB5] text-white text-[10px] rounded-md">
+          <Lightbulb className="w-3 h-3" />
+          Submit Your Idea
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-3">
+        <button className="flex items-center gap-1.5 px-4 py-2 bg-[#00ADB5] text-white text-[10px] rounded-md">
+          <Search className="w-3 h-3" />
+          Browse Projects
+        </button>
+        <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+          <Lightbulb className="w-3 h-3" />
+          Tasks Completed
+          <span className="px-1.5 py-0.5 bg-[#00ADB5]/20 text-[#00ADB5] rounded-full text-[9px]">12</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+          <Code className="w-3 h-3" />
+          My Projects
+          <span className="px-1.5 py-0.5 bg-[#00ADB5]/20 text-[#00ADB5] rounded-full text-[9px]">2</span>
+        </div>
+      </div>
+
+      {/* Search & Filter */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex items-center gap-2 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <Search className="w-3 h-3 text-gray-500" />
+          <span className="text-[10px] text-gray-500">Search projects...</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <span className="text-[10px] text-white">All</span>
+          <ChevronLeft className="w-3 h-3 text-gray-500 rotate-[-90deg]" />
+        </div>
+      </div>
+
+      {/* Project Count & Filters */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 text-[10px] text-gray-400">
+          <span>▼</span>
+          <span className="text-[#00ADB5]">7</span>
+          <span>projects available</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {['Trending', 'Popular', 'Recent'].map((filter, idx) => (
+            <button key={idx} className="px-2 py-1 text-[9px] text-gray-400 bg-[#151c2a] rounded border border-[#1a2535] hover:text-white">
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Project Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Project 1 */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-start justify-between mb-2">
+            <h4 className="text-xs text-white font-semibold">AI-Powered Resume Screening Sy...</h4>
+            <span className="text-[8px] px-2 py-0.5 bg-[#00ADB5]/20 text-[#00ADB5] rounded border border-[#00ADB5]/40">Active</span>
+          </div>
+          <p className="text-[9px] text-gray-500 mb-2 leading-relaxed">An intelligent resume screening application that automates the candidate evaluation process...</p>
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] text-gray-500">Progress</span>
+              <span className="text-[9px] text-[#00ADB5]">0%</span>
+            </div>
+            <div className="h-1 bg-[#1a2535] rounded-full overflow-hidden">
+              <div className="h-full bg-gray-600 rounded-full" style={{ width: '0%' }} />
+            </div>
+          </div>
+          <div className="mb-2">
+            <span className="text-[8px] px-2 py-0.5 bg-[#1a2535] text-gray-400 rounded border border-[#252d3d]">AI/ML</span>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-[#1a2535]">
+            <div className="flex items-center gap-3 text-[9px] text-gray-500">
+              <span className="flex items-center gap-1"><Users className="w-3 h-3" /> 1</span>
+              <span>📅 2/16/2026</span>
+            </div>
+            <div className="flex gap-1.5">
+              <button className="px-2 py-1 text-[8px] text-[#00ADB5] border border-[#00ADB5]/40 rounded hover:bg-[#00ADB5]/10">Show Details</button>
+              <button className="px-2 py-1 text-[8px] bg-[#00ADB5] text-white rounded">Request to Join</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Project 2 */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h4 className="text-xs text-white font-semibold">Travel mobile app</h4>
+              <p className="text-[9px] text-gray-500">Mobile app</p>
+            </div>
+            <span className="text-[8px] px-2 py-0.5 bg-[#00ADB5]/20 text-[#00ADB5] rounded border border-[#00ADB5]/40">Active</span>
+          </div>
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] text-gray-500">Progress</span>
+              <span className="text-[9px] text-[#00ADB5]">0%</span>
+            </div>
+            <div className="h-1 bg-[#1a2535] rounded-full overflow-hidden">
+              <div className="h-full bg-gray-600 rounded-full" style={{ width: '0%' }} />
+            </div>
+          </div>
+          <div className="mb-2">
+            <span className="text-[8px] px-2 py-0.5 bg-[#1a2535] text-gray-400 rounded border border-[#252d3d]">Mobile App</span>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-[#1a2535]">
+            <div className="flex items-center gap-3 text-[9px] text-gray-500">
+              <span className="flex items-center gap-1"><Users className="w-3 h-3" /> 3</span>
+              <span>📅 2/7/2026</span>
+            </div>
+            <div className="flex gap-1.5">
+              <button className="px-2 py-1 text-[8px] text-[#00ADB5] border border-[#00ADB5]/40 rounded hover:bg-[#00ADB5]/10">Show Details</button>
+              <button className="px-2 py-1 text-[8px] bg-green-500 text-white rounded">Open Workspace</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Developer Connect Content
+  const ConnectContent = () => (
+    <div className="p-4 space-y-3">
+      {/* Header */}
+      <div>
+        <h3 className="text-[#00ADB5] text-base font-semibold flex items-center gap-2">
+          Developer Connect <span className="text-lg">🤝</span>
+        </h3>
+        <p className="text-[10px] text-gray-500">Find teammates, build together, grow your network</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-4 border-b border-[#1a2535] pb-2">
+        <button className="flex items-center gap-1.5 text-[10px] text-[#00ADB5] border-b-2 border-[#00ADB5] pb-1">
+          <Code className="w-3 h-3" />
+          Developer Directory
+        </button>
+        <button className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-gray-300">
+          <MessageSquare className="w-3 h-3" />
+          Messages
+        </button>
+        <button className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-gray-300">
+          <Users className="w-3 h-3" />
+          Study Groups
+        </button>
+        <button className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-gray-300">
+          <Star className="w-3 h-3" />
+          Tech Reviews
+        </button>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex items-center gap-2 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <Search className="w-3 h-3 text-gray-500" />
+          <span className="text-[10px] text-gray-500">Search developers by name or skills...</span>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <span className="text-[10px] text-white">All Skills</span>
+          <ChevronLeft className="w-3 h-3 text-gray-500 rotate-[-90deg]" />
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <span className="text-[10px] text-white">Looking For</span>
+          <ChevronLeft className="w-3 h-3 text-gray-500 rotate-[-90deg]" />
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#151c2a] rounded-md border border-[#1a2535]">
+          <Trophy className="w-3 h-3 text-yellow-500" />
+          <span className="text-[10px] text-white">Top Ranked</span>
+          <ChevronLeft className="w-3 h-3 text-gray-500 rotate-[-90deg]" />
+        </div>
+      </div>
+
+      {/* Count */}
+      <p className="text-[10px] text-gray-500">Showing <span className="text-white">12</span> of <span className="text-white">42</span> developers</p>
+
+      {/* Developer Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Card 1 - Current User */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#00ADB5]/50 relative">
+          <div className="absolute -top-2 left-3">
+            <span className="text-[8px] px-2 py-0.5 bg-yellow-500 text-gray-900 rounded-full flex items-center gap-1">
+              <Star className="w-2 h-2" /> This is you
+            </span>
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white text-xs font-bold border-2 border-[#00ADB5]">
+                Amit
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-white font-semibold">Amit Sharma</span>
+                </div>
+                <span className="text-[9px] text-gray-500">Vision institute of technology aligarh • Student</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[#00ADB5] text-[10px]">
+              <TrendingUp className="w-3 h-3" />
+              #1
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2">passionate developer</p>
+          <div className="flex items-center justify-around mt-3 py-2 bg-[#0d1420] rounded-md">
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Roadmap</div>
+              <div className="text-sm font-bold text-white">3</div>
+              <div className="text-[8px] text-gray-600">topics</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">CodeArena</div>
+              <div className="text-sm font-bold text-white">5</div>
+              <div className="text-[8px] text-gray-600">solved</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Creator</div>
+              <div className="text-sm font-bold text-white">16</div>
+              <div className="text-[8px] text-gray-600">tasks</div>
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-[9px] text-gray-500">Skills</span>
+            <div className="flex gap-1 mt-1 flex-wrap">
+              {['react', 'python', 'Node.js'].map((skill, i) => (
+                <span key={i} className="text-[8px] px-2 py-0.5 bg-[#1a2535] text-gray-300 rounded border border-[#252d3d]">{skill}</span>
+              ))}
+              <span className="text-[8px] px-1.5 py-0.5 bg-[#1a2535] text-gray-500 rounded">+3</span>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-[#1a2535]">
+            <span className="text-[9px] text-[#00ADB5]">Open to opportunities</span>
+            <p className="text-[8px] text-gray-500">Looking to connect with other developers</p>
+          </div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-[10px] font-bold">
+                Vansh
+              </div>
+              <div>
+                <span className="text-xs text-white font-semibold">Vansh</span>
+                <p className="text-[9px] text-gray-500">University Name • Student</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[#00ADB5] text-[10px]">
+              <TrendingUp className="w-3 h-3" />
+              #2
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2">About yourself</p>
+          <div className="flex items-center justify-around mt-3 py-2 bg-[#0d1420] rounded-md">
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Roadmap</div>
+              <div className="text-sm font-bold text-white">23</div>
+              <div className="text-[8px] text-gray-600">topics</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">CodeArena</div>
+              <div className="text-sm font-bold text-white">0</div>
+              <div className="text-[8px] text-gray-600">solved</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Creator</div>
+              <div className="text-sm font-bold text-white">0</div>
+              <div className="text-[8px] text-gray-600">tasks</div>
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-[9px] text-gray-500">Skills</span>
+            <p className="text-[9px] text-gray-600 mt-1">No skills added</p>
+          </div>
+          <div className="mt-2 pt-2 border-t border-[#1a2535]">
+            <span className="text-[9px] text-[#00ADB5]">Open to opportunities</span>
+            <p className="text-[8px] text-gray-500">Looking to connect with other developers</p>
+          </div>
+          <div className="flex gap-2 mt-2">
+            <button className="flex-1 px-2 py-1 text-[8px] bg-[#00ADB5] text-white rounded">Message</button>
+            <button className="flex-1 px-2 py-1 text-[8px] text-gray-400 border border-[#1a2535] rounded hover:text-white">Reviews</button>
+          </div>
+        </div>
+
+        {/* Card 3 */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-500 overflow-hidden">
+                <img src="https://via.placeholder.com/40" alt="" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <span className="text-xs text-white font-semibold">sumit</span>
+                <p className="text-[9px] text-gray-500">uptu • Student</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-gray-400 text-[10px]">
+              <TrendingUp className="w-3 h-3" />
+              #3
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2">hii everyone</p>
+          <div className="flex items-center justify-around mt-3 py-2 bg-[#0d1420] rounded-md">
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Roadmap</div>
+              <div className="text-sm font-bold text-white">7</div>
+              <div className="text-[8px] text-gray-600">topics</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">CodeArena</div>
+              <div className="text-sm font-bold text-white">5</div>
+              <div className="text-[8px] text-gray-600">solved</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-gray-500">Creator</div>
+              <div className="text-sm font-bold text-white">3</div>
+              <div className="text-[8px] text-gray-600">tasks</div>
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="text-[9px] text-gray-500">Skills</span>
+            <div className="flex gap-1 mt-1 flex-wrap">
+              {['python', 'java', 'mongodb'].map((skill, i) => (
+                <span key={i} className="text-[8px] px-2 py-0.5 bg-[#1a2535] text-gray-300 rounded border border-[#252d3d]">{skill}</span>
+              ))}
+              <span className="text-[8px] px-1.5 py-0.5 bg-[#1a2535] text-gray-500 rounded">+1</span>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-[#1a2535]">
+            <span className="text-[9px] text-[#00ADB5]">Open to opportunities</span>
+            <p className="text-[8px] text-gray-500">Looking to connect with other developers</p>
+          </div>
+          <div className="flex gap-2 mt-2">
+            <button className="flex-1 px-2 py-1 text-[8px] bg-[#00ADB5] text-white rounded">Message</button>
+            <button className="flex-1 px-2 py-1 text-[8px] text-gray-400 border border-[#1a2535] rounded hover:text-white">Reviews</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // CodeArena Content
+  const ArenaContent = () => (
+    <div className="p-4 space-y-3">
+      {/* Header with Logo and Tabs */}
+      <div className="flex items-center justify-between pb-2 border-b border-[#1a2535]">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-2 py-1 bg-[#00ADB5]/20 rounded">
+            <Code className="w-4 h-4 text-[#00ADB5]" />
+            <div>
+              <span className="text-xs font-bold text-white">CodeArena</span>
+              <p className="text-[7px] text-gray-500">Battle. Code. Win.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-1 px-2.5 py-1 bg-[#00ADB5] text-white text-[9px] rounded">
+              <Code className="w-3 h-3" /> Home
+            </button>
+            <button className="flex items-center gap-1 px-2.5 py-1 text-gray-400 text-[9px] hover:text-white">
+              <Swords className="w-3 h-3" /> Battle
+            </button>
+            <button className="flex items-center gap-1 px-2.5 py-1 text-gray-400 text-[9px] hover:text-white">
+              <BarChart3 className="w-3 h-3" /> History
+            </button>
+            <button className="flex items-center gap-1 px-2.5 py-1 text-gray-400 text-[9px] hover:text-white">
+              <Target className="w-3 h-3" /> Practice
+            </button>
+            <button className="flex items-center gap-1 px-2.5 py-1 text-gray-400 text-[9px] hover:text-white">
+              <Trophy className="w-3 h-3" /> Ranks
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-[#c5f82a] rounded-full">
+          <Target className="w-3 h-3 text-gray-900" />
+          <span className="text-xs font-bold text-gray-900">13,350</span>
+        </div>
+      </div>
+
+      {/* Welcome Section */}
+      <div className="bg-[#151c2a] rounded-lg p-4 border border-[#1a2535]">
+        <h3 className="text-white text-lg font-semibold flex items-center gap-2">
+          Welcome Back! <span className="text-lg">👋</span>
+        </h3>
+        <p className="text-[10px] text-gray-400 mt-1">Ready to test your coding skills? Battle other developers or practice with Codeforces problems.</p>
+        <div className="flex items-center gap-2 mt-3">
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-[#00ADB5] text-white text-[10px] rounded font-medium">
+            <Swords className="w-3 h-3" /> Find Match
+          </button>
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-[#1a2535] text-white text-[10px] rounded border border-[#252d3d]">
+            <Target className="w-3 h-3" /> Practice
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="w-8 h-8 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center mb-2">
+            <Code className="w-4 h-4 text-[#00ADB5]" />
+          </div>
+          <div className="text-xl font-bold text-white">0</div>
+          <span className="text-[9px] text-gray-500">Problems Solved</span>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center mb-2">
+            <Swords className="w-4 h-4 text-orange-500" />
+          </div>
+          <div className="text-xl font-bold text-white">0</div>
+          <span className="text-[9px] text-gray-500">Battles Won</span>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center mb-2">
+            <Star className="w-4 h-4 text-yellow-500" />
+          </div>
+          <div className="text-xl font-bold text-white">0</div>
+          <span className="text-[9px] text-gray-500">Current Streak</span>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="w-8 h-8 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center mb-2">
+            <Trophy className="w-4 h-4 text-[#00ADB5]" />
+          </div>
+          <div className="text-xl font-bold text-white">-</div>
+          <span className="text-[9px] text-gray-500">Global Rank</span>
+        </div>
+      </div>
+
+      {/* Action Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-[#151c2a] rounded-lg p-4 border border-[#1a2535]">
+          <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center mb-3">
+            <Swords className="w-5 h-5 text-orange-500" />
+          </div>
+          <h4 className="text-sm font-semibold text-white">Quick Battle</h4>
+          <p className="text-[9px] text-gray-500 mt-1">Compete in a 1v1 coding duel</p>
+          <button className="flex items-center gap-1 text-[10px] text-[#00ADB5] mt-3 hover:underline">
+            Get Started <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-4 border border-[#1a2535]">
+          <div className="w-10 h-10 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center mb-3">
+            <Target className="w-5 h-5 text-[#00ADB5]" />
+          </div>
+          <h4 className="text-sm font-semibold text-white">Practice Mode</h4>
+          <p className="text-[9px] text-gray-500 mt-1">Solve problems from Codeforces</p>
+          <button className="flex items-center gap-1 text-[10px] text-[#00ADB5] mt-3 hover:underline">
+            Get Started <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-4 border border-[#1a2535]">
+          <div className="w-10 h-10 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center mb-3">
+            <Trophy className="w-5 h-5 text-[#00ADB5]" />
+          </div>
+          <h4 className="text-sm font-semibold text-white">Leaderboard</h4>
+          <p className="text-[9px] text-gray-500 mt-1">View global rankings</p>
+          <button className="flex items-center gap-1 text-[10px] text-[#00ADB5] mt-3 hover:underline">
+            Get Started <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* Live Battles & Top Players */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-gray-400" />
+              <span className="text-xs text-white font-medium">Live Battles</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[9px] text-green-400">Live</span>
+            </div>
+          </div>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-yellow-500" />
+              <span className="text-xs text-white font-medium">Top Players</span>
+            </div>
+            <span className="text-[9px] text-[#00ADB5] cursor-pointer hover:underline">View All</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Learning Roadmaps Content
+  const RoadmapsContent = () => (
+    <div className="p-3 space-y-3">
+      {/* Header */}
+      <div className="text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="w-6 h-6 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center">
+            <Map className="w-3.5 h-3.5 text-[#00ADB5]" />
+          </div>
+          <h2 className="text-white text-lg font-bold">Learning Roadmaps</h2>
+        </div>
+        <p className="text-[9px] text-gray-400 max-w-md mx-auto">
+          Master IT skills with complete roadmaps. Track your progress, access curated resources, and prepare for interviews.
+        </p>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-[#151c2a] rounded-lg p-2 flex items-center gap-2 border border-[#1a2535]">
+          <div className="w-6 h-6 rounded-lg bg-[#00ADB5]/20 flex items-center justify-center">
+            <Map className="w-3 h-3 text-[#00ADB5]" />
+          </div>
+          <div>
+            <div className="text-white text-sm font-bold">9</div>
+            <div className="text-[8px] text-gray-500">Roadmaps</div>
+          </div>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-2 flex items-center gap-2 border border-[#1a2535]">
+          <div className="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center">
+            <BookOpen className="w-3 h-3 text-purple-400" />
+          </div>
+          <div>
+            <div className="text-white text-sm font-bold">199+</div>
+            <div className="text-[8px] text-gray-500">Topics</div>
+          </div>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-2 flex items-center gap-2 border border-[#1a2535]">
+          <div className="w-6 h-6 rounded-lg bg-teal-500/20 flex items-center justify-center">
+            <Globe className="w-3 h-3 text-teal-400" />
+          </div>
+          <div>
+            <div className="text-white text-sm font-bold">0+</div>
+            <div className="text-[8px] text-gray-500">Resources</div>
+          </div>
+        </div>
+        <div className="bg-[#151c2a] rounded-lg p-2 flex items-center gap-2 border border-[#1a2535]">
+          <div className="w-6 h-6 rounded-lg bg-orange-500/20 flex items-center justify-center">
+            <Users className="w-3 h-3 text-orange-400" />
+          </div>
+          <div>
+            <div className="text-white text-sm font-bold">11</div>
+            <div className="text-[8px] text-gray-500">Learners</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Roadmaps */}
+      <div>
+        <div className="flex items-center gap-1 mb-2">
+          <TrendingUp className="w-3 h-3 text-[#00ADB5]" />
+          <span className="text-white text-xs font-medium">Featured Roadmaps</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {/* Machine Learning Card */}
+          <div className="bg-[#151c2a] rounded-lg p-2.5 border border-[#1a2535]">
+            <div className="text-xl mb-2">🤖</div>
+            <h4 className="text-white text-xs font-semibold mb-1">Machine Learning</h4>
+            <p className="text-[8px] text-gray-500 mb-2 line-clamp-2">Master ML algorithms, deep learning, and build production-ready AI systems</p>
+            <div className="flex items-center justify-between text-[8px] text-gray-500 mb-1.5">
+              <span className="flex items-center gap-0.5">⏱ 28 weeks</span>
+              <span className="flex items-center gap-0.5 text-yellow-400">⭐ 0.0</span>
+            </div>
+            <div className="flex items-center justify-between text-[8px]">
+              <span className="text-gray-500">Progress</span>
+              <span className="text-[#00ADB5]">0%</span>
+            </div>
+            <div className="h-1 bg-[#1a2535] rounded-full mt-1 overflow-hidden">
+              <div className="h-full bg-[#00ADB5] rounded-full" style={{ width: '0%' }} />
+            </div>
+          </div>
+
+          {/* Java Full Stack Card */}
+          <div className="bg-[#151c2a] rounded-lg p-2.5 border border-[#1a2535]">
+            <div className="text-xl mb-2">☕</div>
+            <h4 className="text-white text-xs font-semibold mb-1">Java Full Stack Development</h4>
+            <p className="text-[8px] text-gray-500 mb-2 line-clamp-2">Master enterprise full-stack development with Java, Spring Boot & React</p>
+            <div className="flex items-center justify-between text-[8px] text-gray-500 mb-1.5">
+              <span className="flex items-center gap-0.5">⏱ 28 weeks</span>
+              <span className="flex items-center gap-0.5 text-yellow-400">⭐ 0.0</span>
+            </div>
+            <div className="flex items-center justify-between text-[8px]">
+              <span className="text-gray-500">Progress</span>
+              <span className="text-[#00ADB5]">0%</span>
+            </div>
+            <div className="h-1 bg-[#1a2535] rounded-full mt-1 overflow-hidden">
+              <div className="h-full bg-[#00ADB5] rounded-full" style={{ width: '0%' }} />
+            </div>
+          </div>
+
+          {/* Deep Learning Card */}
+          <div className="bg-[#151c2a] rounded-lg p-2.5 border border-[#1a2535]">
+            <div className="text-xl mb-2">🧠</div>
+            <h4 className="text-white text-xs font-semibold mb-1">Deep Learning</h4>
+            <p className="text-[8px] text-gray-500 mb-2 line-clamp-2">Master neural networks, CNNs, RNNs, Transformers, and cutting-edge deep...</p>
+            <div className="flex items-center justify-between text-[8px] text-gray-500 mb-1.5">
+              <span className="flex items-center gap-0.5">⏱ 24 weeks</span>
+              <span className="flex items-center gap-0.5 text-yellow-400">⭐ 0.0</span>
+            </div>
+            <div className="flex items-center justify-between text-[8px]">
+              <span className="text-gray-500">Progress</span>
+              <span className="text-[#c5f82a]">4%</span>
+            </div>
+            <div className="h-1 bg-[#1a2535] rounded-full mt-1 overflow-hidden">
+              <div className="h-full bg-[#c5f82a] rounded-full" style={{ width: '4%' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex gap-2 mt-2">
+        <div className="flex-1 bg-[#151c2a] rounded-lg px-3 py-2 flex items-center gap-2 border border-[#1a2535]">
+          <Search className="w-3 h-3 text-gray-500" />
+          <span className="text-[9px] text-gray-500">Search roadmaps...</span>
+        </div>
+        <button className="bg-[#151c2a] rounded-lg px-3 py-2 text-[9px] text-white border border-[#1a2535] flex items-center gap-1">
+          All Categories <span className="text-gray-500">▼</span>
+        </button>
+        <button className="bg-[#151c2a] rounded-lg px-3 py-2 text-[9px] text-white border border-[#1a2535] flex items-center gap-1">
+          All Levels <span className="text-gray-500">▼</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // Query Content
+  const QueryContent = () => (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-white text-base font-semibold">Query Center</h3>
+        <button className="px-3 py-1.5 bg-[#00ADB5] text-white text-xs rounded-md">+ Ask Question</button>
+      </div>
+      <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+        <div className="space-y-2">
+          {[
+            { q: 'How to optimize recursive solutions?', replies: 5, time: '2h ago' },
+            { q: 'Best practices for React hooks?', replies: 12, time: '1d ago' },
+            { q: 'Understanding Big O notation', replies: 8, time: '3d ago' },
+          ].map((query, idx) => (
+            <div key={idx} className="flex items-center justify-between py-2 border-b border-[#1a2535] last:border-0">
+              <span className="text-[10px] text-gray-300 flex-1">{query.q}</span>
+              <span className="text-[9px] text-[#00ADB5] mx-2">{query.replies} replies</span>
+              <span className="text-[9px] text-gray-600">{query.time}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Profile Content
+  const ProfileContent = () => (
+    <div className="p-3 space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-[#00ADB5] text-lg font-bold">Profile</h2>
+          <p className="text-[9px] text-gray-400">Manage your personal information and skills</p>
+        </div>
+        <button className="px-3 py-1.5 bg-[#00ADB5] text-white text-[9px] rounded-lg flex items-center gap-1">
+          ✏️ Edit Profile
+        </button>
+      </div>
+
+      <div className="flex gap-3">
+        {/* Profile Summary Card (Left) */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535] w-2/5">
+          <h4 className="text-white text-xs font-semibold mb-3">Profile Summary</h4>
+          <div className="flex flex-col items-center mb-3">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center text-2xl mb-2">
+              👨‍💻
+            </div>
+            <h3 className="text-white text-sm font-semibold">Rahul Verma</h3>
+            <p className="text-[8px] text-gray-500">IIT Delhi</p>
+          </div>
+          <div className="space-y-2 text-[9px]">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">📧</span>
+              <span className="text-gray-300">rahulverma2024@gmail.com</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">📱</span>
+              <span className="text-gray-300">+91 9876543210</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">📍</span>
+              <span className="text-gray-300">New Delhi</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">🏛️</span>
+              <span className="text-gray-300">IIT Delhi</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">📝</span>
+              <span className="text-gray-300">Full stack developer & ML enthusiast</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Basic Information Card (Right) */}
+        <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535] flex-1">
+          <div className="flex items-center gap-1 mb-3">
+            <span className="text-[#00ADB5]">👤</span>
+            <h4 className="text-white text-xs font-semibold">Basic Information</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">Full Name</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">Rahul Verma</div>
+            </div>
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">Email</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">rahulverma2024@gmail.com</div>
+            </div>
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">Phone</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">9876543210</div>
+            </div>
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">Institute</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">IIT Delhi</div>
+            </div>
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">GitHub Username</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">rahulverma-dev</div>
+            </div>
+            <div>
+              <label className="text-[8px] text-gray-500 block mb-1">Year of Study</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-gray-400 border border-[#1a2535] flex items-center justify-between">
+                3rd Year <span className="text-gray-600">▼</span>
+              </div>
+            </div>
+            <div className="col-span-2">
+              <label className="text-[8px] text-gray-500 block mb-1">Location</label>
+              <div className="bg-[#0d1420] rounded px-2 py-1.5 text-[9px] text-white border border-[#1a2535]">New Delhi</div>
+            </div>
+            <div className="col-span-2">
+              <label className="text-[8px] text-gray-500 block mb-1">Bio</label>
+              <div className="bg-[#0d1420] rounded px-2 py-2 text-[9px] text-white border border-[#1a2535] min-h-[40px]">Full stack developer & ML enthusiast</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Education Section */}
+      <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
+        <div className="flex items-center gap-1 mb-2">
+          <span className="text-[#00ADB5]">🎓</span>
+          <h4 className="text-white text-xs font-semibold">Education</h4>
+        </div>
+        <div className="text-[9px] text-white">B.Tech in Computer Science</div>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <DashboardContent />;
+      case 'creator': return <CreatorContent />;
+      case 'connect': return <ConnectContent />;
+      case 'arena': return <ArenaContent />;
+      case 'roadmaps': return <RoadmapsContent />;
+      case 'query': return <QueryContent />;
+      case 'profile': return <ProfileContent />;
+      default: return <DashboardContent />;
+    }
+  };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Enhanced Animated Background with Morphing Shapes */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
-        <div className="absolute inset-0">
-          {/* Morphing Blob Shapes */}
-          <div
-            className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/20 dark:from-blue-500/20 dark:to-cyan-500/10 animate-blob animate-morph"
-            style={{ transform: `translateY(${scrollY * 0.1}px)` }}
-          />
-          <div
-            className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/25 to-blue-400/15 dark:from-cyan-500/15 dark:to-blue-500/10 animate-blob animate-morph"
-            style={{ animationDelay: '2s', transform: `translateY(${scrollY * -0.15}px)` }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/15 dark:from-purple-500/15 dark:to-pink-500/10 animate-blob animate-morph"
-            style={{ animationDelay: '4s', transform: `translate(-50%, -50%) translateY(${scrollY * 0.08}px)` }}
-          />
-          {/* Animated Gradient Ring */}
-          <div className="absolute top-1/4 right-1/3 w-40 h-40 border-4 border-[#00ADB5]/20 dark:border-[#00ADB5]/30 rounded-full animate-spin-slow" />
-          <div className="absolute bottom-1/4 left-1/4 w-32 h-32 border-2 border-cyan-400/30 dark:border-cyan-400/20 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+    <div className="relative bg-[#0d1420] rounded-xl border border-[#1a2535] overflow-hidden shadow-2xl shadow-black/60">
+      {/* Browser Header */}
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-[#0a0f18] border-b border-[#1a2535]">
+        <div className="flex gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+        </div>
+        <div className="flex-1 flex justify-center">
+          <div className="flex items-center gap-2 px-4 py-1 bg-[#151c2a] rounded-md">
+            <Globe className="w-3 h-3 text-gray-500" />
+            <span className="text-xs text-gray-500">skillupx.online/dashboard</span>
+          </div>
         </div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left Content */}
-          <div
-            ref={ref}
-            className={`space-y-8 transition-all duration-1000 ${
-              isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
-            }`}
-          >
-            {/* Animated Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/50 dark:border-gray-700 shadow-lg animate-magnetic spotlight">
-              <Sparkles className="w-4 h-4 text-[#00ADB5] animate-pulse" />
-              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">🚀 Connect. Learn. Showcase. Succeed.</span>
+      {/* Dashboard Content */}
+      <div className="flex h-[480px]">
+        {/* Sidebar */}
+        <div className="hidden md:flex flex-col w-44 bg-[#0a0f18] border-r border-[#1a2535]">
+          {/* Logo */}
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1a2535]">
+            <div className="w-5 h-5 rounded bg-[#00ADB5] flex items-center justify-center">
+              <Zap className="w-3 h-3 text-white" />
             </div>
+            <span className="text-xs font-semibold text-white">SkillUpX</span>
+            <ChevronLeft className="w-3 h-3 text-gray-500 ml-auto" />
+          </div>
 
-            {/* Main Heading with Neon Effect */}
-            <div className="space-y-5">
-              <h1 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white leading-tight">
-                <span className="animate-fade-in inline-block">Learn by Doing</span>
-                <br />
-                <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] animate-fade-in-delay-1 inline-block">
-                  Grow by Contributing
-                </span>
-              </h1>
-
-              <p className="text-base lg:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl font-medium animate-fade-in-delay-1">
-                SkillUpX is a smart platform designed for students who want to <span className="text-[#00ADB5] font-bold">learn, grow, and showcase</span> their abilities. Contribute to <span className="text-[#00ADB5] font-bold">real open-source projects</span>, collaborate with peers, and build a meaningful portfolio that impresses employers.
-              </p>
-
-              {/* Feature Highlights with Stagger Animation */}
-              <div className="space-y-3 pt-2">
-                {[
-                  { text: "Collaborate", desc: "on projects & form teams", delay: "0.2s" },
-                  { text: "Battle", desc: "in CodeArena & practice coding", delay: "0.4s" },
-                  { text: "Gain", desc: "real-world experience instantly", delay: "0.6s" }
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 group hover:translate-x-2 transition-all duration-300 opacity-0 animate-slide-left"
-                    style={{ animationDelay: item.delay, animationFillMode: 'forwards' }}
-                  >
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#00ADB5] to-cyan-500 group-hover:scale-150 transition-transform"></div>
-                    <span><span className="font-bold text-[#00ADB5]">{item.text}</span> {item.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA Buttons with Spotlight Effect */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2 animate-fade-in-delay-3">
-              <Link to="/signup" className="group relative px-6 py-3 bg-gradient-to-r from-[#00ADB5] to-cyan-600 text-white rounded-xl font-bold text-sm lg:text-base shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 inline-flex items-center justify-center overflow-hidden spotlight">
-                <span className="relative z-10 flex items-center gap-2">
-                  Start Your Journey
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </Link>
-
-              <button className="group flex items-center gap-2 px-6 py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2 border-[#00ADB5]/20 hover:border-[#00ADB5] rounded-xl font-semibold text-sm lg:text-base text-gray-900 dark:text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ripple-effect">
-                <div className="w-9 h-9 rounded-full bg-[#00ADB5]/10 flex items-center justify-center group-hover:bg-[#00ADB5] group-hover:scale-110 transition-all duration-300">
-                  <Play className="w-3 h-3 text-[#00ADB5] group-hover:text-white ml-0.5 transition-colors" />
-                </div>
-                Watch Demo
+          {/* Nav Items */}
+          <div className="flex-1 p-2 space-y-0.5">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all ${
+                  activeTab === item.id
+                    ? 'bg-[#00ADB5] text-white'
+                    : 'text-gray-500 hover:text-gray-300 hover:bg-[#151c2a]'
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span className="text-[10px] font-medium">{item.label}</span>
               </button>
-            </div>
-
-            {/* Success Stats with Counter Animation */}
-            <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fade-in-delay-4">
-              <div className="text-center hover:scale-110 transition-transform duration-300 group">
-                <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
-                  <AnimatedCounter target={3000} suffix="+" />
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">DSA Problems</div>
-              </div>
-              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
-              <div className="text-center hover:scale-110 transition-transform duration-300 group">
-                <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
-                  <AnimatedCounter target={500} suffix="+" />
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Live Projects</div>
-              </div>
-              <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
-              <div className="text-center hover:scale-110 transition-transform duration-300 group">
-                <div className="text-2xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">
-                  <AnimatedCounter target={12} suffix="K+" />
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Active Developers</div>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Right Visual with Animated Tech Elements */}
-          <div
-            className={`relative -mt-8 transition-all duration-1000 delay-300 ${
-              isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
-            }`}
-          >
-            {/* Decorative Animated Frame with Glow */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[#00ADB5]/20 via-purple-500/10 to-cyan-500/20 rounded-3xl blur-2xl animate-pulse-slow" />
-            <div className="absolute -inset-2 bg-gradient-to-r from-[#00ADB5]/30 via-transparent to-purple-500/30 rounded-3xl blur-xl animate-magnetic" />
-
-            <FloatingElement intensity={40}>
-              <div className="relative group" style={{ perspective: '1000px' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/40 to-cyan-600/30 rounded-3xl blur-3xl animate-magnetic" />
-
-                {/* Animated Border Glow */}
-                <div className="absolute -inset-[2px] bg-gradient-to-r from-[#00ADB5] via-purple-500 to-[#00ADB5] rounded-3xl opacity-75 blur-sm animate-gradient" style={{ backgroundSize: '200% 200%' }} />
-
-                {/* Main Animated Container with 3D effect */}
-                <div className="relative w-full h-[420px] rounded-3xl shadow-2xl overflow-hidden border border-white/20 dark:border-gray-700/40 backdrop-blur-sm bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 group-hover:scale-[1.02] transition-transform duration-700">
-
-                  {/* Animated Grid Background */}
-                  <div className="absolute inset-0 opacity-30">
-                    <div className="absolute inset-0" style={{
-                      backgroundImage: `linear-gradient(rgba(0, 173, 181, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 173, 181, 0.4) 1px, transparent 1px)`,
-                      backgroundSize: '30px 30px'
-                    }} />
-                  </div>
-
-                  {/* Scanning Line Effect */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent animate-scan-line" />
-                  </div>
-
-                  {/* Floating Particles */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(12)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute w-1 h-1 bg-[#00ADB5] rounded-full animate-float-particle"
-                        style={{
-                          left: `${10 + (i * 8)}%`,
-                          top: `${20 + (i % 4) * 20}%`,
-                          animationDelay: `${i * 0.3}s`,
-                          opacity: 0.6 + (i % 3) * 0.2
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Floating Orbs - Enhanced */}
-                  <div className="absolute top-6 left-6 w-24 h-24 bg-gradient-to-br from-[#00ADB5] to-cyan-400 rounded-full blur-2xl opacity-70 animate-blob" />
-                  <div className="absolute bottom-10 right-10 w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-2xl opacity-50 animate-blob" style={{ animationDelay: '2s' }} />
-                  <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full blur-2xl opacity-60 animate-blob" style={{ animationDelay: '4s' }} />
-                  <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full blur-xl opacity-50 animate-blob" style={{ animationDelay: '3s' }} />
-
-                  {/* Code Terminal Animation - Enhanced */}
-                  <div className="absolute top-5 left-5 right-5 bg-gray-800/95 rounded-xl p-4 border border-[#00ADB5]/30 shadow-2xl shadow-[#00ADB5]/10 backdrop-blur-sm">
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-700/50">
-                      <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50" />
-                      <div className="w-3 h-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-                      <span className="ml-2 text-xs text-gray-400 font-mono flex items-center gap-1">
-                        <Code className="w-3 h-3" /> SkillUpX.tsx
-                      </span>
-                      <div className="ml-auto flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-[#00ADB5] animate-pulse" />
-                        <span className="text-[10px] text-[#00ADB5]">LIVE</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2 font-mono text-sm">
-                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-                        <span className="text-gray-500 text-xs w-4">1</span>
-                        <span className="text-purple-400">const</span>
-                        <span className="text-cyan-300">developer</span>
-                        <span className="text-white">=</span>
-                        <span className="text-yellow-300">"you"</span>
-                        <span className="text-gray-500">;</span>
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                        <span className="text-gray-500 text-xs w-4">2</span>
-                        <span className="text-purple-400">const</span>
-                        <span className="text-cyan-300">skills</span>
-                        <span className="text-white">=</span>
-                        <span className="text-green-400">[</span>
-                        <span className="text-yellow-300">"code"</span>
-                        <span className="text-gray-500">,</span>
-                        <span className="text-yellow-300">"create"</span>
-                        <span className="text-gray-500">,</span>
-                        <span className="text-yellow-300">"grow"</span>
-                        <span className="text-green-400">]</span>
-                        <span className="text-gray-500">;</span>
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '1s', animationFillMode: 'forwards' }}>
-                        <span className="text-gray-500 text-xs w-4">3</span>
-                        <span className="text-blue-400">await</span>
-                        <span className="text-cyan-300">SkillUpX</span>
-                        <span className="text-white">.</span>
-                        <span className="text-yellow-400">transform</span>
-                        <span className="text-white">(</span>
-                        <span className="text-cyan-300">developer</span>
-                        <span className="text-white">)</span>
-                        <span className="text-gray-500">;</span>
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 animate-fade-in-line" style={{ animationDelay: '1.4s', animationFillMode: 'forwards' }}>
-                        <span className="text-gray-500 text-xs w-4">4</span>
-                        <span className="text-green-400">// </span>
-                        <span className="text-green-400/70">Output: 🚀 Ready to build amazing things!</span>
-                        <span className="inline-block w-2 h-4 bg-[#00ADB5] animate-pulse ml-1" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Floating Tech Icons - More Icons with Glow */}
-                  <div className="absolute bottom-24 left-8 w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30 animate-float border border-blue-400/30">
-                    <Code className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="absolute bottom-10 left-28 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-xl shadow-green-500/30 animate-float-delayed border border-green-400/30">
-                    <Zap className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="absolute bottom-20 right-6 w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/30 animate-float-slow border border-purple-400/30">
-                    <Rocket className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="absolute bottom-6 right-24 w-11 h-11 bg-gradient-to-br from-[#00ADB5] to-cyan-400 rounded-xl flex items-center justify-center shadow-xl shadow-[#00ADB5]/30 animate-float border border-[#00ADB5]/30">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute bottom-14 left-1/2 -translate-x-1/2 w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-xl shadow-yellow-500/30 animate-float-delayed border border-yellow-400/30">
-                    <Award className="w-5 h-5 text-white" />
-                  </div>
-
-                  {/* Multiple Orbiting Rings */}
-                  <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-44 h-44">
-                    <div className="absolute inset-0 border-2 border-dashed border-[#00ADB5]/40 rounded-full animate-spin-slow" />
-                    <div className="absolute inset-4 border border-purple-500/30 rounded-full animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '25s' }} />
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-[#00ADB5] rounded-full shadow-lg shadow-[#00ADB5]/50" />
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full shadow-lg shadow-purple-500/50" />
-                  </div>
-
-                  {/* Glowing Corner Accents */}
-                  <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-[#00ADB5]/30 to-transparent rounded-br-full" />
-                  <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-purple-500/30 to-transparent rounded-tl-full" />
-
-                  {/* Glowing Lines - Enhanced */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent opacity-80" />
-                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00ADB5]/50 to-transparent" />
-                </div>
-
-                {/* Floating Success Card with Animation */}
-                <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 group animate-float">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg group-hover:animate-bounce">
-                      <span className="text-lg">🎉</span>
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 dark:text-white">Success!</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">200+ projects completed</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Stats Card */}
-                <div className="absolute -top-4 -right-4 bg-gradient-to-br from-white to-cyan-50/50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 shadow-xl border border-white/80 dark:border-gray-700 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-105 transition-all duration-500 animate-float-delayed">
-                  <div className="text-center">
-                    <div className="text-3xl font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent mb-1">50+</div>
-                    <div className="text-xs font-bold text-gray-800 dark:text-white">Live Projects</div>
-                    <div className="text-xs text-[#00ADB5] font-semibold">Real experience</div>
-                  </div>
-                </div>
-
-                {/* Animated Trophy Card */}
-                <div className="absolute top-1/2 -right-8 transform -translate-y-1/2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-3 shadow-xl animate-float-slow">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
+          {/* Theme Toggle & User */}
+          <div className="p-3 border-t border-[#1a2535]">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-[#151c2a] rounded-md mb-3">
+              <Sparkles className="w-3 h-3 text-yellow-400" />
+              <span className="text-[9px] text-gray-400">Light Mode</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-medium">A</div>
+              <div>
+                <div className="text-[10px] text-white font-medium">Amit Sharma</div>
+                <div className="text-[8px] text-gray-500 truncate w-24">sharmaamit962...</div>
               </div>
-            </FloatingElement>
+            </div>
           </div>
         </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 h-full overflow-y-auto">
+          {renderContent()}
+        </div>
       </div>
+
+      {/* Bottom fade gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#0a0f1a] to-transparent pointer-events-none" />
+    </div>
+  );
+});
+
+DashboardMockup.displayName = 'DashboardMockup';
+
+// Hero Section Component - Supporting Both Light & Dark Themes
+const HeroSection = memo(() => {
+  const { ref, isVisible } = useRevealAnimation();
+
+  return (
+    <section className="relative min-h-screen overflow-hidden bg-white dark:bg-black">
+      {/* Animated Background - Curved glow effect from top */}
+      <div className="absolute inset-0">
+        {/* Light mode background */}
+        <div className="dark:hidden absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[500px] bg-gradient-to-b from-[#00ADB5]/15 via-[#00ADB5]/5 to-transparent rounded-[100%] blur-3xl" />
+          <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#00ADB5]/10 rounded-full blur-[150px]" />
+        </div>
+        {/* Dark mode background */}
+        <div className="hidden dark:block absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[500px] bg-gradient-to-b from-[#0EA5E9]/30 via-[#0EA5E9]/10 to-transparent rounded-[100%] blur-3xl" />
+          <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#0EA5E9]/20 rounded-full blur-[150px]" />
+        </div>
+
+        {/* Side glows for depth */}
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-[#00ADB5]/5 dark:bg-[#0EA5E9]/8 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-0 w-[300px] h-[300px] bg-cyan-500/3 dark:bg-sky-500/5 rounded-full blur-[100px]" />
+
+        {/* Subtle curved line at top */}
+        <svg className="absolute top-0 left-0 w-full h-64 opacity-10 dark:opacity-20" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="none" stroke="#0EA5E9" strokeWidth="1" d="M0,160 Q720,320 1440,160" />
+        </svg>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-[#00ADB5]/30 dark:bg-[#0EA5E9]/40 rounded-full animate-float-particle"
+              style={{
+                left: `${5 + Math.random() * 90}%`,
+                top: `${5 + Math.random() * 50}%`,
+                animationDelay: `${i * 0.2}s`,
+                animationDuration: `${5 + Math.random() * 4}s`
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Hero Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-16">
+        <div
+          ref={ref}
+          className={`text-center transition-all duration-1000 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          }`}
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00ADB5]/10 dark:bg-[#1a2535] border border-[#00ADB5]/20 dark:border-[#0EA5E9]/30 mb-8">
+            <Rocket className="w-3.5 h-3.5 text-[#00ADB5] dark:text-[#0EA5E9]" />
+            <span className="text-xs font-medium text-[#00ADB5] dark:text-[#0EA5E9]">Connect. Learn. Showcase. Succeed.</span>
+          </div>
+
+          {/* Main Heading - Bold impactful style */}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
+            <span className="block">Learn by{' '}
+              <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-teal-400 bg-clip-text text-transparent">Doing</span>
+            </span>
+            <span className="block text-4xl md:text-5xl lg:text-6xl mt-2">
+              <span className="text-gray-500 dark:text-gray-400 font-semibold">Grow by{' '}</span>
+              <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-teal-400 bg-clip-text text-transparent">Contributing</span>
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+            SkillUpX is a smart platform designed for students who want to learn, grow, and showcase their abilities.
+            Contribute to real open-source projects, collaborate with peers, and build a meaningful portfolio.
+          </p>
+
+          {/* Feature Pills */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#151c2a] border border-gray-200 dark:border-[#1a2535] shadow-sm dark:shadow-none">
+              <Users className="w-4 h-4 text-[#00ADB5]" />
+              <span className="text-xs text-gray-700 dark:text-gray-300">Collaborate on projects & form teams</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#151c2a] border border-gray-200 dark:border-[#1a2535] shadow-sm dark:shadow-none">
+              <Swords className="w-4 h-4 text-[#00ADB5]" />
+              <span className="text-xs text-gray-700 dark:text-gray-300">Battle in CodeArena & practice coding</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#151c2a] border border-gray-200 dark:border-[#1a2535] shadow-sm dark:shadow-none">
+              <Zap className="w-4 h-4 text-[#00ADB5]"/>
+              <span className="text-xs text-gray-700 dark:text-gray-   300">Gain real-world experience instantly</span>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <Link
+              to="/signup"
+              className="px-8 py-3 bg-[#00ADB5] hover:bg-[#00c4cc] text-white rounded-full font-semibold text-sm transition-all duration-300 hover:shadow-xl hover:shadow-[#00ADB5]/25 hover:scale-105"
+            >
+              Get started
+            </Link>
+            <Link
+              to="/login"
+              className="px-8 py-3 bg-transparent border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400 text-gray-900 dark:text-white rounded-full font-medium text-sm transition-all duration-300 hover:bg-gray-100 dark:hover:bg-white/5"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
+
+        {/* Dashboard Mockup with enhanced glow */}
+        <div className={`relative transition-all duration-1000 delay-300 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
+        }`}>
+          {/* Multiple layered glows behind dashboard */}
+          <div className="absolute -inset-4 bg-gradient-to-t from-[#00ADB5]/10 dark:from-[#0EA5E9]/15 via-[#00ADB5]/3 dark:via-[#0EA5E9]/5 to-transparent rounded-3xl blur-3xl" />
+          <div className="absolute -inset-8 bg-gradient-to-b from-transparent via-cyan-500/3 dark:via-sky-500/5 to-[#00ADB5]/8 dark:to-[#0EA5E9]/10 rounded-3xl blur-2xl" />
+
+          <DashboardMockup />
+        </div>
+      </div>
+
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-black to-transparent pointer-events-none" />
     </section>
   );
 });
@@ -536,7 +1247,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900" style={{ overflowX: 'clip' }}>
+    <div className="min-h-screen bg-white dark:bg-black" style={{ overflowX: 'clip' }}>
       <SEO
         title="SkillUpX –The Developer Growth Platform,CodeArena Battles, Project Collaboration, Learning Roadmaps, Developer Connect & Tech Reviews"
         description="SkillUpX – Battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, read tech reviews. 3000+ DSA questions & growing. Free platform for all developers!"
@@ -548,7 +1259,7 @@ export default function HomePage() {
       <HeroSection />
 
       {/* ===== UNIQUE INTERACTIVE SERVICES SHOWCASE ===== */}
-      <section className="relative py-12 lg:py-16 bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-gray-900 dark:to-slate-800 overflow-hidden">
+      <section className="relative py-12 lg:py-16 bg-white dark:bg-black overflow-hidden">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute inset-0" style={{
@@ -586,7 +1297,7 @@ export default function HomePage() {
                     }`}
                   >
                     {/* Active Indicator */}
-                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 hidden lg:flex ${
+                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full hidden lg:flex items-center justify-center transition-all duration-500 ${
                       activeService === index
                         ? `bg-gradient-to-r ${service.color} scale-100 shadow-lg`
                         : 'bg-gray-200 dark:bg-white/10 scale-75'
@@ -730,181 +1441,121 @@ export default function HomePage() {
       </section>
 
 
-      {/* Benefits Section with Zig-Zag Timeline */}
-<section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
-  <div className="max-w-5xl mx-auto">
-    <div className="text-center mb-16">
-      <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-        Why SkillUpX is
-        <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-500 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]"> Your Best Choice</span>
-      </h2>
-      <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-        Everything you need to become a professional developer, all in one platform
-      </p>
-    </div>
+      {/* Benefits Section - Radial Feature Layout */}
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden relative">
+        <div className="max-w-6xl mx-auto relative z-10">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+              Why SkillUpX is{' '}
+              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-400 bg-clip-text text-transparent">Your Best Choice</span>
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Everything you need to become a professional developer
+            </p>
+          </div>
 
-    {/* Mobile: Simple stacked cards */}
-    <div className="sm:hidden flex flex-col gap-6">
-      {[
-        {
-          icon: "🎯",
-          title: "Learn Real Skills",
-          description: "Master DSA, coding concepts, and industry-standard technologies through hands-on practice",
-          color: "border-blue-300",
-          bg: "bg-blue-50",
-          image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80"
-        },
-        {
-          icon: "👥",
-          title: "Collaborate & Grow",
-          description: "Team up with other developers on real projects and learn from experienced mentors",
-          color: "border-purple-300",
-          bg: "bg-purple-50",
-          image: "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=400&q=80"
-        },
-        {
-          icon: "📈",
-          title: "Build Your Portfolio",
-          description: "Showcase real projects on your profile to impress employers and land better jobs",
-          color: "border-orange-300",
-          bg: "bg-orange-50",
-          image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
-        },
-        {
-          icon: "⚔️",
-          title: "Compete & Win",
-          description: "Battle other developers in CodeArena, climb leaderboards, and earn recognition",
-          color: "border-yellow-300",
-          bg: "bg-yellow-50",
-          image: "https://images.unsplash.com/photo-1503676382389-4809596d5290?w=400&q=80"
-        },
-        {
-          icon: "🏆",
-          title: "Get Verified Certs",
-          description: "Earn industry-recognized certificates backed by real project completion",
-          color: "border-green-300",
-          bg: "bg-green-50",
-          image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400&q=80"
-        },
-        {
-          icon: "💰",
-          title: "100% Free Start",
-          description: "Access all learning resources for free - premium features available at low cost",
-          color: "border-cyan-300",
-          bg: "bg-cyan-50",
-          image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80"
-        }
-      ].map((benefit, idx) => (
-        <div key={idx} className={`rounded-2xl shadow-md ${benefit.bg} dark:bg-gray-900 border ${benefit.color} dark:border-gray-700 px-5 py-6 flex flex-col items-center`}>
-          <img src={benefit.image} alt={benefit.title} loading="lazy" width={400} height={96} className="w-full h-24 object-cover rounded-xl mb-3 shadow" />
-          <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow -mt-6 border-2 border-[#00ADB5]/30">
-            <span className="text-xl text-gray-900 dark:text-white">{benefit.icon}</span>
-          </div>
-          <h3 className="text-lg font-extrabold text-center mb-1 text-gray-900 dark:text-white">
-            {benefit.title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
-            {benefit.description}
-          </p>
-        </div>
-      ))}
-    </div>
-    {/* Desktop/Tablet: Timeline zig-zag */}
-    <div className="hidden sm:relative sm:flex sm:flex-col sm:items-left">
-      {/* Timeline vertical line */}
-      <div className="absolute left-1/2 top-0 h-full w-1 bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/10 to-transparent -translate-x-1/2 z-0" />
-      <div className="h-8 md:h-12" />
-      {[
-        {
-          icon: "🎯",
-          title: "Learn Real Skills",
-          description: "Master DSA, coding concepts, and industry-standard technologies through hands-on practice",
-          color: "border-blue-300",
-          bg: "bg-blue-50",
-          image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80"
-        },
-        {
-          icon: "👥",
-          title: "Collaborate & Grow",
-          description: "Team up with other developers on real projects and learn from experienced mentors",
-          color: "border-purple-300",
-          bg: "bg-purple-50",
-          image: "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?w=400&q=80"
-        },
-        {
-          icon: "📈",
-          title: "Build Your Portfolio",
-          description: "Showcase real projects on your profile to impress employers and land better jobs",
-          color: "border-orange-300",
-          bg: "bg-orange-50",
-          image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80"
-        },
-        {
-          icon: "⚔️",
-          title: "Compete & Win",
-          description: "Battle other developers in CodeArena, climb leaderboards, and earn recognition",
-          color: "border-yellow-300",
-          bg: "bg-yellow-50",
-          image: "https://images.unsplash.com/photo-1578269174936-2709b6aeb913?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        },
-        {
-          icon: "🏆",
-          title: "Get Verified Certs",
-          description: "Earn industry-recognized certificates backed by real project completion",
-          color: "border-green-300",
-          bg: "bg-green-50",
-          image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400&q=80"
-        },
-        {
-          icon: "💰",
-          title: "100% Free Start",
-          description: "Access all learning resources for free - premium features available at low cost",
-          color: "border-cyan-300",
-          bg: "bg-cyan-50",
-          image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80"
-        }
-      ].map((benefit, idx) => {
-        const isLeft = idx % 2 === 0;
-        return (
-          <div key={idx} className="relative flex items-center w-full mb-16 min-h-[180px]">
-            {/* Timeline dot */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gradient-to-br from-[#00ADB5] via-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-base shadow-xl border-4 border-white z-20 animate-pulse ring-2 ring-[#00ADB5]/30">
-              {idx + 1}
-            </div>
-            {/* Card - alternate left/right, now smaller */}
-            <div
-              className={`absolute ${isLeft ? 'right-1/2 pr-4' : 'left-1/2 pl-4'} w-[calc(50%-2.5rem)] max-w-sm mx-auto rounded-2xl shadow-xl ${benefit.bg} dark:bg-gray-900 border ${benefit.color} dark:border-gray-700 px-5 py-6 flex flex-col items-center z-10 group transition-all duration-700 hover:-translate-y-2 hover:shadow-2xl backdrop-blur-xl`}
-              style={{ [isLeft ? 'right' : 'left']: '50%', animationDelay: `${idx * 0.15}s`, animationName: 'fadeInUp', animationFillMode: 'both' }}
-            >
-              {/* Gradient overlay for glassmorphism */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/60 via-[#00ADB5]/10 to-transparent dark:from-gray-900/60 dark:via-[#00ADB5]/10 dark:to-transparent pointer-events-none z-0" />
-              <img
-                src={benefit.image}
-                alt={benefit.title}
-                loading="lazy"
-                width={400}
-                height={96}
-                className="w-full h-24 object-cover rounded-xl mb-3 shadow-md transition-transform duration-700 group-hover:scale-105 group-hover:brightness-110 z-10"
-              />
-              <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white dark:bg-gray-800 shadow-md -mt-6 z-10 border-2 border-[#00ADB5]/30 group-hover:border-[#00ADB5] transition-all duration-300">
-                <span className="text-xl text-gray-900 dark:text-white animate-pulse">{benefit.icon}</span>
+          {/* Mobile: Simple grid */}
+          <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { icon: "🎯", title: "Learn Real Skills", desc: "Master DSA & industry technologies" },
+              { icon: "👥", title: "Collaborate & Grow", desc: "Team up on real projects" },
+              { icon: "📈", title: "Build Portfolio", desc: "Showcase projects to employers" },
+              { icon: "⚔️", title: "Compete & Win", desc: "Battle in CodeArena" },
+              { icon: "🏆", title: "Get Verified Certs", desc: "Industry-recognized certificates" },
+              { icon: "💰", title: "100% Free Start", desc: "Access all resources free" }
+            ].map((item, idx) => (
+              <div key={idx} className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-[#00ADB5]/30 rounded-2xl p-5 hover:border-[#00ADB5] transition-all shadow-sm dark:shadow-none">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5]/20 to-cyan-500/20 flex items-center justify-center text-2xl mb-3">
+                  {item.icon}
+                </div>
+                <h3 className="text-gray-900 dark:text-white font-bold mb-1">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{item.desc}</p>
               </div>
-              <h3 className="text-lg font-extrabold text-center mb-1 text-gray-900 dark:text-white drop-shadow-lg z-10 group-hover:text-[#00ADB5] transition-colors duration-300">
-                {benefit.title}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 text-center z-10 opacity-95 drop-shadow group-hover:opacity-100 transition-opacity duration-300">
-                {benefit.description}
-              </p>
-            </div>
+            ))}
           </div>
-        );
-      })}
-    </div>
-  </div>
-</section>
+
+          {/* Desktop: Radial layout with center circle */}
+          <div className="hidden lg:block relative h-[600px]">
+            {/* Center Circle */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+              <div className="relative">
+                {/* Outer glow ring */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#00ADB5] to-cyan-400 rounded-full opacity-30 dark:opacity-20 blur-xl animate-pulse" />
+                {/* Main circle */}
+                <div className="w-36 h-36 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center shadow-2xl shadow-[#00ADB5]/30 relative">
+                  <div className="text-center">
+                    <div className="text-white font-black text-lg">Why</div>
+                    <div className="text-white font-black text-lg">SkillUpX</div>
+                  </div>
+                  {/* Inner highlight */}
+                  <div className="absolute top-4 left-4 w-8 h-8 bg-white/20 rounded-full blur-md" />
+                </div>
+              </div>
+            </div>
+
+            {/* Feature cards arranged in a circle - wider spread */}
+            {[
+              { icon: "🎯", title: "Learn Real Skills", desc: "Master DSA & technologies", angle: -40, labelPos: "left" },
+              { icon: "👥", title: "Collaborate & Grow", desc: "Team up on projects", angle: 0, labelPos: "left" },
+              { icon: "📈", title: "Build Portfolio", desc: "Showcase to employers", angle: 40, labelPos: "left" },
+              { icon: "⚔️", title: "Compete & Win", desc: "Battle in CodeArena", angle: 140, labelPos: "right" },
+              { icon: "🏆", title: "Get Verified Certs", desc: "Industry certificates", angle: 180, labelPos: "right" },
+              { icon: "💰", title: "100% Free Start", desc: "Access resources free", angle: 220, labelPos: "right" }
+            ].map((item, idx) => {
+              const radius = 240;
+              const angleRad = (item.angle * Math.PI) / 180;
+              const x = Math.cos(angleRad) * radius;
+              const y = Math.sin(angleRad) * radius;
+
+              return (
+                <div
+                  key={idx}
+                  className="absolute left-1/2 top-1/2 group z-10"
+                  style={{
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                  }}
+                >
+                  {/* Hexagon-style card */}
+                  <div className="w-14 h-14 relative cursor-pointer">
+                    {/* Hexagon background */}
+                    <div
+                      className="absolute inset-0 bg-gray-100 dark:bg-gray-800 border-2 border-[#00ADB5]/40 group-hover:border-[#00ADB5] group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-all duration-300 shadow-lg group-hover:shadow-[#00ADB5]/20"
+                      style={{
+                        clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+                      }}
+                    />
+                    {/* Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                      {item.icon}
+                    </div>
+                  </div>
+
+                  {/* Label - positioned based on side with more spacing */}
+                  <div
+                    className={`absolute top-1/2 -translate-y-1/2 ${
+                      item.labelPos === 'left'
+                        ? 'right-[70px] text-right'
+                        : 'left-[70px] text-left'
+                    }`}
+                    style={{ width: '120px' }}
+                  >
+                    <div className="text-gray-900 dark:text-white font-bold text-xs group-hover:text-[#00ADB5] transition-colors leading-tight">
+                      {item.title}
+                    </div>
+                    <div className="text-gray-500 dark:text-gray-400 text-[10px] leading-tight">
+                      {item.desc}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* ===== UNIQUE SPLIT-SCREEN PARALLAX SECTION ===== */}
-      <section className="relative min-h-[200vh] bg-gradient-to-br from-gray-100 via-gray-50 to-white dark:from-slate-900 dark:via-gray-900 dark:to-slate-800">
+      <section className="relative min-h-[200vh] bg-white dark:bg-black">
         <div className="flex flex-col lg:flex-row">
           {/* LEFT SIDE - STICKY/FIXED */}
           <div className="lg:w-1/2 lg:sticky lg:top-0 lg:h-screen flex items-center justify-center p-8 lg:p-16">
@@ -1134,7 +1785,7 @@ export default function HomePage() {
       </section>
 
       {/* Achievement Milestones Section - Horizontal Stepper Design */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
         <div className="max-w-7xl mx-auto">
           {/* Centered Heading */}
           <div className="text-center mb-16">
@@ -1155,7 +1806,7 @@ export default function HomePage() {
               ].map((achievement, idx) => (
                 <div key={idx} className="relative flex flex-col items-center group">
                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center text-white font-bold text-xl shadow-lg border-3 border-white z-10 mb-2 group-hover:scale-110 transition-transform duration-300`}>{achievement.icon}</div>
-                  <div className="w-full rounded-xl p-3 bg-white/90 dark:bg-gray-800/80 shadow-lg border-2 border-[#00ADB5]/50 group-hover:border-[#00ADB5] transition-colors duration-300 text-center">
+                  <div className="w-full rounded-xl p-3 bg-white/90 dark:bg-gray-900/80 shadow-lg border-2 border-[#00ADB5]/50 group-hover:border-[#00ADB5] transition-colors duration-300 text-center">
                     <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-1 leading-tight">{achievement.milestone}</h3>
                     <div className="inline-block px-2 py-0.5 bg-gradient-to-r from-[#00ADB5] to-cyan-500 text-white rounded-full text-xs font-bold">{achievement.reward}</div>
                   </div>
@@ -1180,7 +1831,7 @@ export default function HomePage() {
                     {/* Stepper dot */}
                     <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center text-white font-bold text-2xl shadow-xl border-4 border-white z-10 mb-3 group-hover:scale-110 transition-transform duration-300 animate-pulse`}>{achievement.icon}</div>
                     {/* Card */}
-                    <div className="w-40 rounded-2xl p-4 bg-white/90 dark:bg-gray-800/80 shadow-xl border-2 border-[#00ADB5] group-hover:scale-105 transition-transform duration-500 text-center -mt-2">
+                    <div className="w-40 rounded-2xl p-4 bg-white/90 dark:bg-gray-900/80 shadow-xl border-2 border-[#00ADB5] group-hover:scale-105 transition-transform duration-500 text-center -mt-2">
                       <h3 className="font-black text-base text-gray-900 dark:text-white mb-1">{achievement.milestone}</h3>
                       <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#00ADB5] to-cyan-500 text-white rounded-full text-xs font-bold mb-1">{achievement.reward}</div>
                     </div>
@@ -1256,7 +1907,7 @@ export default function HomePage() {
         </div>
       </section>
       {/* Collaboration & Teams Section */}
-      <section className="py-20 px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-cyan-50/30 to-transparent dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <section className="py-20 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -1312,7 +1963,7 @@ export default function HomePage() {
 
 
       {/* Code Arena Section - Enhanced with Unique Animations */}
-      <section className="py-20 px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white overflow-hidden relative">
+      <section className="py-20 px-6 lg:px-8 bg-white dark:bg-black text-gray-900 dark:text-white overflow-hidden relative">
         {/* Animated Background Effects */}
         <div className="absolute inset-0">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#00ADB5]/20 rounded-full blur-3xl animate-blob" />
@@ -1382,15 +2033,15 @@ export default function HomePage() {
 
             {/* Right Content */}
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00ADB5]/20 border border-[#00ADB5]/50 animate-magnetic">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border border-[#00ADB5]/30 dark:border-[#00ADB5]/50 animate-magnetic">
                 <span className="text-sm font-bold text-[#00ADB5]">⚔️ CODE ARENA</span>
               </div>
 
-              <h2 className="text-3xl lg:text-4xl font-black">
+              <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
                 Battle in <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">CodeArena</span> & Master Coding
               </h2>
 
-              <p className="text-sm lg:text-base text-gray-300 leading-relaxed">
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
                 Challenge yourself and compete against other developers in real-time coding battles. Practice with 3000+ DSA questions, compete in tournaments, earn coins, and climb the global leaderboard while building your coding skills.
               </p>
 
@@ -1403,14 +2054,14 @@ export default function HomePage() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#00ADB5]/50 hover:bg-white/10 transition-all duration-500 group cursor-pointer hover:-translate-y-2 hover:shadow-xl spotlight"
+                    className="p-4 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-[#00ADB5]/50 hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-500 group cursor-pointer hover:-translate-y-2 hover:shadow-xl shadow-md dark:shadow-none spotlight"
                     style={{ animationDelay: `${idx * 0.1}s` }}
                   >
                     <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300`}>
                       {item.icon}
                     </div>
-                    <div className="text-sm font-bold text-white group-hover:text-[#00ADB5] transition-colors">{item.label}</div>
-                    <div className="text-xs text-gray-400">{item.desc}</div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-[#00ADB5] transition-colors">{item.label}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{item.desc}</div>
                   </div>
                 ))}
               </div>
@@ -1425,7 +2076,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
@@ -1446,7 +2097,7 @@ export default function HomePage() {
       </section>
 
       {/* Gallery Section with Unique Animations */}
-      <section className="py-16 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
+      <section className="py-16 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
@@ -1486,16 +2137,16 @@ export default function HomePage() {
       </section>
 
       {/* ===== INFINITE SCROLLING TECH STACK ===== */}
-      <section className="py-16 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-900 overflow-hidden">
+      <section className="py-16 bg-white dark:bg-black overflow-hidden">
         <div className="text-center mb-10">
-          <h3 className="text-xl font-bold text-white mb-2">Technologies You'll Master</h3>
-          <p className="text-gray-400 text-sm">Learn the most in-demand tech skills</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Technologies You'll Master</h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Learn the most in-demand tech skills</p>
         </div>
 
         <div className="relative">
           {/* Gradient Overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-slate-900 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-slate-900 to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10" />
 
           {/* Scrolling Container */}
           <div className="flex animate-scroll-x">
@@ -1531,10 +2182,10 @@ export default function HomePage() {
 
 
       {/* Testimonials Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-[#00ADB5]/5 via-cyan-50/30 to-blue-50/20">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 border border-white/50 dark:border-gray-700 backdrop-blur-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 border border-white/50 dark:border-gray-700 backdrop-blur-sm mb-6">
               <span className="text-2xl">🌟</span>
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Success Stories</span>
             </div>
@@ -1558,7 +2209,7 @@ export default function HomePage() {
 
 
       {/* Platform Impact - Stats & Numbers Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-white via-cyan-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
@@ -1579,7 +2230,7 @@ export default function HomePage() {
               { value: "3000+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
               { value: "30+", label: "Collaborative Projects Built", icon: <Rocket className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" }
             ].map((stat, i) => (
-              <div key={i} className="group relative bg-white dark:bg-gray-800/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
+              <div key={i} className="group relative bg-white dark:bg-gray-900/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
                 <div className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                   {stat.icon}
                 </div>
@@ -1610,21 +2261,21 @@ export default function HomePage() {
       </section>
 
       {/* What Makes SkillUpX Unique - Highlights Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 dark:from-black dark:via-gray-900 dark:to-black relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+      <section className="py-24 px-6 lg:px-8 bg-gray-50 dark:bg-black relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 dark:opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500 rounded-full blur-[128px]" />
           <div className="absolute bottom-20 right-10 w-72 h-72 bg-teal-500 rounded-full blur-[128px]" />
         </div>
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-cyan-400 text-sm font-semibold mb-6">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 dark:bg-white/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
               <Shield className="w-4 h-4" /> All-In-One Platform
             </span>
-            <h2 className="text-4xl lg:text-5xl font-black text-white mb-6">
-              What Makes <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">SkillUpX</span> Unique
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+              What Makes <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">SkillUpX</span> Unique
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               SkillUpX is the only free platform that combines competitive coding, project collaboration, learning roadmaps, developer networking, and tech reviews — everything a developer needs in one place.
             </p>
           </div>
@@ -1656,12 +2307,12 @@ export default function HomePage() {
                 color: "from-purple-500 to-pink-500"
               }
             ].map((item, i) => (
-              <div key={i} className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-cyan-500/40 transition-all duration-500 hover:bg-white/10">
+              <div key={i} className="group relative bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 dark:border-white/10 hover:border-cyan-500/40 transition-all duration-500 hover:bg-gray-50 dark:hover:bg-white/10 shadow-lg dark:shadow-none">
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -1678,7 +2329,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Community Activity Feed Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-950">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
@@ -1706,7 +2357,7 @@ export default function HomePage() {
                 { icon: <MessageSquare className="w-4 h-4" />, text: "Rahul posted a tech review: \"React 19 vs Next.js 15 — Which to Learn in 2026\"", time: "2 hrs ago", color: "bg-orange-500/10 text-orange-500" },
                 { icon: <Trophy className="w-4 h-4" />, text: "Vikram climbed to #3 on the CodeArena leaderboard this week", time: "3 hrs ago", color: "bg-yellow-500/10 text-yellow-600" }
               ].map((activity, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300">
+                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300">
                   <div className={`w-9 h-9 rounded-lg ${activity.color} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                     {activity.icon}
                   </div>
@@ -1730,7 +2381,7 @@ export default function HomePage() {
                     "TypeScript", "MongoDB", "REST APIs", "System Design", "Dynamic Programming",
                     "Machine Learning", "Docker", "Git & GitHub", "Tailwind CSS", "Next.js"
                   ].map((skill, i) => (
-                    <span key={i} className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-cyan-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors duration-300 cursor-default">
+                    <span key={i} className="px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-cyan-500 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors duration-300 cursor-default">
                       {skill}
                     </span>
                   ))}
@@ -1748,7 +2399,7 @@ export default function HomePage() {
                     { path: "AI & Machine Learning Path", enrolled: "25+", difficulty: "Advanced", color: "from-purple-500 to-pink-500" },
                     { path: "Frontend React Developer", enrolled: "60+", difficulty: "Beginner", color: "from-orange-500 to-red-500" }
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300 group">
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-all duration-300 group">
                       <div className={`w-2 h-12 rounded-full bg-gradient-to-b ${item.color} flex-shrink-0`} />
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{item.path}</p>
@@ -1765,7 +2416,7 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
@@ -1803,7 +2454,7 @@ export default function HomePage() {
                 a: "It varies based on your dedication. With consistent learning and project completion (3-6 months), you'll have a strong portfolio to land tech jobs."
               }
             ].map((faq, idx) => (
-              <details key={idx} className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50">
+              <details key={idx} className="group bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50">
                 <summary className="flex items-center justify-between p-6 cursor-pointer font-black text-gray-900 dark:text-white group-open:text-[#00ADB5]">
                   <span className="text-sm md:text-base">{faq.q}</span>
                   <span className="text-2xl group-open:rotate-180 transition-transform">+</span>
@@ -1818,7 +2469,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA Section - Immersive Design */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-gray-900 overflow-hidden">
+      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
         <div className="max-w-5xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl">
             {/* Animated Dark background with multiple layers */}

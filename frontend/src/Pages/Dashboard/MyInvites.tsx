@@ -119,14 +119,14 @@ export default function MyInvites() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 p-6">
+    <div className="min-h-screen bg-white dark:bg-black p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <Mail className="w-8 h-8 text-teal-500" />

@@ -149,7 +149,7 @@ export default function IdeaSubmission() {
         )}
 
         {/* Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
           <div className="space-y-4 sm:space-y-6">
             {/* Title */}
             <div>

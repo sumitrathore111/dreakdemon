@@ -200,7 +200,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
     if (!isOwner) {
       return (
         <div className="space-y-6">
-          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
             <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               GitHub Not Connected
@@ -215,7 +215,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
 
     return (
       <div className="space-y-6">
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
           <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Connect GitHub Repository
@@ -353,7 +353,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
           )}
 
           {/* Recent Commits */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <button
               onClick={() => setShowCommits(!showCommits)}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -409,7 +409,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
           </div>
 
           {/* Pull Requests */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <button
               onClick={() => setShowPRs(!showPRs)}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -469,7 +469,7 @@ export default function GitHubPanel({ projectId, isOwner }: GitHubPanelProps) {
           </div>
 
           {/* Branches */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <button
               onClick={() => setShowBranches(!showBranches)}
               className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"

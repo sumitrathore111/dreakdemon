@@ -67,7 +67,7 @@ export default function MyListings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
           <p className="text-gray-600 dark:text-white font-medium">Loading your listings...</p>
@@ -77,7 +77,7 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -93,7 +93,7 @@ export default function MyListings() {
             {/* Chat Requests & Messages */}
             <ChatRequests />
             <MessagesPanel />
-            
+
             <Link
               to="/dashboard/marketplace/create"
               className="px-6 py-3 text-white rounded-lg transition-all flex items-center gap-2 font-semibold w-fit shadow-lg hover:opacity-90"
@@ -204,7 +204,7 @@ export default function MyListings() {
         {/* Content */}
         {activeTab === 'projects' ? (
           projectsArray.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-white text-lg mb-4">
                 You haven't listed any projects yet
@@ -226,7 +226,7 @@ export default function MyListings() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-[#00ADB5]/50 transition-all"
+                  className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-[#00ADB5]/50 transition-all"
                 >
                   <div className="flex gap-6">
                     {/* Image */}
@@ -319,14 +319,14 @@ export default function MyListings() {
         ) : (
           // Sales History
           salesArray.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-white text-lg">
                 No sales yet. Keep promoting your projects!
               </p>
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-900">

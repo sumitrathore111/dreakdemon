@@ -145,7 +145,7 @@ export default function RoadmapList() {
   const featuredRoadmaps = useMemo(() => roadmaps.filter(r => r.isFeatured), [roadmaps]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -173,7 +173,7 @@ export default function RoadmapList() {
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
       >
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
               <Map className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -184,7 +184,7 @@ export default function RoadmapList() {
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -195,7 +195,7 @@ export default function RoadmapList() {
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
               <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -206,7 +206,7 @@ export default function RoadmapList() {
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -305,7 +305,7 @@ export default function RoadmapList() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
+        className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
       >
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -339,7 +339,7 @@ export default function RoadmapList() {
       {loading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+            <div key={i} className="bg-white dark:bg-gray-900 rounded-xl p-6 animate-pulse">
               <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4" />
               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4" />
@@ -374,7 +374,7 @@ export default function RoadmapList() {
                 to={`/dashboard/roadmaps/${roadmap.slug}`}
                 onMouseEnter={() => prefetchRoadmap(roadmap.slug)}
               >
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] dark:hover:border-[#00ADB5] transition-all hover:shadow-lg group h-full">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] dark:hover:border-[#00ADB5] transition-all hover:shadow-lg group h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"

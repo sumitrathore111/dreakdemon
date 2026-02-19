@@ -699,7 +699,7 @@ export default function EnhancedProjectWorkspace() {
                             Applied {request.requestedAt ? new Date(request.requestedAt).toLocaleDateString() : 'recently'}
                           </p>
                           {request.message && (
-                            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded">
+                            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 p-2 rounded">
                               "{request.message}"
                             </p>
                           )}
@@ -736,7 +736,7 @@ export default function EnhancedProjectWorkspace() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {members.map((member, index) => (
-                  <div key={member.userId?.toString() || `member-${index}`} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div key={member.userId?.toString() || `member-${index}`} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                     <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium">
                       {member.avatar ? (
                         <img src={member.avatar} alt={member.name} className="w-full h-full rounded-full" />

@@ -63,7 +63,7 @@ export default function BoardColumn({
   if (column.isCollapsed) {
     return (
       <div
-        className="flex-shrink-0 w-12 bg-white dark:bg-gray-800 rounded-xl p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-lg border border-gray-200 dark:border-gray-700"
+        className="flex-shrink-0 w-12 bg-white dark:bg-gray-900 rounded-xl p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-lg border border-gray-200 dark:border-gray-700"
         onClick={() => onToggleCollapse?.(column.id)}
       >
         <div className="flex flex-col items-center gap-2">
@@ -86,7 +86,7 @@ export default function BoardColumn({
     <div
       ref={columnRef}
       className={`
-        flex-shrink-0 w-72 bg-white dark:bg-gray-800 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-700
+        flex-shrink-0 w-72 bg-white dark:bg-gray-900 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-700
         transition-all duration-200
         ${isDragOver ? 'ring-2 ring-[#00ADB5] bg-[#00ADB5]/5 dark:bg-[#00ADB5]/10' : ''}
       `}

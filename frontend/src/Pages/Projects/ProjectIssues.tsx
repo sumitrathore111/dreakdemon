@@ -44,8 +44,8 @@ export default function Issues() {
     if (!id) return;
     try {
       await updateIssueStatus(id, issueId, newStatus);
-      setIssues(issues.map(issue => 
-        (issue.id || issue._id) === issueId 
+      setIssues(issues.map(issue =>
+        (issue.id || issue._id) === issueId
           ? { ...issue, status: newStatus }
           : issue
       ));
@@ -55,7 +55,7 @@ export default function Issues() {
   };
 
   return (
-    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
       <h2 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 dark:text-white">Issues</h2>
       <ul>
         {issues.map((iss) => (

@@ -257,7 +257,7 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
       </div>
     );
@@ -268,7 +268,7 @@ export default function ProjectDetail() {
   const isOwnProject = user?.id === project.sellerId;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <button
@@ -288,7 +288,7 @@ export default function ProjectDetail() {
             <ImageGallery images={project.images} alt={project.title} />
 
             {/* Project Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -557,7 +557,7 @@ export default function ProjectDetail() {
 
             {/* Add Review */}
             {hasPurchased && !isOwnProject && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                 {/* Not eligible to review - videos not watched */}
                 {!canReview && (project.links.demoVideo || project.links.explanationVideo) ? (
                   <div className="text-center py-4">
@@ -695,7 +695,7 @@ export default function ProjectDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Price & Purchase */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-6">
               <div className="text-center mb-6">
                 <p className="text-4xl font-bold mb-2" style={{ color: '#00ADB5' }}>
                   {project.isFree ? 'FREE' : `$${project.price}`}
@@ -806,7 +806,7 @@ export default function ProjectDetail() {
             </div>
 
             {/* What's Included */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 What's Included
               </h3>

@@ -38,7 +38,7 @@ export default function MyPurchases() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
           <p className="text-gray-600 dark:text-white font-medium">Loading your purchases...</p>
@@ -48,7 +48,7 @@ export default function MyPurchases() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -67,7 +67,7 @@ export default function MyPurchases() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
                 <ShoppingBag className="w-6 h-6" style={{ color: '#00ADB5' }} />
@@ -80,7 +80,7 @@ export default function MyPurchases() {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                 <span className="text-2xl">💰</span>
@@ -97,7 +97,7 @@ export default function MyPurchases() {
 
         {/* Purchases List */}
         {purchases.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="p-4 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 173, 181, 0.1)' }}>
               <ShoppingBag className="w-12 h-12" style={{ color: '#00ADB5' }} />
             </div>
@@ -124,7 +124,7 @@ export default function MyPurchases() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
               >
                 <div className="flex gap-6">
                   {/* Image */}

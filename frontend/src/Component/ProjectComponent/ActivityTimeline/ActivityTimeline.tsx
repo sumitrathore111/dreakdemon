@@ -283,7 +283,7 @@ export default function ActivityTimeline({
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
               showGitHub
                 ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400'
             }`}
           >
             <GitCommit className="w-4 h-4" />
@@ -321,8 +321,8 @@ export default function ActivityTimeline({
                     {/* Content */}
                     <div className={`flex-1 min-w-0 rounded-lg p-3 ${
                       activity.isGitHubActivity
-                        ? 'bg-gray-900/5 dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-                        : 'bg-gray-50 dark:bg-gray-800'
+                        ? 'bg-gray-900/5 dark:bg-gray-900 border border-gray-200 dark:border-gray-700'
+                        : 'bg-gray-50 dark:bg-gray-900'
                     }`}>
                       <div className="flex items-start justify-between gap-2">
                         <div>

@@ -24,7 +24,7 @@ const ConsentBanner: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 w-full z-50 px-0">
-      <div className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg p-4 flex flex-col md:flex-row items-center gap-3 justify-center">
+      <div className="w-full bg-white dark:bg-black border-t border-gray-200 dark:border-gray-700 shadow-lg p-4 flex flex-col md:flex-row items-center gap-3 justify-center">
         <div className="flex-1 text-center text-gray-700 dark:text-gray-200 text-sm">
           We use cookies and similar technologies to enhance your browsing experience, analyze site traffic, and serve personalized content. By clicking "Accept," you consent to our use of cookies. Read more in our <a href="/privacy-policy" className="text-[#00ADB5] underline">Privacy Policy</a>.
         </div>

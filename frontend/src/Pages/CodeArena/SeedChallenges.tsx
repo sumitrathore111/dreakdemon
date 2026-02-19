@@ -49,17 +49,17 @@ const SeedChallenges = () => {
         });
         added++;
       }
-      
+
       setMessage({
-        type: 'success', 
-        text: `Successfully added ${added} challenges to backend!` 
+        type: 'success',
+        text: `Successfully added ${added} challenges to backend!`
       });
       await checkExistingChallenges();
     } catch (error: any) {
       console.error('Error seeding challenges:', error);
-      setMessage({ 
-        type: 'error', 
-        text: `Error: ${error.message || 'Failed to seed challenges'}` 
+      setMessage({
+        type: 'error',
+        text: `Error: ${error.message || 'Failed to seed challenges'}`
       });
     }
 
@@ -77,7 +77,7 @@ const SeedChallenges = () => {
     try {
       const response = await apiRequest('/challenges');
       const challenges = response.challenges || [];
-      
+
       let deleted = 0;
       for (const challenge of challenges) {
         await apiRequest(`/challenges/${challenge.id}`, {
@@ -85,17 +85,17 @@ const SeedChallenges = () => {
         });
         deleted++;
       }
-      
-      setMessage({ 
-        type: 'info', 
-        text: `Deleted ${deleted} challenges from backend.` 
+
+      setMessage({
+        type: 'info',
+        text: `Deleted ${deleted} challenges from backend.`
       });
       setExistingCount(0);
     } catch (error: any) {
       console.error('Error deleting challenges:', error);
-      setMessage({ 
-        type: 'error', 
-        text: `Error: ${error.message || 'Failed to delete challenges'}` 
+      setMessage({
+        type: 'error',
+        text: `Error: ${error.message || 'Failed to delete challenges'}`
       });
     }
 
@@ -108,11 +108,11 @@ const SeedChallenges = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <motion.div 
+    <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-8 max-w-md w-full"
+        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-8 max-w-md w-full"
       >
         <div className="text-center mb-6">
           <div className="inline-flex p-3 bg-[#00ADB5]/20 dark:bg-blue-900/50 rounded-full mb-4">
@@ -144,8 +144,8 @@ const SeedChallenges = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
-              message.type === 'success' 
-                ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700' 
+              message.type === 'success'
+                ? 'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700'
                 : message.type === 'error'
                 ? 'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700'
                 : 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 border border-[#00ADB5]/30 dark:border-blue-700'
@@ -159,8 +159,8 @@ const SeedChallenges = () => {
               <AlertCircle className="w-5 h-5 text-[#00ADB5] dark:text-[#00ADB5] flex-shrink-0 mt-0.5" />
             )}
             <p className={`text-sm ${
-              message.type === 'success' 
-                ? 'text-green-700 dark:text-green-400' 
+              message.type === 'success'
+                ? 'text-green-700 dark:text-green-400'
                 : message.type === 'error'
                 ? 'text-red-700 dark:text-red-400'
                 : 'text-blue-700 dark:text-[#00ADB5]'
@@ -213,13 +213,13 @@ const SeedChallenges = () => {
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Challenges to be added:</h3>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {defaultChallenges.map((challenge, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
               >
                 <span className="text-sm text-gray-700 dark:text-gray-300">{challenge.title}</span>
                 <span className={`text-xs px-2 py-0.5 rounded ${
-                  challenge.difficulty === 'easy' 
+                  challenge.difficulty === 'easy'
                     ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400'
                     : challenge.difficulty === 'medium'
                     ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400'

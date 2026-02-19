@@ -140,7 +140,7 @@ export default function InterviewPrep() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
         <div className="max-w-5xl mx-auto animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-8" />
           <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
@@ -155,7 +155,7 @@ export default function InterviewPrep() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -191,7 +191,7 @@ export default function InterviewPrep() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
         >
           <div className="flex flex-wrap gap-2">
             {roadmaps.map(roadmap => (
@@ -223,7 +223,7 @@ export default function InterviewPrep() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
         >
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -327,7 +327,7 @@ export default function InterviewPrep() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.03 * index }}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
                 >
                   <button
                     onClick={() => toggleQuestion(question._id)}
@@ -413,7 +413,7 @@ export default function InterviewPrep() {
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
             </button>
@@ -425,7 +425,7 @@ export default function InterviewPrep() {
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.totalPages}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

@@ -38,13 +38,13 @@ interface UserData {
   joinedAt?: string;
 }
 
-export default function UniversalUserCard({ 
-  userId, 
-  userName, 
+export default function UniversalUserCard({
+  userId,
+  userName,
   userAvatar,
-  isOpen, 
+  isOpen,
   onClose,
-  position 
+  position
 }: UserCardProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ export default function UniversalUserCard({
     try {
       // Fetch user profile
       const profile = await apiRequest(`/users/${userId}`);
-      
+
       // Fetch battle stats
       let battleStats = { battlesWon: 0, battlesLost: 0, battleRating: 1000 };
       try {
@@ -72,7 +72,7 @@ export default function UniversalUserCard({
           battleRating: profile?.battleRating || 1000
         };
       } catch (e) { /* ignore */ }
-      
+
       // Fetch project stats
       let projectStats = { created: 0, contributed: 0 };
       try {
@@ -80,7 +80,7 @@ export default function UniversalUserCard({
         projectStats.created = (ideas || []).filter((i: any) => i.userId === userId).length;
         // Contributing projects would need a different API
       } catch (e) { /* ignore */ }
-      
+
       setUserData({
         id: userId,
         name: profile?.name || userName || 'Unknown User',
@@ -154,18 +154,18 @@ export default function UniversalUserCard({
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 z-[100] bg-black/20"
             onClick={onClose}
           />
-          
+
           {/* Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="fixed z-[101] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-80 overflow-hidden"
+            className="fixed z-[101] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-80 overflow-hidden"
             style={{
               left: position?.x ? Math.min(position.x, window.innerWidth - 340) : '50%',
               top: position?.y ? Math.min(position.y, window.innerHeight - 400) : '50%',
@@ -173,7 +173,7 @@ export default function UniversalUserCard({
             }}
           >
             {/* Header with gradient */}
-            <div 
+            <div
               className="h-20 relative"
               style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
             >
@@ -187,7 +187,7 @@ export default function UniversalUserCard({
 
             {/* Avatar */}
             <div className="flex justify-center -mt-10">
-              <div 
+              <div
                 className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden flex items-center justify-center"
                 style={{ backgroundColor: '#00ADB5' }}
               >
@@ -326,8 +326,8 @@ export function useUserCard() {
   const [position, setPosition] = useState<{ x: number; y: number } | undefined>();
 
   const openUserCard = (
-    id: string, 
-    name?: string, 
+    id: string,
+    name?: string,
     avatar?: string,
     event?: React.MouseEvent
   ) => {

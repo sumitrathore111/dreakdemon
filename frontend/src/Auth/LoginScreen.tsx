@@ -176,8 +176,8 @@ export default function Login() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-6">
-        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-black dark:via-black dark:to-black flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-900">
 
           {/* Left Side - Branding Panel */}
           <div className="hidden lg:flex lg:w-[240px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-5 flex-col relative">
@@ -275,10 +275,10 @@ export default function Login() {
             {/* Divider */}
             <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
+                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 text-xs text-gray-400 bg-white dark:bg-gray-800 uppercase tracking-wider">or continue with email</span>
+                <span className="px-3 text-xs text-gray-400 bg-white dark:bg-gray-900 uppercase tracking-wider">or continue with email</span>
               </div>
             </div>
 
@@ -303,7 +303,7 @@ export default function Login() {
                     </div>
                     <input
                       type="email"
-                      className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                      className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -325,7 +325,7 @@ export default function Login() {
                     </div>
                     <input
                       type="password"
-                      className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                      className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -384,7 +384,7 @@ export default function Login() {
         {/* Password Reset Modal */}
         {showResetModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-2xl">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                   {resetStep === 'email' && 'Reset Password'}
@@ -393,7 +393,7 @@ export default function Login() {
                 </h2>
                 <button
                   onClick={closeResetModal}
-                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -429,7 +429,7 @@ export default function Login() {
                     placeholder="Enter your email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                   />
                   <div className="flex gap-2 sm:gap-3">
                     <button
@@ -459,13 +459,13 @@ export default function Login() {
                     placeholder="000000"
                     value={resetOtp}
                     onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full px-3 py-3 sm:py-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-center text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all"
+                    className="w-full px-3 py-3 sm:py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-center text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all"
                     maxLength={6}
                   />
                   <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={() => setResetStep('email')}
-                      className="flex-1 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-1.5"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -490,19 +490,19 @@ export default function Login() {
                     placeholder="New Password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                   />
                   <input
                     type="password"
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                   />
                   <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={closeResetModal}
-                      className="flex-1 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-[0.98] transition-all text-sm"
+                      className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] transition-all text-sm"
                     >
                       Cancel
                     </button>

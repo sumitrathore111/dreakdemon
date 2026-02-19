@@ -1,26 +1,26 @@
 import { motion } from 'framer-motion';
 import {
-    ArrowLeft,
-    BookOpen,
-    Check,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    ExternalLink,
-    FileText,
-    HelpCircle,
-    Play,
-    Video
+  ArrowLeft,
+  BookOpen,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  ExternalLink,
+  FileText,
+  HelpCircle,
+  Play,
+  Video
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import {
-    getTopicDetail,
-    markTopicComplete,
-    markTopicIncomplete,
-    PHASE_LABELS,
-    type TopicDetail as TopicDetailType
+  getTopicDetail,
+  markTopicComplete,
+  markTopicIncomplete,
+  PHASE_LABELS,
+  type TopicDetail as TopicDetailType
 } from '../../service/roadmapService';
 
 const resourceTypeIcons: Record<string, React.ReactNode> = {
@@ -90,7 +90,7 @@ export default function TopicDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
         <div className="max-w-4xl mx-auto animate-pulse">
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4" />
           <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
@@ -107,7 +107,7 @@ export default function TopicDetail() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -126,7 +126,7 @@ export default function TopicDetail() {
   const roadmapInfo = topic.roadmapId as { title: string; slug: string };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6 flex-wrap">
@@ -143,7 +143,7 @@ export default function TopicDetail() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
+          className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
         >
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex items-start gap-4">
@@ -220,7 +220,7 @@ export default function TopicDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
           >
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-[#00ADB5]" />
@@ -280,7 +280,7 @@ export default function TopicDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
           >
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-purple-500" />
@@ -346,7 +346,7 @@ export default function TopicDetail() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-6"
           >
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               🚀 Practice Projects
@@ -375,7 +375,7 @@ export default function TopicDetail() {
           {navigation.prevTopic ? (
             <Link
               to={`/dashboard/roadmaps/topic/${navigation.prevTopic._id}`}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:border-[#00ADB5] hover:text-[#00ADB5] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-400 hover:border-[#00ADB5] hover:text-[#00ADB5] transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">{navigation.prevTopic.title}</span>

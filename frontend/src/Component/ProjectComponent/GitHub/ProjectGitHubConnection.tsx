@@ -201,7 +201,7 @@ export default function ProjectGitHubConnection({
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center py-4">
           <Loader2 className="w-5 h-5 text-teal-500 animate-spin" />
           <span className="ml-2 text-gray-500">Loading GitHub integration...</span>
@@ -213,7 +213,7 @@ export default function ProjectGitHubConnection({
   // User hasn't connected GitHub
   if (!githubConnected) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="text-center py-4">
           <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
             <Github className="w-6 h-6 text-gray-400" />
@@ -239,7 +239,7 @@ export default function ProjectGitHubConnection({
   // Project has a connected repo
   if (projectStatus?.connected) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ export default function ProjectGitHubConnection({
 
   // No repo connected - show selector
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">

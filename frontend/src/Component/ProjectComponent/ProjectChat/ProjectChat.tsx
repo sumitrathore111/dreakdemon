@@ -423,7 +423,7 @@ export function ProjectChat({
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Send className="w-8 h-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
@@ -468,7 +468,7 @@ export function ProjectChat({
                             type="text"
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
-                            className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleEditMessage(message.id);
@@ -488,7 +488,7 @@ export function ProjectChat({
                             className={`px-4 py-2 rounded-2xl ${
                               isOwn
                                 ? 'bg-teal-500 text-white rounded-br-md'
-                                : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md'
+                                : 'bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white rounded-bl-md'
                             }`}
                           >
                             <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
@@ -540,7 +540,7 @@ export function ProjectChat({
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 rounded-full text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 disabled={sending}
               />
               <button

@@ -69,12 +69,12 @@ function PublicLayout() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900 flex flex-col" style={{ overflowX: 'clip' }}>
+    <div className="min-h-screen bg-background dark:bg-black flex flex-col" style={{ overflowX: 'clip' }}>
       <PublicNavBar />
 
       <main className="flex-grow" role="main">
         <Suspense fallback={
-          <div className="dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center">
+          <div className="dark:bg-black dark:text-white min-h-screen flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
               <div className="w-10 h-10 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
               <p className="text-gray-500 dark:text-gray-400">Loading...</p>
@@ -98,7 +98,7 @@ function PublicLayout() {
       </main>
 
       {!hideFooter && (
-        <footer className="bg-card dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-t border-border dark:border-gray-700 mt-20 relative overflow-hidden">
+        <footer className="bg-card dark:bg-black border-t border-border dark:border-gray-700 mt-20 relative overflow-hidden">
           {/* Background decorative elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl"></div>
@@ -297,7 +297,7 @@ const App: React.FC = () => {
             <ToastProvider />
             <ScrollToTop />
             <ConsentBanner />
-            <Suspense fallback={<div className="dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
+            <Suspense fallback={<div className="dark:bg-black dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
               <AnimatePresence mode="wait" >
                 <Routes>
                   {/* Public Routes */}

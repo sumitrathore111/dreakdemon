@@ -33,7 +33,7 @@ const Leaderboard = () => {
     if (index === 0) return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white";
     if (index === 1) return "bg-gradient-to-r from-gray-300 to-gray-500 text-white";
     if (index === 2) return "bg-gradient-to-r from-orange-400 to-orange-600 text-white";
-    return "bg-white dark:bg-gray-800";
+    return "bg-white dark:bg-gray-900";
   };
 
   return (
@@ -62,7 +62,7 @@ const Leaderboard = () => {
             <p className="mt-4 text-gray-600 dark:text-gray-400">Loading leaderboard...</p>
           </div>
         ) : leaderboard.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow">
+          <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-xl shadow">
             <p className="text-gray-500 dark:text-gray-400 text-lg">No contributors yet. Be the first to contribute!</p>
           </div>
         ) : (

@@ -87,7 +87,7 @@ export default function CareerInfoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
         <div className="max-w-5xl mx-auto animate-pulse">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-8" />
           <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-6" />
@@ -102,7 +102,7 @@ export default function CareerInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -138,7 +138,7 @@ export default function CareerInfoPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700"
         >
           <div className="flex flex-wrap gap-2">
             {roadmaps.map(roadmap => (
@@ -233,7 +233,7 @@ export default function CareerInfoPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] transition-all"
+                  className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] transition-all"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -356,7 +356,7 @@ export default function CareerInfoPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+          className="mt-12 bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
         >
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-purple-500" />

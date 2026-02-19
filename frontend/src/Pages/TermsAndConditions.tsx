@@ -57,7 +57,7 @@ TermSection.displayName = 'TermSection';
 
 const TermsAndConditions: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-white dark:bg-black">
       <SEO
         title="Terms and Conditions"
         description="SkillUpX Terms and Conditions – Read our terms of service, user agreement, and usage rules for the platform."
@@ -69,7 +69,7 @@ const TermsAndConditions: React.FC = () => {
       <section className="relative py-20">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm mb-6">
             <Scale className="w-4 h-4 text-[#00ADB5]" />
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Legal Agreement</span>
           </div>

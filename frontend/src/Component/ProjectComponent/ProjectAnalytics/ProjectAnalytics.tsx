@@ -216,7 +216,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               activeView === 'tasks'
                 ? 'bg-teal-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
             Task Analytics
@@ -226,7 +226,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               activeView === 'github'
                 ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
             <Code2 className="w-4 h-4" />
@@ -242,7 +242,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                <div className="p-3 bg-gray-100 dark:bg-gray-900 rounded-xl">
                   <GitCommit className="w-6 h-6 text-gray-600" />
                 </div>
                 <div>
@@ -320,7 +320,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
             </h3>
             <div className="space-y-3">
               {githubStats.contributors.map((contributor, index) => (
-                <div key={contributor.login} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div key={contributor.login} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <span className="text-sm font-bold text-gray-400 w-6">{index + 1}</span>
                   <img
                     src={contributor.avatarUrl}
@@ -462,7 +462,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
                   <span className="text-gray-600 dark:text-gray-400">{column}</span>
                   <span className="font-medium text-gray-900 dark:text-white">{count}</span>
                 </div>
-                <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-6 bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full transition-all duration-500 flex items-center justify-end px-2"
                     style={{ width: `${(count / maxColumnTasks) * 100}%` }}
@@ -489,7 +489,7 @@ export default function ProjectAnalytics({ projectId, githubRepoFullName }: Proj
               const height = (count / maxPriorityTasks) * 100;
               return (
                 <div key={priority} className="flex flex-col items-center gap-2">
-                  <div className="relative h-36 w-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-end">
+                  <div className="relative h-36 w-12 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-end">
                     <div
                       className="w-full rounded-lg transition-all duration-500"
                       style={{

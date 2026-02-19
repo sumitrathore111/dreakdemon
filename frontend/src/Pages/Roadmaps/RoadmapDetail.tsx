@@ -1,35 +1,35 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ArrowLeft,
-  BookOpen,
-  Briefcase,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  Code,
-  ExternalLink,
-  GraduationCap,
-  HelpCircle,
-  Map,
-  Play,
-  Star,
-  Target,
-  TrendingUp,
-  Users,
-  Zap
+    ArrowLeft,
+    BookOpen,
+    Briefcase,
+    Check,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    Code,
+    ExternalLink,
+    GraduationCap,
+    HelpCircle,
+    Map,
+    Play,
+    Star,
+    Target,
+    TrendingUp,
+    Users,
+    Zap
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import {
-  enrollInRoadmap,
-  getRoadmapBySlug,
-  markTopicComplete,
-  markTopicIncomplete,
-  PHASE_LABELS,
-  type RoadmapDetail,
-  type Topic
+    enrollInRoadmap,
+    getRoadmapBySlug,
+    markTopicComplete,
+    markTopicIncomplete,
+    PHASE_LABELS,
+    type RoadmapDetail,
+    type Topic
 } from '../../service/roadmapService';
 
 export default function RoadmapDetailPage() {
@@ -121,7 +121,7 @@ export default function RoadmapDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4" />
@@ -143,7 +143,7 @@ export default function RoadmapDetailPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <Map className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -171,7 +171,7 @@ export default function RoadmapDetailPage() {
   ].filter(p => p.topics.length > 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <Link
@@ -246,7 +246,7 @@ export default function RoadmapDetailPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -287,7 +287,7 @@ export default function RoadmapDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * phaseIndex }}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
                 >
                   {/* Phase Header */}
                   <button
@@ -424,7 +424,7 @@ export default function RoadmapDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
               >
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
                   About This Roadmap
@@ -443,7 +443,7 @@ export default function RoadmapDetailPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-4"
+              className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-4"
             >
               {!isAuthenticated ? (
                 <>
@@ -536,7 +536,7 @@ export default function RoadmapDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
               >
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-purple-500" />
@@ -559,7 +559,7 @@ export default function RoadmapDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
               >
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Target className="w-5 h-5 text-green-500" />
@@ -582,7 +582,7 @@ export default function RoadmapDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
               >
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-blue-500" />
@@ -629,7 +629,7 @@ export default function RoadmapDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                  className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
                 >
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                     <Code className="w-5 h-5 text-purple-500" />

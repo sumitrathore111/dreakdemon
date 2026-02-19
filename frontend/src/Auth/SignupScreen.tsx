@@ -157,8 +157,8 @@ export default function Signup() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-3 sm:p-4 lg:p-6">
-        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-[#00ADB5]/10 via-[#f0f4f8] to-[#0891b2]/10 dark:from-black dark:via-black dark:to-black flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="w-full max-w-sm lg:max-w-3xl flex flex-col lg:flex-row rounded-xl lg:rounded-2xl overflow-hidden shadow-lg lg:shadow-xl bg-white dark:bg-gray-900">
 
           {/* Left Side - Branding Panel */}
           <div className="hidden lg:flex lg:w-[240px] bg-gradient-to-b from-[#00ADB5] to-[#0891b2] p-5 flex-col relative">
@@ -297,7 +297,7 @@ export default function Signup() {
                     <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="px-3 text-xs text-gray-400 bg-white dark:bg-gray-800 uppercase tracking-wider">or continue with email</span>
+                    <span className="px-3 text-xs text-gray-400 bg-white dark:bg-gray-900 uppercase tracking-wider">or continue with email</span>
                   </div>
                 </div>
 
@@ -319,7 +319,7 @@ export default function Signup() {
                           Full Name
                         </label>
                         <input
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                           placeholder="John Doe"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
@@ -337,7 +337,7 @@ export default function Signup() {
                           </div>
                           <input
                             type="email"
-                            className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                            className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -389,7 +389,7 @@ export default function Signup() {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-3 sm:py-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-center text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all"
+                    className="w-full px-3 py-3 sm:py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-center text-xl sm:text-2xl tracking-[0.3em] sm:tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all"
                     placeholder="000000"
                     maxLength={6}
                     value={otp}
@@ -408,7 +408,7 @@ export default function Signup() {
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
-                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                       placeholder="Min. 6 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -434,7 +434,7 @@ export default function Signup() {
                     </div>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
+                      className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5]/20 focus:border-[#00ADB5] transition-all text-sm sm:text-base"
                       placeholder="Confirm your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}

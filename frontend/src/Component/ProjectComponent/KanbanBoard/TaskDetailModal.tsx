@@ -228,7 +228,7 @@ export default function TaskDetailModal({
             {canEdit && (
               <button
                 onClick={() => setShowLabelPicker(!showLabelPicker)}
-                className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-900 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <Plus className="w-3 h-3 inline" /> Label
               </button>
@@ -237,7 +237,7 @@ export default function TaskDetailModal({
 
           {/* Label Picker */}
           {showLabelPicker && (
-            <div className="absolute left-6 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1">
+            <div className="absolute left-6 mt-1 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1">
               {labels.map(label => (
                 <button
                   key={label.id}
@@ -278,7 +278,7 @@ export default function TaskDetailModal({
             <div className="relative">
               <button
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
-                className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <div
                   className="w-2 h-2 rounded-full"
@@ -287,7 +287,7 @@ export default function TaskDetailModal({
                 {columns.find(c => c.id === task.columnId)?.title}
               </button>
               {showColumnPicker && (
-                <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1">
+                <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1">
                   {columns.map(col => (
                     <button
                       key={col.id}
@@ -346,7 +346,7 @@ export default function TaskDetailModal({
                   type="number"
                   value={task.storyPoints || ''}
                   onChange={(e) => onUpdate(task._id, { storyPoints: parseInt(e.target.value) || undefined })}
-                  className="w-12 bg-gray-100 dark:bg-gray-800 rounded px-2 py-1 text-sm"
+                  className="w-12 bg-gray-100 dark:bg-gray-900 rounded px-2 py-1 text-sm"
                   placeholder="0"
                   min="0"
                 />
@@ -448,7 +448,7 @@ export default function TaskDetailModal({
         {/* Review Modal */}
         {showReviewModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 {reviewAction === 'approve' ? '✅ Approve Task' : '❌ Request Changes'}
               </h3>
@@ -507,7 +507,7 @@ export default function TaskDetailModal({
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full h-32 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 resize-none"
+                    className="w-full h-32 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 resize-none"
                     placeholder="Add a description..."
                   />
                   <div className="flex gap-2 mt-2">
@@ -531,7 +531,7 @@ export default function TaskDetailModal({
               ) : (
                 <div
                   onClick={() => canEdit && setEditingDescription(true)}
-                  className={`p-3 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[80px] ${canEdit ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''}`}
+                  className={`p-3 bg-gray-50 dark:bg-gray-900 rounded-lg min-h-[80px] ${canEdit ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700' : ''}`}
                 >
                   {task.description || <span className="text-gray-400">{canEdit ? 'Click to add description...' : 'No description'}</span>}
                 </div>
@@ -565,7 +565,7 @@ export default function TaskDetailModal({
                 {task.subtasks.map((subtask) => (
                   <div
                     key={subtask.id}
-                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg"
                   >
                     <button
                       onClick={() => canEdit && onToggleSubtask(task._id, subtask.id, !subtask.completed)}
@@ -593,7 +593,7 @@ export default function TaskDetailModal({
                     value={newSubtask}
                     onChange={(e) => setNewSubtask(e.target.value)}
                     placeholder="Add a subtask..."
-                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
                   />
                   <button
                     type="submit"
@@ -643,7 +643,7 @@ export default function TaskDetailModal({
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write a comment... Use @username to mention someone"
-                    className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 resize-none text-sm"
+                    className="w-full p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 resize-none text-sm"
                     rows={2}
                   />
                   <button
@@ -686,7 +686,7 @@ export default function TaskDetailModal({
                       Add assignee
                     </button>
                     {showAssigneePicker && (
-                      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                         {members.map((member) => (
                           <button
                             key={member.userId}
@@ -715,7 +715,7 @@ export default function TaskDetailModal({
                 <Clock className="w-4 h-4" />
                 Time Tracking
               </h4>
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   {formatDuration(task.totalTimeSpent)}
                 </div>
@@ -760,7 +760,7 @@ export default function TaskDetailModal({
                     href={attachment.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
                   >
                     <Paperclip className="w-4 h-4 text-gray-400" />
                     <span className="truncate">{attachment.name}</span>

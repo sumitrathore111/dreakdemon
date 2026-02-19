@@ -626,7 +626,7 @@ export default function KanbanBoard({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+      <div className="flex flex-col items-center justify-center h-64 gap-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-8">
         <p className="text-red-500 font-medium">{error}</p>
         <button
           onClick={fetchBoardData}
@@ -640,7 +640,7 @@ export default function KanbanBoard({
 
   if (!board) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
         <Kanban className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No board found</h3>
         <p className="text-gray-600 dark:text-gray-400">Create a new board to get started</p>
@@ -651,7 +651,7 @@ export default function KanbanBoard({
   return (
     <div className="h-full flex flex-col">
       {/* Header/Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
         {/* Board Title */}
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-lg">
@@ -748,7 +748,7 @@ export default function KanbanBoard({
 
           {/* Add Column Button */}
           <div className="flex-shrink-0 w-72">
-            <button className="w-full h-12 flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <button className="w-full h-12 flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-900 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
               <Plus className="w-5 h-5" />
               Add Column
             </button>

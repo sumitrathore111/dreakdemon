@@ -167,7 +167,7 @@ export default function GitHubContributorStats({ projectId: _projectId, repoFull
 
   if (!repoFullName) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 text-center">
+      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-6 text-center">
         <Code2 className="w-10 h-10 text-gray-400 mx-auto mb-3" />
         <p className="text-gray-500">Connect a GitHub repository to see contributor stats</p>
       </div>
@@ -216,28 +216,28 @@ export default function GitHubContributorStats({ projectId: _projectId, repoFull
 
       {/* Overview Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <GitCommit className="w-4 h-4" />
             <span className="text-sm">Commits</span>
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalCommits}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <GitPullRequest className="w-4 h-4" />
             <span className="text-sm">Open PRs</span>
           </div>
           <p className="text-2xl font-bold text-orange-500">{stats.openPRs}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <GitMerge className="w-4 h-4" />
             <span className="text-sm">Merged PRs</span>
           </div>
           <p className="text-2xl font-bold text-purple-500">{stats.mergedPRs}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <Users className="w-4 h-4" />
             <span className="text-sm">Contributors</span>
@@ -247,7 +247,7 @@ export default function GitHubContributorStats({ projectId: _projectId, repoFull
       </div>
 
       {/* Commit Activity Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm">
         <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" />
           Commit Activity (Last 7 Days)
@@ -268,7 +268,7 @@ export default function GitHubContributorStats({ projectId: _projectId, repoFull
       </div>
 
       {/* Top Contributors */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm">
         <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
           Top Contributors
         </h4>

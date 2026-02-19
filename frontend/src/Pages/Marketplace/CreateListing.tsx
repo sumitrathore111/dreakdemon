@@ -292,7 +292,7 @@ export default function CreateListing() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: '#00ADB5', borderTopColor: 'transparent' }} />
           <p className="text-gray-600 dark:text-white font-medium">Loading project...</p>
@@ -302,7 +302,7 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(isEditMode ? '/dashboard/marketplace/my-listings' : '/dashboard/marketplace')}

@@ -21,7 +21,7 @@ const PracticeChallenges = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getUserProgress } = useDataContext();
-  
+
   const [challenges, setChallenges] = useState<any[]>([]);
   const [filteredChallenges, setFilteredChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,7 @@ const PracticeChallenges = () => {
   useEffect(() => {
     const fetchSolvedChallenges = async () => {
       if (!user?.id) return;
-      
+
       try {
         const progress = await getUserProgress(user.id);
         if (progress?.solvedChallenges) {
@@ -58,7 +58,7 @@ const PracticeChallenges = () => {
         console.error('Error fetching solved challenges:', error);
       }
     };
-    
+
     fetchSolvedChallenges();
   }, [user?.id, getUserProgress]);
 
@@ -69,10 +69,10 @@ const PracticeChallenges = () => {
         // Fetch all 3000 questions from GitHub
         const questionsData = await fetchAllQuestions();
         console.log('Questions loaded:', questionsData.length);
-        
+
         const topics = await getAllTopics();
         console.log('Topics:', topics.length);
-        
+
         // Convert questions to challenge format
         const challengesData = questionsData.map((q: Question) => ({
           id: q.id,
@@ -92,7 +92,7 @@ const PracticeChallenges = () => {
           constraints: q.constraints,
           solution_hint: q.solution_hint,
         }));
-        
+
         console.log('Challenges prepared:', challengesData.length);
         setChallenges(challengesData);
         setFilteredChallenges(challengesData.slice(0, PROBLEMS_PER_PAGE));
@@ -120,7 +120,7 @@ const PracticeChallenges = () => {
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(c => 
+      filtered = filtered.filter(c =>
         c.title.toLowerCase().includes(query) ||
         c.description.toLowerCase().includes(query) ||
         c.tags.some((t: string) => t.toLowerCase().includes(query))
@@ -138,7 +138,7 @@ const PracticeChallenges = () => {
     setLoading(true);
     try {
       const questionsData = await fetchAllQuestions();
-      
+
       const challengesData = questionsData.map((q: Question) => ({
         id: q.id,
         title: q.title,
@@ -155,7 +155,7 @@ const PracticeChallenges = () => {
         sampleCode: '',
         solution_hint: q.solution_hint,
       }));
-      
+
       setChallenges(challengesData);
       setPage(1);
     } catch (error) {
@@ -165,8 +165,8 @@ const PracticeChallenges = () => {
   };
 
   const handleSolve = (challenge: any) => {
-    navigate(`/dashboard/codearena/challenge/${challenge.id}`, { 
-      state: { challenge } 
+    navigate(`/dashboard/codearena/challenge/${challenge.id}`, {
+      state: { challenge }
     });
   };
 
@@ -179,13 +179,13 @@ const PracticeChallenges = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
+        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -197,7 +197,7 @@ const PracticeChallenges = () => {
               <p className="text-gray-500 dark:text-white text-sm">Solve coding challenges from 3000+ questions and earn coins</p>
             </div>
           </div>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -214,13 +214,13 @@ const PracticeChallenges = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {stats.map((stat, index) => (
-          <motion.div 
+          <motion.div
             key={stat.label}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
             whileHover={{ y: -2, scale: 1.02 }}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all group"
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-all group"
           >
             <div className={`inline-flex p-2 rounded-lg ${stat.color} dark:bg-opacity-20 mb-3 group-hover:scale-110 transition-transform`}>
               <stat.icon className="w-4 h-4" />
@@ -232,11 +232,11 @@ const PracticeChallenges = () => {
       </div>
 
       {/* Filters */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
+        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
         {/* Search */}
         <div className="relative">
@@ -315,10 +315,10 @@ const PracticeChallenges = () => {
       {/* Challenges List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8"
+            className="text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8"
           >
             <motion.div
               animate={{ rotate: 360 }}
@@ -329,10 +329,10 @@ const PracticeChallenges = () => {
           </motion.div>
         </div>
       ) : filteredChallenges.length === 0 ? (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+          className="text-center py-20 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700"
         >
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-700 dark:text-gray-300 text-lg">No challenges found</p>
@@ -342,7 +342,7 @@ const PracticeChallenges = () => {
         <div className="space-y-3">
           {filteredChallenges.map((challenge, index) => {
             const isSolved = solvedChallengeIds.has(challenge.id?.toString() || challenge.id);
-            
+
             return (
             <motion.div
               key={challenge.id}
@@ -350,9 +350,9 @@ const PracticeChallenges = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: index * 0.05, duration: 0.4 }}
               whileHover={{ y: -2, scale: 1.02 }}
-              className={`bg-white dark:bg-gray-800 border rounded-xl p-6 hover:shadow-lg transition-all group ${
-                isSolved 
-                  ? 'border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/20' 
+              className={`bg-white dark:bg-gray-900 border rounded-xl p-6 hover:shadow-lg transition-all group ${
+                isSolved
+                  ? 'border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/20'
                   : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
               }`}
             >
@@ -369,11 +369,11 @@ const PracticeChallenges = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <p className="text-sm text-gray-600 dark:text-white mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors line-clamp-2">{challenge.description}</p>
-                  
+
                   <div className="flex flex-wrap items-center gap-3 text-sm mb-3">
-                    <motion.span 
+                    <motion.span
                       whileHover={{ scale: 1.05 }}
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         challenge.difficulty === 'easy' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700' :
@@ -386,11 +386,11 @@ const PracticeChallenges = () => {
                         : 'Unknown'
                       }
                     </motion.span>
-                    
+
                     <span className="text-gray-600 dark:text-white text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                       {challenge.category}
                     </span>
-                    
+
                     <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-medium">
                       <Coins className="w-3 h-3" />
                       {challenge.coinReward || challenge.coins || 0}
@@ -404,8 +404,8 @@ const PracticeChallenges = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleSolve(challenge)}
                     className={`flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition-all ${
-                      isSolved 
-                        ? 'bg-green-500 hover:bg-green-600' 
+                      isSolved
+                        ? 'bg-green-500 hover:bg-green-600'
                         : 'bg-[#00ADB5] hover:bg-[#00ADB5]/80'
                     }`}
                   >
@@ -421,7 +421,7 @@ const PracticeChallenges = () => {
 
       {/* Pagination */}
       {!loading && filteredChallenges.length > 0 && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-3"
@@ -431,15 +431,15 @@ const PracticeChallenges = () => {
             whileTap={{ scale: 0.95 }}
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
+            className="px-6 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm"
           >
             Previous
           </motion.button>
-          
-          <span className="px-4 py-3 text-gray-700 dark:text-gray-300 text-sm bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+
+          <span className="px-4 py-3 text-gray-700 dark:text-gray-300 text-sm bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
             Page {page}
           </span>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

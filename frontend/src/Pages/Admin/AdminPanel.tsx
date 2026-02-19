@@ -457,7 +457,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg mb-8">
+        <div className="flex gap-2 bg-white dark:bg-gray-900 rounded-xl p-2 shadow-lg mb-8">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
@@ -539,7 +539,7 @@ export default function AdminPanel() {
         {activeTab === 'overview' && (
           <div>
             {loading ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
               </div>
@@ -548,7 +548,7 @@ export default function AdminPanel() {
                 {/* Users Card */}
                 <div
                   onClick={() => setActiveTab('users')}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <Users className="w-12 h-12 text-blue-500" />
@@ -561,7 +561,7 @@ export default function AdminPanel() {
                 {/* Ideas Card */}
                 <div
                   onClick={() => setActiveTab('ideas')}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <Lightbulb className="w-12 h-12 text-yellow-500" />
@@ -576,7 +576,7 @@ export default function AdminPanel() {
                 {/* Marketplace Card */}
                 <div
                   onClick={() => setActiveTab('marketplace')}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <ShoppingBag className="w-12 h-12 text-purple-500" />
@@ -591,7 +591,7 @@ export default function AdminPanel() {
                 {/* Projects Card */}
                 <div
                   onClick={() => setActiveTab('projects')}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all hover:scale-105"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <FolderOpen className="w-12 h-12 text-[#00ADB5]" />
@@ -650,7 +650,7 @@ export default function AdminPanel() {
                 )}
 
                 {/* Recent Ideas */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-yellow-500" />
                     Recent Ideas
@@ -677,7 +677,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Recent Marketplace Listings */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-purple-500" />
                     Recent Marketplace
@@ -708,7 +708,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Recent Users */}
-                <div className="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div className="lg:col-span-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <User className="w-5 h-5 text-blue-500" />
                     Recent Users
@@ -742,7 +742,7 @@ export default function AdminPanel() {
         {activeTab === 'ideas' && (
           <div>
             {/* Search and Filter */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6">
               <div className="flex gap-4">
                 <div className="flex-1 relative">
                   <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -770,14 +770,14 @@ export default function AdminPanel() {
             {/* Ideas List */}
             <div className="space-y-4">
               {filteredIdeas.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                   <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No ideas found</h3>
                   <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filter</p>
                 </div>
               ) : (
                 filteredIdeas.map((idea) => (
-                  <div key={idea.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                  <div key={idea.id} className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -864,12 +864,12 @@ export default function AdminPanel() {
         {activeTab === 'projects' && (
           <div>
             {loading ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 text-gray-600 dark:text-gray-400">Loading projects...</p>
               </div>
             ) : projects.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <FolderOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Active Projects</h3>
                 <p className="text-gray-600 dark:text-gray-400">Approved project ideas will appear here</p>
@@ -877,7 +877,7 @@ export default function AdminPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {projects.map((project) => (
-                  <div key={project.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                  <div key={project.id} className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{project.title}</h3>
@@ -1046,7 +1046,7 @@ export default function AdminPanel() {
         {activeTab === 'marketplace' && (
           <div>
             {/* Status Filter */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4 mb-6">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Filter by Status:</span>
                 <button
@@ -1099,12 +1099,12 @@ export default function AdminPanel() {
             </div>
 
             {loading ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 text-gray-600 dark:text-gray-400">Loading marketplace listings...</p>
               </div>
             ) : marketplaceProjects.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   No {marketplaceStatusFilter === 'all' ? '' : marketplaceStatusFilter === 'pending_verification' ? 'Pending' : marketplaceStatusFilter === 'published' ? 'Approved' : 'Rejected'} Listings
@@ -1135,7 +1135,7 @@ export default function AdminPanel() {
 
                 {/* Marketplace Listings */}
                 {marketplaceProjects.map((project) => (
-                  <div key={project.id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+                  <div key={project.id} className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                     <div className="flex gap-6">
                       {/* Project Image */}
                       <div className="w-48 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -1311,7 +1311,7 @@ export default function AdminPanel() {
         {/* Marketplace Review Modal */}
         {selectedMarketplaceProject && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Review Marketplace Listing</h2>
 

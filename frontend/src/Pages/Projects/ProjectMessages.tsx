@@ -23,7 +23,7 @@ export default function Messages() {
     };
 
     fetchMessages();
-    
+
     // Poll for new messages every 5 seconds
     const interval = setInterval(fetchMessages, 15000);
     return () => clearInterval(interval);
@@ -31,7 +31,7 @@ export default function Messages() {
 
   const sendMessage = async () => {
     if (!newMsg.trim() || !user || !id) return;
-    
+
     try {
       await apiRequest(`/projects/${id}/messages`, {
         method: 'POST',
@@ -42,7 +42,7 @@ export default function Messages() {
         })
       });
       setNewMsg("");
-      
+
       // Fetch updated messages
       const response = await apiRequest(`/projects/${id}/messages`);
       setMessages(response.messages || []);
@@ -52,7 +52,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+    <div className="mt-4 sm:mt-6 border rounded-lg sm:rounded-xl p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
       <h2 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 dark:text-white">Messages</h2>
       <div className="h-32 sm:h-40 overflow-y-auto border dark:border-gray-700 p-2 bg-white dark:bg-gray-900 mb-2 rounded">
         {messages.map((m) => (

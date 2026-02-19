@@ -699,7 +699,7 @@ export default function ProjectWorkspace() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col lg:flex-row items-start justify-between gap-3 sm:gap-4 mb-4">
             <div className="flex-1 w-full lg:w-auto">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-2">
@@ -765,7 +765,7 @@ export default function ProjectWorkspace() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 sm:gap-2 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-lg mb-4 sm:mb-6 overflow-x-auto">
+        <div className="flex gap-1 sm:gap-2 bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-lg mb-4 sm:mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('tasks')}
             className={`flex-1 min-w-[80px] py-2 sm:py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
@@ -857,7 +857,7 @@ export default function ProjectWorkspace() {
             </div>
 
             {showTaskForm && userRole === 'creator' && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 mb-4">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-3 sm:p-4 md:p-6 mb-4">
                 <h3 className="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-gray-900 dark:text-white">New Task</h3>
                 <div className="space-y-3 sm:space-y-4">
                   <input
@@ -921,7 +921,7 @@ export default function ProjectWorkspace() {
             )}
 
             {tasks.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 sm:p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 sm:p-12 text-center">
                 <CheckCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300 dark:text-gray-600" />
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Create your first task to get started</p>
@@ -929,7 +929,7 @@ export default function ProjectWorkspace() {
             ) : (
               <div className="space-y-3">
                 {tasks.map(task => (
-                  <div key={task.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+                  <div key={task.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <button
                         onClick={() => {
@@ -1030,7 +1030,7 @@ export default function ProjectWorkspace() {
 
         {/* Chat Tab */}
         {activeTab === 'chat' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
             <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3 sm:mb-4">Team Chat</h2>
 
             <div className="h-64 sm:h-80 md:h-96 overflow-y-auto mb-3 sm:mb-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -1042,7 +1042,7 @@ export default function ProjectWorkspace() {
               ) : (
                 <div className="space-y-2 sm:space-y-3">
                   {messages.map(msg => (
-                    <div key={msg.id} className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3 shadow">
+                    <div key={msg.id} className="bg-white dark:bg-gray-900 rounded-lg p-2 sm:p-3 shadow">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white truncate">{msg.senderName || msg.userName}</span>
                         <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
@@ -1078,7 +1078,7 @@ export default function ProjectWorkspace() {
 
         {/* Files Tab */}
         {activeTab === 'files' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-3 sm:p-4 md:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3 sm:mb-4">
               <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">Project Files</h2>
               <label className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-[#00ADB5] text-white font-semibold rounded-xl hover:bg-cyan-600 transition-colors cursor-pointer flex items-center justify-center gap-2">
@@ -1174,7 +1174,7 @@ export default function ProjectWorkspace() {
                 </h2>
 
                 {joinRequests.length === 0 ? (
-                  <div className="bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
+                  <div className="bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
                     <UserPlus className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                     <p className="text-gray-600 dark:text-gray-400 font-semibold">No Pending Requests</p>
                     <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">When someone requests to join your project, they will appear here</p>
@@ -1209,7 +1209,7 @@ export default function ProjectWorkspace() {
                       </div>
 
                       {/* Application Details */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 space-y-3">
                         <div>
                           <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Skills</p>
                           <p className="text-sm text-gray-900 dark:text-white">{request.skills || 'Not provided'}</p>
@@ -1246,7 +1246,7 @@ export default function ProjectWorkspace() {
               <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Team Members</h2>
               <div className="space-y-3">
                 {members.map(member => (
-                  <div key={member.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+                  <div key={member.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center">
@@ -1305,7 +1305,7 @@ export default function ProjectWorkspace() {
 
         {/* Activity Tab */}
         {activeTab === 'activity' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-12 text-center">
             <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Activity Timeline</h3>
             <p className="text-gray-600 dark:text-gray-400">Track all project activities</p>

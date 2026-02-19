@@ -40,8 +40,8 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-800 p-8 max-w-md w-full text-center">
+        <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-red-200 dark:border-red-800 p-8 max-w-md w-full text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
             <p className="text-gray-600 dark:text-white mb-4">
@@ -225,7 +225,7 @@ const CodeArenaContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-[#00ADB5] animate-spin mx-auto mb-4" />
           <p className="text-gray-600 dark:text-white">Loading CodeArena...</p>
@@ -236,8 +236,8 @@ const CodeArenaContent = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-700 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-red-200 dark:border-red-700 p-8 max-w-md w-full text-center">
           <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading CodeArena</h2>
           <p className="text-gray-600 dark:text-white mb-4">{error}</p>
@@ -258,8 +258,8 @@ const CodeArenaContent = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8 max-w-md w-full text-center">
           <Code2 className="w-12 h-12 text-[#00ADB5] mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Login Required</h2>
           <p className="text-gray-600 dark:text-white mb-4">Please log in to access CodeArena.</p>
@@ -275,9 +275,9 @@ const CodeArenaContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
@@ -360,7 +360,7 @@ const CodeArenaContent = () => {
       </AnimatePresence>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2 z-50">
         <div className="flex justify-around">
           {[
             { id: 'home', label: 'Home', icon: Code2, path: '' },
@@ -475,7 +475,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
       className="space-y-6 pb-20 md:pb-6"
     >
       {/* Hero */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back! 👋</h2>
         <p className="text-gray-600 dark:text-white mb-6">
           Ready to test your coding skills? Battle other developers or practice with Codeforces problems.
@@ -507,7 +507,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
           >
             <div className={`inline-flex p-2 rounded-lg ${stat.color} mb-3`}>
               <stat.icon className="w-4 h-4" />
@@ -527,7 +527,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.05 }}
             onClick={() => navigate(`/dashboard/codearena/${action.path}`)}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 text-left hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all group"
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5 text-left hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all group"
           >
             <div className={`inline-flex p-3 rounded-lg ${action.color} mb-4`}>
               <action.icon className="w-5 h-5 text-white" />
@@ -547,7 +547,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
       {/* Activity Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Live Battles */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Users className="w-4 h-4 text-green-600" />
@@ -615,7 +615,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
         </div>
 
         {/* Top Players */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Crown className="w-4 h-4 text-amber-500" />

@@ -203,7 +203,7 @@ export default function Blog() {
         structuredData={blogStructuredData}
       />
 
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+      <div className="min-h-screen bg-white dark:bg-black">
         {/* Hero Section */}
         <section className="relative py-20 px-4 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
@@ -235,7 +235,7 @@ export default function Blog() {
             {blogPosts.map((post) => (
               <article
                 key={post.id}
-                className="group bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                className="group bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 transition-all duration-300 hover:-translate-y-1 flex flex-col"
               >
                 {/* Category Bar */}
                 <div
@@ -348,7 +348,7 @@ export default function Blog() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-r from-[#00ADB5]/10 to-purple-500/10 dark:from-[#00ADB5]/5 dark:to-purple-500/5 py-16 px-4">
+        <section className="bg-gray-50 dark:bg-gray-900 py-16 px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Ready to Practice What You've Learned?
