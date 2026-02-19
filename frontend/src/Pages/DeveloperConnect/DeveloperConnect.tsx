@@ -18,7 +18,6 @@ import {
   Star,
   Trash2,
   TrendingUp,
-  UserMinus,
   X
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -62,15 +61,12 @@ const formatTimestamp = (timestamp: any): string => {
   if (!timestamp) return 'Unknown date';
 
   try {
-    // Handle date object with toDate method
     if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
       return timestamp.toDate().toLocaleDateString();
     }
-    // Handle seconds/nanoseconds object (MongoDB/timestamp format)
     if (timestamp?.seconds) {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
     }
-    // Handle regular Date object or ISO string
     const date = new Date(timestamp);
     if (!isNaN(date.getTime())) {
       return date.toLocaleDateString();
@@ -128,7 +124,6 @@ const getUserAvatar = (userprofile: any, userId: string | undefined): string => 
 const renderMessageWithLinks = (text: string, isMe: boolean = false) => {
   if (!text) return null;
 
-  // URL regex pattern
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
 
@@ -248,7 +243,6 @@ export default function DeveloperConnect() {
   const [messageStatus, setMessageStatus] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -257,7 +251,6 @@ export default function DeveloperConnect() {
     scrollToBottom();
   }, [messages]);
 
-  // Handle URL parameters for shared review links
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
@@ -269,65 +262,50 @@ export default function DeveloperConnect() {
 
       if (reviewId) {
         setHighlightedReviewId(reviewId);
-        // Clean up URL immediately to prevent re-processing
         window.history.replaceState({}, '', window.location.pathname);
       }
     }
-  }, []); // Run only once on mount
+  }, []);
 
-  // Scroll to highlighted review when reviews load
   useEffect(() => {
     if (highlightedReviewId && techReviews.length > 0) {
-      // Wait for rendering, then scroll
       setTimeout(() => {
         const reviewElement = document.getElementById(`review-${highlightedReviewId}`);
         if (reviewElement) {
           reviewElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 300);
-      // Clear highlight after 3 seconds
       setTimeout(() => setHighlightedReviewId(null), 3000);
     }
   }, [highlightedReviewId, techReviews]);
 
-  // Track WebSocket connection status and typing indicators
   useEffect(() => {
     initializeSocket();
     const socket = getSocket();
 
     if (socket) {
-      // Initial status check
       setSocketConnected(socket.connected);
 
       const handleConnect = () => {
-        console.log('🟢 Socket connected');
         setSocketConnected(true);
-        // Emit user online status when connected
         if (user?.id) {
           socket.emit('userOnline', { userId: user.id });
         }
       };
 
       const handleDisconnect = () => {
-        console.log('🔴 Socket disconnected');
         setSocketConnected(false);
       };
 
-      // Handle online users list
       const handleOnlineUsers = (users: string[]) => {
-        console.log('👥 Online users:', users);
         setOnlineUsers(new Set(users));
       };
 
-      // Handle user coming online
       const handleUserOnline = (data: { userId: string }) => {
-        console.log('🟢 User online:', data.userId);
         setOnlineUsers(prev => new Set([...prev, data.userId]));
       };
 
-      // Handle user going offline
       const handleUserOffline = (data: { userId: string }) => {
-        console.log('🔴 User offline:', data.userId);
         setOnlineUsers(prev => {
           const newSet = new Set(prev);
           newSet.delete(data.userId);
@@ -338,7 +316,6 @@ export default function DeveloperConnect() {
       const handleTyping = (data: { chatId: string; userId: string; userName: string }) => {
         if (data.chatId === chatId && data.userId !== user?.id) {
           setTypingUser(data.userName);
-          // Clear typing after 3 seconds
           if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
           typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
         }
@@ -381,7 +358,6 @@ export default function DeveloperConnect() {
       socket.on('userOnline', handleUserOnline);
       socket.on('userOffline', handleUserOffline);
 
-      // Request current online users list
       socket.emit('getOnlineUsers');
 
       return () => {
@@ -400,30 +376,23 @@ export default function DeveloperConnect() {
     }
   }, [chatId, user?.id]);
 
-  // Fetch ALL initial data - SUPERFAST with cache-first pattern
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // CHECK CACHE FIRST - instant load!
         const cached = getCachedPageData();
         if (cached) {
-          // INSTANT UI from cache
           setDevelopers(cached.developers);
           setStudyGroups(cached.studyGroups);
           setTechReviews(cached.techReviews);
           setHelpRequests(cached.helpRequests);
           setLoading(false);
-
-          // Refresh in background (stale-while-revalidate)
           refreshDataInBackground();
           return;
         }
 
-        // No cache - show loading briefly
         setLoading(true);
         setError(null);
 
-        // Use optimized endpoint that fetches everything in parallel
         const data = await apiRequest('/developers/init/page-data');
 
         setDevelopers(data.developers || []);
@@ -431,7 +400,6 @@ export default function DeveloperConnect() {
         setTechReviews(data.techReviews || []);
         setHelpRequests(data.helpRequests || []);
 
-        // Cache for next visit
         setCachedPageData({
           developers: data.developers || [],
           studyGroups: data.studyGroups || [],
@@ -444,7 +412,6 @@ export default function DeveloperConnect() {
         }
       } catch (err) {
         console.error('Error loading Developer Connect data:', err);
-        // Fallback to individual calls if optimized endpoint fails
         try {
           const [developersData, groupsData, reviewsData, requestsData] = await Promise.all([
             apiRequest('/developers').catch(() => []),
@@ -463,7 +430,6 @@ export default function DeveloperConnect() {
           setTechReviews(reviews);
           setHelpRequests(requests);
 
-          // Cache fallback data too
           setCachedPageData({
             developers: devs,
             studyGroups: groups,
@@ -478,16 +444,13 @@ export default function DeveloperConnect() {
       }
     };
 
-    // Background refresh helper
     const refreshDataInBackground = async () => {
       try {
         const data = await apiRequest('/developers/init/page-data');
-
         setDevelopers(data.developers || []);
         setStudyGroups(data.studyGroups || []);
         setTechReviews(data.techReviews || []);
         setHelpRequests(data.helpRequests || []);
-
         setCachedPageData({
           developers: data.developers || [],
           studyGroups: data.studyGroups || [],
@@ -495,14 +458,13 @@ export default function DeveloperConnect() {
           helpRequests: data.helpRequests || []
         });
       } catch {
-        // Silently ignore background refresh errors - we already have cached data
+        // Silently ignore background refresh errors
       }
     };
 
     loadInitialData();
   }, []);
 
-  // Load conversations when messages tab is opened
   useEffect(() => {
     if (!selectedChat || !user) {
       setMessages([]);
@@ -514,19 +476,15 @@ export default function DeveloperConnect() {
     let currentChatId: string | null = null;
 
     const setupChat = async () => {
-      console.log('Setting up chat for:', user.id, selectedChat);
       setLoadingMessages(true);
 
       try {
-        // Get selected developer info
         const selectedDev = developers.find(d => d.userId === selectedChat);
         if (!selectedDev) {
-          console.error('Selected developer not found');
           setLoadingMessages(false);
           return;
         }
 
-        // Create or get the chat
         const chat = await apiRequest('/chats', {
           method: 'POST',
           body: JSON.stringify({
@@ -539,43 +497,31 @@ export default function DeveloperConnect() {
         if (!isMounted) return;
         setChatId(chat.id);
         currentChatId = chat.id;
-        console.log('Chat ID obtained:', chat.id);
 
-        // Fetch initial messages
         const loadedMessages = await apiRequest(`/chats/${chat.id}/messages`);
         if (isMounted) {
           setMessages(loadedMessages);
         }
         setLoadingMessages(false);
 
-        // Initialize socket for real-time messaging
         try {
           initializeSocket();
           const socket = getSocket();
           if (socket) {
-            // Join chat room
             socket.emit('join-chat', chat.id);
-            console.log('📡 Joined chat room:', chat.id);
 
-            // Listen for new messages
             const messageHandler = (payload: any) => {
-              console.log('📩 Received new message:', payload);
               if (payload.chatId === chat.id && isMounted) {
-                // Skip if the message is from the current user (already added optimistically)
                 if (payload.senderId === user?.id) {
-                  // Just update the temp message with real ID if not already done
                   setMessages(prev => {
-                    // Check if we already have this message by real ID
                     const existsById = prev.some(m => m.id === payload.id);
                     if (existsById) return prev;
-                    // Check if there's a matching temp message (same content from same user around same time)
                     const tempIndex = prev.findIndex(m =>
                       m.id?.startsWith('temp-') &&
                       m.senderId === payload.senderId &&
                       (m.message === payload.message || m.text === payload.message)
                     );
                     if (tempIndex !== -1) {
-                      // Replace temp message with real one
                       const updated = [...prev];
                       updated[tempIndex] = payload;
                       return updated;
@@ -585,7 +531,6 @@ export default function DeveloperConnect() {
                   return;
                 }
                 setMessages(prev => {
-                  // Avoid duplicates
                   const exists = prev.some(m => m.id === payload.id);
                   if (exists) return prev;
                   return [...prev, payload];
@@ -594,8 +539,6 @@ export default function DeveloperConnect() {
             };
 
             socket.on('newMessage', messageHandler);
-
-            // Store handler for cleanup
             (socket as any)._chatMessageHandler = messageHandler;
           }
         } catch (e) {
@@ -614,7 +557,6 @@ export default function DeveloperConnect() {
 
     return () => {
       isMounted = false;
-      // Leave socket room and cleanup listener
       try {
         const socket = getSocket();
         if (socket && socket.connected && currentChatId) {
@@ -631,7 +573,6 @@ export default function DeveloperConnect() {
     };
   }, [selectedChat, user?.id, developers, userprofile]);
 
-  // Load conversations when messages tab is opened
   useEffect(() => {
     if (!user || activeTab !== 'messages') {
       setConversations([]);
@@ -640,9 +581,7 @@ export default function DeveloperConnect() {
 
     const loadConversations = async () => {
       try {
-        // Load chats from the chats endpoint
         const chats = await apiRequest('/chats');
-        // Transform chats to conversation format
         const formattedConversations = (chats || []).map((chat: any) => ({
           participantId: chat.participantId,
           participantName: chat.participantName,
@@ -660,7 +599,6 @@ export default function DeveloperConnect() {
     loadConversations();
   }, [user?.id, activeTab]);
 
-  // Real-time socket events for study groups
   useEffect(() => {
     if (!user) return;
 
@@ -669,18 +607,13 @@ export default function DeveloperConnect() {
       const socket = getSocket();
       if (!socket) return;
 
-      // Join user's personal room for notifications
       socket.emit('join-user', user.id);
 
-      // Handle new join request (for group admins)
       const handleJoinRequest = (data: any) => {
-        console.log('New join request:', data);
-        // Update the selected group if it matches
         if (selectedGroup && selectedGroup.id === data.groupId) {
           setSelectedGroup((prev: any) => {
             if (!prev) return prev;
             const existingRequests = prev.joinRequests || [];
-            // Check if request already exists
             if (existingRequests.some((r: any) => r.userId === data.request.userId)) {
               return prev;
             }
@@ -693,11 +626,8 @@ export default function DeveloperConnect() {
         toast.success(`${data.request.userName} requested to join your group!`);
       };
 
-      // Handle request approved (for the user who requested)
       const handleRequestApproved = (data: any) => {
-        console.log('Request approved:', data);
         toast.success(`You've been approved to join ${data.groupName}!`);
-        // Update the group in the list
         if (data.group) {
           setStudyGroups(prev => prev.map(g => g.id === data.groupId ? data.group : g));
           if (selectedGroup && selectedGroup.id === data.groupId) {
@@ -706,11 +636,8 @@ export default function DeveloperConnect() {
         }
       };
 
-      // Handle request rejected (for the user who requested)
       const handleRequestRejected = (data: any) => {
-        console.log('Request rejected:', data);
         toast.error(`Your request to join ${data.groupName} was rejected.`);
-        // Update the selected group to clear pending state
         if (selectedGroup && selectedGroup.id === data.groupId) {
           setSelectedGroup((prev: any) => {
             if (!prev) return prev;
@@ -722,9 +649,7 @@ export default function DeveloperConnect() {
         }
       };
 
-      // Handle member joined (for group members)
       const handleMemberJoined = (data: any) => {
-        console.log('Member joined:', data);
         toast.success(`${data.member.name} has joined the group!`);
         if (data.group) {
           setStudyGroups(prev => prev.map(g => g.id === data.groupId ? data.group : g));
@@ -734,21 +659,15 @@ export default function DeveloperConnect() {
         }
       };
 
-      // Handle removed from group (for the removed user)
       const handleRemovedFromGroup = (data: any) => {
-        console.log('Removed from group:', data);
         toast.error(`You've been removed from ${data.groupName}`);
-        // If viewing this group, go back to list
         if (selectedGroup && selectedGroup.id === data.groupId) {
           setSelectedGroup(null);
         }
-        // Remove from study groups list
         setStudyGroups(prev => prev.filter(g => g.id !== data.groupId));
       };
 
-      // Handle member removed (for group members)
       const handleMemberRemoved = (data: any) => {
-        console.log('Member removed:', data);
         if (data.group) {
           setStudyGroups(prev => prev.map(g => g.id === data.groupId ? data.group : g));
           if (selectedGroup && selectedGroup.id === data.groupId) {
@@ -757,9 +676,7 @@ export default function DeveloperConnect() {
         }
       };
 
-      // Handle group updated
       const handleGroupUpdated = (data: any) => {
-        console.log('Group updated:', data);
         if (data.group) {
           setStudyGroups(prev => prev.map(g => g.id === data.groupId ? data.group : g));
           if (selectedGroup && selectedGroup.id === data.groupId) {
@@ -791,7 +708,6 @@ export default function DeveloperConnect() {
     }
   }, [user?.id, selectedGroup?.id]);
 
-  // Join/leave group socket rooms when viewing a group
   useEffect(() => {
     if (!selectedGroup || !user) return;
 
@@ -811,7 +727,6 @@ export default function DeveloperConnect() {
     }
   }, [selectedGroup?.id, user]);
 
-  // Load group messages when a group is selected
   useEffect(() => {
     if (!selectedGroup || !user) {
       setGroupMessages([]);
@@ -830,14 +745,12 @@ export default function DeveloperConnect() {
 
     loadGroupMessages();
 
-    // Set up real-time message listener
     try {
       const socket = getSocket();
       if (socket) {
         const handleNewGroupMessage = (data: any) => {
           if (data.groupId === selectedGroup.id && data.message) {
             setGroupMessages(prev => {
-              // Avoid duplicates
               if (prev.some(m => m.id === data.message.id)) {
                 return prev;
               }
@@ -857,7 +770,6 @@ export default function DeveloperConnect() {
     }
   }, [selectedGroup?.id, user]);
 
-  // MEMOIZED filtering and sorting for performance
   const filteredDevelopers = useMemo(() => {
     const queryLower = debouncedSearch.toLowerCase();
     let filtered = developers.filter(dev => {
@@ -876,7 +788,6 @@ export default function DeveloperConnect() {
       return matchesSearch && matchesSkills && matchesLookingFor;
     });
 
-    // Sort based on selected sort option
     switch (sortBy) {
       case 'rank':
         filtered.sort((a, b) => (a.combinedRank || 999) - (b.combinedRank || 999));
@@ -892,14 +803,12 @@ export default function DeveloperConnect() {
         break;
       case 'newest':
       default:
-        // Keep original order (by createdAt from backend)
         break;
     }
 
     return filtered;
   }, [developers, debouncedSearch, selectedSkills, lookingForFilter, sortBy]);
 
-  // MEMOIZED display slice
   const displayedDevelopers = useMemo(() =>
     filteredDevelopers.slice(0, displayLimit),
     [filteredDevelopers, displayLimit]
@@ -909,9 +818,7 @@ export default function DeveloperConnect() {
 
   const allSkills = ['React', 'Node.js', 'Python', 'Java', 'MongoDB', 'TypeScript', 'AWS', 'Machine Learning'];
 
-  // Render functions for each tab
   const renderDirectory = () => {
-    // Loading State
     if (loading) {
       return (
         <div className="space-y-6">
@@ -935,7 +842,6 @@ export default function DeveloperConnect() {
       );
     }
 
-    // Error State
     if (error) {
       return (
         <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-8 border border-red-200 dark:border-red-800">
@@ -956,7 +862,6 @@ export default function DeveloperConnect() {
       );
     }
 
-    // Empty State
     if (developers.length === 0) {
       return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
@@ -971,277 +876,259 @@ export default function DeveloperConnect() {
     }
 
     return (
-    <div className="space-y-6">
-      {/* Search and Filters - Marketplace Style */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-            <input
-              type="text"
-              placeholder="Search developers by name or skills..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+              <input
+                type="text"
+                placeholder="Search developers by name or skills..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
+              />
+            </div>
+
+            <CustomSelect
+              value={selectedSkills.length > 0 ? selectedSkills[0] : ''}
+              onChange={(value) => {
+                if (value === '') {
+                  setSelectedSkills([]);
+                } else {
+                  setSelectedSkills(prev =>
+                    prev.includes(value)
+                      ? prev.filter(s => s !== value)
+                      : [value]
+                  );
+                }
+              }}
+              options={[
+                { value: '', label: 'All Skills' },
+                ...allSkills.map(skill => ({ value: skill, label: skill }))
+              ]}
+              className="w-full sm:min-w-[180px] sm:w-auto"
+            />
+
+            <CustomSelect
+              value={lookingForFilter}
+              onChange={(value) => setLookingForFilter(value)}
+              options={[
+                { value: '', label: 'Looking For' },
+                { value: 'Teammates', label: 'Teammates' },
+                { value: 'Mentoring', label: 'Mentoring' },
+                { value: 'Both', label: 'Both' }
+              ]}
+              className="w-full sm:min-w-[180px] sm:w-auto"
+            />
+
+            <CustomSelect
+              value={sortBy}
+              onChange={(value) => setSortBy(value as 'rank' | 'newest' | 'roadmap' | 'codearena' | 'creator')}
+              options={[
+                { value: 'rank', label: '🏆 Top Ranked' },
+                { value: 'roadmap', label: '📚 Roadmap Progress' },
+                { value: 'codearena', label: '💻 CodeArena' },
+                { value: 'creator', label: '🚀 Creator Corner' },
+                { value: 'newest', label: '🆕 Newest' }
+              ]}
+              className="w-full sm:min-w-[180px] sm:w-auto"
             />
           </div>
 
-          {/* Skills Filter */}
-          <CustomSelect
-            value={selectedSkills.length > 0 ? selectedSkills[0] : ''}
-            onChange={(value) => {
-              if (value === '') {
-                setSelectedSkills([]);
-              } else {
-                setSelectedSkills(prev =>
-                  prev.includes(value)
-                    ? prev.filter(s => s !== value)
-                    : [value]
-                );
-              }
-            }}
-            options={[
-              { value: '', label: 'All Skills' },
-              ...allSkills.map(skill => ({ value: skill, label: skill }))
-            ]}
-            className="w-full sm:min-w-[180px] sm:w-auto"
-          />
-
-          {/* Looking For Filter */}
-          <CustomSelect
-            value={lookingForFilter}
-            onChange={(value) => setLookingForFilter(value)}
-            options={[
-              { value: '', label: 'Looking For' },
-              { value: 'Teammates', label: 'Teammates' },
-              { value: 'Mentoring', label: 'Mentoring' },
-              { value: 'Both', label: 'Both' }
-            ]}
-            className="w-full sm:min-w-[180px] sm:w-auto"
-          />
-
-          {/* Sort By */}
-          <CustomSelect
-            value={sortBy}
-            onChange={(value) => setSortBy(value as 'rank' | 'newest' | 'roadmap' | 'codearena' | 'creator')}
-            options={[
-              { value: 'rank', label: '🏆 Top Ranked' },
-              { value: 'roadmap', label: '📚 Roadmap Progress' },
-              { value: 'codearena', label: '💻 CodeArena' },
-              { value: 'creator', label: '🚀 Creator Corner' },
-              { value: 'newest', label: '🆕 Newest' }
-            ]}
-            className="w-full sm:min-w-[180px] sm:w-auto"
-          />
+          {selectedSkills.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedSkills.map(skill => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
+                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                >
+                  {skill}
+                  <button
+                    onClick={() => setSelectedSkills(prev => prev.filter(s => s !== skill))}
+                    className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <button
+                onClick={() => setSelectedSkills([])}
+                className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Selected Skills Tags */}
-        {selectedSkills.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {selectedSkills.map(skill => (
-              <span
-                key={skill}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
-                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
-              >
-                {skill}
-                <button
-                  onClick={() => setSelectedSkills(prev => prev.filter(s => s !== skill))}
-                  className="ml-1 hover:bg-white/20 rounded-full p-0.5"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={() => setSelectedSkills([])}
-              className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-white">
+          <p>Showing {displayedDevelopers.length} of {filteredDevelopers.length} developers</p>
+          {filteredDevelopers.length !== developers.length && (
+            <p>{developers.length} total in directory</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedDevelopers.map((dev, index) => (
+            <motion.div
+              key={dev.userId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${
+                dev.isCurrentUser
+                  ? 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-400 dark:ring-purple-500'
+                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+              }`}
             >
-              Clear all
+              {dev.isCurrentUser && (
+                <div className="mb-3 -mt-2 -mx-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 rounded-full">
+                    ⭐ This is you
+                  </span>
+                </div>
+              )}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <img
+                    src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
+                    alt={dev.name || 'Developer'}
+                    className={`w-12 h-12 rounded-full ${dev.isCurrentUser ? 'ring-2 ring-purple-400' : ''}`}
+                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
+                    <p className="text-xs text-gray-500 dark:text-white">
+                      {dev.institute || dev.college || 'Not specified'} • {
+                        dev.yearOfStudy ?
+                          (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`)
+                          : (dev.year || 'Student')
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-sm font-semibold">#{dev.combinedRank || 'N/A'}</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-white mb-4">{dev.bio || 'About yourself'}</p>
+
+              <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(0, 173, 181, 0.1)' }}>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="text-center">
+                    <p className="text-gray-500 dark:text-gray-400">Roadmap</p>
+                    <p className="font-bold text-gray-900 dark:text-white">{dev.roadmapTopicsCompleted || 0}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">topics</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-500 dark:text-gray-400">CodeArena</p>
+                    <p className="font-bold text-gray-900 dark:text-white">{dev.challenges_solved || 0}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">solved</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-500 dark:text-gray-400">Creator</p>
+                    <p className="font-bold text-gray-900 dark:text-white">{dev.creatorTasksCompleted || 0}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">tasks</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
+                <div className="flex flex-wrap gap-1">
+                  {(dev.skills || []).length > 0 ? (
+                    <>
+                      {(dev.skills || []).slice(0, 3).map((skill: string) => (
+                        <span
+                          key={skill}
+                          className="text-xs px-2 py-1 rounded-full"
+                          style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {(dev.skills || []).length > 3 && (
+                        <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
+                          +{(dev.skills || []).length - 3}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-sm text-gray-400 dark:text-gray-500">No skills added</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">
+                  {dev.lookingFor || 'Open to opportunities'}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-300 line-clamp-2">{dev.lookingForDetails || 'Looking to connect with other developers'}</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                {dev.isCurrentUser ? (
+                  <button
+                    onClick={() => toast.success('Check your profile in Profile section!')}
+                    className="flex-1 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    ⭐ Your Profile
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setSelectedChat(dev.userId);
+                      setActiveTab('messages');
+                    }}
+                    className="flex-1 px-3 py-2 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:opacity-90 flex items-center justify-center gap-2"
+                    style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
+                    <MessageSquare className="w-4 h-4" />
+                    Message
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setActiveTab('reviews');
+                    toast.success(`Check out reviews shared by the community!`);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
+                  <Star className="w-4 h-4" />
+                  Reviews
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {canLoadMore && (
+          <div className="text-center mt-8">
+            <button
+              onClick={() => setDisplayLimit(prev => prev + 12)}
+              className="px-8 py-3 text-white rounded-lg transition-all shadow-lg hover:opacity-90 font-semibold"
+              style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+            >
+              Load More ({filteredDevelopers.length - displayLimit} remaining)
             </button>
           </div>
         )}
-      </div>
 
-      {/* Results count */}
-      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-white">
-        <p>Showing {displayedDevelopers.length} of {filteredDevelopers.length} developers</p>
-        {filteredDevelopers.length !== developers.length && (
-          <p>{developers.length} total in directory</p>
+        {filteredDevelopers.length === 0 && (
+          <div className="text-center py-12">
+            <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No developers found</h3>
+            <p className="text-gray-600 dark:text-white">Try adjusting your filters</p>
+          </div>
         )}
       </div>
-
-      {/* Developer Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedDevelopers.map((dev, index) => (
-          <motion.div
-            key={dev.userId}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${
-              dev.isCurrentUser
-                ? 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-400 dark:ring-purple-500'
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-            }`}
-          >
-            {/* Current User Badge */}
-            {dev.isCurrentUser && (
-              <div className="mb-3 -mt-2 -mx-2">
-                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 rounded-full">
-                  ⭐ This is you
-                </span>
-              </div>
-            )}
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3 flex-1">
-                <img
-                  src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
-                  alt={dev.name || 'Developer'}
-                  className={`w-12 h-12 rounded-full ${dev.isCurrentUser ? 'ring-2 ring-purple-400' : ''}`}
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
-                  <p className="text-xs text-gray-500 dark:text-white">
-                    {dev.institute || dev.college || 'Not specified'} • {
-                      dev.yearOfStudy ?
-                        (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`)
-                        : (dev.year || 'Student')
-                    }
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-sm font-semibold">#{dev.combinedRank || 'N/A'}</span>
-              </div>
-            </div>
-
-            {/* Bio */}
-            <p className="text-sm text-gray-600 dark:text-white mb-4">{dev.bio || 'About yourself'}</p>
-
-            {/* Stats Grid - 3 columns */}
-            <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(0, 173, 181, 0.1)' }}>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="text-center">
-                  <p className="text-gray-500 dark:text-gray-400">Roadmap</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.roadmapTopicsCompleted || 0}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500">topics</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-gray-500 dark:text-gray-400">CodeArena</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.challenges_solved || 0}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500">solved</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-gray-500 dark:text-gray-400">Creator</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{dev.creatorTasksCompleted || 0}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500">tasks</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Skills */}
-            <div className="mb-4">
-              <p className="text-sm font-semibold text-gray-700 dark:text-white mb-2">Skills</p>
-              <div className="flex flex-wrap gap-1">
-                {(dev.skills || []).length > 0 ? (
-                  <>
-                    {(dev.skills || []).slice(0, 3).map((skill: string) => (
-                      <span
-                        key={skill}
-                        className="text-xs px-2 py-1 rounded-full"
-                        style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                    {(dev.skills || []).length > 3 && (
-                      <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-full">
-                        +{(dev.skills || []).length - 3}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-sm text-gray-400 dark:text-gray-500">No skills added</span>
-                )}
-              </div>
-            </div>
-
-            {/* Looking For */}
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">
-                {dev.lookingFor || 'Open to opportunities'}
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-300 line-clamp-2">{dev.lookingForDetails || 'Looking to connect with other developers'}</p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              {dev.isCurrentUser ? (
-                <button
-                  onClick={() => toast.success('Check your profile in Profile section!')}
-                  className="flex-1 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  ⭐ Your Profile
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setSelectedChat(dev.userId);
-                    setActiveTab('messages');
-                  }}
-                  className="flex-1 px-3 py-2 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:opacity-90 flex items-center justify-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
-                  <MessageSquare className="w-4 h-4" />
-                  Message
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setActiveTab('reviews');
-                  toast.success(`Check out reviews shared by the community!`);
-                }}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white text-sm font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
-                <Star className="w-4 h-4" />
-                Reviews
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Load More Button */}
-      {canLoadMore && (
-        <div className="text-center mt-8">
-          <button
-            onClick={() => setDisplayLimit(prev => prev + 12)}
-            className="px-8 py-3 text-white rounded-lg transition-all shadow-lg hover:opacity-90 font-semibold"
-            style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
-          >
-            Load More ({filteredDevelopers.length - displayLimit} remaining)
-          </button>
-        </div>
-      )}
-
-      {filteredDevelopers.length === 0 && (
-        <div className="text-center py-12">
-          <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No developers found</h3>
-          <p className="text-gray-600 dark:text-white">Try adjusting your filters</p>
-        </div>
-      )}
-    </div>
     );
   };
 
   const renderMessages = () => {
-    // Get selected developer info
     const selectedDev = selectedChat ? developers.find(d => d.userId === selectedChat) : null;
 
-    // Emit typing indicator
     const emitTyping = () => {
       const socket = getSocket();
       if (socket && chatId && user) {
@@ -1253,7 +1140,6 @@ export default function DeveloperConnect() {
       }
     };
 
-    // Emit stop typing
     const emitStopTyping = () => {
       const socket = getSocket();
       if (socket && chatId && user) {
@@ -1261,7 +1147,6 @@ export default function DeveloperConnect() {
       }
     };
 
-    // Mark messages as read when viewing (called directly, not in useEffect)
     const markMessagesAsRead = () => {
       const socket = getSocket();
       if (socket && chatId && user) {
@@ -1269,16 +1154,13 @@ export default function DeveloperConnect() {
         unreadMessages.forEach(msg => {
           socket.emit('markAsRead', { messageId: msg.id, chatId, readBy: user.id });
         });
-        // Clear unread count for this conversation
         if (selectedChat) {
           setUnreadCounts(prev => ({ ...prev, [selectedChat]: 0 }));
         }
       }
     };
 
-    // Call markMessagesAsRead when there are messages and a chat is selected
     if (selectedChat && messages.length > 0 && chatId) {
-      // Use setTimeout to avoid calling during render
       setTimeout(() => markMessagesAsRead(), 100);
     }
 
@@ -1290,10 +1172,8 @@ export default function DeveloperConnect() {
       const tempId = `temp-${Date.now()}`;
       setNewMessage('');
 
-      // Set initial status as 'sent'
       setMessageStatus(prev => ({ ...prev, [tempId]: 'sent' }));
 
-      // Optimistically add message to UI immediately
       const optimisticMessage = {
         id: tempId,
         senderId: user.id,
@@ -1308,7 +1188,6 @@ export default function DeveloperConnect() {
       setMessages(prev => [...prev, optimisticMessage]);
 
       try {
-        // Send message to server - socket will broadcast to other users
         const response = await apiRequest(`/chats/${chatId}/messages`, {
           method: 'POST',
           body: JSON.stringify({
@@ -1319,12 +1198,10 @@ export default function DeveloperConnect() {
           }),
         });
 
-        // Update the optimistic message with the real ID from server
         if (response?.id) {
           setMessages(prev => prev.map(m =>
             m.id === tempId ? { ...m, id: response.id } : m
           ));
-          // Update status to delivered
           setMessageStatus(prev => {
             const newStatus = { ...prev };
             delete newStatus[tempId];
@@ -1334,7 +1211,6 @@ export default function DeveloperConnect() {
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        // Restore message to input and remove from list on error
         setNewMessage(messageContent);
         setMessages(prev => prev.filter(m => m.id !== tempId));
         toast.error('Failed to send message. Please try again.');
@@ -1374,7 +1250,6 @@ export default function DeveloperConnect() {
       }
     };
 
-    // Handle input change with typing indicator
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setNewMessage(e.target.value);
       if (e.target.value.trim()) {
@@ -1386,9 +1261,8 @@ export default function DeveloperConnect() {
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px] lg:h-[650px]">
-        {/* Left Side - Users/Conversations List - Hidden on mobile when chat is selected */}
+        {/* Left Side - Conversations List */}
         <div className={`lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-lg ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
-          {/* Header with gradient */}
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-cyan-50/50 via-white to-cyan-50/50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
             <div className="flex items-center justify-between">
               <div>
@@ -1400,7 +1274,6 @@ export default function DeveloperConnect() {
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-10">{conversations.length} active</p>
               </div>
-              {/* Connection Status */}
               <motion.div
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
@@ -1420,7 +1293,6 @@ export default function DeveloperConnect() {
             </div>
           </div>
 
-          {/* Conversation list */}
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
               <div className="p-8 text-center">
@@ -1443,7 +1315,6 @@ export default function DeveloperConnect() {
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
-                  {/* Selected indicator */}
                   {selectedChat === conv.participantId && (
                     <motion.div
                       layoutId="selectedConv"
@@ -1462,11 +1333,9 @@ export default function DeveloperConnect() {
                             : 'ring-1 ring-gray-200 dark:ring-gray-600'
                         }`}
                       />
-                      {/* Online status indicator */}
                       <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-gray-800 ${
                         onlineUsers.has(conv.participantId) ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500'
                       }`}></div>
-                      {/* Unread badge */}
                       {unreadCounts[conv.participantId] > 0 && (
                         <motion.div
                           initial={{ scale: 0 }}
@@ -1512,10 +1381,9 @@ export default function DeveloperConnect() {
           </div>
         </div>
 
-        {/* Right Side - Chat Area - Full width on mobile when chat selected, hidden otherwise on mobile */}
+        {/* Right Side - Chat Area */}
         <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden ${selectedChat ? 'flex' : 'hidden lg:flex'}`}>
           {!selectedChat || !selectedDev ? (
-            // No chat selected - show premium welcome message
             <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-cyan-50/30 via-white to-cyan-50/30 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
               <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -1523,7 +1391,6 @@ export default function DeveloperConnect() {
                 transition={{ duration: 0.5, type: 'spring' }}
                 className="text-center p-8 max-w-md"
               >
-                {/* Animated icon */}
                 <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
@@ -1553,11 +1420,10 @@ export default function DeveloperConnect() {
             </div>
           ) : (
             <>
-              {/* Chat Header - Enhanced */}
+              {/* Chat Header */}
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {/* Back button for mobile */}
                     <button
                       onClick={() => setSelectedChat(null)}
                       className="lg:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -1581,21 +1447,9 @@ export default function DeveloperConnect() {
                           className="text-xs text-[#00ADB5] font-medium flex items-center gap-1"
                         >
                           <span className="flex gap-0.5">
-                            <motion.span
-                              animate={{ y: [0, -3, 0] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
-                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
-                            />
-                            <motion.span
-                              animate={{ y: [0, -3, 0] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
-                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
-                            />
-                            <motion.span
-                              animate={{ y: [0, -3, 0] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
-                              className="w-1 h-1 bg-[#00ADB5] rounded-full"
-                            />
+                            <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1 h-1 bg-[#00ADB5] rounded-full" />
+                            <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1 h-1 bg-[#00ADB5] rounded-full" />
+                            <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1 h-1 bg-[#00ADB5] rounded-full" />
                           </span>
                           typing...
                         </motion.p>
@@ -1605,15 +1459,12 @@ export default function DeveloperConnect() {
                             ? 'text-emerald-600 dark:text-emerald-400'
                             : 'text-gray-500 dark:text-gray-400'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            onlineUsers.has(selectedDev.userId) ? 'bg-emerald-500' : 'bg-gray-400'
-                          }`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${onlineUsers.has(selectedDev.userId) ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
                           {onlineUsers.has(selectedDev.userId) ? 'Online' : 'Offline'}
                         </p>
                       )}
                     </div>
                   </div>
-                  {/* Connection Status Badge - Hidden on mobile */}
                   <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm ${
                     socketConnected
                       ? 'bg-emerald-50/80 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700'
@@ -1631,14 +1482,10 @@ export default function DeveloperConnect() {
                 </div>
               </div>
 
-              {/* Messages Container - Enhanced */}
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3 sm:space-y-4 bg-gray-50 dark:bg-gray-900">
                 {loadingMessages ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center h-full"
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-full">
                     <div className="relative">
                       <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700" style={{ borderTopColor: '#00ADB5' }}></div>
                       <MessageSquare className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500" />
@@ -1646,11 +1493,7 @@ export default function DeveloperConnect() {
                     <div className="text-gray-500 text-sm mt-4">Loading messages...</div>
                   </motion.div>
                 ) : messages.length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col items-center justify-center h-full"
-                  >
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center h-full">
                     <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00ADB5]/20 to-[#00ADB5]/10 dark:from-[#00ADB5]/20 dark:to-[#00ADB5]/10 flex items-center justify-center mb-4 border border-[#00ADB5]/20">
                       <span className="text-4xl">👋</span>
                     </div>
@@ -1659,7 +1502,6 @@ export default function DeveloperConnect() {
                   </motion.div>
                 ) : (
                   <>
-                    {/* Date separator for first message */}
                     <div className="flex items-center justify-center mb-4">
                       <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm">
                         {messages[0]?.createdAt
@@ -1731,7 +1573,6 @@ export default function DeveloperConnect() {
                                         ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                         : new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
-                                    {/* Read receipt indicators for sent messages */}
                                     {isMe && (
                                       <span className="text-[10px] text-cyan-100 ml-1">
                                         {status === 'read' ? (
@@ -1746,7 +1587,6 @@ export default function DeveloperConnect() {
                                   </div>
                                 </motion.div>
 
-                                {/* Edit/Delete menu for own messages */}
                                 {isMe && !msg.id.startsWith('temp-') && (
                                   <div className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                     <button
@@ -1781,7 +1621,6 @@ export default function DeveloperConnect() {
                     })}
                     <div ref={messagesEndRef} />
 
-                    {/* Typing indicator at bottom */}
                     {typingUser && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -1791,21 +1630,9 @@ export default function DeveloperConnect() {
                       >
                         <div className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-md shadow-sm">
                           <div className="flex items-center gap-1">
-                            <motion.div
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
-                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
-                            />
-                            <motion.div
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
-                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
-                            />
-                            <motion.div
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
-                              className="w-2 h-2 bg-[#00ADB5] rounded-full"
-                            />
+                            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 bg-[#00ADB5] rounded-full" />
+                            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-2 h-2 bg-[#00ADB5] rounded-full" />
+                            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-2 h-2 bg-[#00ADB5] rounded-full" />
                           </div>
                         </div>
                       </motion.div>
@@ -1814,9 +1641,8 @@ export default function DeveloperConnect() {
                 )}
               </div>
 
-              {/* Message Input - Premium Design */}
+              {/* Message Input */}
               <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                {/* Typing indicator above input */}
                 {newMessage.trim() && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
@@ -1827,7 +1653,6 @@ export default function DeveloperConnect() {
                   </motion.p>
                 )}
                 <div className="flex gap-2 sm:gap-3 items-center bg-gray-50 dark:bg-gray-900 rounded-2xl p-1.5 sm:p-2 shadow-sm border border-gray-200 dark:border-gray-700 transition-all focus-within:border-[#00ADB5] focus-within:ring-2 focus-within:ring-[#00ADB5]/20">
-                  {/* Emoji button placeholder - hidden on mobile */}
                   <button className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1846,7 +1671,6 @@ export default function DeveloperConnect() {
                     onBlur={() => emitStopTyping()}
                     className="flex-1 px-2 py-2 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none text-sm"
                   />
-                  {/* Attachment button placeholder - hidden on mobile */}
                   <button className="hidden sm:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -1870,7 +1694,6 @@ export default function DeveloperConnect() {
                     <Send className="w-5 h-5" />
                   </motion.button>
                 </div>
-                {/* Status footer - hidden on mobile */}
                 <div className="hidden sm:flex items-center justify-center gap-2 mt-2">
                   {socketConnected ? (
                     <p className="text-[10px] text-gray-400 flex items-center gap-1">
@@ -1893,7 +1716,6 @@ export default function DeveloperConnect() {
   };
 
   const renderGroups = () => {
-    // If a group is selected, show group details
     if (selectedGroup) {
       const isMember = selectedGroup.members?.some((m: any) => m.userId === user?.id);
       const isAdmin = selectedGroup.members?.some((m: any) => m.userId === user?.id && (m.role === 'admin' || m.role === 'creator'));
@@ -1996,47 +1818,62 @@ export default function DeveloperConnect() {
               </div>
             )}
 
-            {/* Members List */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Members</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {selectedGroup.members?.map((member: any) => (
-                  <div key={member.userId} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <img
-                      src={member.avatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${member.name}`}
-                      alt={member.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{member.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-white">
-                        {member.role === 'creator' ? '👑 Creator' : member.role === 'admin' ? '⭐ Admin' : 'Member'}
-                      </p>
-                    </div>
-                    {/* Remove member button - only for admin/owner, can't remove creator */}
-                    {isAdmin && member.role !== 'creator' && member.userId !== user?.id && (
-                      <button
-                        onClick={async () => {
-                          if (window.confirm(`Remove ${member.name} from the group?`)) {
-                            try {
-                              const updatedGroup = await removeMember(selectedGroup.id, member.userId);
-                              setSelectedGroup(updatedGroup);
-                              const groups = await getAllStudyGroups();
-                              setStudyGroups(groups);
-                              toast.success(`${member.name} has been removed from the group`);
-                            } catch (error: any) {
-                              toast.error(error?.message || 'Failed to remove member');
+            {/* ✅ CHANGED: Members - Compact Avatar Row (replaces old grid layout) */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  👥 {selectedGroup.members?.length || 0} Members:
+                </span>
+                <div className="flex items-center flex-wrap gap-1">
+                  {selectedGroup.members?.map((member: any) => (
+                    <div key={member.userId} className="relative group/member flex-shrink-0">
+                      <div className="relative">
+                        <img
+                          src={member.avatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${member.name}`}
+                          alt={member.name}
+                          className={`w-8 h-8 rounded-full border-2 transition-transform group-hover/member:scale-110 ${
+                            member.role === 'creator' ? 'border-yellow-400' :
+                            member.role === 'admin' ? 'border-blue-400' :
+                            'border-white dark:border-gray-700'
+                          }`}
+                          title={`${member.name}${member.role === 'creator' ? ' (Creator)' : member.role === 'admin' ? ' (Admin)' : ''}`}
+                        />
+                        {(member.role === 'creator' || member.role === 'admin') && (
+                          <span className="absolute -top-1 -right-1 text-[10px] leading-none">
+                            {member.role === 'creator' ? '👑' : '⭐'}
+                          </span>
+                        )}
+                      </div>
+                      {/* Tooltip on hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover/member:opacity-100 transition-opacity pointer-events-none z-10">
+                        {member.name}
+                        {member.role === 'creator' ? ' · Creator' : member.role === 'admin' ? ' · Admin' : ''}
+                      </div>
+                      {/* Remove button for admin - appears on hover */}
+                      {isAdmin && member.role !== 'creator' && member.userId !== user?.id && (
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Remove ${member.name} from the group?`)) {
+                              try {
+                                const updatedGroup = await removeMember(selectedGroup.id, member.userId);
+                                setSelectedGroup(updatedGroup);
+                                const groups = await getAllStudyGroups();
+                                setStudyGroups(groups);
+                                toast.success(`${member.name} has been removed`);
+                              } catch (error: any) {
+                                toast.error(error?.message || 'Failed to remove member');
+                              }
                             }
-                          }
-                        }}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Remove member"
-                      >
-                        <UserMinus className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                          }}
+                          className="absolute -top-1 -left-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover/member:opacity-100 transition-opacity flex items-center justify-center text-[10px] leading-none z-10"
+                          title="Remove member"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -2049,7 +1886,7 @@ export default function DeveloperConnect() {
                     Group Discussion
                   </h3>
 
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4 h-64 overflow-y-auto">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4 h-[480px] overflow-y-auto">
                     {groupMessages.length === 0 ? (
                       <p className="text-gray-500 text-center text-sm py-8">No messages yet. Start the conversation!</p>
                     ) : (
@@ -2088,7 +1925,6 @@ export default function DeveloperConnect() {
                           const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
                           const tempId = `temp-${Date.now()}`;
 
-                          // Optimistically add message immediately
                           const optimisticMsg = {
                             id: tempId,
                             name: senderName,
@@ -2104,14 +1940,9 @@ export default function DeveloperConnect() {
                           try {
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
-                              body: JSON.stringify({
-                                message: messageText,
-                                senderName,
-                                senderAvatar
-                              })
+                              body: JSON.stringify({ message: messageText, senderName, senderAvatar })
                             });
 
-                            // Update with real ID
                             if (response.message) {
                               setGroupMessages(prev => prev.map(m =>
                                 m.id === tempId ? response.message : m
@@ -2136,7 +1967,6 @@ export default function DeveloperConnect() {
                           const senderAvatar = userprofile?.avatar || userprofile?.avatrUrl || '';
                           const tempId = `temp-${Date.now()}`;
 
-                          // Optimistically add message immediately
                           const optimisticMsg = {
                             id: tempId,
                             name: senderName,
@@ -2152,14 +1982,9 @@ export default function DeveloperConnect() {
                           try {
                             const response = await apiRequest(`/study-groups/${selectedGroup.id}/messages`, {
                               method: 'POST',
-                              body: JSON.stringify({
-                                message: messageText,
-                                senderName,
-                                senderAvatar
-                              })
+                              body: JSON.stringify({ message: messageText, senderName, senderAvatar })
                             });
 
-                            // Update with real ID
                             if (response.message) {
                               setGroupMessages(prev => prev.map(m =>
                                 m.id === tempId ? response.message : m
@@ -2181,30 +2006,7 @@ export default function DeveloperConnect() {
                   </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Resources & Schedule</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
-                      <Plus className="w-6 h-6 mx-auto mb-2" />
-                      <p className="text-sm font-semibold">Share Resource</p>
-                    </button>
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
-                      <Plus className="w-6 h-6 mx-auto mb-2" />
-                      <p className="text-sm font-semibold">Schedule Session</p>
-                    </button>
-                    <button className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors text-gray-600 dark:text-white"
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#00ADB5'; e.currentTarget.style.backgroundColor = 'rgba(0, 173, 181, 0.1)'; e.currentTarget.style.color = '#00ADB5'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}>
-                      <Plus className="w-6 h-6 mx-auto mb-2" />
-                      <p className="text-sm font-semibold">Set Goal</p>
-                    </button>
-                  </div>
-                </div>
+
               </>
             ) : (
               <div className="text-center py-8 border-t border-gray-200 dark:border-gray-700">
@@ -2227,7 +2029,6 @@ export default function DeveloperConnect() {
                             const userAvatar = userprofile?.avatrUrl || '';
                             const response = await requestJoinStudyGroup(selectedGroup.id, userName, userAvatar);
 
-                            // Update the group with the new joinRequest
                             if (response.group) {
                               setSelectedGroup(response.group);
                               const groups = await getAllStudyGroups();
@@ -2261,7 +2062,6 @@ export default function DeveloperConnect() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Study Groups</h3>
 
-          {/* Search Bar */}
           <div className="relative flex-1 max-w-md mx-0 sm:mx-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -2292,129 +2092,127 @@ export default function DeveloperConnect() {
 
         {/* Create Group Modal */}
         {showCreateGroup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Group Name</label>
-                <input
-                  type="text"
-                  value={newGroupData.name}
-                  onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
-                  placeholder="DSA Interview Prep"
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Group Name</label>
+                  <input
+                    type="text"
+                    value={newGroupData.name}
+                    onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
+                    placeholder="DSA Interview Prep"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Description</label>
+                  <textarea
+                    value={newGroupData.description}
+                    onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
+                    placeholder="Daily DSA practice and mock interviews"
+                    rows={3}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Topic</label>
+                  <select
+                    value={newGroupData.topic}
+                    onChange={(e) => setNewGroupData({...newGroupData, topic: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select Topic</option>
+                    <option value="DSA">Data Structures & Algorithms</option>
+                    <option value="Web Dev">Web Development</option>
+                    <option value="Mobile">Mobile Development</option>
+                    <option value="AI/ML">AI & Machine Learning</option>
+                    <option value="System Design">System Design</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Level</label>
+                  <select
+                    value={newGroupData.level}
+                    onChange={(e) => setNewGroupData({...newGroupData, level: e.target.value as any})}
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Max Members</label>
+                  <input
+                    type="number"
+                    value={newGroupData.maxMembers}
+                    onChange={(e) => setNewGroupData({...newGroupData, maxMembers: parseInt(e.target.value)})}
+                    min="2"
+                    max="50"
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Description</label>
-                <textarea
-                  value={newGroupData.description}
-                  onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
-                  placeholder="Daily DSA practice and mock interviews"
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                />
-              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={async () => {
+                    if (newGroupData.name && newGroupData.topic && user) {
+                      try {
+                        const newGroup = await createStudyGroup({
+                          ...newGroupData,
+                          creatorId: user.id,
+                          creatorName: userprofile?.displayName || userprofile?.name || user.name || 'User',
+                          creatorAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
+                          members: [{
+                            userId: user.id,
+                            name: userprofile?.displayName || userprofile?.name || user.name || 'User',
+                            avatar: userprofile?.avatar || userprofile?.avatrUrl || '',
+                            joinedAt: new Date(),
+                            role: 'creator' as const
+                          }]
+                        });
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Topic</label>
-                <select
-                  value={newGroupData.topic}
-                  onChange={(e) => setNewGroupData({...newGroupData, topic: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                >
-                  <option value="">Select Topic</option>
-                  <option value="DSA">Data Structures & Algorithms</option>
-                  <option value="Web Dev">Web Development</option>
-                  <option value="Mobile">Mobile Development</option>
-                  <option value="AI/ML">AI & Machine Learning</option>
-                  <option value="System Design">System Design</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+                        if (newGroup) {
+                          setStudyGroups(prev => [newGroup, ...prev]);
+                        }
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Level</label>
-                <select
-                  value={newGroupData.level}
-                  onChange={(e) => setNewGroupData({...newGroupData, level: e.target.value as any})}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                >
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                </select>
-              </div>
+                        const groups = await getAllStudyGroups();
+                        if (groups && groups.length > 0) {
+                          setStudyGroups(groups);
+                        }
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-white mb-1">Max Members</label>
-                <input
-                  type="number"
-                  value={newGroupData.maxMembers}
-                  onChange={(e) => setNewGroupData({...newGroupData, maxMembers: parseInt(e.target.value)})}
-                  min="2"
-                  max="50"
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={async () => {
-                  if (newGroupData.name && newGroupData.topic && user) {
-                    try {
-                      const newGroup = await createStudyGroup({
-                        ...newGroupData,
-                        creatorId: user.id,
-                        creatorName: userprofile?.displayName || userprofile?.name || user.name || 'User',
-                        creatorAvatar: userprofile?.avatar || userprofile?.avatrUrl || '',
-                        members: [{
-                          userId: user.id,
-                          name: userprofile?.displayName || userprofile?.name || user.name || 'User',
-                          avatar: userprofile?.avatar || userprofile?.avatrUrl || '',
-                          joinedAt: new Date(),
-                          role: 'creator' as const
-                        }]
-                      });
-
-                      // Immediately add the new group to state for instant visibility
-                      if (newGroup) {
-                        setStudyGroups(prev => [newGroup, ...prev]);
+                        setShowCreateGroup(false);
+                        setNewGroupData({name: '', description: '', topic: '', level: 'Beginner', maxMembers: 10});
+                        toast.success('Study group created successfully!');
+                      } catch (error) {
+                        console.error('Error creating group:', error);
+                        toast.error('Failed to create group. Please try again.');
                       }
-
-                      // Also reload groups from server to ensure sync
-                      const groups = await getAllStudyGroups();
-                      if (groups && groups.length > 0) {
-                        setStudyGroups(groups);
-                      }
-
-                      setShowCreateGroup(false);
-                      setNewGroupData({name: '', description: '', topic: '', level: 'Beginner', maxMembers: 10});
-                      toast.success('Study group created successfully!');
-                    } catch (error) {
-                      console.error('Error creating group:', error);
-                      toast.error('Failed to create group. Please try again.');
                     }
-                  }
-                }}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Create Group
-              </button>
-              <button
-                onClick={() => setShowCreateGroup(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Create Group
+                </button>
+                <button
+                  onClick={() => setShowCreateGroup(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Study Groups Grid */}
         {(() => {
@@ -2455,90 +2253,89 @@ export default function DeveloperConnect() {
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredGroups.map((group) => (
-            <div key={group.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h4 className="font-bold text-gray-900 dark:text-white mb-1">{group.name}</h4>
-                  <p className="text-xs text-gray-500 dark:text-white">by {group.creatorName}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    group.level === 'Beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                    group.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  }`}>
-                    {group.level}
-                  </span>
-                  {group.creatorId === user?.id && (
-                    <button
-                      onClick={async () => {
-                        if (window.confirm('Are you sure you want to delete this study group?')) {
-                          try {
-                            await deleteStudyGroup(group.id);
-                            const groups = await getAllStudyGroups();
-                            setStudyGroups(groups);
-                          } catch (error) {
-                            console.error('Error deleting group:', error);
-                            alert('Failed to delete group. Please try again.');
-                          }
-                        }
-                      }}
-                      className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                      title="Delete group"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{group.description}</p>
-
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
-                  {group.topic}
-                </span>
-              </div>
-
-              {/* Members Preview */}
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Members ({group.members?.length || 0})</p>
-                <div className="flex items-center gap-1">
-                  {group.members?.slice(0, 5).map((member: any, idx: number) => (
-                    <img
-                      key={member.userId}
-                      src={member.avatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${member.name}`}
-                      alt={member.name}
-                      className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800"
-                      title={member.name}
-                      style={{ marginLeft: idx > 0 ? '-8px' : '0' }}
-                    />
-                  ))}
-                  {(group.members?.length || 0) > 5 && (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-white" style={{ marginLeft: '-8px' }}>
-                      +{(group.members?.length || 0) - 5}
+                <div key={group.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-1">{group.name}</h4>
+                      <p className="text-xs text-gray-500 dark:text-white">by {group.creatorName}</p>
                     </div>
-                  )}
-                  {(!group.members || group.members.length === 0) && (
-                    <p className="text-xs text-gray-500">No members yet</p>
-                  )}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        group.level === 'Beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        group.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {group.level}
+                      </span>
+                      {group.creatorId === user?.id && (
+                        <button
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete this study group?')) {
+                              try {
+                                await deleteStudyGroup(group.id);
+                                const groups = await getAllStudyGroups();
+                                setStudyGroups(groups);
+                              } catch (error) {
+                                console.error('Error deleting group:', error);
+                                alert('Failed to delete group. Please try again.');
+                              }
+                            }
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                          title="Delete group"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{group.description}</p>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(0, 173, 181, 0.15)', color: '#00ADB5' }}>
+                      {group.topic}
+                    </span>
+                  </div>
+
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Members ({group.members?.length || 0})</p>
+                    <div className="flex items-center gap-1">
+                      {group.members?.slice(0, 5).map((member: any, idx: number) => (
+                        <img
+                          key={member.userId}
+                          src={member.avatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${member.name}`}
+                          alt={member.name}
+                          className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800"
+                          title={member.name}
+                          style={{ marginLeft: idx > 0 ? '-8px' : '0' }}
+                        />
+                      ))}
+                      {(group.members?.length || 0) > 5 && (
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-white" style={{ marginLeft: '-8px' }}>
+                          +{(group.members?.length || 0) - 5}
+                        </div>
+                      )}
+                      {(!group.members || group.members.length === 0) && (
+                        <p className="text-xs text-gray-500">No members yet</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-white mb-4">
+                    <span>{group.members?.length || 0} / {group.maxMembers} members</span>
+                    <span className="text-gray-400">Created {formatTimestamp(group.createdAt)}</span>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedGroup(group)}
+                    className="w-full px-4 py-2 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
+                  >
+                    View Details
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-white mb-4">
-                <span>{group.members?.length || 0} / {group.maxMembers} members</span>
-                <span className="text-gray-400">Created {formatTimestamp(group.createdAt)}</span>
-              </div>
-
-              <button
-                onClick={() => setSelectedGroup(group)}
-                className="w-full px-4 py-2 text-white rounded-lg transition-all text-sm font-semibold shadow-md hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}
-              >
-                View Details
-              </button>
-            </div>
-          ))}
+              ))}
             </div>
           );
         })()}
@@ -2546,7 +2343,6 @@ export default function DeveloperConnect() {
     );
   };
 
-  // Handle submitting new review
   const handleSubmitReview = async () => {
     if (!newReviewData.website || !newReviewData.title || !newReviewData.content) {
       toast.error('Please fill in required fields (Website, Title, Review)');
@@ -2554,7 +2350,6 @@ export default function DeveloperConnect() {
     }
 
     try {
-      // Get user avatar - check for non-empty values
       const avatarUrl = getUserAvatar(userprofile, user?.id);
 
       const reviewPayload = {
@@ -2572,7 +2367,6 @@ export default function DeveloperConnect() {
         cons: newReviewData.cons.split(',').map(c => c.trim()).filter(Boolean),
         timestamp: new Date().toISOString(),
         likes: 0,
-
         helpful: 0
       };
 
@@ -2584,7 +2378,6 @@ export default function DeveloperConnect() {
       if (response.review) {
         setTechReviews(prev => [response.review, ...prev]);
       } else {
-        // Optimistic update if backend doesn't return the review
         setTechReviews(prev => [{ ...reviewPayload, id: `temp-${Date.now()}` }, ...prev]);
       }
 
@@ -2597,7 +2390,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle submitting help request
   const handleSubmitRequest = async () => {
     if (!newRequestData.title || !newRequestData.description) {
       toast.error('Please fill in title and description');
@@ -2636,7 +2428,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle like review
   const handleLikeReview = async (reviewId: string) => {
     try {
       const response = await apiRequest(`/developers/tech-reviews/${reviewId}/like`, { method: 'POST' });
@@ -2656,7 +2447,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle mark helpful
   const handleMarkHelpful = async (reviewId: string) => {
     try {
       await apiRequest(`/developers/tech-reviews/${reviewId}/helpful`, { method: 'POST' });
@@ -2667,7 +2457,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle delete review
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm('Are you sure you want to delete this review?')) return;
     try {
@@ -2680,7 +2469,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle delete help request
   const handleDeleteRequest = async (requestId: string) => {
     if (!window.confirm('Are you sure you want to delete this request?')) return;
     try {
@@ -2693,7 +2481,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Handle submitting reply to help request
   const handleSubmitReply = async () => {
     if (!replyText.trim() || !selectedRequest) {
       toast.error('Please enter your reply');
@@ -2712,7 +2499,6 @@ export default function DeveloperConnect() {
         body: JSON.stringify(replyData)
       });
 
-      // Update local state with new reply
       setHelpRequests(prev => prev.map(r =>
         r.id === selectedRequest.id
           ? {
@@ -2723,7 +2509,6 @@ export default function DeveloperConnect() {
           : r
       ));
 
-      // Update selectedRequest to show the new reply immediately
       setSelectedRequest((prev: any) => prev ? {
         ...prev,
         responses: response.responses || (prev.responses || 0) + 1,
@@ -2738,7 +2523,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Fetch replies for a request
   const fetchReplies = async (requestId: string) => {
     try {
       const response = await apiRequest(`/developers/help-requests/${requestId}/replies`);
@@ -2749,7 +2533,6 @@ export default function DeveloperConnect() {
     }
   };
 
-  // Filter reviews based on search
   const filteredReviews = techReviews.filter(review =>
     review.website?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
     review.title?.toLowerCase().includes(reviewSearch.toLowerCase()) ||
@@ -2764,7 +2547,6 @@ export default function DeveloperConnect() {
 
   const renderTechReviews = () => (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg" style={{ background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)' }}>
@@ -2795,7 +2577,6 @@ export default function DeveloperConnect() {
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="relative">
         <Search className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
         <input
@@ -2808,7 +2589,6 @@ export default function DeveloperConnect() {
         />
       </div>
 
-      {/* Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1 flex gap-2">
         <button
           onClick={() => setReviewsActiveTab('reviews')}
@@ -2836,7 +2616,6 @@ export default function DeveloperConnect() {
         </button>
       </div>
 
-      {/* Reviews Tab */}
       {reviewsActiveTab === 'reviews' && (
         <div className="space-y-4">
           {filteredReviews.length === 0 ? (
@@ -2901,7 +2680,6 @@ export default function DeveloperConnect() {
                         )}
                       </div>
 
-                      {/* Rating Stars */}
                       <div className="flex gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -2914,7 +2692,6 @@ export default function DeveloperConnect() {
                       <h5 className="font-semibold text-gray-900 dark:text-white mb-2">{review.title}</h5>
                       <p className="text-gray-700 dark:text-gray-300 mb-3">{review.content}</p>
 
-                      {/* Pros and Cons */}
                       {((review.pros && review.pros.length > 0) || (review.cons && review.cons.length > 0)) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           {review.pros && review.pros.length > 0 && (
@@ -2940,7 +2717,6 @@ export default function DeveloperConnect() {
                         </div>
                       )}
 
-                      {/* Actions */}
                       <div className="flex items-center gap-6 text-gray-500 pt-3 border-t border-gray-100 dark:border-gray-700">
                         <button
                           onClick={() => handleLikeReview(review.id)}
@@ -2988,7 +2764,6 @@ export default function DeveloperConnect() {
         </div>
       )}
 
-      {/* Help Requests Tab */}
       {reviewsActiveTab === 'requests' && (
         <div className="space-y-4">
           {filteredRequests.length === 0 ? (
@@ -3019,7 +2794,6 @@ export default function DeveloperConnect() {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow overflow-hidden"
                 >
-                  {/* Main Request */}
                   <div className="p-6">
                     <div className="flex items-start gap-4">
                       <button
@@ -3070,10 +2844,6 @@ export default function DeveloperConnect() {
                         )}
 
                         <div className="flex items-center gap-4 text-sm">
-                          {/* <span className="flex items-center gap-2 font-medium" style={{ color: '#00ADB5' }}>
-                            <MessageCircle className="w-4 h-4" />
-                            {totalReplies} {totalReplies === 1 ? 'response' : 'responses'}
-                          </span> */}
                           {request.userId === user?.id && (
                             <button
                               onClick={() => handleDeleteRequest(request.id)}
@@ -3089,9 +2859,7 @@ export default function DeveloperConnect() {
                     </div>
                   </div>
 
-                  {/* Comments Section - Instagram Style Enhanced */}
                   <div className="border-t border-gray-100 dark:border-gray-700/50">
-                    {/* Comments Count */}
                     {totalReplies > 0 && (
                       <div className="px-4 pb-2">
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -3100,7 +2868,6 @@ export default function DeveloperConnect() {
                       </div>
                     )}
 
-                    {/* View all comments link */}
                     {hasMoreReplies && !isExpanded && (
                       <button
                         onClick={async () => {
@@ -3116,7 +2883,6 @@ export default function DeveloperConnect() {
                       </button>
                     )}
 
-                    {/* Comments List - Enhanced Instagram Style */}
                     {displayReplies.length > 0 && (
                       <div className="px-4 py-2 space-y-3">
                         {displayReplies.map((reply: any, index: number) => (
@@ -3125,7 +2891,6 @@ export default function DeveloperConnect() {
                             className="group flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300"
                             style={{ animationDelay: `${index * 50}ms` }}
                           >
-                            {/* Avatar with gradient ring */}
                             <button
                               onClick={() => {
                                 setSearchQuery(reply.userName || '');
@@ -3141,7 +2906,6 @@ export default function DeveloperConnect() {
                               />
                             </button>
 
-                            {/* Comment Content */}
                             <div className="flex-1 min-w-0">
                               <div className="bg-gray-100/80 dark:bg-gray-700/50 rounded-2xl px-4 py-2.5 inline-block max-w-full">
                                 <button
@@ -3155,7 +2919,6 @@ export default function DeveloperConnect() {
                                 </button>
                                 <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5 leading-relaxed break-words">{reply.content}</p>
                               </div>
-                              {/* Comment Meta */}
                               <div className="flex items-center gap-3 mt-1.5 ml-1">
                                 <span className="text-xs text-gray-400 font-medium">{formatRelativeTime(reply.timestamp || reply.createdAt)}</span>
                                 {reply.userId === user?.id && (
@@ -3193,7 +2956,6 @@ export default function DeveloperConnect() {
                       </div>
                     )}
 
-                    {/* Hide comments button when expanded */}
                     {isExpanded && hasMoreReplies && (
                       <button
                         onClick={() => {
@@ -3209,7 +2971,6 @@ export default function DeveloperConnect() {
                       </button>
                     )}
 
-                    {/* Add Comment Input - Enhanced Instagram Style */}
                     {request.userId !== user?.id && (
                       <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/30 flex items-center gap-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
                         <div className="relative">
@@ -3225,12 +2986,54 @@ export default function DeveloperConnect() {
                             type="text"
                             placeholder="Add a comment..."
                             className="flex-1 text-sm bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                          onKeyDown={async (e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              const input = e.target as HTMLInputElement;
+                            onKeyDown={async (e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                const input = e.target as HTMLInputElement;
+                                const content = input.value.trim();
+                                if (!content) return;
+
+                                try {
+                                  const replyData = {
+                                    content,
+                                    userName: userprofile?.displayName || user?.name || 'Anonymous',
+                                    userAvatar: getUserAvatar(userprofile, user?.id)
+                                  };
+
+                                  const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
+                                    method: 'POST',
+                                    body: JSON.stringify(replyData)
+                                  });
+
+                                  setHelpRequests(prev => prev.map(r =>
+                                    r.id === request.id
+                                      ? {
+                                          ...r,
+                                          responses: (r.responses || 0) + 1,
+                                          replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
+                                        }
+                                      : r
+                                  ));
+
+                                  input.value = '';
+                                  toast.success('Comment posted!');
+                                } catch (error) {
+                                  console.error('Error posting comment:', error);
+                                  toast.error('Failed to post comment');
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={async (e) => {
+                              const container = (e.target as HTMLElement).closest('.flex');
+                              const input = container?.querySelector('input') as HTMLInputElement;
+                              if (!input) return;
                               const content = input.value.trim();
-                              if (!content) return;
+                              if (!content) {
+                                input.focus();
+                                return;
+                              }
 
                               try {
                                 const replyData = {
@@ -3260,62 +3063,18 @@ export default function DeveloperConnect() {
                                 console.error('Error posting comment:', error);
                                 toast.error('Failed to post comment');
                               }
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={async (e) => {
-                            const container = (e.target as HTMLElement).closest('.flex');
-                            const input = container?.querySelector('input') as HTMLInputElement;
-                            if (!input) return;
-                            const content = input.value.trim();
-                            if (!content) {
-                              input.focus();
-                              return;
-                            }
-
-                            try {
-                              const replyData = {
-                                content,
-                                userName: userprofile?.displayName || user?.name || 'Anonymous',
-                                userAvatar: getUserAvatar(userprofile, user?.id)
-                              };
-
-                              const response = await apiRequest(`/developers/help-requests/${request.id}/respond`, {
-                                method: 'POST',
-                                body: JSON.stringify(replyData)
-                              });
-
-                              setHelpRequests(prev => prev.map(r =>
-                                r.id === request.id
-                                  ? {
-                                      ...r,
-                                      responses: (r.responses || 0) + 1,
-                                      replies: [...(r.replies || []), { ...replyData, id: response.reply?.id || Date.now(), userId: user?.id, timestamp: new Date().toISOString() }]
-                                    }
-                                  : r
-                              ));
-
-                              input.value = '';
-                              toast.success('Comment posted!');
-                            } catch (error) {
-                              console.error('Error posting comment:', error);
-                              toast.error('Failed to post comment');
-                            }
-                          }}
-                          className="text-sm font-bold hover:scale-105 active:scale-95 transition-all"
-                          style={{ color: '#00ADB5' }}
-                        >
-                          Post
-                        </button>
+                            }}
+                            className="text-sm font-bold hover:scale-105 active:scale-95 transition-all"
+                            style={{ color: '#00ADB5' }}
+                          >
+                            Post
+                          </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Owner view - Waiting for comments */}
                     {request.userId === user?.id && displayReplies.length === 0 && (
                       <div className="px-4 py-4 flex items-center justify-center gap-2 text-sm text-gray-400 dark:text-gray-500">
-
                       </div>
                     )}
                   </div>
@@ -3564,7 +3323,6 @@ export default function DeveloperConnect() {
               </button>
             </div>
 
-            {/* Request Info */}
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
               <div className="flex items-center gap-3 mb-2">
                 <button
@@ -3578,7 +3336,6 @@ export default function DeveloperConnect() {
                     }
                   }}
                   className={`flex items-center gap-2 ${selectedRequest.userId !== user?.id ? 'hover:opacity-80 transition-opacity cursor-pointer group' : 'cursor-default'}`}
-                  title={selectedRequest.userId !== user?.id ? `View ${selectedRequest.userName}'s profile` : 'Your profile'}
                   disabled={selectedRequest.userId === user?.id}
                 >
                   <img
@@ -3596,7 +3353,6 @@ export default function DeveloperConnect() {
               <p className="text-sm text-gray-600 dark:text-gray-400">{selectedRequest.description}</p>
             </div>
 
-            {/* Existing Replies */}
             {selectedRequest.replies && selectedRequest.replies.length > 0 && (
               <div className="mb-4">
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-white mb-3 flex items-center gap-2">
@@ -3616,7 +3372,6 @@ export default function DeveloperConnect() {
                             setReplyText('');
                           }}
                           className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group"
-                          title={`View ${reply.userName}'s profile`}
                         >
                           <img
                             src={reply.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${reply.userId}`}
@@ -3634,7 +3389,6 @@ export default function DeveloperConnect() {
               </div>
             )}
 
-            {/* No Replies Message for Owner */}
             {selectedRequest.userId === user?.id && (!selectedRequest.replies || selectedRequest.replies.length === 0) && (
               <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                 <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-50" />
@@ -3642,7 +3396,6 @@ export default function DeveloperConnect() {
               </div>
             )}
 
-            {/* Reply Input - Only show if not the owner */}
             {selectedRequest.userId !== user?.id && (
               <div className="space-y-4">
                 <div>
@@ -3703,7 +3456,6 @@ export default function DeveloperConnect() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -3721,7 +3473,6 @@ export default function DeveloperConnect() {
           </div>
         </motion.div>
 
-        {/* Tabs */}
         <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-8 border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide">
           {[
             { id: 'directory', label: 'Developer Directory', icon: Code2 },
@@ -3749,7 +3500,6 @@ export default function DeveloperConnect() {
           })}
         </div>
 
-        {/* Tab Content */}
         {activeTab === 'directory' && renderDirectory()}
         {activeTab === 'messages' && renderMessages()}
         {activeTab === 'groups' && renderGroups()}
@@ -3778,7 +3528,6 @@ export default function DeveloperConnect() {
               </button>
             </div>
 
-            {/* Review Preview */}
             <div className="p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Sharing:</p>
               <div className="flex items-center gap-2">
@@ -3789,7 +3538,6 @@ export default function DeveloperConnect() {
               </div>
             </div>
 
-            {/* Search Developers */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
@@ -3804,7 +3552,6 @@ export default function DeveloperConnect() {
               </div>
             </div>
 
-            {/* Developer List */}
             <div className="overflow-y-auto max-h-[300px]">
               {developers
                 .filter(dev =>
@@ -3818,7 +3565,6 @@ export default function DeveloperConnect() {
                     key={dev.userId}
                     onClick={async () => {
                       try {
-                        // Create or get chat with this developer
                         const chatResponse = await apiRequest('/chats', {
                           method: 'POST',
                           body: JSON.stringify({
@@ -3829,7 +3575,6 @@ export default function DeveloperConnect() {
                         const chatId = chatResponse?.id || chatResponse?.chat?.id;
                         if (!chatId) throw new Error('Failed to create chat');
 
-                        // Send the shared review as a link message
                         const reviewLink = `${window.location.origin}/dashboard/developer-connect?tab=reviews&reviewId=${reviewToShare.id}`;
                         const shareMessage = `📚 Check out this review: ${reviewToShare.website}\n🔗 ${reviewLink}`;
 
