@@ -254,11 +254,83 @@ const PrivacyPolicy: React.FC = () => {
               </p>
             </PolicySection>
 
-            <PolicySection icon={FileText} title="6. Data Sharing & Third Parties" index={5}>
+            <PolicySection icon={Sparkles} title="6. Third-Party Advertising (Google AdSense)" index={5}>
+              <p className="mb-4">
+                We use Google AdSense to display advertisements on our platform. This section explains how advertising works and your choices:
+              </p>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded mb-4">
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">About Google AdSense</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Google AdSense is a program run by Google that allows publishers like us to earn revenue by displaying ads. Google and its partners use cookies to serve ads based on your prior visits to this or other websites.
+                </p>
+              </div>
+
+              <div className="space-y-4 mb-4">
+                <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-2">How Advertising Cookies Work</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>Google uses cookies to serve ads based on your visit to this site and other sites on the Internet</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>Google's use of advertising cookies enables it and its partners to serve ads based on your browsing patterns</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>We do not control these third-party cookies or the data collected</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-2">Your Advertising Choices</h4>
+                  <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>
+                        Opt out of personalized advertising by visiting{" "}
+                        <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-[#00ADB5] hover:underline">
+                          Google Ads Settings
+                        </a>
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>
+                        Visit{" "}
+                        <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-[#00ADB5] hover:underline">
+                          AboutAds.info
+                        </a>
+                        {" "}to opt out of third-party vendor cookies
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#00ADB5] flex-shrink-0 mt-0.5" />
+                      <span>
+                        Learn more about Google's privacy practices at{" "}
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#00ADB5] hover:underline">
+                          Google Privacy Policy
+                        </a>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded">
+                <strong>Note:</strong> By using SkillUpX and accepting cookies, you consent to the use of advertising cookies by Google and its partners as described above.
+              </p>
+            </PolicySection>
+
+            <PolicySection icon={FileText} title="7. Data Sharing & Third Parties" index={6}>
               <p className="mb-4">We respect your privacy and only share data when necessary:</p>
               <ul className="space-y-3">
                 {[
                   "We never sell your personal information to third parties",
+                  "Advertising partners (Google AdSense) may collect non-personal data for ad delivery",
                   "Service providers (hosting, analytics) under strict confidentiality agreements",
                   "Legal compliance when required by law or to protect rights",
                   "Business transfers (mergers, acquisitions) with continued privacy protection",
@@ -272,7 +344,7 @@ const PrivacyPolicy: React.FC = () => {
               </ul>
             </PolicySection>
 
-            <PolicySection icon={Bell} title="7. Updates to This Policy" index={6}>
+            <PolicySection icon={Bell} title="8. Updates to This Policy" index={7}>
               <p className="mb-4">
                 We may update this Privacy Policy periodically to reflect changes in our practices or legal requirements. When we make significant changes:
               </p>
@@ -294,7 +366,7 @@ const PrivacyPolicy: React.FC = () => {
               </p>
             </PolicySection>
 
-            <PolicySection icon={Mail} title="8. Contact Us" index={7}>
+            <PolicySection icon={Mail} title="9. Contact Us" index={8}>
               <p className="mb-6">
                 Have questions, concerns, or requests about your privacy? We're here to help.
               </p>
