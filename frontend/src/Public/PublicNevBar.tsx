@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, Book, Home, Info, LogIn, Menu, Moon, Phone, Sun, X } from "lucide-react";
+import { BarChart3, Book, Home, Info, LogIn, Menu, Moon, Phone, Sun, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
@@ -27,14 +27,17 @@ const PublicNavBar = () => {
 
     const authItems = user
         ? [{ id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" />, path: '/dashboard/db' }]
-        : [{ id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' }];
+        : [
+            { id: "login", label: "Login", icon: <LogIn className="w-5 h-5" />, path: '/login' },
+            { id: "register", label: "Register", icon: <UserPlus className="w-5 h-5" />, path: '/signup' }
+          ];
 
     const allItems = [...navItems, ...authItems];
 
     const linkAnimation = { hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } };
     const MotionLink = motion(Link)
     return (
-        <nav className={`fixed top-0 left-0 w-full z-50 bg-white dark:bg-gray-900 transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
+        <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-white dark:bg-black shadow-sm ${isScrolled ? 'shadow-md' : ''}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
@@ -42,7 +45,7 @@ const PublicNavBar = () => {
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                             <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
                         </div>
-                        <span className="font-semibold text-lg dark:text-white">SkillUpX</span>
+                        <span className="font-semibold text-lg text-gray-900 dark:text-white">SkillUpX</span>
                     </Link>
 
                     {/* Desktop Menu - Centered */}
@@ -73,7 +76,7 @@ const PublicNavBar = () => {
                     <div className="hidden md:flex items-center">
                         <motion.button
                             onClick={toggleTheme}
-                            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             aria-label="Toggle theme"

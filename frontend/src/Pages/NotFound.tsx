@@ -3,7 +3,7 @@ import SEO from "../Component/SEO";
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4">
       <SEO
         title="404 – Page Not Found | SkillUpX"
         description="Oops! The page you're looking for doesn't exist on SkillUpX. Head back to explore CodeArena coding battles, project collaboration, learning roadmaps, Developer Connect, and 3000+ DSA questions."
@@ -49,25 +49,25 @@ const NotFound = () => {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/about"
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
             >
               About Us
             </Link>
             <Link
               to="/TechUpdate"
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
             >
               Tech Updates
             </Link>
             <Link
               to="/documentation"
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
             >
               Documentation
             </Link>
             <Link
               to="/signup"
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900 rounded-lg hover:bg-[#00ADB5]/10 hover:text-[#00ADB5] transition-colors"
             >
               Sign Up Free
             </Link>

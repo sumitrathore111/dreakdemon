@@ -332,7 +332,7 @@ export default function CalendarView({
                       w-full text-left px-2 py-1 rounded text-xs truncate
                       ${isOverdue
                         ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300'
                       }
                       hover:ring-2 hover:ring-teal-400 transition-all
                     `}

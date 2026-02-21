@@ -60,19 +60,19 @@ export default function QueryScreen() {
 
   if (questions.length == 0 && isQuestiontoday == "") {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex justify-center items-center h-screen bg-white dark:bg-black">
         <div className="text-gray-500 dark:text-gray-400">Loading Question</div>
       </div>
     );
   }
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
+    <div className="flex flex-col h-full bg-white dark:bg-black p-6 overflow-y-auto">
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Query & Discussion</h1>
 
       {/* Question List */}
       <div className="space-y-4">
         {questions.map((q) => (
-          <div key={q.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+          <div key={q.id} className="bg-white dark:bg-gray-900 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
             <h2 className="font-semibold text-lg text-gray-900 dark:text-white">{q.question}</h2>
             <p className="text-gray-700 dark:text-gray-300 mt-2">{q.answer}</p>
 
@@ -93,7 +93,7 @@ export default function QueryScreen() {
       </div>
 
       {/* Add Question */}
-      <div className="mt-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+      <div className="mt-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <textarea
           value={newQuestion}
           onChange={(e) => setNewQuestion(e.target.value)}

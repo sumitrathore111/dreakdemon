@@ -266,7 +266,7 @@ export default function TaskCard({
       onDragEnd={canDrag ? onDragEnd : undefined}
       onClick={onClick}
       className={`
-        bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700
         p-3 cursor-pointer transition-all duration-200
         hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600
         ${isDragging ? 'opacity-50 rotate-3 scale-105' : ''}

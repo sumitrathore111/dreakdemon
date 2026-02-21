@@ -291,7 +291,7 @@ export function ProjectFiles({
         <div className="flex items-center gap-3">
           <FolderOpen className="w-5 h-5 text-teal-500" />
           <h3 className="font-semibold text-gray-900 dark:text-white">Project Files</h3>
-          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-600 dark:text-gray-400">
+          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-900 rounded-full text-sm text-gray-600 dark:text-gray-400">
             {files.length} files
           </span>
         </div>
@@ -304,11 +304,11 @@ export function ProjectFiles({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search files..."
-              className="pl-9 pr-4 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-48"
+              className="pl-9 pr-4 py-1.5 bg-gray-100 dark:bg-gray-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 w-48"
             />
           </div>
           {/* View toggle */}
-          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+          <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-md transition-colors ${
@@ -350,7 +350,7 @@ export function ProjectFiles({
         {filteredFiles.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FolderOpen className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
@@ -375,7 +375,7 @@ export function ProjectFiles({
               <div
                 key={file.id}
                 onClick={() => setSelectedFile(file)}
-                className="group relative bg-gray-50 dark:bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="group relative bg-gray-50 dark:bg-gray-900 rounded-lg p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="flex flex-col items-center text-center">
                   {getFileIcon(file.type, 'w-12 h-12')}
@@ -404,7 +404,7 @@ export function ProjectFiles({
               <div
                 key={file.id}
                 onClick={() => setSelectedFile(file)}
-                className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 {getFileIcon(file.type, 'w-10 h-10')}
                 <div className="flex-1 min-w-0">
@@ -458,7 +458,7 @@ export function ProjectFiles({
                   value={uploadForm.name}
                   onChange={(e) => setUploadForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Project Proposal.pdf"
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -471,7 +471,7 @@ export function ProjectFiles({
                   value={uploadForm.url}
                   onChange={(e) => setUploadForm(prev => ({ ...prev, url: e.target.value }))}
                   placeholder="https://drive.google.com/file/..."
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -485,7 +485,7 @@ export function ProjectFiles({
                 <select
                   value={uploadForm.type}
                   onChange={(e) => setUploadForm(prev => ({ ...prev, type: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   {fileTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -548,7 +548,7 @@ export function ProjectFiles({
                   navigator.clipboard.writeText(selectedFile.url);
                   alert('Link copied!');
                 }}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <Link2 className="w-4 h-4" />
                 Copy Link
@@ -577,7 +577,7 @@ export function ProjectFiles({
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

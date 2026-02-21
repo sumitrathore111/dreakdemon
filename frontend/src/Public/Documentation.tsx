@@ -223,7 +223,7 @@ const NextStepDocumentation = () => {
   const ActiveIcon = activeContent.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-white dark:bg-black">
       <SEO
         title="Documentation – Getting Started, CodeArena, Creator Corner & More"
         description="Complete documentation for SkillUpX platform. Learn how to use CodeArena for coding battles & DSA practice, Creator Corner for projects, Learning Roadmaps for interview prep & career paths, and Developer Connect."
@@ -250,7 +250,7 @@ const NextStepDocumentation = () => {
 
           {/* Hero Header */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-white/50 dark:border-gray-700/50 shadow-lg mb-6">
               <Sparkles className="w-4 h-4 text-[#00ADB5]" />
               <span className="text-sm font-bold text-gray-800 dark:text-gray-200">📚 SkillUpX Documentation</span>
             </div>
@@ -274,7 +274,7 @@ const NextStepDocumentation = () => {
                   className={`group relative p-4 sm:p-5 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 ${
                     isActive
                       ? `bg-gradient-to-br ${item.gradient} text-white shadow-xl scale-105`
-                      : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 hover:border-[#00ADB5]/50 hover:shadow-xl'
+                      : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 hover:border-[#00ADB5]/50 hover:shadow-xl'
                   }`}
                 >
                   <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 transition-all duration-300 ${
@@ -439,7 +439,7 @@ const NextStepDocumentation = () => {
             {activeContent.sections.map((section: { heading: string; text: string; image: string }, index: number) => (
               <div
                 key={index}
-                className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl p-6 sm:p-8 hover:border-[#00ADB5]/30 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                className="group bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl p-6 sm:p-8 hover:border-[#00ADB5]/30 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
               >
                 <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                   <div className="text-5xl sm:text-6xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">{section.image}</div>
@@ -715,7 +715,7 @@ const NextStepDocumentation = () => {
           </div>
 
           {/* Help Card */}
-          <div className="mt-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl p-6 sm:p-8">
+          <div className="mt-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="w-16 h-16 bg-gradient-to-br from-[#00ADB5] to-cyan-600 rounded-2xl flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-8 h-8 text-white" />

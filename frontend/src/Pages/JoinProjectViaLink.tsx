@@ -169,7 +169,7 @@ export default function JoinProjectViaLink() {
         </div>
 
         {inviteInfo && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-6">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-6">
             <h2 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
               {inviteInfo.projectTitle}
             </h2>

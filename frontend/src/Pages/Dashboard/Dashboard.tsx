@@ -1037,7 +1037,7 @@ export default function DashboardComingSoon() {
     return (
       <div className="w-full overflow-x-auto relative">
         {hasNoActivity && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60 dark:bg-gray-800/60 backdrop-blur-[1px] rounded-lg">
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-[1px] rounded-lg">
             <p className="text-gray-400 dark:text-gray-500 text-sm">No activity recorded in this period</p>
           </div>
         )}
@@ -1329,7 +1329,7 @@ export default function DashboardComingSoon() {
 
   // Course Advertisement Component
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 overflow-x-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen bg-white dark:bg-black p-4 sm:p-6 lg:p-8 overflow-x-hidden">
       <div className="max-w-7xl mx-auto w-full">
 
         {/* Clean Header */}
@@ -1379,7 +1379,7 @@ export default function DashboardComingSoon() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
           {/* Problem Categories Distribution */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Code2 className="w-5 h-5 text-indigo-500" />
               Problem Categories
@@ -1451,7 +1451,7 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-green-500" />
               Performance
@@ -1483,7 +1483,7 @@ export default function DashboardComingSoon() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
           {/* Pie Chart - Activity Breakdown */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-pink-500" />
               Activity Breakdown
@@ -1495,7 +1495,7 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Circular Progress - Key Metrics */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-cyan-500" />
               Performance Metrics
@@ -1542,7 +1542,7 @@ export default function DashboardComingSoon() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
           {/* Skill Radar Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-cyan-500" />
               Skill Radar
@@ -1560,7 +1560,7 @@ export default function DashboardComingSoon() {
           </div>
 
           {/* Coins & Wallet Overview */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-amber-500" />
               Wallet Overview
@@ -1604,7 +1604,7 @@ export default function DashboardComingSoon() {
         </div>
 
         {/* NEW: Monthly Progress Line Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Activity className="w-5 h-5 text-indigo-500" />
@@ -1750,7 +1750,7 @@ export default function DashboardComingSoon() {
         </div>
 
         {/* Activity Heatmap */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-green-500" />
             Activity Heatmap
@@ -1774,7 +1774,7 @@ export default function DashboardComingSoon() {
         </div>
 
         {/* Activity Distribution */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-cyan-500" />
             Activity Distribution
@@ -1790,7 +1790,7 @@ export default function DashboardComingSoon() {
         </div>
 
         {/* Badges Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Award className="w-5 h-5 text-purple-500" />
             My Badges
@@ -1888,7 +1888,7 @@ export default function DashboardComingSoon() {
                 return (
                   <div
                     key={i}
-                    className="relative flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-75 hover:opacity-100 transition-opacity"
+                    className="relative flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 opacity-75 hover:opacity-100 transition-opacity"
                   >
                     <div className="text-3xl grayscale">{badge.icon}</div>
                     <div className="flex-1">
@@ -1928,7 +1928,7 @@ export default function DashboardComingSoon() {
         </div>
 
         {/* Recent Achievements */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />
             Recent Achievements

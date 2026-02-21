@@ -20,14 +20,14 @@ export default function ProjectAccessDiagnostic() {
     // TODO: Implement with backend API
     console.log('Force add member not implemented');
   };
-  
+
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [fixing, setFixing] = useState(false);
 
   const runDiagnostics = async () => {
     if (!projectId || !user) return;
-    
+
     setLoading(true);
     try {
       const results = await checkAccessDiagnostics(projectId, user.id);
@@ -43,12 +43,12 @@ export default function ProjectAccessDiagnostic() {
 
   const fixAccess = async () => {
     if (!projectId || !user || !diagnostics) return;
-    
+
     setFixing(true);
     try {
       const userName = userprofile?.name || user.email?.split('@')[0] || 'User';
       await forceAddMember(projectId, user.id, userName);
-      
+
       alert('✅ Access fixed! You have been added to the project. Redirecting...');
       setTimeout(() => {
         navigate(`/dashboard/projects/workspace/${projectId}`);
@@ -73,7 +73,7 @@ export default function ProjectAccessDiagnostic() {
           Back to Projects
         </button>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
           <div className="mb-4 sm:mb-6">
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-2">Project Access Diagnostic</h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Troubleshoot and fix access issues</p>
@@ -100,7 +100,7 @@ export default function ProjectAccessDiagnostic() {
               {/* Diagnostic Results */}
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg sm:rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Diagnostic Results</h3>
-                
+
                 {/* Project Exists */}
                 <div className="flex items-start gap-2 sm:gap-3">
                   {diagnostics.projectExists ? (
@@ -169,7 +169,7 @@ export default function ProjectAccessDiagnostic() {
                     {diagnostics.userRequests.length > 0 && (
                       <div className="space-y-2">
                         {diagnostics.userRequests.map((req: any) => (
-                          <div key={req.id} className="bg-white dark:bg-gray-800 rounded p-3 text-xs">
+                          <div key={req.id} className="bg-white dark:bg-gray-900 rounded p-3 text-xs">
                             <div className="flex items-center justify-between mb-1">
                               <span className="font-semibold text-gray-900 dark:text-white">Request ID: {req.id}</span>
                               <span className={`px-2 py-1 rounded ${

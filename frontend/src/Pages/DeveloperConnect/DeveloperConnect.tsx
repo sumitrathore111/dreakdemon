@@ -18,6 +18,7 @@ import {
   Star,
   Trash2,
   TrendingUp,
+  UserMinus,
   X
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -823,7 +824,7 @@ export default function DeveloperConnect() {
       return (
         <div className="space-y-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+            <div key={i} className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full" />
                 <div className="flex-1">
@@ -864,7 +865,7 @@ export default function DeveloperConnect() {
 
     if (developers.length === 0) {
       return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
           <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Developers Yet</h3>
           <p className="text-gray-600 dark:text-white mb-6">Developers who complete their profiles will appear here. Invite your friends!</p>
@@ -876,19 +877,21 @@ export default function DeveloperConnect() {
     }
 
     return (
-      <div className="space-y-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-              <input
-                type="text"
-                placeholder="Search developers by name or skills..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
-              />
-            </div>
+    <div className="space-y-6">
+      {/* Search and Filters - Marketplace Style */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+            <input
+              type="text"
+              placeholder="Search developers by name or skills..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:bg-white dark:focus:bg-gray-600 transition-all"
+            />
+          </div>
 
             <CustomSelect
               value={selectedSkills.length > 0 ? selectedSkills[0] : ''}
@@ -970,49 +973,52 @@ export default function DeveloperConnect() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedDevelopers.map((dev, index) => (
-            <motion.div
-              key={dev.userId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${
-                dev.isCurrentUser
-                  ? 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-400 dark:ring-purple-500'
-                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              {dev.isCurrentUser && (
-                <div className="mb-3 -mt-2 -mx-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 rounded-full">
-                    ⭐ This is you
-                  </span>
-                </div>
-              )}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <img
-                    src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
-                    alt={dev.name || 'Developer'}
-                    className={`w-12 h-12 rounded-full ${dev.isCurrentUser ? 'ring-2 ring-purple-400' : ''}`}
-                  />
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
-                    <p className="text-xs text-gray-500 dark:text-white">
-                      {dev.institute || dev.college || 'Not specified'} • {
-                        dev.yearOfStudy ?
-                          (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`)
-                          : (dev.year || 'Student')
-                      }
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="text-sm font-semibold">#{dev.combinedRank || 'N/A'}</span>
+      {/* Developer Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {displayedDevelopers.map((dev, index) => (
+          <motion.div
+            key={dev.userId}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${
+              dev.isCurrentUser
+                ? 'bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-400 dark:ring-purple-500'
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            {/* Current User Badge */}
+            {dev.isCurrentUser && (
+              <div className="mb-3 -mt-2 -mx-2">
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 rounded-full">
+                  ⭐ This is you
+                </span>
+              </div>
+            )}
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1">
+                <img
+                  src={dev.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dev.name}`}
+                  alt={dev.name || 'Developer'}
+                  className={`w-12 h-12 rounded-full ${dev.isCurrentUser ? 'ring-2 ring-purple-400' : ''}`}
+                />
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{dev.name || 'Unknown'}</h3>
+                  <p className="text-xs text-gray-500 dark:text-white">
+                    {dev.institute || dev.college || 'Not specified'} • {
+                      dev.yearOfStudy ?
+                        (dev.yearOfStudy === 1 ? '1st Year' : dev.yearOfStudy === 2 ? '2nd Year' : dev.yearOfStudy === 3 ? '3rd Year' : dev.yearOfStudy === 4 ? '4th Year' : `${dev.yearOfStudy} Year`)
+                        : (dev.year || 'Student')
+                    }
+                  </p>
                 </div>
               </div>
+              <div className="flex items-center gap-1" style={{ color: '#00ADB5' }}>
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-sm font-semibold">#{dev.combinedRank || 'N/A'}</span>
+              </div>
+            </div>
 
               <p className="text-sm text-gray-600 dark:text-white mb-4">{dev.bio || 'About yourself'}</p>
 
@@ -1261,8 +1267,9 @@ export default function DeveloperConnect() {
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px] lg:h-[650px]">
-        {/* Left Side - Conversations List */}
+        {/* Left Side - Users/Conversations List - Hidden on mobile when chat is selected */}
         <div className={`lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-lg ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Header with gradient */}
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-cyan-50/50 via-white to-cyan-50/50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
             <div className="flex items-center justify-between">
               <div>
@@ -1381,7 +1388,7 @@ export default function DeveloperConnect() {
           </div>
         </div>
 
-        {/* Right Side - Chat Area */}
+        {/* Right Side - Chat Area - Full width on mobile when chat selected, hidden otherwise on mobile */}
         <div className={`lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 flex flex-col shadow-lg overflow-hidden ${selectedChat ? 'flex' : 'hidden lg:flex'}`}>
           {!selectedChat || !selectedDev ? (
             <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-cyan-50/30 via-white to-cyan-50/30 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800">
@@ -1420,7 +1427,7 @@ export default function DeveloperConnect() {
             </div>
           ) : (
             <>
-              {/* Chat Header */}
+              {/* Chat Header - Enhanced */}
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -1503,7 +1510,7 @@ export default function DeveloperConnect() {
                 ) : (
                   <>
                     <div className="flex items-center justify-center mb-4">
-                      <div className="px-3 py-1 bg-white dark:bg-gray-800 rounded-full text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm">
+                      <div className="px-3 py-1 bg-white dark:bg-gray-900 rounded-full text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm">
                         {messages[0]?.createdAt
                           ? new Date(messages[0].createdAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
                           : 'Today'}
@@ -1535,7 +1542,7 @@ export default function DeveloperConnect() {
                                   type="text"
                                   value={editingText}
                                   onChange={(e) => setEditingText(e.target.value)}
-                                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
+                                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
                                   autoFocus
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleEditMessage(msg.id);
@@ -1628,7 +1635,7 @@ export default function DeveloperConnect() {
                         exit={{ opacity: 0 }}
                         className="flex items-center gap-2 pl-10"
                       >
-                        <div className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-md shadow-sm">
+                        <div className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-md shadow-sm">
                           <div className="flex items-center gap-1">
                             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 bg-[#00ADB5] rounded-full" />
                             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-2 h-2 bg-[#00ADB5] rounded-full" />
@@ -1641,8 +1648,9 @@ export default function DeveloperConnect() {
                 )}
               </div>
 
-              {/* Message Input */}
+              {/* Message Input - Premium Design */}
               <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                {/* Typing indicator above input */}
                 {newMessage.trim() && (
                   <motion.p
                     initial={{ opacity: 0, height: 0 }}
@@ -1684,7 +1692,7 @@ export default function DeveloperConnect() {
                     className={`p-2.5 rounded-xl transition-all ${
                       newMessage.trim()
                         ? 'text-white shadow-lg'
-                        : 'text-gray-400 bg-gray-100 dark:bg-gray-800'
+                        : 'text-gray-400 bg-gray-100 dark:bg-gray-900'
                     }`}
                     style={newMessage.trim() ? {
                       background: 'linear-gradient(135deg, #00ADB5 0%, #00d4ff 100%)',
@@ -1733,7 +1741,7 @@ export default function DeveloperConnect() {
             ← Back to Groups
           </button>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{selectedGroup.name}</h2>
@@ -1766,7 +1774,7 @@ export default function DeveloperConnect() {
                 </h3>
                 <div className="space-y-3">
                   {selectedGroup.joinRequests.map((request: any) => (
-                    <div key={request.userId} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                    <div key={request.userId} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg">
                       <img
                         src={request.userAvatar || `https://api.dicebear.com/9.x/adventurer/svg?seed=${request.userName}`}
                         alt={request.userName}
@@ -1957,7 +1965,7 @@ export default function DeveloperConnect() {
                         }
                       }}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                      className="flex-1 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none"
                     />
                     <button
                       onClick={async () => {
@@ -2069,7 +2077,7 @@ export default function DeveloperConnect() {
               value={studyGroupSearch}
               onChange={(e) => setStudyGroupSearch(e.target.value)}
               placeholder="Search groups..."
-              className="w-full pl-10 pr-10 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-10 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
             />
             {studyGroupSearch && (
               <button
@@ -2092,9 +2100,9 @@ export default function DeveloperConnect() {
 
         {/* Create Group Modal */}
         {showCreateGroup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">Create Study Group</h3>
 
               <div className="space-y-4">
                 <div>
@@ -2228,7 +2236,7 @@ export default function DeveloperConnect() {
 
           if (filteredGroups.length === 0) {
             return (
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
                 <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {studyGroupSearch ? 'No Groups Found' : 'No Study Groups Yet'}
@@ -2253,42 +2261,42 @@ export default function DeveloperConnect() {
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredGroups.map((group) => (
-                <div key={group.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900 dark:text-white mb-1">{group.name}</h4>
-                      <p className="text-xs text-gray-500 dark:text-white">by {group.creatorName}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        group.level === 'Beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        group.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {group.level}
-                      </span>
-                      {group.creatorId === user?.id && (
-                        <button
-                          onClick={async () => {
-                            if (window.confirm('Are you sure you want to delete this study group?')) {
-                              try {
-                                await deleteStudyGroup(group.id);
-                                const groups = await getAllStudyGroups();
-                                setStudyGroups(groups);
-                              } catch (error) {
-                                console.error('Error deleting group:', error);
-                                alert('Failed to delete group. Please try again.');
-                              }
-                            }
-                          }}
-                          className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                          title="Delete group"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+            <div key={group.id} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-900 dark:text-white mb-1">{group.name}</h4>
+                  <p className="text-xs text-gray-500 dark:text-white">by {group.creatorName}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    group.level === 'Beginner' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                    group.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {group.level}
+                  </span>
+                  {group.creatorId === user?.id && (
+                    <button
+                      onClick={async () => {
+                        if (window.confirm('Are you sure you want to delete this study group?')) {
+                          try {
+                            await deleteStudyGroup(group.id);
+                            const groups = await getAllStudyGroups();
+                            setStudyGroups(groups);
+                          } catch (error) {
+                            console.error('Error deleting group:', error);
+                            alert('Failed to delete group. Please try again.');
+                          }
+                        }
+                      }}
+                      className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                      title="Delete group"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
 
                   <p className="text-sm text-gray-600 dark:text-white mb-4 line-clamp-2">{group.description}</p>
 
@@ -2584,11 +2592,12 @@ export default function DeveloperConnect() {
           placeholder="Search reviews, websites, categories..."
           value={reviewSearch}
           onChange={(e) => setReviewSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2"
+          className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2"
           style={{ '--tw-ring-color': '#00ADB5' } as any}
         />
       </div>
 
+      {/* Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1 flex gap-2">
         <button
           onClick={() => setReviewsActiveTab('reviews')}
@@ -2619,7 +2628,7 @@ export default function DeveloperConnect() {
       {reviewsActiveTab === 'reviews' && (
         <div className="space-y-4">
           {filteredReviews.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No reviews yet</h4>
               <p className="text-gray-500 dark:text-gray-400 mb-4">Be the first to share a learning resource!</p>
@@ -2638,7 +2647,7 @@ export default function DeveloperConnect() {
                 id={`review-${review.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`bg-white dark:bg-gray-800 rounded-xl p-6 border hover:shadow-lg transition-all ${
+                className={`bg-white dark:bg-gray-900 rounded-xl p-6 border hover:shadow-lg transition-all ${
                   highlightedReviewId === review.id
                     ? 'border-[#00ADB5] ring-2 ring-[#00ADB5] shadow-lg shadow-[#00ADB5]/20'
                     : 'border-gray-200 dark:border-gray-700'
@@ -2767,7 +2776,7 @@ export default function DeveloperConnect() {
       {reviewsActiveTab === 'requests' && (
         <div className="space-y-4">
           {filteredRequests.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
               <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No help requests yet</h4>
               <p className="text-gray-500 dark:text-gray-400 mb-4">Need recommendations? Ask the community!</p>
@@ -2792,7 +2801,7 @@ export default function DeveloperConnect() {
                   key={request.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow overflow-hidden"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow overflow-hidden"
                 >
                   <div className="p-6">
                     <div className="flex items-start gap-4">
@@ -2972,7 +2981,7 @@ export default function DeveloperConnect() {
                     )}
 
                     {request.userId !== user?.id && (
-                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/30 flex items-center gap-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/30 flex items-center gap-3 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
                         <div className="relative">
                           <div className="absolute -inset-0.5 bg-gradient-to-tr from-[#00ADB5] to-cyan-400 rounded-full opacity-60" />
                           <img
@@ -3091,7 +3100,7 @@ export default function DeveloperConnect() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+            className="bg-white dark:bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Post a Review</h3>
@@ -3231,7 +3240,7 @@ export default function DeveloperConnect() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
+            className="bg-white dark:bg-gray-900 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Ask for Help</h3>
@@ -3305,7 +3314,7 @@ export default function DeveloperConnect() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+            className="bg-white dark:bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -3454,7 +3463,7 @@ export default function DeveloperConnect() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -3512,7 +3521,7 @@ export default function DeveloperConnect() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-xl"
+            className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-xl"
           >
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Share Review</h3>
@@ -3546,7 +3555,7 @@ export default function DeveloperConnect() {
                   placeholder="Search developers to share with..."
                   value={shareSearch}
                   onChange={(e) => setShareSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 text-sm"
                   style={{ '--tw-ring-color': '#00ADB5' } as any}
                 />
               </div>

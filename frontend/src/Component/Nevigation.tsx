@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-    AlertTriangle,
-    BookOpen,
-    ChevronsLeft,
-    DoorOpen,
-    Folder,
-    Home,
-    LogOut,
-    Map,
-    Menu,
-    MessageSquare,
-    Moon,
-    Sun,
-    Trophy,
-    UserCircle,
+  AlertTriangle,
+  BookOpen,
+  ChevronsLeft,
+  DoorOpen,
+  Folder,
+  Home,
+  LogOut,
+  Map,
+  Menu,
+  MessageSquare,
+  Moon,
+  Sun,
+  Trophy,
+  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -83,7 +83,7 @@ export default function DashboardLayout() {
     <div className="flex h-screen overflow-hidden">
       {/* Left Sidebar */}
       <div
-        className={`fixed lg:static top-0 left-0 h-full bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 z-[60] shadow-lg lg:shadow-none border-r border-gray-200 dark:border-gray-700 overflow-visible
+        className={`fixed lg:static top-0 left-0 h-full bg-white dark:bg-black flex flex-col transition-all duration-300 z-[60] shadow-lg lg:shadow-none border-r border-gray-200 dark:border-gray-700 overflow-visible
           ${isMinimized ? "w-20" : "w-64"}
           ${isDrawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -258,7 +258,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Fixed Profile Section at Bottom */}
-        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 overflow-visible">
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-black overflow-visible">
           {/* Theme Toggle */}
           <div className={`flex items-center gap-2 mb-3 ${isMinimized ? 'justify-center' : ''}`}>
             <button
@@ -404,7 +404,7 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar (mobile only) */}
-        <div className="lg:hidden flex items-center justify-between bg-white dark:bg-gray-900 shadow-md px-4 py-3 z-30">
+        <div className="lg:hidden flex items-center justify-between bg-white dark:bg-black shadow-md px-4 py-3 z-30">
           {/* Mobile Drawer Button */}
           <button
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -461,7 +461,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800">
+        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-black">
           <Outlet />
         </div>
       </div>

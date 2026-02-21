@@ -1,15 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ChevronRight,
-  Clock,
-  Coins,
-  Search,
-  Shield,
-  Swords,
-  Trophy,
-  Users,
-  X,
-  Zap
+    ChevronRight,
+    Clock,
+    Coins,
+    Search,
+    Shield,
+    Swords,
+    Trophy,
+    Users,
+    X,
+    Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -356,7 +356,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
   return (
     <div className="space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
             <Swords className="w-5 h-5 text-red-600" />
@@ -389,7 +389,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center"
+              className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 text-center"
             >
               <div className="relative w-24 h-24 mx-auto mb-6">
                 <motion.div
@@ -444,7 +444,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       </AnimatePresence>
 
       {/* Battle Configuration */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-3">Select Difficulty</h3>
 
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -641,7 +641,7 @@ const BattleLobby = ({ wallet }: BattleLobbyProps) => {
       )}
 
       {/* How It Works */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-3">How Battles Work</h3>
 
         <div className="grid md:grid-cols-3 gap-3">

@@ -555,6 +555,56 @@ const emailTemplates = {
       </div>
       <p style="color: #666;">Keep up the great work!</p>
     `, 'New Endorsement')
+  }),
+
+  // OTP for email verification (signup)
+  signupOTP: (name: string, otp: string): EmailTemplate => ({
+    subject: `🔐 Verify Your Email - SkillUpX`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 60px;">🔐</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center; font-size: 24px;">Welcome to SkillUpX!</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 25px;">Please verify your email to get started</p>
+
+      <p style="color: #666; line-height: 1.6; text-align: center;">Hi <strong>${name}</strong>,</p>
+      <p style="color: #666; line-height: 1.6; text-align: center;">Use the following OTP to verify your email address:</p>
+
+      <div style="background: linear-gradient(135deg, #00ADB5 0%, #059ca7 100%); padding: 25px 40px; border-radius: 12px; margin: 30px auto; text-align: center; max-width: 200px;">
+        <span style="color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px;">${otp}</span>
+      </div>
+
+      <p style="color: #666; text-align: center; font-size: 14px;">This OTP is valid for <strong>10 minutes</strong>.</p>
+
+      <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px solid #ffc107;">
+        <p style="color: #856404; margin: 0; font-weight: 500;">⚠️ If you didn't request this verification, please ignore this email.</p>
+      </div>
+    `, 'Email Verification')
+  }),
+
+  // OTP for password reset
+  passwordResetOTP: (name: string, otp: string): EmailTemplate => ({
+    subject: `🔑 Password Reset OTP - SkillUpX`,
+    html: getEmailWrapper(`
+      <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 60px;">🔑</span>
+      </div>
+      <h2 style="color: #333; margin-bottom: 10px; text-align: center; font-size: 24px;">Password Reset Request</h2>
+      <p style="color: #667eea; text-align: center; font-size: 14px; margin-bottom: 25px;">We received a request to reset your password</p>
+
+      <p style="color: #666; line-height: 1.6; text-align: center;">Hi <strong>${name}</strong>,</p>
+      <p style="color: #666; line-height: 1.6; text-align: center;">Use the following OTP to reset your password:</p>
+
+      <div style="background: linear-gradient(135deg, #00ADB5 0%, #059ca7 100%); padding: 25px 40px; border-radius: 12px; margin: 30px auto; text-align: center; max-width: 200px;">
+        <span style="color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px;">${otp}</span>
+      </div>
+
+      <p style="color: #666; text-align: center; font-size: 14px;">This OTP is valid for <strong>10 minutes</strong>.</p>
+
+      <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px solid #ffc107;">
+        <p style="color: #856404; margin: 0; font-weight: 500;">⚠️ If you didn't request this password reset, please ignore this email or contact support.</p>
+      </div>
+    `, 'Password Reset')
   })
 };
 
@@ -798,5 +848,22 @@ export const emailNotifications = {
     return sendEmail(ownerEmail, template);
   }
 };
+
+// Generate 6-digit OTP
+export function generateOTP(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Send OTP for email verification (signup)
+export async function sendSignupOTP(email: string, otp: string, name: string): Promise<boolean> {
+  const template = emailTemplates.signupOTP(name, otp);
+  return sendEmail(email, template);
+}
+
+// Send OTP for password reset
+export async function sendPasswordResetOTP(email: string, otp: string, name: string): Promise<boolean> {
+  const template = emailTemplates.passwordResetOTP(name, otp);
+  return sendEmail(email, template);
+}
 
 export default emailNotifications;

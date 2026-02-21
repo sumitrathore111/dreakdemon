@@ -3,7 +3,7 @@ import SEO from "../Component/SEO";
 
 export function ContactUs() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-black">
       <SEO
         title="Contact Us – Get in Touch with SkillUpX"
         description="Have questions about SkillUpX? Contact us via phone, email, or WhatsApp. We're here to help you with coding battles, projects, DSA practice, interview prep, and more."
@@ -53,7 +53,7 @@ export function ContactUs() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Phone */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-700 animate-hover">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-800 animate-hover">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 flex items-center justify-center bg-teal-500 rounded-full">
                   <Phone className="w-6 h-6 text-white" />
@@ -72,7 +72,7 @@ export function ContactUs() {
             </div>
 
             {/* Email */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-700 animate-hover">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-800 animate-hover">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 flex items-center justify-center bg-teal-500 rounded-full">
                   <Mail className="w-6 h-6 text-white" />
@@ -91,7 +91,7 @@ export function ContactUs() {
             </div>
 
             {/* Location */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-700 animate-hover">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-2 hover:rotate-1 border border-gray-200 dark:border-gray-800 animate-hover">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 flex items-center justify-center bg-teal-500 rounded-full">
                   <MapPin className="w-6 h-6 text-white" />
@@ -131,7 +131,7 @@ export function ContactUs() {
       {/* Office Hours Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 animate-fade-in">
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-md border border-gray-200 dark:border-gray-800 animate-fade-in">
             <div className="flex items-center mb-6">
               <Clock className="w-8 h-8 text-teal-500" />
               <h2 className="ml-4 text-2xl font-bold text-gray-900 dark:text-white">
@@ -157,7 +157,7 @@ export function ContactUs() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-6">
             Ready to Get Started?

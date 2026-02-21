@@ -100,7 +100,7 @@ export function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
       <SEO
         title="About SkillUpX – Our Story, Mission, Team & Platform Features"
         description="Learn about SkillUpX – India's free developer platform with CodeArena coding battles, project collaboration, learning roadmaps, Developer Connect, tech reviews, and 3000+ DSA questions. Meet our team and discover our mission."
@@ -168,7 +168,7 @@ export function AboutPage() {
 
       {/* Mission Section */}
             {/* Timeline Section */}
-            <div className="bg-white dark:bg-gray-900 py-16 px-4 lg:px-24">
+            <div className="bg-white dark:bg-black py-16 px-4 lg:px-24">
               <h2 className="text-3xl font-semibold text-center mb-10 text-[#00ADB5]">SkillUpX Journey</h2>
               <div className="relative flex flex-col items-center">
                 <div className="absolute left-1/2 transform -translate-x-1/2 w-2 h-full bg-gradient-to-b from-[#00ADB5] to-gray-200 dark:to-gray-700 rounded-full"></div>
@@ -181,16 +181,16 @@ export function AboutPage() {
                       style={{ animation: `fadeIn 0.8s ease ${idx * 0.15}s both` }}
                     >
                       {/* Dot */}
-                      <div className="absolute left-1/2 transform -translate-x-1/2 w-7 h-7 bg-white dark:bg-gray-800 rounded-full shadow-lg border-4 border-[#00ADB5] dark:border-gray-700 flex items-center justify-center" style={{ top: '50%' }}>
+                      <div className="absolute left-1/2 transform -translate-x-1/2 w-7 h-7 bg-white dark:bg-gray-900 rounded-full shadow-lg border-4 border-[#00ADB5] dark:border-gray-700 flex items-center justify-center" style={{ top: '50%' }}>
                         <Icon className="w-5 h-5 text-[#00ADB5]" />
                       </div>
                       <div
-                        className={`w-full max-w-md ${idx % 2 === 0 ? "ml-0 mr-auto" : "mr-0 ml-auto"} rounded-2xl shadow-xl p-6 border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 hover:scale-105 transition-transform duration-300`}
+                        className={`w-full max-w-md ${idx % 2 === 0 ? "ml-0 mr-auto" : "mr-0 ml-auto"} rounded-2xl shadow-xl p-6 border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-black hover:scale-105 transition-transform duration-300`}
                         style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.08)" }}
                       >
                         <div className="flex items-center mb-2">
                           <span className="font-bold text-[#00ADB5] text-lg mr-3">{m.year}</span>
-                          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 border-2 border-[#00ADB5] dark:border-gray-700 shadow">
+                          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-900 border-2 border-[#00ADB5] dark:border-gray-700 shadow">
                             <Icon className="w-6 h-6 text-[#00ADB5]" />
                           </div>
                         </div>
@@ -286,7 +286,7 @@ export function AboutPage() {
       </div>
 
       {/* Values Section */}
-      <div className="bg-gray-50 dark:bg-gray-800 py-16 px-8 lg:px-16">
+      <div className="bg-gray-50 dark:bg-black py-16 px-8 lg:px-16">
         <h2 className="text-3xl font-semibold text-center mb-10 text-[#00ADB5]">
           Our Core Values
         </h2>
@@ -345,7 +345,7 @@ export function AboutPage() {
         </div>
       </div>
       {/* Meet the Team Section */}
-      {/* <div className="bg-gray-50 dark:bg-gray-800 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
+      {/* <div className="bg-gray-50 dark:bg-gray-900 py-20 px-8 lg:px-24 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 mt-16">
         <h2 className="text-4xl font-extrabold text-center mb-10 text-[#00ADB5]">Meet the Team</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 shadow-xl text-center border-2 border-[#00ADB5]/20 hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105">

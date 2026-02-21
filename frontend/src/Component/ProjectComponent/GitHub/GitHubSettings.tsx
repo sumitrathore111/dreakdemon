@@ -126,7 +126,7 @@ export default function GitHubSettings({ onConnectionChange: _onConnectionChange
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
           <span className="ml-2 text-gray-500">Checking GitHub connection...</span>
@@ -136,7 +136,7 @@ export default function GitHubSettings({ onConnectionChange: _onConnectionChange
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">

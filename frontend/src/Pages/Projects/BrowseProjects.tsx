@@ -1,15 +1,15 @@
 import jsPDF from 'jspdf';
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Code2,
-  Filter,
-  Lightbulb,
-  Search,
-  Star,
-  TrendingUp,
-  Users
+    Calendar,
+    CheckCircle,
+    Clock,
+    Code2,
+    Filter,
+    Lightbulb,
+    Search,
+    Star,
+    TrendingUp,
+    Users
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -759,7 +759,7 @@ export default function BrowseProjects() {
   }, [completedTasks]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-white dark:bg-black p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4 sm:mb-6 md:mb-8">
@@ -780,7 +780,7 @@ export default function BrowseProjects() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg">
+          <div className="flex gap-2 bg-white dark:bg-gray-900 rounded-xl p-2 shadow-lg">
             <button
               onClick={() => setActiveTab('browse')}
               className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 md:px-6 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all ${
@@ -840,7 +840,7 @@ export default function BrowseProjects() {
         {activeTab === 'browse' && (
           <div>
             {/* Search and Filter - Enhanced */}
-            <div className="mb-4 sm:mb-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+            <div className="mb-4 sm:mb-6 bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <div className="flex-1 relative">
                   <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -897,7 +897,7 @@ export default function BrowseProjects() {
                 <p className="mt-4 text-gray-600 dark:text-white">Loading projects...</p>
               </div>
             ) : filteredProjects.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                 <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No projects found</h3>
                 <p className="text-gray-600 dark:text-white">Try adjusting your search or submit a new idea!</p>
@@ -905,7 +905,7 @@ export default function BrowseProjects() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {filteredProjects.map((project) => (
-                <div key={project.id} className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all p-4 sm:p-6">
+                <div key={project.id} className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all p-4 sm:p-6">
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-1 sm:mb-2 truncate">{project.title}</h3>
@@ -1000,7 +1000,7 @@ export default function BrowseProjects() {
             <div className="flex flex-col md:flex-row gap-6">
               {/* Completed Tasks List (Left) */}
               <div className="flex-1">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
                   <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-2">✅ Tasks You've Completed</h3>
                   <p className="text-gray-600 dark:text-white mb-4">Showcasing your verified achievements across projects</p>
                   {completedTasks.length === 0 ? (
@@ -1166,7 +1166,7 @@ export default function BrowseProjects() {
             {myProjectsView === 'projects' ? (
               // Projects View
               myProjects.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                   <Code2 className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No projects yet</h3>
                   <p className="text-gray-600 dark:text-white mb-6">Join existing projects or create your own once your idea is approved</p>
@@ -1191,7 +1191,7 @@ export default function BrowseProjects() {
                     <div
                       key={project.id}
                       onClick={() => navigate(`/dashboard/projects/workspace/${project.id}`)}
-                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6 cursor-pointer relative"
+                      className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-6 cursor-pointer relative"
                     >
                       {/* Pending Requests Badge */}
                       {projectPendingRequests[project.id] > 0 && (
@@ -1244,7 +1244,7 @@ export default function BrowseProjects() {
             ) : (
               // Ideas View
               myIdeas.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-12 text-center">
                   <Lightbulb className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No ideas submitted yet</h3>
                   <p className="text-gray-600 dark:text-white mb-6">Submit your project idea and get it approved by our team</p>
@@ -1258,7 +1258,7 @@ export default function BrowseProjects() {
               ) : (
                 <div className="space-y-4">
                   {myIdeas.map((idea) => (
-                    <div key={idea.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-[#00ADB5]">
+                    <div key={idea.id} className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 border-l-4 border-[#00ADB5]">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{idea.title}</h3>
@@ -1328,7 +1328,7 @@ export default function BrowseProjects() {
       {/* Application Modal */}
       {showApplicationModal && selectedProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
               <h2 className="text-2xl font-black text-gray-900 dark:text-white">Apply to Join Project</h2>
               <p className="text-gray-600 dark:text-white mt-1">{selectedProject.title}</p>
@@ -1421,7 +1421,7 @@ export default function BrowseProjects() {
       {/* Project Details Modal */}
       {showDetailsModal && selectedProjectForDetails && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-2xl">
               <div className="flex items-start justify-between">
                 <div>
@@ -1455,12 +1455,12 @@ export default function BrowseProjects() {
               {/* Project Description */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Description</h3>
-                <div className="text-gray-700 dark:text-white leading-relaxed bg-gray-50 dark:bg-gray-800 p-4 rounded-xl prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProjectForDetails.description }} />
+                <div className="text-gray-700 dark:text-white leading-relaxed bg-gray-50 dark:bg-gray-900 p-4 rounded-xl prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProjectForDetails.description }} />
               </div>
 
               {/* Project Info Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <Users className="w-5 h-5 text-[#00ADB5]" />
                     Team Information
@@ -1477,7 +1477,7 @@ export default function BrowseProjects() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-4">
                   <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-[#00ADB5]" />
                     Timeline
@@ -1500,7 +1500,7 @@ export default function BrowseProjects() {
               {/* Progress Bar */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Project Progress</h3>
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-semibold text-gray-600 dark:text-white">Overall Progress</span>
                     <span className="text-lg font-black text-[#00ADB5]">{selectedProjectForDetails.progress}%</span>
@@ -1520,7 +1520,7 @@ export default function BrowseProjects() {
               {/* Category & Tags */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Category & Tags</h3>
-                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                   <div className="mb-3">
                     <span className="text-sm text-gray-600 dark:text-white">Category:</span>
                     <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-bold rounded-lg">

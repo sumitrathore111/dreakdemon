@@ -113,7 +113,7 @@ export default function CreateTaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task title..."
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#00ADB5] focus:border-[#00ADB5]"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[#00ADB5] focus:border-[#00ADB5]"
               required
               autoFocus
             />
@@ -129,7 +129,7 @@ export default function CreateTaskModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add a description..."
               rows={3}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:ring-2 focus:ring-[#00ADB5] focus:border-[#00ADB5]"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:ring-2 focus:ring-[#00ADB5] focus:border-[#00ADB5]"
             />
           </div>
 
@@ -147,7 +147,7 @@ export default function CreateTaskModal({
                   className={`px-3 py-1.5 rounded-lg border text-sm capitalize transition-all ${
                     priority === p
                       ? priorityColors[p] + ' ring-2 ring-offset-1'
-                      : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400'
+                      : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400'
                   }`}
                 >
                   {p}
@@ -200,7 +200,7 @@ export default function CreateTaskModal({
                   className={`flex items-center gap-2 px-2 py-1 rounded-lg text-sm transition-all ${
                     selectedAssignees.includes(member.userId)
                       ? 'bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 text-[#00ADB5] ring-2 ring-[#00ADB5] ring-offset-1'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      : 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <div className="w-5 h-5 rounded-full bg-gradient-to-r from-[#00ADB5] to-cyan-500 flex items-center justify-center text-white text-xs">
@@ -223,7 +223,7 @@ export default function CreateTaskModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
               />
             </div>
             <div>
@@ -237,7 +237,7 @@ export default function CreateTaskModal({
                 placeholder="0"
                 min="0"
                 step="0.5"
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
               />
             </div>
             <div>
@@ -250,7 +250,7 @@ export default function CreateTaskModal({
                 onChange={(e) => setStoryPoints(e.target.value)}
                 placeholder="0"
                 min="0"
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm"
               />
             </div>
           </div>

@@ -226,7 +226,7 @@ export default function Profile() {
       links: prev.links.filter((_, i) => i !== index),
     }));
   };
-  
+
   useEffect(() => {
     if (userprofile) {
       // Map backend field to frontend field for compatibility
@@ -247,7 +247,7 @@ export default function Profile() {
   }, [userprofile])
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-10 py-6 bg-gray-50 dark:bg-black min-h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
         <div>
@@ -284,7 +284,7 @@ export default function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Summary */}
         <div>
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="dark:text-white">Profile Summary</CardTitle>
             </CardHeader>
@@ -311,7 +311,7 @@ export default function Profile() {
                     <User className="w-10 h-10 text-white" />
                   )}
                 </div>
-                
+
                 {/* Edit indicator when editing */}
                 {isEditing && (
                   <button
@@ -321,7 +321,7 @@ export default function Profile() {
                     <Edit3 className="w-4 h-4 text-white" />
                   </button>
                 )}
-                
+
                 {/* Emoji Picker Dropdown */}
                 {showEmojiPicker && isEditing && (
                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-3 w-72">
@@ -363,7 +363,7 @@ export default function Profile() {
                   </div>
                 )}
               </div>
-              
+
               <h3 className="font-semibold dark:text-white">{profile?.name}</h3>
               <p className="text-sm text-gray-500">{profile?.institute}</p>
 
@@ -394,7 +394,7 @@ export default function Profile() {
         </div>
         {/* Basic Information */}
         <div className="lg:col-span-2">
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-600" />

@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import {
-  Calendar,
-  ChevronRight,
-  Coins,
-  Crown,
-  Loader2,
-  Swords,
-  Target,
-  Trophy,
-  XCircle
+    Calendar,
+    ChevronRight,
+    Coins,
+    Crown,
+    Loader2,
+    Swords,
+    Target,
+    Trophy,
+    XCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -74,9 +74,9 @@ const BattleHistory = () => {
         console.log('Current user ID:', user.id);
 
         console.log('User participated in:', userBattles.length, 'battles');
-        
+
         // Filter to only show completed/forfeited battles for history
-        const completedBattles = userBattles.filter((b: any) => 
+        const completedBattles = userBattles.filter((b: any) =>
           b.status === 'completed' || b.status === 'forfeited'
         );
 
@@ -221,12 +221,12 @@ const BattleHistory = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4"
         >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 hover:shadow-xl transition-all">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 hover:shadow-xl transition-all">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 <Target className="w-5 h-5 text-gray-600 dark:text-gray-300" />
@@ -235,7 +235,7 @@ const BattleHistory = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Battles</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalBattles}</p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl shadow-lg border border-green-100 dark:border-green-800 p-4 hover:shadow-xl transition-all">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-800/50 flex items-center justify-center">
@@ -245,7 +245,7 @@ const BattleHistory = () => {
             <p className="text-xs text-green-600 dark:text-green-400 mb-1">Victories</p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.wins}</p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 rounded-2xl shadow-lg border border-red-100 dark:border-red-800 p-4 hover:shadow-xl transition-all">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-800/50 flex items-center justify-center">
@@ -255,7 +255,7 @@ const BattleHistory = () => {
             <p className="text-xs text-red-600 dark:text-red-400 mb-1">Defeats</p>
             <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.losses}</p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900/30 dark:to-teal-900/30 rounded-2xl shadow-lg border border-cyan-100 dark:border-cyan-800 p-4 hover:shadow-xl transition-all">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-10 h-10 rounded-xl bg-[#00ADB5]/20 flex items-center justify-center">
@@ -265,11 +265,11 @@ const BattleHistory = () => {
             <p className="text-xs text-[#00ADB5] mb-1">Win Rate</p>
             <p className="text-2xl font-bold text-[#00ADB5]">{stats.winRate}%</p>
           </div>
-          
+
           <div className={`rounded-2xl shadow-lg border p-4 hover:shadow-xl transition-all ${
-            stats.totalEarnings >= 0 
-              ? 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-100 dark:border-amber-800' 
-              : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'
+            stats.totalEarnings >= 0
+              ? 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-100 dark:border-amber-800'
+              : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700'
           }`}>
             <div className="flex items-center gap-2 mb-2">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -286,11 +286,11 @@ const BattleHistory = () => {
         </motion.div>
 
         {/* Filter Tabs */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-1.5 w-fit"
+          className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-1.5 w-fit"
         >
           {[
             { id: 'all', label: 'All Battles', count: battles.length },
@@ -317,23 +317,23 @@ const BattleHistory = () => {
         </motion.div>
 
         {/* Battle List */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="space-y-3"
         >
           {getFilteredBattles().length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-12 text-center">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-12 text-center">
               <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 mx-auto mb-4 flex items-center justify-center">
                 <Swords className="w-10 h-10 text-gray-400 dark:text-gray-500" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">No battles found</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                {filter === 'all' 
-                  ? "You haven't participated in any battles yet. Start your first battle and prove your coding skills!" 
-                  : filter === 'won' 
-                    ? "No victories yet. Keep practicing and you'll get there!" 
+                {filter === 'all'
+                  ? "You haven't participated in any battles yet. Start your first battle and prove your coding skills!"
+                  : filter === 'won'
+                    ? "No victories yet. Keep practicing and you'll get there!"
                     : "No defeats recorded. You're doing great!"}
               </p>
               <button
@@ -361,9 +361,9 @@ const BattleHistory = () => {
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/dashboard/codearena/battle/results/${battle.id}`)}
-                  className={`bg-white dark:bg-gray-800 rounded-2xl shadow-md border-2 p-4 cursor-pointer hover:shadow-xl transition-all group ${
-                    isWinner 
-                      ? 'border-green-200 dark:border-green-700/50 hover:border-green-400 dark:hover:border-green-600' 
+                  className={`bg-white dark:bg-gray-900 rounded-2xl shadow-md border-2 p-4 cursor-pointer hover:shadow-xl transition-all group ${
+                    isWinner
+                      ? 'border-green-200 dark:border-green-700/50 hover:border-green-400 dark:hover:border-green-600'
                       : 'border-red-200 dark:border-red-700/50 hover:border-red-400 dark:hover:border-red-600'
                   }`}
                 >
@@ -372,8 +372,8 @@ const BattleHistory = () => {
                     <div className="flex items-center gap-4">
                       {/* Result Badge */}
                       <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg ${
-                        isWinner 
-                          ? 'bg-gradient-to-br from-green-400 to-emerald-500' 
+                        isWinner
+                          ? 'bg-gradient-to-br from-green-400 to-emerald-500'
                           : 'bg-gradient-to-br from-red-400 to-orange-500'
                       }`}>
                         {isWinner ? (
@@ -400,11 +400,11 @@ const BattleHistory = () => {
                             </span>
                           )}
                         </div>
-                        
+
                         <p className="text-gray-700 dark:text-gray-300 font-medium">
                           vs <span className="text-gray-900 dark:text-white">{opponent?.odName || 'Unknown Player'}</span>
                         </p>
-                        
+
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <Calendar className="w-3.5 h-3.5" />

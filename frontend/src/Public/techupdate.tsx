@@ -5,7 +5,7 @@ import SEO from "../Component/SEO";
 // Animated Background
 const AnimatedBackground = () => (
   <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
+    <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-black dark:via-gray-900 dark:to-black" />
     {/* Floating orbs */}
     <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/20 dark:from-blue-500/20 dark:to-cyan-500/10 rounded-full blur-3xl animate-float" />
     <div className="absolute bottom-32 right-16 w-96 h-96 bg-gradient-to-br from-cyan-400/25 to-blue-400/15 dark:from-cyan-500/15 dark:to-blue-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
@@ -150,7 +150,7 @@ const TechUpdate = () => {
 
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+    <div className="relative min-h-screen bg-white dark:bg-black overflow-x-hidden">
       <SEO
         title="Tech Updates & Reviews – Latest Technology News, AI & Coding | SkillUpX"
         description="Read tech reviews and stay ahead with the latest tech news, AI research, coding tutorials, and technology updates. Community-driven tech reviews on SkillUpX – honest reviews from real developers."
@@ -183,14 +183,14 @@ const TechUpdate = () => {
       </section>
 
       {/* Sticky Search & Category Bar - HomePage Style */}
-      <div className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+      <div className="sticky top-0 z-40 bg-white/90 dark:bg-black/90 border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center gap-6">
           {/* Search Bar */}
           <div className="flex-1 w-full max-w-2xl">
             {activeCategory === 'research' ? (
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl blur-md opacity-0 group-hover:opacity-30 transition-opacity" />
-                <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all overflow-hidden">
+                <div className="relative flex items-center bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all overflow-hidden">
                   <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
                   <input
                     type="text"
@@ -204,7 +204,7 @@ const TechUpdate = () => {
             ) : (
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#00ADB5] to-purple-600 rounded-2xl blur-md opacity-0 group-hover:opacity-30 transition-opacity" />
-                <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all overflow-hidden">
+                <div className="relative flex items-center bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all overflow-hidden">
                   <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
                   <input
                     type="text"
@@ -322,7 +322,7 @@ const TechUpdate = () => {
         {/* No Articles State */}
         {!loading && !error && filteredArticles.length === 0 && (
           <div className="flex flex-col items-center justify-center py-32">
-            <div className="w-24 h-24 rounded-3xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+            <div className="w-24 h-24 rounded-3xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center mb-6">
               <Newspaper className="w-12 h-12 text-gray-400" />
             </div>
             <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">No articles found</p>
@@ -434,7 +434,7 @@ const TechUpdate = () => {
         {/* Stats Footer - HomePage Style */}
         {!loading && !error && filteredArticles.length > 0 && (
           <div className="mt-12 flex justify-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-gray-800/90 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-gray-900/90 border-2 border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg">
               <div className="w-2 h-2 rounded-full bg-[#00ADB5] animate-pulse" />
               <span className="text-sm font-bold text-[#00ADB5]">
                 {activeCategory === 'research'

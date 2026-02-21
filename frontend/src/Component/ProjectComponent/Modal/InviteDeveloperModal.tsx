@@ -218,7 +218,7 @@ export default function InviteDeveloperModal({ projectId, projectTitle, onClose,
                       type="text"
                       readOnly
                       value={inviteLink}
-                      className="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300"
+                      className="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300"
                     />
                     <button
                       onClick={handleCopyLink}
@@ -268,7 +268,7 @@ export default function InviteDeveloperModal({ projectId, projectTitle, onClose,
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search developers by name, email, or skills..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
               )}
@@ -292,7 +292,7 @@ export default function InviteDeveloperModal({ projectId, projectTitle, onClose,
                       <button
                         key={dev._id || dev.id}
                         onClick={() => setSelectedDeveloper(dev)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-colors text-left group border border-transparent hover:border-teal-300 dark:hover:border-teal-700"
+                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-colors text-left group border border-transparent hover:border-teal-300 dark:hover:border-teal-700"
                       >
                         <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-medium flex-shrink-0">
                           {dev.avatar ? (
@@ -400,7 +400,7 @@ export default function InviteDeveloperModal({ projectId, projectTitle, onClose,
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Hi! I'd like to invite you to join our project..."
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 resize-none"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 resize-none"
                       maxLength={500}
                     />
                     <p className="text-xs text-gray-400 mt-1 text-right">{message.length}/500</p>
@@ -420,7 +420,7 @@ export default function InviteDeveloperModal({ projectId, projectTitle, onClose,
 
         {/* Footer */}
         {!success && (
-          <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
             <button
               onClick={onClose}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"

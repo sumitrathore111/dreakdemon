@@ -40,8 +40,8 @@ export default function ProjectList() {
     if (selectedFilter === "All") {
       setFilteredProjects(projects);
     } else {
-      const filtered = projects.filter(p => 
-        p.techStack?.some((tech: string) => 
+      const filtered = projects.filter(p =>
+        p.techStack?.some((tech: string) =>
           tech.toLowerCase().includes(selectedFilter.toLowerCase())
         )
       );
@@ -65,7 +65,7 @@ export default function ProjectList() {
           setLoadingLeaderboard(false);
         }
       };
-      
+
       fetchLeaderboardData();
     }
   }, [activeTab]);
@@ -81,7 +81,7 @@ export default function ProjectList() {
     if (index === 0) return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white";
     if (index === 1) return "bg-gradient-to-r from-gray-300 to-gray-500 text-white";
     if (index === 2) return "bg-gradient-to-r from-orange-400 to-orange-600 text-white";
-    return "bg-white dark:bg-gray-800";
+    return "bg-white dark:bg-gray-900";
   };
 
   return (
@@ -98,7 +98,7 @@ export default function ProjectList() {
         </header>
 
         {/* Controls Bar */}
-        <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
+        <div className="mb-4 sm:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={() => setShowGuide(!showGuide)}
@@ -106,7 +106,7 @@ export default function ProjectList() {
             >
               📖 {showGuide ? "Hide Guide" : "How to Contribute"}
             </button>
-            
+
             {activeTab === 'projects' && (
               <select
                 value={selectedFilter}
@@ -134,7 +134,7 @@ export default function ProjectList() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-3 bg-white dark:bg-gray-800 rounded-2xl p-2 shadow-lg">
+        <div className="mb-6 flex gap-3 bg-white dark:bg-gray-900 rounded-2xl p-2 shadow-lg">
           <button
             onClick={() => setActiveTab('projects')}
             className={`flex-1 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
@@ -167,10 +167,10 @@ export default function ProjectList() {
               className="mb-6 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-2 border-cyan-200 dark:border-cyan-700 rounded-2xl p-6 shadow-lg overflow-hidden"
             >
               <h2 className="text-2xl font-bold text-cyan-700 dark:text-cyan-400 mb-4">🚀 How to Start Contributing</h2>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Step 1 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold flex-shrink-0">1</div>
                     <div>
@@ -181,7 +181,7 @@ export default function ProjectList() {
                 </div>
 
                 {/* Step 2 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold flex-shrink-0">2</div>
                     <div>
@@ -192,7 +192,7 @@ export default function ProjectList() {
                 </div>
 
                 {/* Step 3 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold flex-shrink-0">3</div>
                     <div>
@@ -203,7 +203,7 @@ export default function ProjectList() {
                 </div>
 
                 {/* Step 4 */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-5 shadow">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold flex-shrink-0">4</div>
                     <div>
@@ -229,14 +229,14 @@ export default function ProjectList() {
           {activeTab === 'projects' ? (
             <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredProjects.length === 0 && (
-                <div className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-16 text-center shadow-lg">
+                <div className="col-span-full bg-white dark:bg-gray-900 rounded-2xl p-16 text-center shadow-lg">
                   <div className="text-6xl mb-4">📂</div>
                   <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
                     {selectedFilter === "All" ? "No Projects Yet" : `No ${selectedFilter} Projects`}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    {selectedFilter === "All" 
-                      ? "Click 'Load Demo Projects' to get started!" 
+                    {selectedFilter === "All"
+                      ? "Click 'Load Demo Projects' to get started!"
                       : `Try selecting 'All' to see available projects`}
                   </p>
                 </div>
@@ -250,7 +250,7 @@ export default function ProjectList() {
                   animate="visible"
                   transition={{ delay: index * 0.1 }}
                   onClick={() => navigate(`/dashboard/openproject/${p.id}`)}
-                  className="group bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-transparent dark:border-gray-700 cursor-pointer hover:border-cyan-400 dark:hover:border-cyan-500 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  className="group bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border-2 border-transparent dark:border-gray-700 cursor-pointer hover:border-cyan-400 dark:hover:border-cyan-500 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
                   {/* Header with Status Badge */}
                   <div className="flex items-start justify-between mb-3">
@@ -268,12 +268,12 @@ export default function ProjectList() {
                       ✓ Open
                     </span>
                   </div>
-                  
+
                   {/* Description */}
                   <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-3 mb-4">
                     {p.description}
                   </p>
-                  
+
                   {/* Tech Stack Pills */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {p.techStack?.slice(0, 4).map((tech: string, idx: number) => (
@@ -290,7 +290,7 @@ export default function ProjectList() {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Footer CTA */}
                   <div className="pt-4 border-t-2 border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <span className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-400">
@@ -329,7 +329,7 @@ export default function ProjectList() {
                   <p className="mt-4 text-gray-600 dark:text-gray-400">Loading leaderboard...</p>
                 </div>
               ) : leaderboard.length === 0 ? (
-                <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow">
+                <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-xl shadow">
                   <p className="text-gray-500 dark:text-gray-400 text-lg">No contributors yet. Be the first to contribute!</p>
                 </div>
               ) : (

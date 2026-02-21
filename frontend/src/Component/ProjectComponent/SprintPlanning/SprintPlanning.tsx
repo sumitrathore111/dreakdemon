@@ -209,7 +209,7 @@ export default function SprintPlanning({
               onDragStart={(e) => e.dataTransfer.setData('taskId', task._id)}
               onClick={() => onTaskClick(task)}
               className={`
-                p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer
+                p-3 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer
                 border-l-4 ${priorityColors[task.priority]}
                 hover:shadow-md transition-all
               `}
@@ -287,25 +287,25 @@ export default function SprintPlanning({
                 const stats = getSprintStats(activeSprint._id);
                 return (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mt-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Tasks</p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                         {stats.completed}/{stats.taskCount}
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Progress</p>
                       <p className="text-lg sm:text-xl font-bold text-teal-600">
                         {stats.progress}%
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-2 sm:p-3">
                       <p className="text-xs text-gray-500">Points</p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                         {stats.completedPoints}/{stats.totalPoints}
                       </p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-3">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-2 sm:p-3">
                       <button
                         onClick={() => handleCompleteSprint(activeSprint._id)}
                         className="w-full h-full flex items-center justify-center gap-1 sm:gap-2 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg text-sm sm:text-base"
@@ -334,7 +334,7 @@ export default function SprintPlanning({
                     key={task._id}
                     onClick={() => onTaskClick(task)}
                     className={`
-                      p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer
+                      p-3 bg-gray-50 dark:bg-gray-900 rounded-lg cursor-pointer
                       border-l-4 ${priorityColors[task.priority]}
                       ${task.completedAt ? 'opacity-60' : ''}
                       hover:shadow-md transition-all
@@ -407,7 +407,7 @@ export default function SprintPlanning({
                       key={task._id}
                       onClick={() => onTaskClick(task)}
                       className={`
-                        p-2 bg-gray-50 dark:bg-gray-800 rounded cursor-pointer
+                        p-2 bg-gray-50 dark:bg-gray-900 rounded cursor-pointer
                         border-l-4 ${priorityColors[task.priority]}
                         hover:shadow transition-all text-sm
                       `}
@@ -444,7 +444,7 @@ export default function SprintPlanning({
                 {sprints.filter(s => s.status === 'completed').map((sprint) => (
                   <div
                     key={sprint._id}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded"
                   >
                     <span className="text-sm text-gray-700 dark:text-gray-300">{sprint.name}</span>
                     <span className="text-sm text-gray-500">
@@ -533,7 +533,7 @@ function CreateSprintModal({ onClose, onCreate }: CreateSprintModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Sprint 1"
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
               required
             />
           </div>
@@ -547,7 +547,7 @@ function CreateSprintModal({ onClose, onCreate }: CreateSprintModalProps) {
               onChange={(e) => setGoal(e.target.value)}
               placeholder="What should be achieved in this sprint?"
               rows={2}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg resize-none"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg resize-none"
             />
           </div>
 
@@ -560,7 +560,7 @@ function CreateSprintModal({ onClose, onCreate }: CreateSprintModalProps) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
                 required
               />
             </div>
@@ -572,7 +572,7 @@ function CreateSprintModal({ onClose, onCreate }: CreateSprintModalProps) {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
                 required
               />
             </div>

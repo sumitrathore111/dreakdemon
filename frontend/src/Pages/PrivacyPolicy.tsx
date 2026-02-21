@@ -57,7 +57,7 @@ PolicySection.displayName = 'PolicySection';
 
 const PrivacyPolicy: React.FC = () => {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-black">
       <SEO
         title="Privacy Policy"
         description="SkillUpX Privacy Policy – Learn how we collect, use, protect, and handle your personal data. Your privacy matters to us."
@@ -66,10 +66,10 @@ const PrivacyPolicy: React.FC = () => {
         noIndex={false}
       />
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <section className="relative min-h-[60vh] flex items-center bg-gradient-to-br from-slate-50 via-blue-50/50 to-cyan-50/30 dark:from-black dark:via-black dark:to-black">
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-20 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm mb-6">
             <Shield className="w-4 h-4 text-[#00ADB5]" />
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Your Privacy Matters</span>
           </div>

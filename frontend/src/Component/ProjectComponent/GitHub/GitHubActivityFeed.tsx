@@ -177,7 +177,7 @@ export default function GitHubActivityFeed({
         return (
           <span>
             <strong>{sender.login}</strong> pushed {commitCount} commit{commitCount !== 1 ? 's' : ''} to{' '}
-            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm">{branch}</code>
+            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-900 rounded text-sm">{branch}</code>
           </span>
         );
       }
@@ -229,7 +229,7 @@ export default function GitHubActivityFeed({
         return (
           <span>
             <strong>{sender.login}</strong> created {payload.refType}{' '}
-            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm">{payload.ref}</code>
+            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-900 rounded text-sm">{payload.ref}</code>
           </span>
         );
 
@@ -237,7 +237,7 @@ export default function GitHubActivityFeed({
         return (
           <span>
             <strong>{sender.login}</strong> deleted {payload.refType}{' '}
-            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm">{payload.ref}</code>
+            <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-900 rounded text-sm">{payload.ref}</code>
           </span>
         );
 
@@ -319,7 +319,7 @@ export default function GitHubActivityFeed({
   // Show API commits if no webhook activities
   if (activities.length === 0 && apiCommits.length > 0) {
     return (
-      <div className={compact ? '' : 'bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700'}>
+      <div className={compact ? '' : 'bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700'}>
         {!compact && (
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="font-semibold text-gray-900 dark:text-white">Recent Commits</h3>
@@ -379,7 +379,7 @@ export default function GitHubActivityFeed({
   }
 
   return (
-    <div className={compact ? '' : 'bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700'}>
+    <div className={compact ? '' : 'bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700'}>
       {/* Header */}
       {!compact && (
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
