@@ -75,7 +75,6 @@ import BattleResults from './BattleResults';
 import BattleRoom from './BattleRoom';
 import ChallengeEditor from './ChallengeEditor';
 import Leaderboard from './Leaderboard';
-import LocalChallengeEditor from './LocalChallengeEditor';
 import PracticeChallenges from './PracticeChallenges';
 import SeedChallenges from './SeedChallenges';
 import WalletPanel from './WalletPanel';
@@ -187,7 +186,6 @@ const CodeArenaContent = () => {
     const path = location.pathname;
     if (path.includes('/battle/history')) setActiveTab('history');
     else if (path.includes('/battle')) setActiveTab('battle');
-    else if (path.includes('/practice')) setActiveTab('practice');
     else if (path.includes('/leaderboard')) setActiveTab('leaderboard');
     else setActiveTab('home');
   }, [location]);
@@ -208,10 +206,10 @@ const CodeArenaContent = () => {
       path: 'battle'
     },
     {
-      title: 'Practice Mode',
-      description: 'Solve problems from Codeforces',
+      title: 'Practice DSA',
+      description: 'Solve coding problems & improve',
       icon: Target,
-      color: 'bg-[#00ADB5]',
+      color: 'bg-emerald-500',
       path: 'practice'
     },
     {
@@ -297,7 +295,6 @@ const CodeArenaContent = () => {
                 { id: 'home', label: 'Home', icon: Code2, path: '' },
                 { id: 'battle', label: 'Battle', icon: Swords, path: 'battle' },
                 { id: 'history', label: 'History', icon: History, path: 'battle/history' },
-                { id: 'practice', label: 'Practice', icon: Target, path: 'practice' },
                 { id: 'leaderboard', label: 'Ranks', icon: Trophy, path: 'leaderboard' },
               ].map((tab) => (
                 <button
@@ -343,7 +340,7 @@ const CodeArenaContent = () => {
           <Route path="/battle/results/:battleId" element={<BattleResults />} />
           <Route path="/practice" element={<PracticeChallenges />} />
           <Route path="/practice/:challengeId" element={<ChallengeEditor />} />
-          <Route path="/challenge/:challengeId" element={<LocalChallengeEditor />} />
+          <Route path="/challenge/:challengeId" element={<ChallengeEditor />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/seed" element={<SeedChallenges />} />
         </Routes>
@@ -490,7 +487,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
             Find Match
           </button>
           <button
-            onClick={() => navigate('/dashboard/codearena/practice')}
+            onClick={() => navigate('/dashboard/practice')}
             className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             <Target className="w-4 h-4" />
@@ -638,7 +635,7 @@ const HomeContent = ({ stats, quickActions, navigate }: any) => {
               <Crown className="w-8 h-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">No rankings yet</p>
               <button
-                onClick={() => navigate('/dashboard/codearena/practice')}
+                onClick={() => navigate('/dashboard/practice')}
                 className="mt-2 text-xs text-[#00ADB5] hover:underline"
               >
                 Start solving challenges

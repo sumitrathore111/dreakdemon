@@ -42,6 +42,8 @@ const Company_Req = lazy(() => import("./Pages/Company_Req/Company_Req"));
 const ProfileInfo = lazy(() => import("./Pages/Profile/ProfileInfo"));
 const DeveloperConnect = lazy(() => import("./Pages/DeveloperConnect/DeveloperConnect"));
 const CodeArena = lazy(() => import("./Pages/CodeArena/CodeArena"));
+const PracticeChallenges = lazy(() => import("./Pages/CodeArena/PracticeChallenges"));
+const ChallengeEditor = lazy(() => import("./Pages/CodeArena/ChallengeEditor"));
 
 // Legal pages
 const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
@@ -328,6 +330,8 @@ const App: React.FC = () => {
                   <Route path="my-invites" element={<MyInvites />} />
                   <Route path="query" element={<QueryScreen />} />
                   <Route path="profile" element={<ProfileInfo />} />
+                  <Route path="practice" element={<PracticeChallenges />} />
+                  <Route path="practice/:challengeId" element={<ChallengeEditor />} />
                   <Route path="codearena/*" element={<CodeArena />} />
                   <Route path="company_req" element={<Company_Req />} />
 

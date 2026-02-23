@@ -7,8 +7,8 @@ import emailNotifications from '../services/emailService';
 
 const router = Router();
 
-// DEBUG: Test Piston API directly with a known problem
-router.get('/debug-piston', async (req: AuthRequest, res: Response): Promise<void> => {
+// DEBUG: Test Judge0 API directly with a known problem
+router.get('/debug-judge0', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // Test with "Find Missing Number" problem - A003
     const testInput = "3\n3 0 1"; // Expected output: "2"
@@ -19,29 +19,30 @@ total = n * (n + 1) // 2
 print(total - sum(nums))
 `;
 
-    console.log('=== DEBUG PISTON TEST ===');
+    console.log('=== DEBUG JUDGE0 TEST ===');
     console.log('Input:', JSON.stringify(testInput));
     console.log('Code:', testCode);
 
     const response = await axios.post(
-      'https://emkc.org/api/v2/piston/execute',
+      'https://ce.judge0.com/submissions?base64_encoded=false&wait=true',
       {
-        language: 'python',
-        version: '3.10.0',
-        files: [{ content: testCode }],
-        stdin: testInput
+        source_code: testCode,
+        language_id: 71, // Python 3
+        stdin: testInput,
+        cpu_time_limit: 5,
+        memory_limit: 128000
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 15000
+        timeout: 30000
       }
     );
 
-    console.log('Piston Response:', JSON.stringify(response.data, null, 2));
+    console.log('Judge0 Response:', JSON.stringify(response.data, null, 2));
 
-    const runResult = response.data.run || {};
-    const output = (runResult.stdout || runResult.output || '').trim();
-    const stderr = runResult.stderr || '';
+    const output = (response.data.stdout || '').trim();
+    const stderr = response.data.stderr || '';
+    const compileOutput = response.data.compile_output || '';
 
     res.json({
       success: true,
@@ -49,11 +50,13 @@ print(total - sum(nums))
       expectedOutput: "2",
       actualOutput: output,
       passed: output === "2",
-      pistonResponse: response.data,
-      stderr: stderr
+      judge0Response: response.data,
+      status: response.data.status,
+      stderr: stderr,
+      compileOutput: compileOutput
     });
   } catch (error: any) {
-    console.error('Debug Piston Error:', error.response?.data || error.message);
+    console.error('Debug Judge0 Error:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
       error: error.response?.data || error.message
@@ -100,6 +103,18 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       createdAt: { $lt: fifteenMinutesAgo }
     });
 
+    // Clean up stale active/countdown battles (older than 1 hour - abandoned battles)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    await Battle.updateMany(
+      {
+        status: { $in: ['active', 'countdown'] },
+        createdAt: { $lt: oneHourAgo }
+      },
+      {
+        $set: { status: 'cancelled' }
+      }
+    );
+
     // Build query
     const query: any = {};
     if (status) query.status = status;
@@ -108,6 +123,11 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
     // If filtering for waiting battles, only show fresh ones
     if (status === 'waiting') {
       query.createdAt = { $gte: fifteenMinutesAgo };
+    }
+
+    // For active/countdown, only show battles from last hour (not stale ones)
+    if (status === 'active' || status === 'countdown') {
+      query.createdAt = { $gte: oneHourAgo };
     }
 
     const battles = await Battle.find(query)
@@ -981,18 +1001,18 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
   }
 });
 
-// Piston API - Free code execution (NO API KEY REQUIRED!)
-const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
+// Judge0 API - Free code execution service
+const JUDGE0_API_URL = 'https://ce.judge0.com/submissions';
 
-// Language mappings for Piston API
-const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
-  'python': { language: 'python', version: '3.10.0' },
-  'python3': { language: 'python', version: '3.10.0' },
-  'javascript': { language: 'javascript', version: '18.15.0' },
-  'java': { language: 'java', version: '15.0.2' },
-  'cpp': { language: 'c++', version: '10.2.0' },
-  'c++': { language: 'c++', version: '10.2.0' },
-  'c': { language: 'c', version: '10.2.0' },
+// Language ID mappings for Judge0 API
+const JUDGE0_LANG_MAP: Record<string, number> = {
+  'python': 71,      // Python 3.8.1
+  'python3': 71,
+  'javascript': 63,  // Node.js 12.14.0
+  'java': 62,        // Java OpenJDK 13.0.1
+  'cpp': 54,         // C++ GCC 9.2.0
+  'c++': 54,
+  'c': 50,           // C GCC 9.2.0
 };
 
 /**
@@ -1007,7 +1027,7 @@ function normalizeExpectedOutput(testCase: any): string {
 
 /**
  * Normalize output for comparison - handles whitespace variations consistently
- * This is critical for comparing Piston output with expected output
+ * This is critical for comparing Judge0 output with expected output
  */
 function normalizeOutputForComparison(output: string): string {
   if (!output) return '';
@@ -1030,39 +1050,40 @@ function normalizeOutputForComparison(output: string): string {
 // Helper function to delay execution
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to execute code with retry logic for rate limiting
-async function executePistonWithRetry(
+// Helper function to execute code with retry logic for Judge0
+async function executeJudge0WithRetry(
   code: string,
-  langConfig: { language: string; version: string },
+  languageId: number,
   stdin: string,
   maxRetries: number = 3
 ): Promise<any> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const response = await axios.post(
-        `${PISTON_API_URL}/execute`,
+        `${JUDGE0_API_URL}?base64_encoded=false&wait=true`,
         {
-          language: langConfig.language,
-          version: langConfig.version,
-          files: [{ content: code }],
-          stdin: stdin
+          source_code: code,
+          language_id: languageId,
+          stdin: stdin,
+          cpu_time_limit: 5,
+          memory_limit: 128000
         },
         {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 20000 // Increased timeout for production
+          timeout: 30000 // Judge0 needs more time since it waits for result
         }
       );
       return response;
     } catch (error: any) {
       const status = error.response?.status;
-      console.log(`[Piston] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
+      console.log(`[Judge0] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
 
       // If rate limited (429) or server error (5xx), retry with backoff
       if ((status === 429 || status >= 500) && attempt < maxRetries) {
         const backoffTime = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
-        console.log(`[Piston] Rate limited or server error. Waiting ${backoffTime}ms before retry...`);
+        console.log(`[Judge0] Rate limited or server error. Waiting ${backoffTime}ms before retry...`);
         await delay(backoffTime);
         continue;
       }
@@ -1071,13 +1092,13 @@ async function executePistonWithRetry(
   }
 }
 
-// Helper function to execute code using Piston API
+// Helper function to execute code using Judge0 API
 async function executeCode(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
-  const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
+  const languageId = JUDGE0_LANG_MAP[language.toLowerCase()] || 71; // Default to Python
 
-  console.log('=== BATTLE PISTON EXECUTION START ===');
-  console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
+  console.log('=== BATTLE JUDGE0 EXECUTION START ===');
+  console.log(`Language: ${language} -> Language ID: ${languageId}`);
   console.log(`Test cases count: ${testCases.length}`);
   console.log('Code length:', code.length);
   console.log('Code preview:', code.substring(0, 200));
@@ -1098,32 +1119,33 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
 
       // Add small delay between test cases to avoid rate limiting (except first one)
       if (i > 0) {
-        console.log('[Piston] Waiting 300ms before next test case...');
-        await delay(300);
+        console.log('[Judge0] Waiting 500ms before next test case...');
+        await delay(500);
       }
 
       // Measure execution time ourselves
       const startTime = Date.now();
 
-      // Use Piston API for code execution with retry logic
-      const response = await executePistonWithRetry(code, langConfig, stdin);
+      // Use Judge0 API for code execution with retry logic
+      const response = await executeJudge0WithRetry(code, languageId, stdin);
 
       const executionTime = Date.now() - startTime;
 
       const result = response.data;
-      const runResult = result.run || {};
 
-      console.log('[Battle] Piston run result:', JSON.stringify(runResult));
+      console.log('[Battle] Judge0 result:', JSON.stringify(result));
       console.log('[Battle] Execution time:', executionTime, 'ms');
 
-      // Get output - Piston uses stdout primarily, but fall back to output
-      let output = (runResult.stdout || runResult.output || '').trim();
-      const stderr = runResult.stderr || '';
+      // Judge0 status codes: 3 = Accepted (ran successfully), others = error
+      const statusId = result.status?.id;
+      let output = (result.stdout || '').trim();
+      const stderr = result.stderr || '';
+      const compileOutput = result.compile_output || '';
       const expected = expectedRaw.trim();
 
-      // Check for CRITICAL errors only (compilation errors, crashes)
-      // Don't fail just because there's stderr output - some languages output warnings
-      const hasCriticalError = runResult.code !== 0 && !output && stderr;
+      // Check for CRITICAL errors (compilation errors, runtime errors, etc.)
+      // Status 3 = Accepted (ran without error), Status 4 = Wrong Answer, etc.
+      const hasCriticalError = statusId !== 3 && statusId !== 4 && (compileOutput || stderr || !output);
 
       // Normalize output for comparison using helper function
       const normalizedOutput = normalizeOutputForComparison(output);
@@ -1134,15 +1156,17 @@ async function executeCode(code: string, language: string, testCases: any[]): Pr
 
       console.log(`Test result: normalized_expected="${normalizedExpected}" normalized_got="${normalizedOutput}" passed=${passed}`);
       console.log(`Raw: expected="${expected}" got="${output}"`);
+      console.log(`Status: ${result.status?.description} (ID: ${statusId})`);
       if (stderr) console.log(`Stderr: ${stderr}`);
+      if (compileOutput) console.log(`Compile output: ${compileOutput}`);
 
       results.push({
         passed,
         input: testCase.input,
         expected,
-        output: output || stderr || 'No output',
-        time: executionTime,
-        error: hasCriticalError ? stderr : undefined
+        output: output || compileOutput || stderr || 'No output',
+        time: result.time ? parseFloat(result.time) * 1000 : executionTime,
+        error: hasCriticalError ? (compileOutput || stderr || result.status?.description) : undefined
       });
     } catch (error: any) {
       console.error(`[Battle] Test case ${i + 1} execution error:`, error.response?.data || error.message);

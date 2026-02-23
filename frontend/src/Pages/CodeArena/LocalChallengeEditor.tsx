@@ -34,7 +34,7 @@ import { secureCodeExecutionService } from '../../service/secureCodeExecution_ne
  */
 const mapTestCases = (testCases: any[]): any[] => {
   if (!Array.isArray(testCases)) return [];
-  
+
   return testCases.map(tc => ({
     input: tc.input || '',
     expectedOutput: tc.expectedOutput || tc.expected_output || tc.output || '',
@@ -86,7 +86,7 @@ const LocalChallengeEditor = () => {
       try {
           // First check if challenge was passed via navigation state
           let challengeData: Challenge | null | undefined = (location.state as any)?.challenge as Challenge | undefined;
-        
+
         // If challenge came from PracticeChallenges, it has different field names
         // Map it to Challenge interface format
         if (challengeData && !challengeData.problemStatement) {
@@ -101,7 +101,7 @@ const LocalChallengeEditor = () => {
             'expert': 'Hard'
           };
           const mappedDifficulty = difficultyMap[challengeData.difficulty as string] || 'Medium';
-          
+
           challengeData = {
             id: challengeData.id,
             title: challengeData.title,
@@ -137,7 +137,7 @@ const LocalChallengeEditor = () => {
 
         if (challengeData) {
           setChallenge(challengeData);
-          
+
           // Set starter code for selected language
           if (challengeData.starterCode?.[language as keyof typeof challengeData.starterCode]) {
             setCode(challengeData.starterCode[language as keyof typeof challengeData.starterCode] || '');
@@ -171,10 +171,10 @@ const LocalChallengeEditor = () => {
 def solve():
     # Read input
     n = int(input())
-    
+
     # Your code here
     result = n
-    
+
     # Print output
     print(result)
 
@@ -185,17 +185,17 @@ using namespace std;
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-    
+
     // Read input
     int n;
     cin >> n;
-    
+
     // Your code here
     int result = n;
-    
+
     // Print output
     cout << result << endl;
-    
+
     return 0;
 }`,
       java: `import java.util.*;
@@ -203,13 +203,13 @@ int main() {
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        
+
         // Read input
         int n = sc.nextInt();
-        
+
         // Your code here
         int result = n;
-        
+
         // Print output
         System.out.println(result);
     }
@@ -229,10 +229,10 @@ rl.on('line', (line) => {
 rl.on('close', () => {
     // Parse input
     const n = parseInt(lines[0]);
-    
+
     // Your code here
     const result = n;
-    
+
     // Print output
     console.log(result);
 });`,
@@ -243,7 +243,7 @@ rl.on('close', () => {
   // Quick run code
   const handleRun = async () => {
     if (!challenge) return;
-    
+
     setIsRunning(true);
     setQuickRunResult(null);
     setResults(null);
@@ -252,7 +252,7 @@ rl.on('close', () => {
       // Get visible test cases
       const visibleTestCases = challenge.testCases.filter(tc => !tc.isHidden);
       const input = showCustomInput ? customInput : (visibleTestCases[0]?.input || '');
-      
+
       const result = await quickRunPiston(code, language, input);
       setQuickRunResult(result);
     } catch (error: any) {
@@ -279,12 +279,12 @@ rl.on('close', () => {
     try {
       // Use test cases from challenge object first, fall back to Firestore
       let testCases = challenge.testCases || [];
-      
+
       if (testCases.length === 0) {
         // Fallback: Get test cases from Firestore and map to Challenge TestCase shape
         testCases = mapTestCases(await getValidationTestCases(challengeId) || []);
       }
-      
+
       if (testCases.length === 0) {
         setResults({
           success: false,
@@ -298,24 +298,24 @@ rl.on('close', () => {
         setIsSubmitting(false);
         return;
       }
-      
+
       // Transform test cases to format expected by backend
       const transformedTestCases = testCases.map(tc => ({
         input: tc.input || '',
         expectedOutput: tc.expectedOutput || (tc as any).expected_output || ''
       }));
-      
+
       // Submit to backend - backend handles coin rewards/penalties
       const submissionResult = await secureCodeExecutionService.submitChallenge(
-        challengeId, 
-        code, 
+        challengeId,
+        code,
         language,
         transformedTestCases,
         challenge.coinReward || 10,
         challenge.title,
         challenge.difficulty
       );
-      
+
       setResults({
         success: submissionResult.success,
         passedCount: submissionResult.passedCount,
@@ -382,7 +382,7 @@ rl.on('close', () => {
           <h2 className="text-xl font-bold text-white mb-2">Challenge Not Found</h2>
           <p className="text-gray-400 mb-4">The challenge you're looking for doesn't exist.</p>
           <button
-            onClick={() => navigate('/dashboard/codearena/practice')}
+            onClick={() => navigate('/dashboard/practice')}
             className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
             Back to Challenges
@@ -402,7 +402,7 @@ rl.on('close', () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/dashboard/codearena/practice')}
+            onClick={() => navigate('/dashboard/practice')}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -503,7 +503,7 @@ rl.on('close', () => {
             {activeTab === 'description' ? (
               <div className="space-y-4">
                 {/* Problem Statement */}
-                <div 
+                <div
                   className="prose prose-invert max-w-none problem-statement"
                   dangerouslySetInnerHTML={{ __html: challenge.problemStatement || '' }}
                 />
@@ -511,7 +511,7 @@ rl.on('close', () => {
                 {/* Examples */}
                 <div className="mt-6 space-y-4">
                   <h3 className="text-lg font-semibold text-white">Examples</h3>
-                  
+
                   {(challenge.examples || []).map((example, idx) => (
                     <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
                       <div className="grid grid-cols-2 divide-x divide-gray-700">
@@ -539,7 +539,7 @@ rl.on('close', () => {
                   <h3 className="text-lg font-semibold text-white">
                     Sample Test Cases ({visibleTestCases.length})
                   </h3>
-                  
+
                   {visibleTestCases.map((tc, idx) => (
                     <div key={idx} className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden">
                       <div className="grid grid-cols-2 divide-x divide-gray-700">
@@ -579,7 +579,7 @@ rl.on('close', () => {
                       <Lightbulb className="w-4 h-4" />
                       <span className="text-sm">{showHints ? 'Hide Hints' : 'Show Hints'}</span>
                     </button>
-                    
+
                     <AnimatePresence>
                       {showHints && (
                         <motion.div
@@ -670,7 +670,7 @@ rl.on('close', () => {
               />
               Custom Input
             </label>
-            
+
             {showCustomInput && (
               <textarea
                 value={customInput}
@@ -707,7 +707,7 @@ rl.on('close', () => {
                         </span>
                       )}
                     </div>
-                    
+
                     {quickRunResult.output && (
                       <div className="bg-gray-900 rounded p-3">
                         <p className="text-xs text-gray-400 mb-1">Output:</p>
@@ -716,7 +716,7 @@ rl.on('close', () => {
                         </pre>
                       </div>
                     )}
-                    
+
                     {quickRunResult.error && (
                       <div className="bg-red-900/20 border border-red-500/30 rounded p-3">
                         <p className="text-xs text-red-400 mb-1">Error:</p>
@@ -733,8 +733,8 @@ rl.on('close', () => {
                   <div className="space-y-3">
                     {/* Summary */}
                     <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                      results.success 
-                        ? 'bg-green-900/20 border border-green-500/30' 
+                      results.success
+                        ? 'bg-green-900/20 border border-green-500/30'
                         : 'bg-red-900/20 border border-red-500/30'
                     }`}>
                       {results.success ? (
@@ -750,7 +750,7 @@ rl.on('close', () => {
                           {results.passedCount} / {results.totalCount} test cases passed
                         </p>
                       </div>
-                      
+
                       {results.success && challenge && (
                         <div className="ml-auto flex items-center gap-2 text-yellow-400">
                           <Coins className="w-5 h-5" />
@@ -776,8 +776,8 @@ rl.on('close', () => {
                           <div
                             key={idx}
                             className={`p-2 rounded border ${
-                              r.passed 
-                                ? 'bg-green-900/10 border-green-500/20' 
+                              r.passed
+                                ? 'bg-green-900/10 border-green-500/20'
                                 : 'bg-red-900/10 border-red-500/20'
                             }`}
                           >
