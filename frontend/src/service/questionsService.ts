@@ -5,6 +5,12 @@
 // Import local questions as fallback
 import questionsData from '../../questions.json';
 
+export interface SimilarProblem {
+  id: string;
+  title: string;
+  difficulty: string;
+}
+
 export interface Question {
   id: string;
   title: string;
@@ -25,6 +31,21 @@ export interface Question {
     input: string;
     expected_output: string;
   }>;
+  // Company and topic data
+  companies?: string[];
+  relatedTopics?: string[];
+  tags?: string[];
+  // Statistics
+  acceptanceRate?: number;
+  totalSubmissions?: number;
+  totalAccepted?: number;
+  likes?: number;
+  dislikes?: number;
+  frequency?: number;
+  // Additional data
+  hints?: string[];
+  similarProblems?: SimilarProblem[];
+  isPremium?: boolean;
 }
 
 // Local public folder for questions
@@ -51,7 +72,7 @@ export const fetchAllQuestions = async (): Promise<Question[]> => {
   try {
     console.log('📥 Attempting to fetch from local /questions.json...');
     const response = await fetch(LOCAL_QUESTIONS_URL);
-    
+
     if (response.ok) {
       const data = await response.json();
       const normalized = normalizeQuestions(data);
@@ -153,6 +174,27 @@ function normalizeQuestions(raw: unknown): Question[] {
         const tc = mapTestCase(t);
         return { input: tc.input, expected_output: tc.expected_output };
       }),
+      // Company and topic data
+      companies: Array.isArray(q['companies']) ? (q['companies'] as string[]) : [],
+      relatedTopics: Array.isArray(q['relatedTopics']) ? (q['relatedTopics'] as string[]) : [],
+      tags: Array.isArray(q['tags']) ? (q['tags'] as string[]) : [],
+      // Statistics
+      acceptanceRate: typeof q['acceptanceRate'] === 'number' ? q['acceptanceRate'] as number : undefined,
+      totalSubmissions: typeof q['totalSubmissions'] === 'number' ? q['totalSubmissions'] as number : undefined,
+      totalAccepted: typeof q['totalAccepted'] === 'number' ? q['totalAccepted'] as number : undefined,
+      likes: typeof q['likes'] === 'number' ? q['likes'] as number : undefined,
+      dislikes: typeof q['dislikes'] === 'number' ? q['dislikes'] as number : undefined,
+      frequency: typeof q['frequency'] === 'number' ? q['frequency'] as number : undefined,
+      // Additional data
+      hints: Array.isArray(q['hints']) ? (q['hints'] as string[]) : [],
+      similarProblems: Array.isArray(q['similarProblems'])
+        ? (q['similarProblems'] as Array<{id?: string; title?: string; difficulty?: string}>).map(sp => ({
+            id: String(sp.id ?? ''),
+            title: String(sp.title ?? ''),
+            difficulty: String(sp.difficulty ?? 'medium')
+          }))
+        : [],
+      isPremium: Boolean(q['isPremium'] ?? false),
     } as Question;
   });
 }
@@ -207,7 +249,7 @@ export const getRandomQuestion = async (
   topic?: string
 ): Promise<Question | null> => {
   const questions = await getFilteredQuestions(difficulty, topic);
-  
+
   if (questions.length === 0) {
     return null;
   }
@@ -257,7 +299,7 @@ export const getAllTopics = async (): Promise<string[]> => {
  */
 export const getQuestionsStatistics = async () => {
   const questions = await fetchAllQuestions();
-  
+
   const stats = {
     total: questions.length,
     byDifficulty: {
@@ -281,9 +323,9 @@ export const getQuestionsStatistics = async () => {
 export const searchQuestions = async (searchTerm: string): Promise<Question[]> => {
   const questions = await fetchAllQuestions();
   const term = searchTerm.toLowerCase();
-  
+
   return questions.filter(
-    q => 
+    q =>
       q.title.toLowerCase().includes(term) ||
       q.description.toLowerCase().includes(term) ||
       q.category.toLowerCase().includes(term)

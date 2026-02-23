@@ -11,12 +11,14 @@ import { connectDatabase } from './config/database';
 
 // Import routes
 import adminRoutes from './routes/admin';
+import aiRoutes from './routes/ai';
 import authRoutes from './routes/auth';
 import battleRoutes from './routes/battles';
 import boardRoutes from './routes/boards';
 import challengeRoutes from './routes/challenges';
 import chatRoutes from './routes/chats';
 import developerRoutes from './routes/developers';
+import discussionRoutes from './routes/discussions';
 import executeRoutes from './routes/execute';
 import githubRoutes from './routes/github';
 import ideaRoutes from './routes/ideas';
@@ -281,8 +283,10 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/developers', developerRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/discussions', discussionRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);

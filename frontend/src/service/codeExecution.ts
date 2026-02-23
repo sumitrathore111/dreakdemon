@@ -1,8 +1,8 @@
-// Piston API - Free code execution service (NO API KEY REQUIRED!)
-// Documentation: https://github.com/engineer-man/piston
+// Judge0 API - Free code execution service
+// Documentation: https://ce.judge0.com/
 // This is used for Practice mode code execution
 
-const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
+const JUDGE0_API_URL = 'https://ce.judge0.com/submissions';
 
 interface ExecutionResult {
   success: boolean;
@@ -11,21 +11,21 @@ interface ExecutionResult {
   executionTime?: number;
 }
 
-// Language mappings for Piston API - supports many languages
-const languageMap: Record<string, { language: string; version: string }> = {
-  javascript: { language: 'javascript', version: '18.15.0' },
-  python: { language: 'python', version: '3.10.0' },
-  python3: { language: 'python', version: '3.10.0' },
-  java: { language: 'java', version: '15.0.2' },
-  cpp: { language: 'c++', version: '10.2.0' },
-  c: { language: 'c', version: '10.2.0' },
-  typescript: { language: 'typescript', version: '5.0.3' },
-  go: { language: 'go', version: '1.16.2' },
-  rust: { language: 'rust', version: '1.68.2' },
-  ruby: { language: 'ruby', version: '3.0.1' },
-  kotlin: { language: 'kotlin', version: '1.8.20' },
-  csharp: { language: 'csharp', version: '6.12.0' },
-  swift: { language: 'swift', version: '5.3.3' }
+// Language ID mappings for Judge0 API
+const languageMap: Record<string, number> = {
+  javascript: 63,  // Node.js 12.14.0
+  python: 71,      // Python 3.8.1
+  python3: 71,
+  java: 62,        // Java OpenJDK 13.0.1
+  cpp: 54,         // C++ GCC 9.2.0
+  c: 50,           // C GCC 9.2.0
+  typescript: 74,  // TypeScript 3.7.4
+  go: 60,          // Go 1.13.5
+  rust: 73,        // Rust 1.40.0
+  ruby: 72,        // Ruby 2.7.0
+  kotlin: 78,      // Kotlin 1.3.70
+  csharp: 51,      // C# Mono 6.6.0
+  swift: 83        // Swift 5.2.3
 };
 
 export async function executeCode(
@@ -36,57 +36,51 @@ export async function executeCode(
   const startTime = Date.now();
 
   try {
-    const langConfig = languageMap[language.toLowerCase()];
-    if (!langConfig) {
+    const languageId = languageMap[language.toLowerCase()];
+    if (!languageId) {
       throw new Error(`Unsupported language: ${language}`);
     }
 
-    const response = await fetch(`${PISTON_API_URL}/execute`, {
+    const response = await fetch(`${JUDGE0_API_URL}?base64_encoded=false&wait=true`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        language: langConfig.language,
-        version: langConfig.version,
-        files: [
-          {
-            name: getFileName(language),
-            content: code
-          }
-        ],
+        source_code: code,
+        language_id: languageId,
         stdin: input,
-        args: [],
-        compile_timeout: 10000,
-        run_timeout: 3000,
-        compile_memory_limit: -1,
-        run_memory_limit: -1
+        cpu_time_limit: 5,
+        memory_limit: 128000
       })
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
-      console.error('Piston API error:', response.status, errorText);
+      console.error('Judge0 API error:', response.status, errorText);
       throw new Error(`Code execution failed: ${response.status}`);
     }
 
     const result = await response.json();
-    const executionTime = Date.now() - startTime;
+    const executionTime = result.time ? parseFloat(result.time) * 1000 : (Date.now() - startTime);
 
     // Check for compilation errors
-    if (result.compile && result.compile.code !== 0) {
+    if (result.compile_output) {
       return {
         success: false,
-        error: result.compile.stderr || result.compile.output || 'Compilation failed',
+        error: result.compile_output,
         executionTime
       };
     }
 
-    // Check for runtime errors - only if there's an actual error
-    if (result.run.code !== 0 && result.run.stderr && !result.run.stdout) {
+    // Judge0 status codes: 3 = Accepted, others indicate errors
+    const statusId = result.status?.id;
+
+    // Check for runtime errors - status 3 is success, 4 is wrong answer (still ran)
+    if (statusId !== 3 && statusId !== 4 && result.stderr) {
       return {
         success: false,
-        error: result.run.stderr || result.run.output || 'Runtime error',
+        error: result.stderr || result.status?.description || 'Runtime error',
         executionTime
       };
     }
@@ -94,8 +88,8 @@ export async function executeCode(
     // Success - return output (even if there's stderr, prioritize stdout)
     return {
       success: true,
-      output: (result.run.stdout || result.run.output || '').trim(),
-      error: result.run.stderr ? result.run.stderr.trim() : undefined,
+      output: (result.stdout || '').trim(),
+      error: result.stderr ? result.stderr.trim() : undefined,
       executionTime
     };
 
@@ -105,37 +99,6 @@ export async function executeCode(
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       executionTime: Date.now() - startTime
     };
-  }
-}
-
-function getFileName(language: string): string {
-  switch (language.toLowerCase()) {
-    case 'javascript':
-      return 'solution.js';
-    case 'python':
-    case 'python3':
-      return 'solution.py';
-    case 'java':
-      return 'Main.java';
-    case 'cpp':
-    case 'c':
-      return 'solution.cpp';
-    case 'typescript':
-      return 'solution.ts';
-    case 'go':
-      return 'solution.go';
-    case 'rust':
-      return 'solution.rs';
-    case 'ruby':
-      return 'solution.rb';
-    case 'kotlin':
-      return 'solution.kt';
-    case 'csharp':
-      return 'Solution.cs';
-    case 'swift':
-      return 'solution.swift';
-    default:
-      return 'solution.txt';
   }
 }
 
@@ -237,7 +200,7 @@ export async function quickRunPiston(
   status: string;
 }> {
   const result = await executeCode(code, language, input);
-  
+
   return {
     output: result.output || '',
     error: result.error || null,
@@ -297,7 +260,7 @@ export async function runTestCases(
 
 function normalizeOutput(output: string): string {
   if (!output) return '';
-  
+
   // Normalize for comparison:
   // 1. Trim leading/trailing whitespace
   // 2. Normalize line endings (\r\n -> \n)
@@ -314,18 +277,21 @@ function normalizeOutput(output: string): string {
     .join('\n');
 }
 
-// Check if Piston API is available
-export async function checkPistonAvailability(): Promise<boolean> {
+// Check if Judge0 API is available
+export async function checkJudge0Availability(): Promise<boolean> {
   try {
-    const response = await fetch(`${PISTON_API_URL}/runtimes`);
+    const response = await fetch(`https://ce.judge0.com/about`);
     return response.ok;
   } catch {
     return false;
   }
 }
 
+// Legacy alias for backward compatibility
+export const checkPistonAvailability = checkJudge0Availability;
+
 // ============================================
-// BATTLE-SPECIFIC FUNCTIONS (Piston API)
+// BATTLE-SPECIFIC FUNCTIONS (Judge0 API)
 // ============================================
 
 // Battle submission result interface
@@ -340,7 +306,7 @@ export interface PistonBattleSubmissionResult {
   compilationError?: string;
 }
 
-// Submit battle code using Piston API (FREE - no quota limits!)
+// Submit battle code using backend API (Judge0 powered)
 export const submitBattleCodePiston = async (
   userId: string,
   code: string,
@@ -348,7 +314,7 @@ export const submitBattleCodePiston = async (
   testCases: { input: string; output: string }[]
 ): Promise<PistonBattleSubmissionResult> => {
   const submittedAt = Date.now();
-  
+
   if (!testCases || testCases.length === 0) {
     return {
       userId,
@@ -370,7 +336,7 @@ export const submitBattleCodePiston = async (
 
     // Handle compilation errors - stop immediately
     if (result.error && (
-      result.error.toLowerCase().includes('compile') || 
+      result.error.toLowerCase().includes('compile') ||
       result.error.toLowerCase().includes('syntax') ||
       result.error.toLowerCase().includes('error:')
     )) {
@@ -422,7 +388,7 @@ export const determineBattleWinnerPiston = (
       isDraw: false
     };
   }
-  
+
   if (submission2.passed && !submission1.passed) {
     return {
       winnerId: submission2.userId,

@@ -5,6 +5,7 @@ import Challenge from '../models/Challenge';
 import User from '../models/User';
 import UserProgress from '../models/UserProgress';
 import Wallet from '../models/Wallet';
+import { wrapCode } from '../services/codeWrapper';
 import emailNotifications from '../services/emailService';
 
 const router = Router();
@@ -228,8 +229,13 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
       (sc: any) => sc.challengeId.toString() === challengeId
     );
 
-    // Execute code against test cases
-    const testResults = await executeCodeAgainstTests(actualCode, actualLanguage, testCases);
+    // Wrap user code with input parsing for DSA-style problems
+    const { wrappedCode, language: wrappedLanguage } = wrapCode(actualCode, actualLanguage, challengeTitle);
+    console.log('Wrapping code for:', challengeTitle);
+    console.log('Wrapped code length:', wrappedCode.length);
+
+    // Execute wrapped code against test cases
+    const testResults = await executeCodeAgainstTests(wrappedCode, wrappedLanguage, testCases);
     const passedCount = testResults.filter(r => r.passed).length;
     const totalCount = testResults.length;
     const allPassed = passedCount === totalCount;
@@ -312,60 +318,64 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
   }
 });
 
-// Piston API - Free code execution (NO API KEY REQUIRED!)
-const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
+// ===== CODE EXECUTION APIs =====
+// Primary: Judge0 CE (free public, rate limited but reliable)
+// For 1000+ users, consider self-hosting Piston or Judge0
 
-// Language mappings for Piston API
-const PISTON_LANG_MAP: Record<string, { language: string; version: string }> = {
-  'python': { language: 'python', version: '3.10.0' },
-  'python3': { language: 'python', version: '3.10.0' },
-  'javascript': { language: 'javascript', version: '18.15.0' },
-  'java': { language: 'java', version: '15.0.2' },
-  'cpp': { language: 'c++', version: '10.2.0' },
-  'c++': { language: 'c++', version: '10.2.0' },
-  'c': { language: 'c', version: '10.2.0' },
-  'go': { language: 'go', version: '1.16.2' },
-  'rust': { language: 'rust', version: '1.68.2' },
-  'ruby': { language: 'ruby', version: '3.0.1' },
-  'typescript': { language: 'typescript', version: '5.0.3' },
+const JUDGE0_URL = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
+
+// Language ID mappings for Judge0 CE API
+const LANG_ID_MAP: Record<string, number> = {
+  'python': 71,     // Python 3.8.1
+  'python3': 71,
+  'javascript': 63, // JavaScript (Node.js 12.14.0)
+  'java': 62,       // Java (OpenJDK 13.0.1)
+  'cpp': 54,        // C++ (GCC 9.2.0)
+  'c++': 54,
+  'c': 50,          // C (GCC 9.2.0)
+  'go': 60,         // Go (1.13.5)
+  'rust': 73,       // Rust (1.40.0)
+  'ruby': 72,       // Ruby (2.7.0)
+  'typescript': 74, // TypeScript (3.7.4)
 };
 
 // Helper function to delay execution
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to execute code with retry logic for rate limiting
-async function executePistonWithRetry(
+// Execute with Judge0 CE API
+async function executeWithJudge0(
   code: string,
-  langConfig: { language: string; version: string },
+  language: string,
   stdin: string,
   maxRetries: number = 3
 ): Promise<any> {
+  const langId = LANG_ID_MAP[language.toLowerCase()] || 71;
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const response = await axios.post(
-        `${PISTON_API_URL}/execute`,
+        JUDGE0_URL,
         {
-          language: langConfig.language,
-          version: langConfig.version,
-          files: [{ content: code }],
+          source_code: code,
+          language_id: langId,
           stdin: stdin
         },
         {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 20000 // Increased timeout for production
+          timeout: 30000
         }
       );
       return response;
     } catch (error: any) {
       const status = error.response?.status;
-      console.log(`[Piston] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
+      console.log(`[Judge0] Attempt ${attempt}/${maxRetries} failed. Status: ${status}`);
 
       // If rate limited (429) or server error (5xx), retry with backoff
       if ((status === 429 || status >= 500) && attempt < maxRetries) {
-        const backoffTime = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
-        console.log(`[Piston] Rate limited or server error. Waiting ${backoffTime}ms before retry...`);
+        const backoffTime = Math.pow(2, attempt) * 500;
+        console.log(`[Judge0] Waiting ${backoffTime}ms before retry...`);
         await delay(backoffTime);
         continue;
       }
@@ -374,17 +384,39 @@ async function executePistonWithRetry(
   }
 }
 
-// Helper function to execute code against test cases using Piston API
+// Helper function to execute code against test cases using Judge0 CE API
 async function executeCodeAgainstTests(code: string, language: string, testCases: any[]): Promise<any[]> {
   const results: any[] = [];
 
-  const langConfig = PISTON_LANG_MAP[language.toLowerCase()] || { language: 'python', version: '3.10.0' };
-
-  console.log('=== PISTON EXECUTION START ===');
-  console.log(`Language: ${language} -> ${langConfig.language} v${langConfig.version}`);
+  console.log('=== CODE EXECUTION START ===');
+  console.log(`Language: ${language}`);
   console.log(`Test cases count: ${testCases.length}`);
   console.log('Code length:', code.length);
   console.log('Code preview:', code.substring(0, 200));
+
+  // Normalize output for comparison
+  const normalizeOutput = (s: string) => {
+    let normalized = s
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .map(line => line.trim())
+      .join('\n')
+      .replace(/\n+$/, '')
+      .trim();
+
+    // For JSON-like outputs, normalize formatting
+    if ((normalized.startsWith('[') && normalized.endsWith(']')) ||
+        (normalized.startsWith('{') && normalized.endsWith('}'))) {
+      normalized = normalized
+        .replace(/\s*,\s*/g, ',')
+        .replace(/\s*:\s*/g, ':')
+        .replace(/\[\s*/g, '[')
+        .replace(/\s*\]/g, ']')
+        .replace(/\{\s*/g, '{')
+        .replace(/\s*\}/g, '}');
+    }
+    return normalized;
+  };
 
   for (let i = 0; i < testCases.length; i++) {
     const testCase = testCases[i];
@@ -392,54 +424,36 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
     console.log('Raw test case:', JSON.stringify(testCase));
 
     try {
-      // Convert escaped newlines to actual newlines
       const stdin = (testCase.input || '').replace(/\\n/g, '\n');
       const expectedRaw = (testCase.expectedOutput || testCase.output || testCase.expected || '');
+      const expected = expectedRaw.trim();
 
       console.log('Input (stdin):', JSON.stringify(stdin));
       console.log('Expected output:', JSON.stringify(expectedRaw));
 
-      // Add small delay between test cases to avoid rate limiting (except first one)
+      // Add delay between test cases for rate limit protection (except first)
       if (i > 0) {
-        console.log('[Piston] Waiting 300ms before next test case...');
-        await delay(300);
+        await delay(200);
       }
 
-      // Use Piston API for code execution with retry logic
-      const submitResponse = await executePistonWithRetry(code, langConfig, stdin);
+      // Execute with Judge0
+      const j0Response = await executeWithJudge0(code, language, stdin);
+      const j0Result = j0Response.data;
 
-      const result = submitResponse.data;
-      const runResult = result.run || {};
+      const output = (j0Result.stdout || '').trim();
+      const stderr = j0Result.stderr || j0Result.compile_output || '';
+      const execTime = parseFloat(j0Result.time) || 0;
 
-      // Get output - Piston uses stdout primarily, but fall back to output
-      const output = (runResult.stdout || runResult.output || '').trim();
-      const stderr = runResult.stderr || '';
-      const expected = expectedRaw.trim();
-
-      // Check for CRITICAL errors only (compilation errors, crashes)
-      // Don't fail just because there's stderr output - some languages output warnings
-      const hasCriticalError = runResult.code !== 0 && !output && stderr;
-
-      // Normalize output for comparison - handles whitespace variations consistently
-      // 1. Normalizes line endings
-      // 2. Trims each line and collapses multiple spaces
-      // 3. Removes trailing empty lines
-      const normalizeOutput = (s: string) => {
-        return s
-          .replace(/\r\n/g, '\n')
-          .split('\n')
-          .map(line => line.trim().replace(/\s+/g, ' '))
-          .join('\n')
-          .replace(/\n+$/, '')
-          .trim();
-      };
+      // Check for errors
+      const hasCriticalError = j0Result.status?.id >= 5 || (stderr && !output);
 
       const normalizedOutput = normalizeOutput(output);
       const normalizedExpected = normalizeOutput(expected);
       const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
 
-      console.log('Normalized output:', JSON.stringify(normalizedOutput));
-      console.log('Normalized expected:', JSON.stringify(normalizedExpected));
+      console.log('[Judge0] Output:', JSON.stringify(normalizedOutput));
+      console.log('Expected:', JSON.stringify(normalizedExpected));
+      console.log('Status:', j0Result.status?.description);
       console.log('Passed:', passed);
 
       results.push({
@@ -448,19 +462,19 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
         expected,
         output: output || stderr || 'No output',
         stderr,
-        status: passed ? 'Accepted' : (hasCriticalError ? 'Error' : 'Wrong Answer'),
-        time: 0,
-        memory: 0,
+        status: passed ? 'Accepted' : (hasCriticalError ? j0Result.status?.description || 'Error' : 'Wrong Answer'),
+        time: execTime,
+        memory: j0Result.memory || 0,
         error: hasCriticalError ? stderr : undefined
       });
     } catch (error: any) {
-      console.error(`[Piston] Test case ${i + 1} execution error:`, error.response?.data || error.message);
+      console.error(`Test case ${i + 1} execution error:`, error.message);
       results.push({
         passed: false,
         input: testCase.input,
         expected: testCase.expectedOutput || testCase.output || '',
         output: '',
-        error: error.response?.data?.message || error.message || 'Execution error (rate limit or timeout)',
+        error: error.message || 'Execution error',
         time: 0
       });
     }
@@ -553,6 +567,68 @@ router.get('/:challengeId/validation-testcases', authenticate, async (req: AuthR
     res.json({ testCases });
   } catch (error: any) {
     res.status(500).json({ error: error.message, testCases: [] });
+  }
+});
+
+// Get starter code for a challenge
+router.get('/:challengeId/starter-code', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { challengeId } = req.params;
+    const { language = 'python' } = req.query;
+    const { getStarterCode } = await import('../services/codeWrapper.js');
+
+    // Try to find challenge title
+    let title = 'solution';
+    let params: string[] = [];
+
+    // Try MongoDB first
+    const mongoose = require('mongoose');
+    if (mongoose.Types.ObjectId.isValid(challengeId)) {
+      const challenge = await Challenge.findById(challengeId);
+      if (challenge) {
+        title = challenge.title;
+      }
+    }
+
+    // Try questions.json
+    if (title === 'solution') {
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const questionsPath = path.join(__dirname, '../../../public/questions.json');
+        const questionsData = await fs.readFile(questionsPath, 'utf-8');
+        const questionsJson = JSON.parse(questionsData);
+
+        let questions: any[] = [];
+        if (Array.isArray(questionsJson)) {
+          questions = questionsJson;
+        } else if (questionsJson.problems) {
+          questions = questionsJson.problems;
+        } else if (questionsJson.questions) {
+          questions = questionsJson.questions;
+        }
+
+        const found = questions.find((q: any) => q.id === challengeId);
+        if (found) {
+          title = found.title;
+          // Extract params from test case input format
+          if (found.testCases && found.testCases[0]) {
+            const input = found.testCases[0].input || '';
+            const matches = input.match(/(\w+)\s*=/g);
+            if (matches) {
+              params = matches.map((m: string) => m.replace(/\s*=/, '').trim());
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error loading questions.json for starter code:', err);
+      }
+    }
+
+    const starterCode = getStarterCode(language as string, title, params);
+    res.json({ starterCode, functionName: title });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

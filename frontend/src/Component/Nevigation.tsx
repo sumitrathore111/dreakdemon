@@ -1,19 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  BookOpen,
-  ChevronsLeft,
-  DoorOpen,
-  Folder,
-  Home,
-  LogOut,
-  Map,
-  Menu,
-  MessageSquare,
-  Moon,
-  Sun,
-  Trophy,
-  UserCircle,
+    AlertTriangle,
+    BookOpen,
+    ChevronsLeft,
+    DoorOpen,
+    Folder,
+    Home,
+    LogOut,
+    Map,
+    Menu,
+    Moon,
+    Sun,
+    Target,
+    Trophy,
+    UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -42,7 +42,7 @@ export default function DashboardLayout() {
     { name: "Developer Connect", path: "/dashboard/developer-connect", icon: <BookOpen size={20} /> },
     { name: "CodeArena", path: "/dashboard/codearena", icon: <Trophy size={20} /> },
     { name: "Learning Roadmaps", path: "/dashboard/roadmaps", icon: <Map size={20} /> },
-    { name: "Query", path: "/dashboard/query", icon: <MessageSquare size={20} /> },
+    { name: "Practice DSA", path: "/dashboard/practice", icon: <Target size={20} /> },
     { name: "Profile Info", path: "/dashboard/profile", icon: <UserCircle size={20} /> },
   ];
 
@@ -461,7 +461,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-black">
+        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-black relative">
           <Outlet />
         </div>
       </div>

@@ -65,7 +65,7 @@ const DashboardMockup = memo(() => {
     { id: 'connect', icon: Users, label: 'Developer Connect' },
     { id: 'arena', icon: Swords, label: 'CodeArena' },
     { id: 'roadmaps', icon: Map, label: 'Learning Roadmaps' },
-    { id: 'query', icon: MessageSquare, label: 'Query' },
+    { id: 'practice', icon: Target, label: 'Practice' },
     { id: 'profile', icon: Shield, label: 'Profile Info' },
   ];
 
@@ -819,24 +819,24 @@ const DashboardMockup = memo(() => {
     </div>
   );
 
-  // Query Content
-  const QueryContent = () => (
+  // Practice Content
+  const PracticeContent = () => (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-white text-base font-semibold">Query Center</h3>
-        <button className="px-3 py-1.5 bg-[#00ADB5] text-white text-xs rounded-md">+ Ask Question</button>
+        <h3 className="text-white text-base font-semibold">Practice Arena</h3>
+        <button className="px-3 py-1.5 bg-[#00ADB5] text-white text-xs rounded-md">Start Practice</button>
       </div>
       <div className="bg-[#151c2a] rounded-lg p-3 border border-[#1a2535]">
         <div className="space-y-2">
           {[
-            { q: 'How to optimize recursive solutions?', replies: 5, time: '2h ago' },
-            { q: 'Best practices for React hooks?', replies: 12, time: '1d ago' },
-            { q: 'Understanding Big O notation', replies: 8, time: '3d ago' },
-          ].map((query, idx) => (
+            { title: 'Two Sum', difficulty: 'Easy', solved: true },
+            { title: 'Longest Substring', difficulty: 'Medium', solved: false },
+            { title: 'Maximum Subarray', difficulty: 'Medium', solved: true },
+          ].map((problem, idx) => (
             <div key={idx} className="flex items-center justify-between py-2 border-b border-[#1a2535] last:border-0">
-              <span className="text-[10px] text-gray-300 flex-1">{query.q}</span>
-              <span className="text-[9px] text-[#00ADB5] mx-2">{query.replies} replies</span>
-              <span className="text-[9px] text-gray-600">{query.time}</span>
+              <span className="text-[10px] text-gray-300 flex-1">{problem.title}</span>
+              <span className={`text-[9px] mx-2 ${problem.difficulty === 'Easy' ? 'text-green-400' : 'text-yellow-400'}`}>{problem.difficulty}</span>
+              <span className={`text-[9px] ${problem.solved ? 'text-[#00ADB5]' : 'text-gray-600'}`}>{problem.solved ? '✓ Solved' : 'Unsolved'}</span>
             </div>
           ))}
         </div>
@@ -956,7 +956,7 @@ const DashboardMockup = memo(() => {
       case 'connect': return <ConnectContent />;
       case 'arena': return <ArenaContent />;
       case 'roadmaps': return <RoadmapsContent />;
-      case 'query': return <QueryContent />;
+      case 'practice': return <PracticeContent />;
       case 'profile': return <ProfileContent />;
       default: return <DashboardContent />;
     }
