@@ -167,6 +167,7 @@ const ChallengeEditor = () => {
 
   // Problem navigation state
   const [_adjacentProblems, _setAdjacentProblems] = useState<{prev: string | null; next: string | null}>({ prev: null, next: null });
+  const [showAllCompanies, setShowAllCompanies] = useState(false);
 
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -735,6 +736,12 @@ ${(result.suggestions || result.codeQuality?.suggestions || ['No immediate fixes
   useEffect(() => {
     const loadChallenge = async () => {
       if (!challengeId) return;
+
+      // Reset previous results when navigating to a new problem
+      setResults(null);
+      setQuickRunResult(null);
+      setBottomTab('testcase');
+      setAiDebugResult(null);
 
       setLoading(true);
 
@@ -1524,7 +1531,7 @@ ${(result.suggestions || result.codeQuality?.suggestions || ['No immediate fixes
                     <h3 className="text-sm font-semibold text-gray-400">Companies</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {(challenge as any).companies.slice(0, 4).map((company: string) => (
+                    {((showAllCompanies ? (challenge as any).companies : (challenge as any).companies.slice(0, 4)) as string[]).map((company: string) => (
                       <span
                         key={company}
                         className="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20 hover:bg-blue-500/20 cursor-pointer transition-colors"
@@ -1533,7 +1540,12 @@ ${(result.suggestions || result.codeQuality?.suggestions || ['No immediate fixes
                       </span>
                     ))}
                     {(challenge as any).companies.length > 4 && (
-                      <button className="text-xs text-gray-500 hover:text-gray-300">+{(challenge as any).companies.length - 4} more</button>
+                      <button
+                        onClick={() => setShowAllCompanies(!showAllCompanies)}
+                        className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                      >
+                        {showAllCompanies ? 'Show less' : `+${(challenge as any).companies.length - 4} more`}
+                      </button>
                     )}
                   </div>
                 </div>

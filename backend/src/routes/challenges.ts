@@ -16,7 +16,7 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
     const { difficulty, category, search, limit = 50, page = 1 } = req.query;
 
     let query: any = {};
-
+    
     if (difficulty) query.difficulty = difficulty;
     if (category) query.category = category;
     if (search) {
@@ -418,6 +418,43 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
     return normalized;
   };
 
+  // Compare outputs with order-insensitive support for nested arrays
+  const compareOutputs = (output: string, expected: string): boolean => {
+    // Exact match first
+    if (output === expected) return true;
+
+    // Try parsing as JSON for smarter comparison
+    try {
+      const outParsed = JSON.parse(output.replace(/'/g, '"'));
+      const expParsed = JSON.parse(expected.replace(/'/g, '"'));
+
+      // Both are arrays of arrays (e.g., group anagrams, 3sum, etc.)
+      if (Array.isArray(outParsed) && Array.isArray(expParsed) &&
+          outParsed.length === expParsed.length &&
+          outParsed.every(Array.isArray) && expParsed.every(Array.isArray)) {
+        // Sort inner arrays, then sort outer array by stringified inner
+        const sortNested = (arr: any[][]) =>
+          arr.map(inner => [...inner].sort()).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+        return JSON.stringify(sortNested(outParsed)) === JSON.stringify(sortNested(expParsed));
+      }
+
+      // Both are flat arrays — compare sorted
+      if (Array.isArray(outParsed) && Array.isArray(expParsed) &&
+          outParsed.length === expParsed.length) {
+        // Check if order matters by trying sorted comparison as fallback
+        const sortedOut = JSON.stringify([...outParsed].sort());
+        const sortedExp = JSON.stringify([...expParsed].sort());
+        if (sortedOut === sortedExp) return true;
+      }
+
+      // Deep equal for objects
+      return JSON.stringify(outParsed) === JSON.stringify(expParsed);
+    } catch {
+      // Not valid JSON, fall back to string comparison
+      return false;
+    }
+  };
+
   for (let i = 0; i < testCases.length; i++) {
     const testCase = testCases[i];
     console.log(`\n--- Test Case ${i + 1}/${testCases.length} ---`);
@@ -449,7 +486,7 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
 
       const normalizedOutput = normalizeOutput(output);
       const normalizedExpected = normalizeOutput(expected);
-      const passed = !hasCriticalError && normalizedOutput === normalizedExpected;
+      const passed = !hasCriticalError && compareOutputs(normalizedOutput, normalizedExpected);
 
       console.log('[Judge0] Output:', JSON.stringify(normalizedOutput));
       console.log('Expected:', JSON.stringify(normalizedExpected));

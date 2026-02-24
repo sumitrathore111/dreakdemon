@@ -29,7 +29,11 @@ import bisect
 import itertools
 import functools
 import re
-from functools import lru_cache, cache
+from functools import lru_cache
+try:
+    from functools import cache
+except ImportError:
+    cache = lru_cache(maxsize=None)
 
 # ========== LEETCODE DATA STRUCTURES ==========
 class ListNode:
@@ -261,7 +265,7 @@ try:
         'list_to_tree', 'tree_to_list', 'build_graph',
         # Common user helper names (DFS, Backtracking, etc.)
         'helper', 'dfs', 'bfs', 'merge', 'partition', 'swap', 'heapify',
-        'backtrack', 'recurse', 'dp', 'solve', 'check', 'valid', 'search',
+        'backtrack', 'recurse', 'dp', 'check', 'valid', 'search',
         'traverse', 'preorder', 'inorder', 'postorder', 'sortArray'
     }
 
@@ -304,8 +308,10 @@ try:
     print(format_output(result))
 except Exception as e:
     import traceback
+    import sys
+    print(f"Error: {e}", file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
     print(f"Error: {e}")
-    traceback.print_exc()
 `;
 }
 
