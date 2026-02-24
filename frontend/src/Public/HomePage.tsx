@@ -1066,31 +1066,51 @@ const HeroSection = memo(() => {
           <div className={`space-y-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             {/* Platform badge */}
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00ADB5]" />
-              <span className="text-sm font-semibold text-[#00ADB5] tracking-wide uppercase">Developer Growth Platform</span>
+              <span className="text-lg">🚀</span>
+              <span className="text-sm font-semibold text-[#00ADB5] tracking-wide">Connect. Learn. Showcase. Succeed.</span>
             </div>
 
             {/* Main heading */}
             <h1 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white leading-tight tracking-tight">
-              Powerful Skills{' '}
+              Learn by Doing{' '}
               <br className="hidden sm:block" />
-              <span className="text-[#00ADB5]">10,000+</span>{' '}
-              <br className="hidden sm:block" />
-              Developers Worldwide
+              <span className="text-[#00ADB5]">Grow by Contributing</span>
             </h1>
 
             {/* Description */}
             <p className="text-gray-500 dark:text-gray-400 text-base lg:text-lg max-w-lg leading-relaxed">
-              SkillUpX is a smart platform designed for students who want to learn, grow, and showcase their abilities. Contribute to real open-source projects, collaborate with peers, and build a meaningful portfolio.
+              SkillUpX is a smart platform designed for students who want to learn, grow, and showcase their abilities. Contribute to real open-source projects, collaborate with peers, and build a meaningful portfolio that impresses employers.
             </p>
 
+            {/* Feature highlights */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#00ADB5]/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-[#00ADB5]" />
+                </div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Collaborate on projects & form teams</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#00ADB5]/10 flex items-center justify-center">
+                  <Swords className="w-4 h-4 text-[#00ADB5]" />
+                </div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Battle in CodeArena & practice coding</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#00ADB5]/10 flex items-center justify-center">
+                  <Rocket className="w-4 h-4 text-[#00ADB5]" />
+                </div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Gain real-world experience instantly</span>
+              </div>
+            </div>
+
             {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-5 pt-2">
+            <div className="flex flex-wrap items-center gap-5 pt-4">
               <Link
                 to="/signup"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#00ADB5] hover:bg-[#00c4cc] text-white rounded-full font-semibold text-sm transition-all duration-300 hover:shadow-xl hover:shadow-[#00ADB5]/25 hover:-translate-y-0.5 group"
               >
-                Start Free Trial
+                Get Started Free
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
 
@@ -1213,988 +1233,84 @@ export default function HomePage() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* ===== WHAT WE OFFER — YOUR DEVELOPER JOURNEY ===== */}
-      <section className="relative py-24 lg:py-32 overflow-hidden bg-white dark:bg-black">
-        {/* Subtle ambient background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-radial from-[#00ADB5]/[0.04] to-transparent rounded-full" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-radial from-indigo-500/[0.03] to-transparent rounded-full" />
-        </div>
 
-        <div className="relative max-w-6xl mx-auto px-6 lg:px-12">
-
-          {/* ── Section Header — Narrative opener ── */}
-          <div className="text-center mb-20">
-            <p className="text-[#00ADB5] text-sm font-semibold tracking-widest uppercase mb-4">Your Developer Journey</p>
-            <h2 className="text-4xl lg:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
-              From <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-400 bg-clip-text text-transparent">Zero</span> to{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">Industry-Ready</span>
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
-              Every great developer started exactly where you are. Here's how SkillUpX walks with you — step by step — from your first line of code to landing your dream role.
-            </p>
-          </div>
-
-          {/* ═══════════  CHAPTER 1 — Learn the Fundamentals  ═══════════ */}
-          <div className="relative mb-24 lg:mb-32">
-            {/* Vertical timeline connector */}
-            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/20 to-transparent" />
-
-            {/* Chapter number */}
-            <div className="flex items-start gap-6 lg:gap-10">
-              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#00ADB5]/20">
-                  01
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[#00ADB5]/20 mb-4">
-                  01
-                </div>
-                <p className="text-[#00ADB5] text-xs font-bold uppercase tracking-widest mb-2">Chapter One</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
-                  Learn with a Clear Roadmap
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
-                  No more tutorial hell. Pick a curated roadmap — Full Stack, Machine Learning, Docker, GenAI, or System Design — and follow a structured path from fundamentals to mastery. Every module tells you <em>what</em> to learn, <em>why</em> it matters, and <em>what's next</em>.
-                </p>
-
-                {/* Visual: The journey path */}
-                <div className="relative bg-gradient-to-br from-blue-50/80 to-indigo-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-blue-200/60 dark:border-gray-800/60 p-6 lg:p-8">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0 justify-between relative">
-                    {/* Connector line */}
-                    <div className="hidden sm:block absolute top-6 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-blue-500/30 via-blue-500/60 to-blue-500/20 rounded-full" />
-
-                    {[
-                      { step: 'Pick a Path', emoji: '🗺️', done: true },
-                      { step: 'Learn Concepts', emoji: '📖', done: true },
-                      { step: 'Build Projects', emoji: '🛠️', done: true },
-                      { step: 'Go Advanced', emoji: '🚀', done: false },
-                      { step: 'Become Expert', emoji: '👑', done: false },
-                    ].map((s, i) => (
-                      <div key={i} className="relative flex sm:flex-col items-center gap-3 sm:gap-2 z-10">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${s.done ? 'bg-blue-500 shadow-lg shadow-blue-500/30' : 'bg-gray-200 dark:bg-gray-800'} transition-all`}>
-                          {s.emoji}
-                        </div>
-                        <p className={`text-xs font-semibold ${s.done ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-600'}`}>{s.step}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-blue-200/40 dark:border-gray-800/40">
-                    {['Full Stack', 'Machine Learning', 'Docker & DevOps', 'GenAI', 'System Design', '25+ Paths'].map((tag, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link to="/dashboard/roadmaps" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-blue-500 hover:text-blue-400 transition-colors group/link">
-                  Explore Roadmaps <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══════════  CHAPTER 2 — Sharpen Through Battle  ═══════════ */}
-          <div className="relative mb-24 lg:mb-32">
-            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-orange-400/40 via-orange-400/20 to-transparent" />
-
-            <div className="flex items-start gap-6 lg:gap-10">
-              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/20">
-                  02
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-orange-500/20 mb-4">
-                  02
-                </div>
-                <p className="text-orange-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Two</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
-                  Sharpen Your Skills in the Arena
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
-                  Theory alone won't cut it. Jump into <strong>Code Arena</strong> — challenge anyone to a live 1v1 DSA battle. Solve problems under pressure, climb the leaderboard, and prove your skills when it matters most. This is where you stop studying and start <em>performing</em>.
-                </p>
-
-                {/* Visual: Live battle mockup */}
-                <div className="relative bg-gradient-to-br from-orange-50/80 to-amber-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-orange-200/60 dark:border-gray-800/60 p-6 lg:p-8">
-                  {/* Battle scene */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-500 flex items-center justify-center text-white text-sm font-bold">Y</div>
-                      <div>
-                        <p className="text-gray-900 dark:text-white font-bold text-sm">You</p>
-                        <p className="text-emerald-500 text-xs font-semibold">Solving...</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30">
-                        <Zap className="w-4 h-4 text-orange-500" />
-                        <span className="text-orange-500 font-black text-sm">VS</span>
-                        <Zap className="w-4 h-4 text-orange-500" />
-                      </div>
-                      <span className="text-gray-400 text-[10px] mt-1">Live Battle</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-gray-900 dark:text-white font-bold text-sm">Opponent</p>
-                        <p className="text-orange-400 text-xs font-semibold">Thinking...</p>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white text-sm font-bold">O</div>
-                    </div>
-                  </div>
-
-                  {/* Problem preview */}
-                  <div className="bg-white/80 dark:bg-black/40 rounded-xl p-4 border border-orange-200/30 dark:border-gray-700/30 mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">MEDIUM</span>
-                      <span className="text-gray-500 text-xs">Two Sum Variants</span>
-                    </div>
-                    <div className="font-mono text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                      <span className="text-purple-500">function</span> <span className="text-blue-500">solve</span>(nums, target) {'{'}<br />
-                      <span className="text-gray-400 ml-4">// Your solution here...</span><br />
-                      {'}'}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    {['1v1 Real-time', 'DSA Problems', 'Skill Ratings', 'Live Leaderboard'].map((tag, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link to="/code-arena" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-orange-500 hover:text-orange-400 transition-colors group/link">
-                  Enter the Arena <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══════════  CHAPTER 3 — Master DSA  ═══════════ */}
-          <div className="relative mb-24 lg:mb-32">
-            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-emerald-400/40 via-emerald-400/20 to-transparent" />
-
-            <div className="flex items-start gap-6 lg:gap-10">
-              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-500/20">
-                  03
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-emerald-500/20 mb-4">
-                  03
-                </div>
-                <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Three</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
-                  Crack Any Interview
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
-                  3,000+ hand-picked DSA questions across every difficulty level — with AI-powered hints when you're stuck. Whether it's your first interview or your tenth, you'll walk in knowing you've seen it all. Categorized by topic, company, and difficulty.
-                </p>
-
-                {/* Visual: Question cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {[
-                    { difficulty: 'Easy', color: 'emerald', count: '1,350+', emoji: '🟢', desc: 'Build confidence with fundamentals' },
-                    { difficulty: 'Medium', color: 'amber', count: '1,050+', emoji: '🟡', desc: 'The bread & butter of interviews' },
-                    { difficulty: 'Hard', color: 'red', count: '600+', emoji: '🔴', desc: 'For FAANG-level preparation' },
-                  ].map((d, i) => (
-                    <div key={i} className={`relative bg-gradient-to-br from-${d.color}-50/80 to-${d.color}-50/30 dark:from-gray-900/80 dark:to-gray-900/50 rounded-xl border border-${d.color}-200/60 dark:border-gray-800/60 p-5 group/card hover:scale-[1.02] transition-transform`}>
-                      <div className="text-3xl mb-3">{d.emoji}</div>
-                      <p className="text-gray-900 dark:text-white font-black text-2xl mb-1">{d.count}</p>
-                      <p className="text-gray-900 dark:text-white font-bold text-sm mb-1">{d.difficulty}</p>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">{d.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap gap-3 mt-6">
-                  {['AI Hints', 'Company-wise', 'Topic-wise', 'Interview Prep', 'Smart Guidance'].map((tag, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">{tag}</span>
-                  ))}
-                </div>
-
-                <Link to="/code-arena" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-emerald-500 hover:text-emerald-400 transition-colors group/link">
-                  Start Practicing <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══════════  CHAPTER 4 — Connect & Collaborate  ═══════════ */}
-          <div className="relative mb-24 lg:mb-32">
-            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/20 to-transparent" />
-
-            <div className="flex items-start gap-6 lg:gap-10">
-              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#00ADB5]/20">
-                  04
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[#00ADB5]/20 mb-4">
-                  04
-                </div>
-                <p className="text-[#00ADB5] text-xs font-bold uppercase tracking-widest mb-2">Chapter Four</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
-                  Build With Real Developers
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
-                  Coding alone gets lonely — and it slows you down. On <strong>Developer Connect</strong>, you'll find teammates for real-world projects, message developers directly, create topic-based groups, and earn free certificates when you ship. This is your professional network, built while you build.
-                </p>
-
-                {/* Visual: Chat / collaboration mockup */}
-                <div className="relative bg-gradient-to-br from-teal-50/80 to-cyan-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-teal-200/60 dark:border-gray-800/60 p-6 lg:p-8">
-                  <div className="space-y-4">
-                    {/* Simulated conversation */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">R</div>
-                      <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl rounded-tl-sm px-4 py-2.5 max-w-md">
-                        <p className="text-gray-900 dark:text-white text-sm">Hey! I'm building a React + Node e-commerce app. Looking for a backend dev — interested?</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 justify-end">
-                      <div className="bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 rounded-xl rounded-tr-sm px-4 py-2.5 max-w-md">
-                        <p className="text-gray-900 dark:text-white text-sm">Absolutely! I just finished a Node.js roadmap. Let's create a project group 🚀</p>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-[#00ADB5] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">Y</div>
-                    </div>
-                    <div className="flex items-center gap-2 justify-center">
-                      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-                      <span className="text-[10px] text-gray-400 font-medium px-2">Project created • Certificate earned on completion</span>
-                      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-teal-200/30 dark:border-gray-800/30">
-                    {['Real Projects', 'Direct Messaging', 'Free Certificates', 'Topic Groups'].map((tag, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#00ADB5]/10 text-[#00ADB5] border border-[#00ADB5]/20">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link to="/developer-connect" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-[#00ADB5] hover:text-[#00d4de] transition-colors group/link">
-                  Join the Community <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══════════  CHAPTER 5 — Contribute to Open Source  ═══════════ */}
-          <div className="relative mb-20">
-            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-violet-400/40 via-violet-400/20 to-transparent" />
-
-            <div className="flex items-start gap-6 lg:gap-10">
-              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-violet-500/20">
-                  05
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-violet-500/20 mb-4">
-                  05
-                </div>
-                <p className="text-violet-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Five</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
-                  Give Back to Open Source
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
-                  The final unlocked level. Contribute to open-source projects, connect with maintainers, join community discussions, and build a GitHub profile that actually impresses. This is where learners become leaders.
-                </p>
-
-                {/* Visual: Contribution activity */}
-                <div className="relative bg-gradient-to-br from-violet-50/80 to-purple-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-violet-200/60 dark:border-gray-800/60 p-6 lg:p-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    {[
-                      { emoji: '🔀', label: 'Pull Requests', desc: 'Contribute real code to projects' },
-                      { emoji: '💬', label: 'Discussions', desc: 'Join topic-based conversations' },
-                      { emoji: '🌍', label: 'Global Network', desc: 'Connect across borders' },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/50 dark:bg-white/[0.03] border border-violet-200/30 dark:border-gray-800/30">
-                        <span className="text-2xl">{item.emoji}</span>
-                        <div>
-                          <p className="text-gray-900 dark:text-white font-bold text-sm">{item.label}</p>
-                          <p className="text-gray-500 dark:text-gray-400 text-xs">{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    {['Open Source', 'Real-time Chat', 'Collaboration', 'Community Driven'].map((tag, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <Link to="/developer-connect" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-violet-500 hover:text-violet-400 transition-colors group/link">
-                  Start Contributing <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══════════  THE DESTINATION — Where it all leads  ═══════════ */}
-          <div className="relative rounded-3xl overflow-hidden">
-            <div className="absolute inset-0 bg-[#00ADB5]" />
-            <div className="absolute inset-0 bg-black/5" />
-            {/* Pattern overlay */}
-            <div className="absolute inset-0 opacity-10" style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)`,
-              backgroundSize: '60px 60px',
-            }} />
-
-            <div className="relative px-8 py-12 lg:px-16 lg:py-16">
-              <div className="text-center mb-10">
-                <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-3">The Result</p>
-                <h3 className="text-3xl lg:text-4xl font-black text-white mb-3">
-                  You, But Industry-Ready
-                </h3>
-                <p className="text-white/70 text-base max-w-xl mx-auto">
-                  After walking this path, here's what you'll have built — not just skills, but proof.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 max-w-4xl mx-auto">
-                {[
-                  { icon: Map, value: '25+', label: 'Roadmaps Completed', emoji: '🗺️' },
-                  { icon: Swords, value: '∞', label: 'Battles Won', emoji: '⚔️' },
-                  { icon: Brain, value: '3K+', label: 'Problems Solved', emoji: '🧠' },
-                  { icon: Users, value: '∞', label: 'Connections Made', emoji: '🤝' },
-                  { icon: Award, value: '∞', label: 'Certificates Earned', emoji: '🏆' },
-                ].map((s, i) => (
-                  <div key={i} className="flex flex-col items-center text-center">
-                    <span className="text-3xl mb-2">{s.emoji}</span>
-                    <p className="text-white font-black text-2xl">{s.value}</p>
-                    <p className="text-white/60 text-[11px] uppercase tracking-wider mt-1">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-center mt-10">
-                <Link to="/login" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white text-gray-900 font-bold text-sm hover:bg-white/90 transition-colors shadow-xl shadow-black/20 group/cta">
-                  Start Your Journey — It's Free <ArrowRight className="w-4 h-4 group-hover/cta:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ===== WHY DEVELOPERS CHOOSE SKILLUPX — BENTO SHOWCASE ===== */}
-      <section className="relative py-28 lg:py-36 overflow-hidden bg-gray-50 dark:bg-[#060606]">
-        {/* Ambient glow orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-[#00ADB5]/[0.07] rounded-full blur-[150px]" />
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-purple-500/[0.05] rounded-full blur-[150px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/[0.02] rounded-full blur-[200px]" />
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.03] opacity-[0.06]" style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-
-          {/* Header */}
-          <div className="text-center mb-16 lg:mb-20">
-            <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-gray-200 dark:border-white/[0.08] bg-gray-100 dark:bg-white/[0.03] backdrop-blur-sm mb-8">
-              <div className="w-2 h-2 rounded-full bg-[#00ADB5] shadow-lg shadow-[#00ADB5]/50 animate-pulse" />
-              <span className="text-[#00ADB5] text-xs font-semibold tracking-[0.2em] uppercase">The Unfair Advantage</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-[3.5rem] font-black text-gray-900 dark:text-white mb-6 leading-[1.08] tracking-tight">
-              Why Developers Choose<br />
-              <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-teal-300 bg-clip-text text-transparent">SkillUpX</span>
-            </h2>
-            <p className="text-gray-500 dark:text-white/70 max-w-xl mx-auto text-lg leading-relaxed">
-              One platform that replaces five. No paywall. No scattered tools.<br className="hidden sm:block" />
-              Just everything you need to level up.
-            </p>
-          </div>
-
-          {/* ── BENTO GRID ── */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 lg:gap-5">
-
-            {/* ▸ Block 1 — CodeArena (spans 4 cols) — Hero block with terminal mockup */}
-            <div className="md:col-span-4 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-8 lg:p-10 overflow-hidden hover:border-orange-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-orange-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Mini terminal mockup */}
-              <div className="relative mb-8 rounded-xl bg-gray-900 dark:bg-black/80 border border-gray-200 dark:border-white/[0.06] overflow-hidden shadow-2xl shadow-black/10 dark:shadow-black/40">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-700 dark:border-white/[0.04] bg-gray-800 dark:bg-white/[0.02]">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-                  <span className="ml-3 text-white/20 text-[11px] font-mono tracking-wide">codearena — battle_room_42</span>
-                </div>
-                <div className="px-5 py-4 font-mono text-[13px] space-y-2">
-                  <p><span className="text-[#00ADB5]">→</span> <span className="text-white/80">Challenge received from</span> <span className="text-orange-400 font-semibold">@ninja_dev</span></p>
-                  <p><span className="text-[#00ADB5]">→</span> <span className="text-white/80">Problem:</span> <span className="text-cyan-300">Two Sum</span> <span className="text-white/70">•</span> <span className="text-yellow-400/80 text-xs">Medium</span></p>
-                  <p><span className="text-[#00ADB5]">→</span> <span className="text-white/80">Time limit:</span> <span className="text-yellow-300">15:00</span> <span className="text-white/70">|</span> <span className="text-white/70">Language: TypeScript</span></p>
-                  <div className="w-full h-px bg-white/[0.10] my-1" />
-                  <p><span className="text-green-400">✓</span> <span className="text-green-400/80">Solution accepted in</span> <span className="text-green-300 font-bold">4:32</span> <span className="text-white/70">— You win! +120 XP</span></p>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Swords className="w-4 h-4 text-orange-400" />
-                  <span className="text-orange-400 text-xs font-bold tracking-[0.2em] uppercase">CodeArena</span>
-                </div>
-                <h3 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-3 leading-tight">Live 1v1 Code Battles</h3>
-                <p className="text-gray-500 dark:text-white/70 max-w-lg leading-relaxed text-[15px]">
-                  Challenge any developer to a real-time coding duel. Solve DSA problems under pressure, earn XP, and climb the global leaderboard. No other free platform offers this.
-                </p>
-              </div>
-            </div>
-
-            {/* ▸ Block 2 — Roadmaps (spans 2 cols) — Progress bars visual */}
-            <div className="md:col-span-2 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-7 lg:p-8 overflow-hidden hover:border-teal-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute bottom-0 left-0 w-60 h-60 bg-gradient-to-tr from-teal-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Mini roadmap progress visual */}
-              <div className="relative mb-7 space-y-4">
-                {[
-                  { label: 'MERN Stack', progress: 85, color: 'from-[#00ADB5] to-cyan-400' },
-                  { label: 'DSA Mastery', progress: 62, color: 'from-cyan-400 to-blue-400' },
-                  { label: 'System Design', progress: 30, color: 'from-teal-400 to-emerald-400' },
-                ].map((r, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-gray-600 dark:text-white/70 text-xs font-medium">{r.label}</span>
-                      <span className="text-gray-400 dark:text-white/50 text-xs font-mono">{r.progress}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-gray-200 dark:bg-white/[0.04] rounded-full overflow-hidden">
-                      <div className={`h-full bg-gradient-to-r ${r.color} rounded-full shadow-sm`} style={{ width: `${r.progress}%` }} />
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 pt-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#00ADB5] animate-pulse" />
-                  <span className="text-gray-400 dark:text-white/50 text-[11px] font-mono">12 milestones unlocked</span>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Map className="w-4 h-4 text-teal-400" />
-                  <span className="text-teal-400 text-xs font-bold tracking-[0.2em] uppercase">Roadmaps</span>
-                </div>
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">25+ Learning Paths</h3>
-                <p className="text-gray-500 dark:text-white/70 text-sm leading-relaxed">
-                  Step-by-step roadmaps with milestone tracking, progress analytics, and verifiable certifications.
-                </p>
-              </div>
-            </div>
-
-            {/* ▸ Block 3 — Team Projects (spans 2 cols) — Mini kanban visual */}
-            <div className="md:col-span-2 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-7 lg:p-8 overflow-hidden hover:border-blue-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute top-0 left-0 w-60 h-60 bg-gradient-to-br from-blue-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Mini kanban board */}
-              <div className="relative mb-7 flex gap-2">
-                {[
-                  { title: 'To Do', items: ['Auth API', 'DB Schema'], dotColor: 'bg-white/20' },
-                  { title: 'In Progress', items: ['Dashboard UI'], dotColor: 'bg-blue-400' },
-                  { title: 'Done', items: ['Landing', 'CI/CD'], dotColor: 'bg-green-400' },
-                ].map((col, i) => (
-                  <div key={i} className="flex-1 rounded-lg bg-gray-100 dark:bg-white/[0.025] border border-gray-200 dark:border-white/[0.05] p-2">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
-                      <p className="text-[10px] font-bold text-gray-400 dark:text-white/60 uppercase tracking-wider">{col.title}</p>
-                    </div>
-                    {col.items.map((item, j) => (
-                      <div key={j} className="text-[11px] text-gray-600 dark:text-white/70 bg-gray-50 dark:bg-white/[0.03] rounded-md px-2 py-1.5 mb-1 border border-gray-200 dark:border-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Code className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-400 text-xs font-bold tracking-[0.2em] uppercase">Creator Corner</span>
-                </div>
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">Real Team Projects</h3>
-                <p className="text-gray-500 dark:text-white/70 text-sm leading-relaxed">
-                  Kanban boards, sprint planning, and code reviews — build like professional dev teams.
-                </p>
-              </div>
-            </div>
-
-            {/* ▸ Block 4 — Developer Network (spans 4 cols) — Network graph visual */}
-            <div className="md:col-span-4 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-8 lg:p-10 overflow-hidden hover:border-purple-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tl from-purple-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Network visualization */}
-              <div className="relative mb-8 flex items-center justify-center">
-                <div className="relative w-full max-w-md h-36">
-                  {/* Connection lines SVG */}
-                  <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    {[
-                      { x2: '18%', y2: '18%' }, { x2: '82%', y2: '12%' },
-                      { x2: '8%', y2: '78%' }, { x2: '88%', y2: '72%' },
-                      { x2: '50%', y2: '3%' }, { x2: '42%', y2: '92%' },
-                    ].map((l, i) => (
-                      <line key={i} x1="50%" y1="50%" x2={l.x2} y2={l.y2} stroke="rgba(0,173,181,0.12)" strokeWidth="1" strokeDasharray="4 4" />
-                    ))}
-                  </svg>
-                  {/* Central node - YOU */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-xs shadow-xl shadow-[#00ADB5]/20 border border-white/10">
-                      YOU
-                    </div>
-                  </div>
-                  {/* Orbiting developer nodes */}
-                  {[
-                    { emoji: '👨‍💻', x: '18%', y: '18%', delay: '0s' },
-                    { emoji: '👩‍💻', x: '82%', y: '12%', delay: '0.5s' },
-                    { emoji: '🧑‍💻', x: '8%', y: '78%', delay: '1s' },
-                    { emoji: '👨‍🎓', x: '88%', y: '72%', delay: '1.5s' },
-                    { emoji: '🧑‍🔬', x: '50%', y: '3%', delay: '0.7s' },
-                    { emoji: '👩‍🎓', x: '42%', y: '92%', delay: '1.2s' },
-                  ].map((node, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-base hover:bg-gray-200 dark:hover:bg-white/[0.08] hover:scale-110 transition-all duration-300 cursor-default"
-                      style={{ left: node.x, top: node.y, transform: 'translate(-50%, -50%)' }}
-                    >
-                      {node.emoji}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Globe className="w-4 h-4 text-purple-400" />
-                  <span className="text-purple-400 text-xs font-bold tracking-[0.2em] uppercase">Developer Connect</span>
-                </div>
-                <h3 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-3 leading-tight">Your Developer Network</h3>
-                <p className="text-gray-500 dark:text-white/70 max-w-lg leading-relaxed text-[15px]">
-                  Direct messaging, study groups, mentorship, and open-source collaboration. A real network that grows with your career — not a generic forum.
-                </p>
-              </div>
-            </div>
-
-            {/* ▸ Block 5 — DSA Practice (spans 3 cols) — Animated bar chart */}
-            <div className="md:col-span-3 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-7 lg:p-8 overflow-hidden hover:border-green-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-bl from-green-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Mini activity chart */}
-              <div className="relative mb-7">
-                <div className="flex items-end gap-1.5 h-24">
-                  {[35, 60, 25, 80, 50, 90, 40, 70, 85, 55, 95, 45, 75, 65].map((h, i) => (
-                    <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-green-500/30 to-green-400/10 group-hover:from-green-500/50 group-hover:to-green-400/20 transition-all duration-700 border-t border-green-400/20" style={{ height: `${h}%` }} />
-                  ))}
-                </div>
-                <div className="flex justify-between mt-2">
-                  <span className="text-gray-300 dark:text-white/50 text-[10px] font-mono">Mon</span>
-                  <span className="text-gray-300 dark:text-white/50 text-[10px] font-mono">Sun</span>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Brain className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs font-bold tracking-[0.2em] uppercase">DSA Mastery</span>
-                </div>
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">3,000+ Coding Problems</h3>
-                <p className="text-gray-500 dark:text-white/70 text-sm leading-relaxed">
-                  Categorized by topic, difficulty, and company. AI-powered hints to accelerate your interview prep.
-                </p>
-              </div>
-            </div>
-
-            {/* ▸ Block 6 — Certificates (spans 3 cols) — Mini certificate visual */}
-            <div className="md:col-span-3 group relative rounded-3xl bg-white dark:bg-gradient-to-br dark:from-white/[0.05] dark:to-white/[0.015] border border-gray-200 dark:border-white/[0.07] p-7 lg:p-8 overflow-hidden hover:border-yellow-500/20 transition-all duration-700 shadow-sm dark:shadow-none">
-              <div className="absolute bottom-0 left-0 w-60 h-60 bg-gradient-to-tr from-yellow-500/[0.06] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              {/* Mini certificate card */}
-              <div className="relative mb-7 flex justify-center">
-                <div className="relative w-full max-w-[220px] rounded-xl bg-gradient-to-br from-yellow-500/[0.06] to-orange-500/[0.03] border border-yellow-500/[0.12] p-5 group-hover:border-yellow-500/25 transition-all duration-500">
-                  {/* Medal badge */}
-                  <div className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                    <Award className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <div className="w-10 h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent mx-auto" />
-                    <p className="text-gray-400 dark:text-white/60 text-[9px] font-bold uppercase tracking-[0.15em]">Certificate of Completion</p>
-                    <p className="text-gray-900 dark:text-white font-black text-sm tracking-tight">MERN Stack Mastery</p>
-                    <div className="w-14 h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent mx-auto" />
-                    <div className="flex items-center justify-center gap-1.5 pt-1">
-                      <div className="w-1 h-1 rounded-full bg-yellow-500/40" />
-                      <p className="text-gray-400 dark:text-white/50 text-[9px] font-mono">SkillUpX • Verified • 2026</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
-                  <Trophy className="w-4 h-4 text-yellow-400" />
-                  <span className="text-yellow-400 text-xs font-bold tracking-[0.2em] uppercase">Certificates</span>
-                </div>
-                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 leading-tight">Verified Achievements</h3>
-                <p className="text-gray-500 dark:text-white/70 text-sm leading-relaxed">
-                  Earn certificates on completing roadmaps and milestones. Share on LinkedIn and showcase verified skills.
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ── Bottom Proof Strip + CTA ── */}
-          <div className="mt-16 lg:mt-20 flex flex-col items-center">
-            {/* Stats ribbon */}
-            <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 px-8 py-5 rounded-2xl bg-gray-100 dark:bg-white/[0.025] border border-gray-200 dark:border-white/[0.05] mb-10">
-              {[
-                { val: '100%', label: 'Free to Start' },
-                { val: '25+', label: 'Roadmaps' },
-                { val: '3K+', label: 'Problems' },
-                { val: '1v1', label: 'Live Battles' },
-                { val: '∞', label: 'Possibilities' },
-              ].map((s, i) => (
-                <div key={i} className="text-center min-w-[70px]">
-                  <p className="text-gray-900 dark:text-white font-black text-2xl tracking-tight">{s.val}</p>
-                  <p className="text-gray-400 dark:text-white/60 text-[10px] uppercase tracking-[0.15em] mt-0.5 font-medium">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-gray-500 dark:text-white/60 text-sm mb-6">
-              Stop juggling five platforms. Start building your career in one.
-            </p>
-            <Link to="/login" className="inline-flex items-center gap-2.5 px-9 py-4 rounded-full bg-gradient-to-r from-[#00ADB5] to-cyan-500 text-white font-bold text-[15px] hover:shadow-2xl hover:shadow-[#00ADB5]/25 transition-all duration-300 hover:-translate-y-0.5 group/btn">
-              Start Building — It's Free <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
-            </Link>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ===== ACHIEVEMENT MILESTONES — GAME LEVEL MAP ===== */}
-      <section className="relative py-28 lg:py-36 overflow-hidden bg-gradient-to-b from-[#0c0a1d] via-[#111033] to-[#0c0a1d]">
-        {/* Starfield / ambient background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Nebula glows */}
-          <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[180px]" />
-          <div className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[150px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[200px]" />
-          {/* Stars */}
-          {[
-            { x: '10%', y: '15%', s: 1, d: '0s' }, { x: '25%', y: '8%', s: 1.5, d: '1s' }, { x: '45%', y: '20%', s: 1, d: '0.5s' },
-            { x: '65%', y: '10%', s: 2, d: '1.5s' }, { x: '80%', y: '18%', s: 1, d: '0.8s' }, { x: '92%', y: '25%', s: 1.5, d: '2s' },
-            { x: '15%', y: '80%', s: 1, d: '0.3s' }, { x: '35%', y: '88%', s: 1.5, d: '1.2s' }, { x: '55%', y: '92%', s: 1, d: '0.7s' },
-            { x: '75%', y: '85%', s: 2, d: '1.8s' }, { x: '88%', y: '78%', s: 1, d: '0.4s' }, { x: '5%', y: '45%', s: 1.5, d: '1.1s' },
-            { x: '95%', y: '55%', s: 1, d: '0.9s' }, { x: '50%', y: '5%', s: 2, d: '2.2s' }, { x: '30%', y: '95%', s: 1, d: '1.6s' },
-          ].map((star, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full bg-white animate-pulse"
-              style={{ left: star.x, top: star.y, width: star.s, height: star.s, animationDelay: star.d, animationDuration: '3s' }}
-            />
-          ))}
-        </div>
-
-        <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
-
-          {/* Header */}
-          <div className="text-center mb-16 lg:mb-20">
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 backdrop-blur-sm mb-8">
-              <Trophy className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 text-xs font-black tracking-[0.2em] uppercase">Level Up Your Career</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-[3.5rem] font-black text-white mb-5 leading-[1.08] tracking-tight">
-              Achievement{' '}
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 bg-clip-text text-transparent">Milestones</span>
-            </h2>
-            <p className="text-white/30 max-w-lg mx-auto text-lg leading-relaxed">
-              Complete challenges, unlock rewards, and watch your developer profile transform.
-            </p>
-          </div>
-
-          {/* ── GAME BOARD — Winding Path with Milestone Nodes ── */}
-          <div className="relative">
-
-            {/* SVG Winding Path (Desktop only) */}
-            <svg className="absolute inset-0 w-full h-full hidden lg:block" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1000 600" fill="none">
-              <defs>
-                <linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.4" />
-                  <stop offset="30%" stopColor="#F97316" stopOpacity="0.3" />
-                  <stop offset="60%" stopColor="#EC4899" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.4" />
-                </linearGradient>
-              </defs>
-              <path d="M 80 100 Q 250 50 400 150 Q 550 250 700 120 Q 850 0 920 180 Q 970 300 800 350 Q 600 400 500 500 Q 400 580 200 480 Q 100 420 150 300" stroke="url(#pathGrad)" strokeWidth="3" strokeDasharray="12 8" fill="none" />
-            </svg>
-
-            {/* Milestone Grid — 3x2 on desktop, stacked on mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 relative z-10">
-
-              {[
-                {
-                  level: 1,
-                  icon: '💻',
-                  title: 'First Blood',
-                  task: 'Complete 5 Projects',
-                  reward: 'Gold Badge',
-                  xp: '+200 XP',
-                  gradient: 'from-yellow-500 to-amber-600',
-                  glowColor: 'shadow-yellow-500/30',
-                  borderColor: 'border-yellow-500/30 hover:border-yellow-400',
-                  bgAccent: 'from-yellow-500/10 via-amber-500/5 to-transparent',
-                  iconBg: 'bg-yellow-500/10',
-                  textColor: 'text-yellow-400',
-                  barColor: 'from-yellow-500 to-amber-500',
-                  progress: 80,
-                },
-                {
-                  level: 2,
-                  icon: '⚔️',
-                  title: 'Arena Warrior',
-                  task: 'Win 10 Code Battles',
-                  reward: '+500 Coins',
-                  xp: '+350 XP',
-                  gradient: 'from-red-500 to-orange-600',
-                  glowColor: 'shadow-red-500/30',
-                  borderColor: 'border-red-500/30 hover:border-red-400',
-                  bgAccent: 'from-red-500/10 via-orange-500/5 to-transparent',
-                  iconBg: 'bg-red-500/10',
-                  textColor: 'text-red-400',
-                  barColor: 'from-red-500 to-orange-500',
-                  progress: 60,
-                },
-                {
-                  level: 3,
-                  icon: '👥',
-                  title: 'Team Player',
-                  task: 'Join 3 Teams',
-                  reward: 'Collaborator Badge',
-                  xp: '+280 XP',
-                  gradient: 'from-pink-500 to-rose-600',
-                  glowColor: 'shadow-pink-500/30',
-                  borderColor: 'border-pink-500/30 hover:border-pink-400',
-                  bgAccent: 'from-pink-500/10 via-rose-500/5 to-transparent',
-                  iconBg: 'bg-pink-500/10',
-                  textColor: 'text-pink-400',
-                  barColor: 'from-pink-500 to-rose-500',
-                  progress: 100,
-                },
-                {
-                  level: 4,
-                  icon: '🏆',
-                  title: 'Scholar',
-                  task: 'Earn 3 Certificates',
-                  reward: 'Elite Status',
-                  xp: '+500 XP',
-                  gradient: 'from-emerald-500 to-teal-600',
-                  glowColor: 'shadow-emerald-500/30',
-                  borderColor: 'border-emerald-500/30 hover:border-emerald-400',
-                  bgAccent: 'from-emerald-500/10 via-teal-500/5 to-transparent',
-                  iconBg: 'bg-emerald-500/10',
-                  textColor: 'text-emerald-400',
-                  barColor: 'from-emerald-500 to-teal-500',
-                  progress: 45,
-                },
-                {
-                  level: 5,
-                  icon: '⭐',
-                  title: 'Rising Star',
-                  task: 'Reach 4.8+ Rating',
-                  reward: 'Star Developer',
-                  xp: '+420 XP',
-                  gradient: 'from-orange-500 to-yellow-600',
-                  glowColor: 'shadow-orange-500/30',
-                  borderColor: 'border-orange-500/30 hover:border-orange-400',
-                  bgAccent: 'from-orange-500/10 via-yellow-500/5 to-transparent',
-                  iconBg: 'bg-orange-500/10',
-                  textColor: 'text-orange-400',
-                  barColor: 'from-orange-500 to-yellow-500',
-                  progress: 92,
-                },
-                {
-                  level: 6,
-                  icon: '🧠',
-                  title: 'Code Master',
-                  task: 'Solve 100+ DSA',
-                  reward: 'Legendary Badge',
-                  xp: '+600 XP',
-                  gradient: 'from-violet-500 to-purple-600',
-                  glowColor: 'shadow-violet-500/30',
-                  borderColor: 'border-violet-500/30 hover:border-violet-400',
-                  bgAccent: 'from-violet-500/10 via-purple-500/5 to-transparent',
-                  iconBg: 'bg-violet-500/10',
-                  textColor: 'text-violet-400',
-                  barColor: 'from-violet-500 to-purple-500',
-                  progress: 30,
-                },
-              ].map((m, i) => (
-                <div
-                  key={i}
-                  className={`group relative rounded-2xl bg-white/[0.03] backdrop-blur-sm border ${m.borderColor} p-6 overflow-hidden hover:bg-white/[0.06] transition-all duration-500 hover:-translate-y-1.5 hover:${m.glowColor} hover:shadow-xl cursor-default`}
-                >
-                  {/* Accent gradient overlay */}
-                  <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl ${m.bgAccent} rounded-full blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-500`} />
-
-                  {/* Level badge */}
-                  <div className="absolute top-4 right-4">
-                    <div className={`px-2.5 py-1 rounded-lg bg-gradient-to-r ${m.gradient} text-white text-[10px] font-black tracking-wider shadow-lg`}>
-                      LVL {m.level}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative">
-                    {/* Icon */}
-                    <div className={`w-14 h-14 rounded-2xl ${m.iconBg} border border-white/[0.06] flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                      {m.icon}
-                    </div>
-
-                    {/* Title + XP */}
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-black text-white">{m.title}</h3>
-                      <span className={`text-[11px] font-bold ${m.textColor} bg-white/[0.04] px-2 py-0.5 rounded-full`}>{m.xp}</span>
-                    </div>
-
-                    {/* Task */}
-                    <p className="text-white/30 text-sm font-medium mb-4">{m.task}</p>
-
-                    {/* Progress bar */}
-                    <div className="mb-3">
-                      <div className="flex justify-between mb-1.5">
-                        <span className="text-white/20 text-[10px] font-bold uppercase tracking-wider">Progress</span>
-                        <span className={`${m.textColor} text-[11px] font-bold`}>{m.progress}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                        <div
-                          className={`h-full bg-gradient-to-r ${m.barColor} rounded-full shadow-sm transition-all duration-1000`}
-                          style={{ width: `${m.progress}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Reward */}
-                    <div className="flex items-center gap-2">
-                      <Award className={`w-3.5 h-3.5 ${m.textColor}`} />
-                      <span className="text-white/40 text-xs font-medium">Reward:</span>
-                      <span className={`${m.textColor} text-xs font-bold`}>{m.reward}</span>
-                      {m.progress === 100 && (
-                        <span className="ml-auto text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">UNLOCKED</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-            </div>
-          </div>
-
-          {/* ── Player Stats Bar ── */}
-          <div className="mt-14 lg:mt-16 rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm p-6 lg:p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-              {[
-                { label: 'Total XP', value: '2,350', icon: <Zap className="w-5 h-5" />, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-                { label: 'Badges Earned', value: '12', icon: <Award className="w-5 h-5" />, color: 'text-pink-400', bg: 'bg-pink-500/10' },
-                { label: 'Current Streak', value: '23 days', icon: <TrendingUp className="w-5 h-5" />, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-                { label: 'Global Rank', value: '#847', icon: <Trophy className="w-5 h-5" />, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-              ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl ${stat.bg} border border-white/[0.06] flex items-center justify-center ${stat.color}`}>
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className={`${stat.color} font-black text-xl lg:text-2xl`}>{stat.value}</p>
-                    <p className="text-white/25 text-[11px] font-bold uppercase tracking-wider">{stat.label}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Bottom CTA ── */}
-          <div className="mt-12 text-center">
-            <p className="text-white/20 text-sm mb-5 font-medium">Every task completed brings you closer to your next badge.</p>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 text-white font-bold text-sm hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 hover:-translate-y-1 group/btn shadow-lg shadow-orange-500/15"
-            >
-              Start Earning Achievements <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
-            </Link>
-          </div>
-
-        </div>
-      </section>
-      {/* Collaboration & Teams Section */}
-      <section className="py-20 px-6 lg:px-8 bg-white dark:bg-black">
+      {/* Platform Impact - Stats & Numbers Section */}
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700">
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">👥 COLLABORATE</span>
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
+              <Star className="w-4 h-4" /> Growing Community
+            </span>
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+              Trusted by <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Developers Across India</span> & Beyond
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Join a growing community of developers who are leveling up their coding skills, building projects, and advancing their careers on SkillUpX.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {[
+              { value: "100+", label: "Active Developers", icon: <Users className="w-6 h-6" />, color: "from-cyan-500 to-teal-500" },
+              { value: "300+", label: "CodeArena Battles Played", icon: <Swords className="w-6 h-6" />, color: "from-red-500 to-orange-500" },
+              { value: "3000+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
+              { value: "30+", label: "Collaborative Projects Built", icon: <Rocket className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" }
+            ].map((stat, i) => (
+              <div key={i} className="group relative bg-white dark:bg-gray-900/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
+                <div className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  {stat.icon}
+                </div>
+                <p className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2">{stat.value}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
               </div>
+            ))}
+          </div>
 
-              <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
-                Form Teams & <span className="text-[#00ADB5]">Collaborate on Projects</span>
-              </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { icon: <Globe className="w-5 h-5" />, title: "Developers Across India", desc: "From Delhi to Chennai, Mumbai to Kolkata — SkillUpX connects developers from across India for coding practice and collaboration." },
+              { icon: <Award className="w-5 h-5" />, title: "Measurable Skill Growth", desc: "Developers who practice on SkillUpX regularly show real improvement in DSA problem-solving speed and code quality." },
+              { icon: <TrendingUp className="w-5 h-5" />, title: "Better Interview Preparation", desc: "Our CodeArena battles and structured roadmaps help developers prepare for technical interviews at top companies and Indian IT firms." }
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-4 bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-gray-800/40 dark:to-gray-800/20 rounded-xl p-6 border border-cyan-100 dark:border-gray-700/50">
+                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-1">
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-1">{item.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                SkillUpX enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
-              </p>
 
-              <ul className="space-y-3">
-                {[
-                  "Find talented teammates with different skill sets",
-                  "Collaborate on real open-source projects",
-                  "Build projects from idea to deployment",
-                  "Learn version control and team workflows",
-                  "Impress employers with team-based accomplishments"
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3 group hover:translate-x-1 transition-transform">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#00ADB5] mt-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
-                  </li>
-                ))}
-              </ul>
+      {/* Features Section */}
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+              Why Choose
+              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> SkillUpX?</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Unlock your potential with our comprehensive platform designed for career success
+            </p>
+          </div>
 
-              <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00ADB5] hover:bg-cyan-600 text-white rounded-lg font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                Explore Collaboration →
-              </button>
-            </div>
-
-            {/* Right Visual */}
-            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-xl border border-white/40">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/20 to-cyan-600/10" />
-              <img
-                src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80"
-                alt="Team collaborating around a table discussing project ideas"
-                loading="lazy"
-                width={500}
-                height={300}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {homePageFeatures.map((feature, index) => (
+              <FeatureCard key={index} feature={feature} index={index} />
+            ))}
           </div>
         </div>
       </section>
 
 
       {/* Code Arena Section - Enhanced with Unique Animations */}
-      <section className="py-20 px-6 lg:px-8 bg-white dark:bg-black text-gray-900 dark:text-white overflow-hidden relative">
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black text-gray-900 dark:text-white overflow-hidden relative">
         {/* Animated Background Effects */}
         <div className="absolute inset-0">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#00ADB5]/20 rounded-full blur-3xl animate-blob" />
@@ -2306,31 +1422,863 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Why Choose
-              <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent"> SkillUpX?</span>
+
+      <section className="relative py-16 lg:py-20 overflow-hidden bg-white dark:bg-black">
+        {/* Subtle ambient background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-radial from-[#00ADB5]/[0.04] to-transparent rounded-full" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-radial from-indigo-500/[0.03] to-transparent rounded-full" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-6 lg:px-12">
+
+          {/* ── Section Header — Narrative opener ── */}
+          <div className="text-center mb-14">
+            <p className="text-[#00ADB5] text-sm font-semibold tracking-widest uppercase mb-4">Your Developer Journey</p>
+            <h2 className="text-4xl lg:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
+              From <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-400 bg-clip-text text-transparent">Zero</span> to{' '}
+              <span className="bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">Industry-Ready</span>
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Unlock your potential with our comprehensive platform designed for career success
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+              Every great developer started exactly where you are. Here's how SkillUpX walks with you — step by step — from your first line of code to landing your dream role.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {homePageFeatures.map((feature, index) => (
-              <FeatureCard key={index} feature={feature} index={index} />
+          {/* ═══════════  CHAPTER 1 — Learn the Fundamentals  ═══════════ */}
+          <div className="relative mb-16 lg:mb-20">
+            {/* Vertical timeline connector */}
+            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/20 to-transparent" />
+
+            {/* Chapter number */}
+            <div className="flex items-start gap-6 lg:gap-10">
+              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#00ADB5]/20">
+                  01
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[#00ADB5]/20 mb-4">
+                  01
+                </div>
+                <p className="text-[#00ADB5] text-xs font-bold uppercase tracking-widest mb-2">Chapter One</p>
+                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+                  Learn with a Clear Roadmap
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
+                  No more tutorial hell. Pick a curated roadmap — Full Stack, Machine Learning, Docker, GenAI, or System Design — and follow a structured path from fundamentals to mastery. Every module tells you <em>what</em> to learn, <em>why</em> it matters, and <em>what's next</em>.
+                </p>
+
+                {/* Visual: The journey path */}
+                <div className="relative bg-gradient-to-br from-blue-50/80 to-indigo-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-blue-200/60 dark:border-gray-800/60 p-6 lg:p-8">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0 justify-between relative">
+                    {/* Connector line */}
+                    <div className="hidden sm:block absolute top-6 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-blue-500/30 via-blue-500/60 to-blue-500/20 rounded-full" />
+
+                    {[
+                      { step: 'Pick a Path', emoji: '🗺️', done: true },
+                      { step: 'Learn Concepts', emoji: '📖', done: true },
+                      { step: 'Build Projects', emoji: '🛠️', done: true },
+                      { step: 'Go Advanced', emoji: '🚀', done: false },
+                      { step: 'Become Expert', emoji: '👑', done: false },
+                    ].map((s, i) => (
+                      <div key={i} className="relative flex sm:flex-col items-center gap-3 sm:gap-2 z-10">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${s.done ? 'bg-blue-500 shadow-lg shadow-blue-500/30' : 'bg-gray-200 dark:bg-gray-800'} transition-all`}>
+                          {s.emoji}
+                        </div>
+                        <p className={`text-xs font-semibold ${s.done ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-600'}`}>{s.step}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-blue-200/40 dark:border-gray-800/40">
+                    {['Full Stack', 'Machine Learning', 'Docker & DevOps', 'GenAI', 'System Design', '25+ Paths'].map((tag, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <Link to="/dashboard/roadmaps" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-blue-500 hover:text-blue-400 transition-colors group/link">
+                  Explore Roadmaps <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════  CHAPTER 2 — Sharpen Through Battle  ═══════════ */}
+          <div className="relative mb-16 lg:mb-20">
+            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-orange-400/40 via-orange-400/20 to-transparent" />
+
+            <div className="flex items-start gap-6 lg:gap-10">
+              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/20">
+                  02
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-orange-500/20 mb-4">
+                  02
+                </div>
+                <p className="text-orange-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Two</p>
+                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+                  Sharpen Your Skills in the Arena
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
+                  Theory alone won't cut it. Jump into <strong>Code Arena</strong> — challenge anyone to a live 1v1 DSA battle. Solve problems under pressure, climb the leaderboard, and prove your skills when it matters most. This is where you stop studying and start <em>performing</em>.
+                </p>
+
+                {/* Visual: Live battle mockup */}
+                <div className="relative bg-gradient-to-br from-orange-50/80 to-amber-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-orange-200/60 dark:border-gray-800/60 p-6 lg:p-8">
+                  {/* Battle scene */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00ADB5] to-cyan-500 flex items-center justify-center text-white text-sm font-bold">Y</div>
+                      <div>
+                        <p className="text-gray-900 dark:text-white font-bold text-sm">You</p>
+                        <p className="text-emerald-500 text-xs font-semibold">Solving...</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30">
+                        <Zap className="w-4 h-4 text-orange-500" />
+                        <span className="text-orange-500 font-black text-sm">VS</span>
+                        <Zap className="w-4 h-4 text-orange-500" />
+                      </div>
+                      <span className="text-gray-400 text-[10px] mt-1">Live Battle</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-gray-900 dark:text-white font-bold text-sm">Opponent</p>
+                        <p className="text-orange-400 text-xs font-semibold">Thinking...</p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center text-white text-sm font-bold">O</div>
+                    </div>
+                  </div>
+
+                  {/* Problem preview */}
+                  <div className="bg-white/80 dark:bg-black/40 rounded-xl p-4 border border-orange-200/30 dark:border-gray-700/30 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">MEDIUM</span>
+                      <span className="text-gray-500 text-xs">Two Sum Variants</span>
+                    </div>
+                    <div className="font-mono text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                      <span className="text-purple-500">function</span> <span className="text-blue-500">solve</span>(nums, target) {'{'}<br />
+                      <span className="text-gray-400 ml-4">// Your solution here...</span><br />
+                      {'}'}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {['1v1 Real-time', 'DSA Problems', 'Skill Ratings', 'Live Leaderboard'].map((tag, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <Link to="/code-arena" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-orange-500 hover:text-orange-400 transition-colors group/link">
+                  Enter the Arena <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════  CHAPTER 3 — Master DSA  ═══════════ */}
+          <div className="relative mb-16 lg:mb-20">
+            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-emerald-400/40 via-emerald-400/20 to-transparent" />
+
+            <div className="flex items-start gap-6 lg:gap-10">
+              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-emerald-500/20">
+                  03
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-emerald-500/20 mb-4">
+                  03
+                </div>
+                <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Three</p>
+                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+                  Crack Any Interview
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
+                  3,000+ hand-picked DSA questions across every difficulty level — with AI-powered hints when you're stuck. Whether it's your first interview or your tenth, you'll walk in knowing you've seen it all. Categorized by topic, company, and difficulty.
+                </p>
+
+                {/* Visual: Question cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { difficulty: 'Easy', color: 'emerald', count: '1,350+', emoji: '🟢', desc: 'Build confidence with fundamentals' },
+                    { difficulty: 'Medium', color: 'amber', count: '1,050+', emoji: '🟡', desc: 'The bread & butter of interviews' },
+                    { difficulty: 'Hard', color: 'red', count: '600+', emoji: '🔴', desc: 'For FAANG-level preparation' },
+                  ].map((d, i) => (
+                    <div key={i} className={`relative bg-gradient-to-br from-${d.color}-50/80 to-${d.color}-50/30 dark:from-gray-900/80 dark:to-gray-900/50 rounded-xl border border-${d.color}-200/60 dark:border-gray-800/60 p-5 group/card hover:scale-[1.02] transition-transform`}>
+                      <div className="text-3xl mb-3">{d.emoji}</div>
+                      <p className="text-gray-900 dark:text-white font-black text-2xl mb-1">{d.count}</p>
+                      <p className="text-gray-900 dark:text-white font-bold text-sm mb-1">{d.difficulty}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">{d.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-6">
+                  {['AI Hints', 'Company-wise', 'Topic-wise', 'Interview Prep', 'Smart Guidance'].map((tag, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">{tag}</span>
+                  ))}
+                </div>
+
+                <Link to="/code-arena" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-emerald-500 hover:text-emerald-400 transition-colors group/link">
+                  Start Practicing <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════  CHAPTER 4 — Connect & Collaborate  ═══════════ */}
+          <div className="relative mb-16 lg:mb-20">
+            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-[#00ADB5]/40 via-[#00ADB5]/20 to-transparent" />
+
+            <div className="flex items-start gap-6 lg:gap-10">
+              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-[#00ADB5]/20">
+                  04
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[#00ADB5]/20 mb-4">
+                  04
+                </div>
+                <p className="text-[#00ADB5] text-xs font-bold uppercase tracking-widest mb-2">Chapter Four</p>
+                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+                  Build With Real Developers
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
+                  Coding alone gets lonely — and it slows you down. On <strong>Developer Connect</strong>, you'll find teammates for real-world projects, message developers directly, create topic-based groups, and earn free certificates when you ship. This is your professional network, built while you build.
+                </p>
+
+                {/* Visual: Chat / collaboration mockup */}
+                <div className="relative bg-gradient-to-br from-teal-50/80 to-cyan-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-teal-200/60 dark:border-gray-800/60 p-6 lg:p-8">
+                  <div className="space-y-4">
+                    {/* Simulated conversation */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">R</div>
+                      <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl rounded-tl-sm px-4 py-2.5 max-w-md">
+                        <p className="text-gray-900 dark:text-white text-sm">Hey! I'm building a React + Node e-commerce app. Looking for a backend dev — interested?</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 justify-end">
+                      <div className="bg-[#00ADB5]/10 dark:bg-[#00ADB5]/20 rounded-xl rounded-tr-sm px-4 py-2.5 max-w-md">
+                        <p className="text-gray-900 dark:text-white text-sm">Absolutely! I just finished a Node.js roadmap. Let's create a project group 🚀</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-[#00ADB5] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">Y</div>
+                    </div>
+                    <div className="flex items-center gap-2 justify-center">
+                      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+                      <span className="text-[10px] text-gray-400 font-medium px-2">Project created • Certificate earned on completion</span>
+                      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-teal-200/30 dark:border-gray-800/30">
+                    {['Real Projects', 'Direct Messaging', 'Free Certificates', 'Topic Groups'].map((tag, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#00ADB5]/10 text-[#00ADB5] border border-[#00ADB5]/20">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <Link to="/developer-connect" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-[#00ADB5] hover:text-[#00d4de] transition-colors group/link">
+                  Join the Community <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════  CHAPTER 5 — Contribute to Open Source  ═══════════ */}
+          <div className="relative mb-12">
+            <div className="hidden lg:block absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-violet-400/40 via-violet-400/20 to-transparent" />
+
+            <div className="flex items-start gap-6 lg:gap-10">
+              <div className="hidden lg:flex flex-col items-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-violet-500/20">
+                  05
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="lg:hidden w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-violet-500/20 mb-4">
+                  05
+                </div>
+                <p className="text-violet-500 text-xs font-bold uppercase tracking-widest mb-2">Chapter Five</p>
+                <h3 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+                  Give Back to Open Source
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl mb-8">
+                  The final unlocked level. Contribute to open-source projects, connect with maintainers, join community discussions, and build a GitHub profile that actually impresses. This is where learners become leaders.
+                </p>
+
+                {/* Visual: Contribution activity */}
+                <div className="relative bg-gradient-to-br from-violet-50/80 to-purple-50/50 dark:from-gray-900/80 dark:to-gray-900/50 rounded-2xl border border-violet-200/60 dark:border-gray-800/60 p-6 lg:p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    {[
+                      { emoji: '🔀', label: 'Pull Requests', desc: 'Contribute real code to projects' },
+                      { emoji: '💬', label: 'Discussions', desc: 'Join topic-based conversations' },
+                      { emoji: '🌍', label: 'Global Network', desc: 'Connect across borders' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/50 dark:bg-white/[0.03] border border-violet-200/30 dark:border-gray-800/30">
+                        <span className="text-2xl">{item.emoji}</span>
+                        <div>
+                          <p className="text-gray-900 dark:text-white font-bold text-sm">{item.label}</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {['Open Source', 'Real-time Chat', 'Collaboration', 'Community Driven'].map((tag, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <Link to="/developer-connect" className="inline-flex items-center gap-2 mt-6 text-sm font-bold text-violet-500 hover:text-violet-400 transition-colors group/link">
+                  Start Contributing <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+
+
+      {/* Collaboration & Teams Section */}
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700">
+                <span className="text-sm font-bold text-blue-700 dark:text-blue-400">👥 COLLABORATE</span>
+              </div>
+
+              <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white">
+                Form Teams & <span className="text-[#00ADB5]">Collaborate on Projects</span>
+              </h2>
+
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                SkillUpX enables students to form teams, work together on real-world projects, and build meaningful experience. Connect with like-minded developers, share ideas, and deliver projects that showcase your teamwork abilities to employers.
+              </p>
+
+              <ul className="space-y-3">
+                {[
+                  "Find talented teammates with different skill sets",
+                  "Collaborate on real open-source projects",
+                  "Build projects from idea to deployment",
+                  "Learn version control and team workflows",
+                  "Impress employers with team-based accomplishments"
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3 group hover:translate-x-1 transition-transform">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#00ADB5] mt-2 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00ADB5] hover:bg-cyan-600 text-white rounded-lg font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                Explore Collaboration →
+              </button>
+            </div>
+
+            {/* Right Visual */}
+            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-xl border border-white/40">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/20 to-cyan-600/10" />
+              <img
+                src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80"
+                alt="Team collaborating around a table discussing project ideas"
+                loading="lazy"
+                width={500}
+                height={300}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* ===== WHY DEVELOPERS CHOOSE SKILLUPX — IMMERSIVE SHOWCASE ===== */}
+      <section className="relative py-16 lg:py-20 overflow-hidden bg-white dark:bg-black">
+        {/* Subtle ambient background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#00ADB5]/[0.04] dark:bg-[#00ADB5]/[0.08] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/[0.03] dark:bg-purple-600/[0.06] rounded-full blur-[100px]" />
+          {/* Dot grid */}
+          <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, #00ADB5 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+
+          {/* ── Header with animated badge ── */}
+          <div className="text-center mb-12 lg:mb-14">
+            <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-[#00ADB5]/5 dark:bg-[#00ADB5]/10 border border-[#00ADB5]/20 dark:border-[#00ADB5]/20 mb-8 group hover:border-[#00ADB5]/40 dark:hover:border-[#00ADB5]/40 transition-all duration-500">
+              <div className="relative">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#00ADB5]" />
+                <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-[#00ADB5] animate-ping" />
+              </div>
+              <span className="text-[#00ADB5] text-xs font-bold tracking-[0.25em] uppercase">Why SkillUpX</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#00ADB5]/60 group-hover:text-[#00ADB5] transition-colors" />
+            </div>
+
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-[1.1] tracking-tight">
+              One Platform.<br />
+              <span className="relative">
+                <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-purple-400 bg-clip-text text-transparent">Infinite Growth.</span>
+                <svg className="absolute -bottom-2 left-0 w-full h-3" viewBox="0 0 300 12" fill="none">
+                  <path d="M2 10C50 2 100 2 150 6C200 10 250 10 298 2" stroke="url(#underlineGrad)" strokeWidth="3" strokeLinecap="round" />
+                  <defs>
+                    <linearGradient id="underlineGrad" x1="0" y1="0" x2="300" y2="0">
+                      <stop offset="0%" stopColor="#00ADB5" />
+                      <stop offset="50%" stopColor="#22D3EE" />
+                      <stop offset="100%" stopColor="#A78BFA" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </span>
+            </h2>
+            <p className="text-gray-500 dark:text-white/50 max-w-2xl mx-auto text-lg leading-relaxed">
+              Everything you need to become an industry-ready developer — battles, roadmaps, projects, network, and proof.
+            </p>
+          </div>
+
+          {/* ═══════════  IMMERSIVE FEATURE CARDS  ═══════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+
+            {/* ▸ HERO CARD — CodeArena (spans 7 cols) */}
+            <div className="lg:col-span-7 group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-3xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+              <div className="relative h-full rounded-3xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 lg:p-10 overflow-hidden hover:border-orange-200 dark:hover:border-orange-500/20 transition-all duration-500 shadow-lg dark:shadow-none">
+                {/* Animated background effect */}
+                <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-orange-500/5 dark:from-orange-500/10 via-transparent to-transparent rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700" />
+
+                {/* Live battle indicator */}
+                <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 dark:bg-red-500/20 border border-red-500/30">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-red-500 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider">Live Battles</span>
+                </div>
+
+                {/* 3D Battle Arena Visual */}
+                <div className="relative mb-8 mt-4">
+                  <div className="relative flex items-center justify-center gap-8">
+                    {/* Player 1 */}
+                    <div className="relative group/p1">
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center text-white font-black text-xl shadow-2xl shadow-[#00ADB5]/30 transform group-hover/p1:scale-110 transition-transform duration-300">
+                        <span>YOU</span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-green-500 flex items-center justify-center text-white text-[10px] font-bold shadow-lg">
+                        ✓
+                      </div>
+                      <div className="mt-3 text-center">
+                        <p className="text-gray-600 dark:text-white/80 text-xs font-bold">Solving...</p>
+                        <div className="w-16 h-1 bg-gray-200 dark:bg-white/10 rounded-full mt-1 overflow-hidden">
+                          <div className="w-3/4 h-full bg-green-500 rounded-full animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* VS Badge */}
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl shadow-orange-500/30 animate-pulse">
+                        <Swords className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30">
+                        <span className="text-orange-500 dark:text-orange-400 text-[10px] font-black">VS</span>
+                      </div>
+                    </div>
+
+                    {/* Player 2 */}
+                    <div className="relative group/p2">
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-black text-xl shadow-2xl shadow-purple-500/30 transform group-hover/p2:scale-110 transition-transform duration-300">
+                        <span>DEV</span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-yellow-500 flex items-center justify-center shadow-lg">
+                        <span className="text-[10px]">⏳</span>
+                      </div>
+                      <div className="mt-3 text-center">
+                        <p className="text-gray-600 dark:text-white/80 text-xs font-bold">Thinking...</p>
+                        <div className="w-16 h-1 bg-gray-200 dark:bg-white/10 rounded-full mt-1 overflow-hidden">
+                          <div className="w-1/2 h-full bg-yellow-500 rounded-full animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Problem info bar */}
+                  <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
+                    <span className="px-3 py-1 rounded-lg bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-xs font-bold">MEDIUM</span>
+                    <span className="text-gray-500 dark:text-white/50 text-xs">Two Sum</span>
+                    <span className="text-gray-300 dark:text-white/30">•</span>
+                    <span className="text-cyan-600 dark:text-cyan-400 text-xs font-mono flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse" /> 12:34
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <h3 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-3">1v1 Code Battles</h3>
+                  <p className="text-gray-600 dark:text-white/60 leading-relaxed text-sm max-w-md">
+                    Challenge developers worldwide to real-time DSA duels. Earn XP, climb ranks, prove your skills under pressure.
+                  </p>
+                  <Link to="/code-arena" className="inline-flex items-center gap-2 mt-5 text-orange-500 dark:text-orange-400 text-sm font-bold group/link hover:text-orange-600 dark:hover:text-orange-300 transition-colors">
+                    Enter Arena <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* ▸ RIGHT STACK — 2 Cards */}
+            <div className="lg:col-span-5 flex flex-col gap-5 lg:gap-6">
+
+              {/* Roadmaps Card */}
+              <div className="group relative flex-1">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00ADB5] to-cyan-400 rounded-2xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+                <div className="relative h-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 overflow-hidden hover:border-[#00ADB5]/40 dark:hover:border-[#00ADB5]/30 transition-all duration-500 shadow-lg dark:shadow-none">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-[#00ADB5]/5 dark:from-[#00ADB5]/10 to-transparent rounded-full blur-2xl" />
+
+                  {/* Progress circles */}
+                  <div className="flex items-center gap-3 mb-5">
+                    {[
+                      { progress: 85, color: '#00ADB5', label: 'MERN' },
+                      { progress: 60, color: '#22D3EE', label: 'DSA' },
+                      { progress: 35, color: '#10B981', label: 'System' },
+                    ].map((item, i) => (
+                      <div key={i} className="relative">
+                        <svg className="w-14 h-14 -rotate-90">
+                          <circle cx="28" cy="28" r="24" fill="none" className="stroke-gray-200 dark:stroke-white/10" strokeWidth="4" />
+                          <circle
+                            cx="28" cy="28" r="24" fill="none" stroke={item.color} strokeWidth="4"
+                            strokeDasharray={`${item.progress * 1.5} 150`}
+                            strokeLinecap="round"
+                            className="transition-all duration-1000"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-gray-700 dark:text-white text-[10px] font-bold">{item.progress}%</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <Map className="w-4 h-4 text-[#00ADB5]" />
+                    <span className="text-[#00ADB5] text-xs font-bold uppercase tracking-wider">25+ Roadmaps</span>
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">Structured Learning</h3>
+                  <p className="text-gray-500 dark:text-white/50 text-sm">From zero to expert with milestones & certificates.</p>
+                </div>
+              </div>
+
+              {/* DSA Card */}
+              <div className="group relative flex-1">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-green-400 rounded-2xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+                <div className="relative h-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 overflow-hidden hover:border-emerald-400 dark:hover:border-emerald-500/20 transition-all duration-500 shadow-lg dark:shadow-none">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-emerald-500/5 dark:from-emerald-500/10 to-transparent rounded-full blur-2xl" />
+
+                  {/* Problem count animation */}
+                  <div className="flex items-end gap-1 h-16 mb-5">
+                    {[40, 65, 30, 85, 50, 70, 45, 90, 35, 75].map((h, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 rounded-t bg-gradient-to-t from-emerald-500/40 dark:from-emerald-500/60 to-emerald-400/10 dark:to-emerald-400/20 transition-all duration-300 group-hover:from-emerald-500/60 dark:group-hover:from-emerald-500/80"
+                        style={{ height: `${h}%` }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                    <span className="text-emerald-500 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">3000+ Problems</span>
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">DSA Mastery</h3>
+                  <p className="text-gray-500 dark:text-white/50 text-sm">AI hints, company-wise sorting, interview prep.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ▸ BOTTOM ROW — 3 Cards */}
+            {/* Developer Connect */}
+            <div className="lg:col-span-4 group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+              <div className="relative h-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 overflow-hidden hover:border-purple-300 dark:hover:border-purple-500/20 transition-all duration-500 shadow-lg dark:shadow-none">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-500/5 dark:from-purple-500/10 to-transparent rounded-full blur-2xl" />
+
+                {/* Network visual */}
+                <div className="relative h-24 mb-5">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-purple-500/30">
+                    YOU
+                  </div>
+                  {[
+                    { x: '15%', y: '20%', emoji: '👨‍💻' },
+                    { x: '85%', y: '25%', emoji: '👩‍💻' },
+                    { x: '20%', y: '75%', emoji: '🧑‍💻' },
+                    { x: '80%', y: '70%', emoji: '👨‍🎓' },
+                  ].map((node, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-9 h-9 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-sm hover:scale-110 transition-transform cursor-default"
+                      style={{ left: node.x, top: node.y, transform: 'translate(-50%, -50%)' }}
+                    >
+                      {node.emoji}
+                    </div>
+                  ))}
+                  {/* Connection lines */}
+                  <svg className="absolute inset-0 w-full h-full">
+                    {[{ x: '15%', y: '20%' }, { x: '85%', y: '25%' }, { x: '20%', y: '75%' }, { x: '80%', y: '70%' }].map((l, i) => (
+                      <line key={i} x1="50%" y1="50%" x2={l.x} y2={l.y} className="stroke-purple-500/20 dark:stroke-purple-500/20" strokeWidth="1" strokeDasharray="4 4" />
+                    ))}
+                  </svg>
+                </div>
+
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                  <span className="text-purple-500 dark:text-purple-400 text-xs font-bold uppercase tracking-wider">Connect</span>
+                </div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Developer Network</h3>
+                <p className="text-gray-500 dark:text-white/50 text-xs">DMs, groups, mentorship, real connections.</p>
+              </div>
+            </div>
+
+            {/* Creator Corner */}
+            <div className="lg:col-span-4 group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+              <div className="relative h-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 overflow-hidden hover:border-blue-300 dark:hover:border-blue-500/20 transition-all duration-500 shadow-lg dark:shadow-none">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-500/5 dark:from-blue-500/10 to-transparent rounded-full blur-2xl" />
+
+                {/* Mini kanban */}
+                <div className="flex gap-2 mb-5">
+                  {[
+                    { title: 'Todo', items: 2, color: 'bg-gray-300 dark:bg-white/20' },
+                    { title: 'Progress', items: 1, color: 'bg-blue-500' },
+                    { title: 'Done', items: 3, color: 'bg-green-500' },
+                  ].map((col, i) => (
+                    <div key={i} className="flex-1 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-2">
+                      <div className="flex items-center gap-1 mb-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${col.color}`} />
+                        <span className="text-[9px] text-gray-500 dark:text-white/50 font-bold uppercase">{col.title}</span>
+                      </div>
+                      {Array.from({ length: col.items }).map((_, j) => (
+                        <div key={j} className="h-5 rounded bg-gray-200 dark:bg-white/5 mb-1" />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 mb-2">
+                  <Code className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                  <span className="text-blue-500 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">Projects</span>
+                </div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Team Projects</h3>
+                <p className="text-gray-500 dark:text-white/50 text-xs">Kanban, sprints, code reviews — real dev workflow.</p>
+              </div>
+            </div>
+
+            {/* Certificates */}
+            <div className="lg:col-span-4 group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl blur opacity-10 group-hover:opacity-25 transition-opacity duration-500" />
+              <div className="relative h-full rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 overflow-hidden hover:border-yellow-300 dark:hover:border-yellow-500/20 transition-all duration-500 shadow-lg dark:shadow-none">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-yellow-500/5 dark:from-yellow-500/10 to-transparent rounded-full blur-2xl" />
+
+                {/* Certificate visual */}
+                <div className="relative flex justify-center mb-5">
+                  <div className="relative w-full max-w-[160px] rounded-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/5 border border-yellow-500/30 dark:border-yellow-500/20 p-4 text-center">
+                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                      <Award className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <p className="text-gray-400 dark:text-white/40 text-[8px] font-bold uppercase tracking-wider mb-1">Certificate</p>
+                    <p className="text-gray-900 dark:text-white font-bold text-xs">MERN Stack</p>
+                    <div className="w-8 h-px bg-yellow-500/30 mx-auto my-2" />
+                    <p className="text-gray-400 dark:text-white/30 text-[8px]">SkillUpX • Verified</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-2">
+                  <Trophy className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
+                  <span className="text-yellow-500 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider">Verified</span>
+                </div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Free Certificates</h3>
+                <p className="text-gray-500 dark:text-white/50 text-xs">Earn on completion. Share on LinkedIn.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════  STATS BAR  ═══════════ */}
+          <div className="mt-14 lg:mt-16 relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00ADB5] via-purple-500 to-pink-500 rounded-2xl blur opacity-10 dark:opacity-15" />
+            <div className="relative flex flex-wrap items-center justify-center gap-6 lg:gap-10 px-8 py-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-lg dark:shadow-none">
+              {[
+                { val: '100%', label: 'Free', icon: '✨' },
+                { val: '25+', label: 'Roadmaps', icon: '🗺️' },
+                { val: '3K+', label: 'Problems', icon: '🧠' },
+                { val: '1v1', label: 'Battles', icon: '⚔️' },
+                { val: '∞', label: 'Growth', icon: '🚀' },
+              ].map((s, i) => (
+                <div key={i} className="text-center group/stat">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xl group-hover/stat:scale-125 transition-transform">{s.icon}</span>
+                    <p className="text-gray-900 dark:text-white font-black text-2xl lg:text-3xl tracking-tight">{s.val}</p>
+                  </div>
+                  <p className="text-gray-400 dark:text-white/40 text-[10px] uppercase tracking-[0.2em] mt-1 font-medium">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-10 text-center">
+            <p className="text-gray-500 dark:text-white/40 text-sm mb-5">Stop juggling platforms. Start building your career.</p>
+            <Link to="/signup" className="relative inline-flex items-center gap-2.5 px-10 py-4 rounded-full font-bold text-[15px] overflow-hidden group/btn">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#00ADB5] to-cyan-500 group-hover/btn:scale-105 transition-transform duration-300" />
+              <span className="relative text-white">Get Started Free</span>
+              <ArrowRight className="relative w-4 h-4 text-white group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ===== TECHNOLOGIES YOU'LL MASTER — IMMERSIVE MARQUEE ===== */}
+
+      <section className="relative py-14 lg:py-16 bg-white dark:bg-black overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[400px] bg-[#00ADB5]/[0.03] dark:bg-[#00ADB5]/[0.06] rounded-full blur-[150px]" />
+        </div>
+
+        {/* Header */}
+        <div className="relative text-center mb-14 px-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15 dark:border-purple-500/20 mb-6">
+            <Code className="w-3.5 h-3.5 text-purple-500" />
+            <span className="text-purple-600 dark:text-purple-400 text-xs font-bold tracking-[0.2em] uppercase">Tech Stack</span>
+          </div>
+          <h2 className="text-3xl lg:text-5xl font-black text-gray-900 dark:text-white mb-4">
+            Technologies You'll{' '}
+            <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-purple-500 bg-clip-text text-transparent">Master</span>
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-base lg:text-lg">
+            From frontend frameworks to cloud infrastructure — build real skills with real tools
+          </p>
+        </div>
+
+        {/* Dual-row infinite scroll */}
+        <div className="relative space-y-5">
+          {/* Edge fades */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 lg:w-40 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 lg:w-40 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
+
+          {/* Row 1 — scrolls left */}
+          <div className="flex animate-scroll-x" style={{ animationDuration: '40s' }}>
+            {[...Array(2)].map((_, setIndex) => (
+              <div key={setIndex} className="flex gap-4 mr-4">
+                {[
+                  { name: "React", icon: "⚛️", accent: "#61DAFB", bg: "from-cyan-500/10 to-blue-500/10 dark:from-cyan-500/15 dark:to-blue-500/15", border: "border-cyan-200/60 dark:border-cyan-500/20" },
+                  { name: "TypeScript", icon: "📘", accent: "#3178C6", bg: "from-blue-500/10 to-indigo-500/10 dark:from-blue-500/15 dark:to-indigo-500/15", border: "border-blue-200/60 dark:border-blue-500/20" },
+                  { name: "Node.js", icon: "🟢", accent: "#68A063", bg: "from-green-500/10 to-emerald-500/10 dark:from-green-500/15 dark:to-emerald-500/15", border: "border-green-200/60 dark:border-green-500/20" },
+                  { name: "Python", icon: "🐍", accent: "#FFD43B", bg: "from-yellow-500/10 to-green-500/10 dark:from-yellow-500/15 dark:to-green-500/15", border: "border-yellow-200/60 dark:border-yellow-500/20" },
+                  { name: "Next.js", icon: "▲", accent: "#FFFFFF", bg: "from-gray-500/10 to-gray-400/10 dark:from-gray-500/15 dark:to-gray-400/15", border: "border-gray-200/60 dark:border-gray-500/20" },
+                  { name: "MongoDB", icon: "🍃", accent: "#47A248", bg: "from-green-600/10 to-emerald-600/10 dark:from-green-600/15 dark:to-emerald-600/15", border: "border-green-200/60 dark:border-green-600/20" },
+                ].map((tech, idx) => (
+                  <div
+                    key={`r1-${setIndex}-${idx}`}
+                    className={`group flex-shrink-0 relative flex items-center gap-4 px-6 py-4 rounded-2xl bg-gradient-to-br ${tech.bg} border ${tech.border} hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow">
+                      {tech.icon}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white font-bold text-sm whitespace-nowrap">{tech.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className="w-16 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#00ADB5] to-cyan-400" style={{ width: `${70 + idx * 5}%` }} />
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium">{70 + idx * 5}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Row 2 — scrolls right (reverse) */}
+          <div className="flex animate-scroll-x" style={{ animationDuration: '45s', animationDirection: 'reverse' }}>
+            {[...Array(2)].map((_, setIndex) => (
+              <div key={setIndex} className="flex gap-4 mr-4">
+                {[
+                  { name: "Docker", icon: "🐳", accent: "#2496ED", bg: "from-blue-500/10 to-cyan-500/10 dark:from-blue-500/15 dark:to-cyan-500/15", border: "border-blue-200/60 dark:border-blue-500/20" },
+                  { name: "AWS", icon: "☁️", accent: "#FF9900", bg: "from-orange-500/10 to-yellow-500/10 dark:from-orange-500/15 dark:to-yellow-500/15", border: "border-orange-200/60 dark:border-orange-500/20" },
+                  { name: "Firebase", icon: "🔥", accent: "#FFCA28", bg: "from-yellow-500/10 to-orange-500/10 dark:from-yellow-500/15 dark:to-orange-500/15", border: "border-yellow-200/60 dark:border-yellow-500/20" },
+                  { name: "GraphQL", icon: "◈", accent: "#E10098", bg: "from-pink-500/10 to-purple-500/10 dark:from-pink-500/15 dark:to-purple-500/15", border: "border-pink-200/60 dark:border-pink-500/20" },
+                  { name: "TailwindCSS", icon: "🎨", accent: "#06B6D4", bg: "from-cyan-500/10 to-teal-500/10 dark:from-cyan-500/15 dark:to-teal-500/15", border: "border-cyan-200/60 dark:border-cyan-500/20" },
+                  { name: "Git", icon: "📦", accent: "#F05032", bg: "from-orange-500/10 to-red-500/10 dark:from-orange-500/15 dark:to-red-500/15", border: "border-orange-200/60 dark:border-orange-500/20" },
+                ].map((tech, idx) => (
+                  <div
+                    key={`r2-${setIndex}-${idx}`}
+                    className={`group flex-shrink-0 relative flex items-center gap-4 px-6 py-4 rounded-2xl bg-gradient-to-br ${tech.bg} border ${tech.border} hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer`}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow">
+                      {tech.icon}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white font-bold text-sm whitespace-nowrap">{tech.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className="w-16 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-400" style={{ width: `${65 + idx * 6}%` }} />
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium">{65 + idx * 6}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom stats strip */}
+        <div className="relative max-w-4xl mx-auto mt-14 px-6">
+          <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 py-5 px-6 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+            {[
+              { value: '12+', label: 'Technologies', icon: <Code className="w-4 h-4" /> },
+              { value: '50+', label: 'Curated Roadmaps', icon: <Map className="w-4 h-4" /> },
+              { value: '3000+', label: 'Practice Problems', icon: <Target className="w-4 h-4" /> },
+              { value: '∞', label: 'Growth Potential', icon: <TrendingUp className="w-4 h-4" /> },
+            ].map((stat, i) => (
+              <div key={i} className="flex items-center gap-3 group">
+                <div className="w-8 h-8 rounded-lg bg-[#00ADB5]/10 dark:bg-[#00ADB5]/15 flex items-center justify-center text-[#00ADB5]">
+                  {stat.icon}
+                </div>
+                <div>
+                  <p className="text-lg font-black text-gray-900 dark:text-white leading-none">{stat.value}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
+                </div>
+                {i < 3 && <div className="hidden lg:block w-px h-8 bg-gray-200 dark:bg-gray-700 ml-4" />}
+              </div>
             ))}
           </div>
         </div>
       </section>
 
+
+
       {/* Gallery Section with Unique Animations */}
-      <section className="py-16 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
+      <section className="py-12 lg:py-14 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
               Our Community in Action
             </h2>
@@ -2368,54 +2316,278 @@ export default function HomePage() {
       </section>
 
       {/* ===== INFINITE SCROLLING TECH STACK ===== */}
-      <section className="py-16 bg-white dark:bg-black overflow-hidden">
-        <div className="text-center mb-10">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Technologies You'll Master</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">Learn the most in-demand tech skills</p>
+
+      <section className="relative py-16 lg:py-20 overflow-hidden bg-white dark:bg-black">
+        {/* Ambient background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-[#00ADB5]/[0.04] dark:bg-purple-600/10 rounded-full blur-[180px]" />
+          <div className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-cyan-500/[0.05] dark:bg-cyan-500/10 rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/[0.03] dark:bg-indigo-500/5 rounded-full blur-[200px]" />
         </div>
 
-        <div className="relative">
-          {/* Gradient Overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10" />
+        <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
 
-          {/* Scrolling Container */}
-          <div className="flex animate-scroll-x">
-            {[...Array(2)].map((_, setIndex) => (
-              <div key={setIndex} className="flex gap-8 mr-8">
+          {/* Header */}
+          <div className="text-center mb-12 lg:mb-14">
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 dark:bg-yellow-500/5 backdrop-blur-sm mb-6">
+              <Trophy className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
+              <span className="text-yellow-600 dark:text-yellow-400 text-xs font-black tracking-[0.2em] uppercase">Level Up Your Career</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-[3.5rem] font-black text-gray-900 dark:text-white mb-4 leading-[1.08] tracking-tight">
+              Achievement{' '}
+              <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 bg-clip-text text-transparent">Center</span>
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-base lg:text-lg leading-relaxed">
+              Complete challenges, earn certificates, unlock rewards, and watch your developer profile transform.
+            </p>
+          </div>
+
+          {/* ── Two-column layout: Milestones + Certificate ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+
+            {/* LEFT: Milestone Cards — 3 cols on desktop */}
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { name: "React", icon: "⚛️", color: "from-cyan-400 to-blue-500" },
-                  { name: "Node.js", icon: "🟢", color: "from-green-400 to-emerald-500" },
-                  { name: "TypeScript", icon: "📘", color: "from-blue-400 to-blue-600" },
-                  { name: "Python", icon: "🐍", color: "from-yellow-400 to-green-500" },
-                  { name: "MongoDB", icon: "🍃", color: "from-green-500 to-green-700" },
-                  { name: "Firebase", icon: "🔥", color: "from-yellow-400 to-orange-500" },
-                  { name: "AWS", icon: "☁️", color: "from-orange-400 to-yellow-500" },
-                  { name: "Docker", icon: "🐳", color: "from-blue-400 to-cyan-500" },
-                  { name: "Git", icon: "📦", color: "from-orange-500 to-red-500" },
-                  { name: "GraphQL", icon: "◈", color: "from-pink-400 to-purple-500" },
-                  { name: "Next.js", icon: "▲", color: "from-gray-400 to-gray-600" },
-                  { name: "TailwindCSS", icon: "🎨", color: "from-cyan-400 to-teal-500" }
-                ].map((tech, idx) => (
+                  {
+                    level: 1, icon: '💻', title: 'First Blood', task: 'Complete 5 Projects', reward: 'Gold Badge', xp: '+200 XP',
+                    gradient: 'from-yellow-500 to-amber-600', borderColor: 'border-yellow-500/20 hover:border-yellow-400/50',
+                    bgAccent: 'from-yellow-500/10 via-amber-500/5 to-transparent', iconBg: 'bg-yellow-500/10',
+                    textColor: 'text-yellow-400', barColor: 'from-yellow-500 to-amber-500', progress: 80,
+                  },
+                  {
+                    level: 2, icon: '⚔️', title: 'Arena Warrior', task: 'Win 10 Code Battles', reward: '+500 Coins', xp: '+350 XP',
+                    gradient: 'from-red-500 to-orange-600', borderColor: 'border-red-500/20 hover:border-red-400/50',
+                    bgAccent: 'from-red-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-red-500/10',
+                    textColor: 'text-red-400', barColor: 'from-red-500 to-orange-500', progress: 60,
+                  },
+                  {
+                    level: 3, icon: '👥', title: 'Team Player', task: 'Join 3 Teams', reward: 'Collaborator Badge', xp: '+280 XP',
+                    gradient: 'from-pink-500 to-rose-600', borderColor: 'border-pink-500/20 hover:border-pink-400/50',
+                    bgAccent: 'from-pink-500/10 via-rose-500/5 to-transparent', iconBg: 'bg-pink-500/10',
+                    textColor: 'text-pink-400', barColor: 'from-pink-500 to-rose-500', progress: 100,
+                  },
+                  {
+                    level: 4, icon: '🏆', title: 'Scholar', task: 'Earn 3 Certificates', reward: 'Elite Status', xp: '+500 XP',
+                    gradient: 'from-emerald-500 to-teal-600', borderColor: 'border-emerald-500/20 hover:border-emerald-400/50',
+                    bgAccent: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10',
+                    textColor: 'text-emerald-400', barColor: 'from-emerald-500 to-teal-500', progress: 45,
+                  },
+                  {
+                    level: 5, icon: '⭐', title: 'Rising Star', task: 'Reach 4.8+ Rating', reward: 'Star Developer', xp: '+420 XP',
+                    gradient: 'from-orange-500 to-yellow-600', borderColor: 'border-orange-500/20 hover:border-orange-400/50',
+                    bgAccent: 'from-orange-500/10 via-yellow-500/5 to-transparent', iconBg: 'bg-orange-500/10',
+                    textColor: 'text-orange-400', barColor: 'from-orange-500 to-yellow-500', progress: 92,
+                  },
+                  {
+                    level: 6, icon: '🧠', title: 'Code Master', task: 'Solve 100+ DSA', reward: 'Legendary Badge', xp: '+600 XP',
+                    gradient: 'from-violet-500 to-purple-600', borderColor: 'border-violet-500/20 hover:border-violet-400/50',
+                    bgAccent: 'from-violet-500/10 via-purple-500/5 to-transparent', iconBg: 'bg-violet-500/10',
+                    textColor: 'text-violet-400', barColor: 'from-violet-500 to-purple-500', progress: 30,
+                  },
+                ].map((m, i) => (
                   <div
-                    key={`${setIndex}-${idx}`}
-                    className={`flex-shrink-0 px-6 py-4 rounded-xl bg-gradient-to-r ${tech.color} flex items-center gap-3 hover:scale-110 transition-transform duration-300 cursor-pointer shadow-lg`}
+                    key={i}
+                    className={`group relative rounded-2xl bg-gray-50 dark:bg-white/[0.04] border ${m.borderColor} p-5 overflow-hidden hover:bg-gray-100 dark:hover:bg-white/[0.07] transition-all duration-500 hover:-translate-y-1 cursor-default`}
                   >
-                    <span className="text-2xl">{tech.icon}</span>
-                    <span className="text-white font-bold whitespace-nowrap">{tech.name}</span>
+                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${m.bgAccent} rounded-full blur-2xl opacity-30 dark:opacity-50 group-hover:opacity-60 dark:group-hover:opacity-90 transition-opacity duration-500`} />
+
+                    {/* Level badge */}
+                    <div className="absolute top-3 right-3">
+                      <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${m.gradient} text-white text-[9px] font-black tracking-wider shadow-lg`}>
+                        LVL {m.level}
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div className={`w-11 h-11 rounded-xl ${m.iconBg} border border-gray-200 dark:border-white/[0.06] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                        {m.icon}
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="text-sm font-black text-gray-900 dark:text-white">{m.title}</h3>
+                        <span className={`text-[10px] font-bold ${m.textColor} bg-gray-100 dark:bg-white/[0.05] px-1.5 py-0.5 rounded-full`}>{m.xp}</span>
+                      </div>
+                      <p className="text-gray-500 dark:text-white/30 text-xs font-medium mb-3">{m.task}</p>
+
+                      {/* Progress bar */}
+                      <div className="mb-2.5">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-gray-400 dark:text-white/20 text-[9px] font-bold uppercase tracking-wider">Progress</span>
+                          <span className={`${m.textColor} text-[10px] font-bold`}>{m.progress}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/[0.06] rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r ${m.barColor} rounded-full`} style={{ width: `${m.progress}%` }} />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <Award className={`w-3 h-3 ${m.textColor}`} />
+                        <span className="text-gray-500 dark:text-white/35 text-[10px] font-medium">Reward:</span>
+                        <span className={`${m.textColor} text-[10px] font-bold`}>{m.reward}</span>
+                        {m.progress === 100 && (
+                          <span className="ml-auto text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full border border-emerald-400/20">✓ DONE</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            ))}
+            </div>
+
+            {/* RIGHT: Certificate Preview + Stats — 2 cols on desktop */}
+            <div className="lg:col-span-2 flex flex-col gap-5">
+
+              {/* ── Certificate Card (from Creator Corner) ── */}
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
+                <div className="relative rounded-2xl bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-2 border-amber-400/60 dark:border-amber-600/40 p-5 sm:p-6 shadow-2xl overflow-hidden">
+                  {/* Corner decorations */}
+                  <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-500/60 rounded-tl-lg" />
+                  <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-500/60 rounded-tr-lg" />
+                  <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-500/60 rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-500/60 rounded-br-lg" />
+
+                  {/* Watermark */}
+                  <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06] flex items-center justify-center">
+                    <span className="text-[100px] font-black text-amber-900 dark:text-amber-400 select-none">SX</span>
+                  </div>
+
+                  <div className="relative text-center">
+                    {/* Logo */}
+                    <div className="flex items-center justify-center gap-2.5 mb-2">
+                      <img
+                        src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+                        alt="SkillUpX Logo"
+                        className="w-10 h-10 object-contain"
+                        loading="lazy"
+                      />
+                      <div className="text-left">
+                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">SkillUpX</span>
+                        <p className="text-[8px] text-gray-400 font-medium -mt-0.5">Building Tomorrow's Developers</p>
+                      </div>
+                    </div>
+
+                    <h4 className="text-[9px] text-amber-600 dark:text-amber-400 font-bold tracking-[0.25em] uppercase mb-2">Certificate of Achievement</h4>
+                    <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-2" />
+
+                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-1">This is to certify that</p>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white mb-0.5 font-serif italic">John Doe</h3>
+                    <p className="text-[10px] text-[#00ADB5] font-medium mb-2">✉️ johndoe@example.com</p>
+
+                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-2">has successfully completed</p>
+
+                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full font-bold text-[10px] mb-2">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>50 Verified Tasks</span>
+                    </div>
+
+                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-1">and is hereby recognized as a</p>
+                    <h4 className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 mb-2">
+                      Verified Collaborator
+                    </h4>
+
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-2" />
+
+                    {/* Stats */}
+                    <div className="flex justify-center gap-5 mb-3">
+                      {[
+                        { val: '50', label: 'Tasks', color: 'text-[#00ADB5]' },
+                        { val: '8', label: 'Projects', color: 'text-purple-500' },
+                        { val: '5', label: 'Skills', color: 'text-pink-500' },
+                      ].map((s, i) => (
+                        <div key={i} className="text-center">
+                          <div className={`text-sm font-black ${s.color}`}>{s.val}</div>
+                          <div className="text-[8px] text-gray-400">{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-amber-200/60 dark:border-amber-800/40">
+                      <div className="text-left">
+                        <p className="text-[8px] text-gray-400">Issue Date</p>
+                        <p className="text-[10px] font-bold text-gray-600 dark:text-gray-300">Dec 22, 2025</p>
+                      </div>
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                        <div className="grid grid-cols-3 gap-px">
+                          {[...Array(9)].map((_, idx) => (
+                            <div key={idx} className={`w-2 h-2 ${[0, 2, 3, 5, 6, 8].includes(idx) ? 'bg-gray-700 dark:bg-gray-200' : 'bg-transparent'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[8px] text-gray-400">Certificate ID</p>
+                        <p className="text-[10px] font-bold text-gray-600 dark:text-gray-300 font-mono">SX-2025-XXXXX</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2">
+                      <div className="w-16 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-0.5" />
+                      <p className="text-[8px] text-gray-400">SkillUpX Team</p>
+                    </div>
+                  </div>
+
+                  {/* Gold seal */}
+                  <div className="absolute -bottom-2 -right-2 sm:bottom-3 sm:right-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-full flex items-center justify-center shadow-xl border-2 border-amber-300">
+                      <Award className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-center text-gray-400 dark:text-white/20 text-[11px] mt-2.5 font-medium">
+                  📥 Earn certificates and share on LinkedIn
+                </p>
+              </div>
+
+              {/* ── Player Stats ── */}
+              <div className="rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-4 h-4 text-gray-400 dark:text-white/40" />
+                  <span className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-wider">Your Progress</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Total XP', value: '2,350', icon: <Zap className="w-4 h-4" />, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                    { label: 'Badges', value: '12', icon: <Award className="w-4 h-4" />, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+                    { label: 'Streak', value: '23d', icon: <TrendingUp className="w-4 h-4" />, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+                    { label: 'Rank', value: '#847', icon: <Trophy className="w-4 h-4" />, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+                  ].map((stat, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-lg ${stat.bg} border border-gray-200 dark:border-white/[0.06] flex items-center justify-center ${stat.color}`}>
+                        {stat.icon}
+                      </div>
+                      <div>
+                        <p className={`${stat.color} font-black text-base leading-none`}>{stat.value}</p>
+                        <p className="text-gray-400 dark:text-white/25 text-[9px] font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
           </div>
+
+          {/* ── Bottom CTA ── */}
+          <div className="mt-10 text-center">
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-4 font-medium">Every task completed brings you closer to your next badge and certificate.</p>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 text-white font-bold text-sm hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 hover:-translate-y-1 group/btn shadow-lg shadow-orange-500/15"
+            >
+              Start Earning Achievements <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
+            </Link>
+          </div>
+
         </div>
       </section>
 
-
       {/* Testimonials Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 border border-white/50 dark:border-gray-700 backdrop-blur-sm mb-6">
               <span className="text-2xl">🌟</span>
               <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">Success Stories</span>
@@ -2439,62 +2611,11 @@ export default function HomePage() {
 
 
 
-      {/* Platform Impact - Stats & Numbers Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
-              <Star className="w-4 h-4" /> Growing Community
-            </span>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Trusted by <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Developers Across India</span> & Beyond
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Join a growing community of developers who are leveling up their coding skills, building projects, and advancing their careers on SkillUpX.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {[
-              { value: "100+", label: "Active Developers", icon: <Users className="w-6 h-6" />, color: "from-cyan-500 to-teal-500" },
-              { value: "300+", label: "CodeArena Battles Played", icon: <Swords className="w-6 h-6" />, color: "from-red-500 to-orange-500" },
-              { value: "3000+", label: "DSA Problems Available", icon: <Code className="w-6 h-6" />, color: "from-purple-500 to-pink-500" },
-              { value: "30+", label: "Collaborative Projects Built", icon: <Rocket className="w-6 h-6" />, color: "from-blue-500 to-indigo-500" }
-            ].map((stat, i) => (
-              <div key={i} className="group relative bg-white dark:bg-gray-900/60 rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 text-center hover:-translate-y-2">
-                <div className={`w-14 h-14 mx-auto rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  {stat.icon}
-                </div>
-                <p className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2">{stat.value}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { icon: <Globe className="w-5 h-5" />, title: "Developers Across India", desc: "From Delhi to Chennai, Mumbai to Kolkata — SkillUpX connects developers from across India for coding practice and collaboration." },
-              { icon: <Award className="w-5 h-5" />, title: "Measurable Skill Growth", desc: "Developers who practice on SkillUpX regularly show real improvement in DSA problem-solving speed and code quality." },
-              { icon: <TrendingUp className="w-5 h-5" />, title: "Better Interview Preparation", desc: "Our CodeArena battles and structured roadmaps help developers prepare for technical interviews at top companies and Indian IT firms." }
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-gray-800/40 dark:to-gray-800/20 rounded-xl p-6 border border-cyan-100 dark:border-gray-700/50">
-                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-1">
-                  {item.icon}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Live Community Activity Feed Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-teal-500/10 text-cyan-600 dark:text-cyan-400 text-sm font-semibold mb-6">
               <Sparkles className="w-4 h-4" /> Live on SkillUpX
             </span>
@@ -2578,8 +2699,9 @@ export default function HomePage() {
         </div>
       </section>
 
+
       {/* FAQ Section */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black">
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
@@ -2631,101 +2753,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Final CTA Section - Immersive Design */}
-      <section className="py-24 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
+      {/* ═══════════  THE DESTINATION — Where it all leads  ═══════════ */}
+
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black overflow-hidden">
         <div className="max-w-5xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-            {/* Animated Dark background with multiple layers */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900" />
-
-            {/* Animated Orbs */}
-            <div className="absolute inset-0">
-              <div className="absolute top-0 left-0 w-72 h-72 bg-[#00ADB5]/30 rounded-full blur-3xl animate-blob" />
-              <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
-              <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
-            </div>
-
-            {/* Background Image with Parallax */}
-            <div className="absolute inset-0 opacity-20">
-              <img
-                src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80"
-                alt=""
-                loading="lazy"
-                width={1200}
-                height={800}
-                className="w-full h-full object-cover"
-                aria-hidden="true"
-              />
-            </div>
-
-            {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 opacity-5" style={{
-              backgroundImage: 'linear-gradient(#00ADB5 1px, transparent 1px), linear-gradient(90deg, #00ADB5 1px, transparent 1px)',
-              backgroundSize: '50px 50px'
+            <div className="absolute inset-0 bg-[#00ADB5]" />
+            <div className="absolute inset-0 bg-black/5 dark:bg-black/10" />
+            {/* Pattern overlay */}
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)`,
+              backgroundSize: '60px 60px',
             }} />
 
-            {/* Content */}
-            <div className="relative px-8 md:px-16 py-16 md:py-24 text-center z-10">
-              <div className="space-y-8">
-                {/* Animated Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/20 border border-[#00ADB5]/30 animate-magnetic">
-                  <Rocket className="w-4 h-4 text-[#00ADB5] animate-bounce" />
-                  <span className="text-sm font-bold text-[#00ADB5]">START TODAY</span>
-                </div>
+            <div className="relative px-8 py-12 lg:px-16 lg:py-16">
+              <div className="text-center mb-10">
+                <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-3">The Result</p>
+                <h3 className="text-3xl lg:text-5xl font-black text-white mb-3">
+                  You, But Industry-Ready
+                </h3>
+                <p className="text-white/70 text-base lg:text-lg max-w-xl mx-auto">
+                  After walking this path, here's what you'll have built — not just skills, but proof.
+                </p>
+              </div>
 
-                <div>
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
-                    Ready to Transform Your
-                    <br />
-                    <span className="bg-gradient-to-r from-[#00ADB5] via-cyan-400 to-blue-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-                      Career?
-                    </span>
-                  </h2>
-                  <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                    Join our growing community of developers building their careers with SkillUpX.
-                    Your future in tech starts today.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                  <Link to="/signup" className="group relative px-10 py-5 bg-gradient-to-r from-[#00ADB5] to-cyan-600 rounded-2xl font-bold text-xl text-white shadow-2xl hover:shadow-[#00ADB5]/50 transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 inline-flex items-center overflow-hidden">
-                    <span className="relative z-10 flex items-center gap-3">
-                      Start Your Journey Now
-                      <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                    {/* Shine Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </Link>
-
-                  <div className="text-center">
-                    <div className="text-sm text-gray-400 mb-1">Join 150+ students & growing</div>
-                    <div className="flex items-center justify-center gap-1">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <span key={i} className="text-yellow-400 animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}>★</span>
-                      ))}
-                      <span className="text-sm text-gray-300 ml-2">4.9/5 rating</span>
-                    </div>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-6 max-w-4xl mx-auto">
+                {[
+                  { icon: Map, value: '25+', label: 'Roadmaps Completed', emoji: '🗺️' },
+                  { icon: Swords, value: '∞', label: 'Battles Won', emoji: '⚔️' },
+                  { icon: Brain, value: '3K+', label: 'Problems Solved', emoji: '🧠' },
+                  { icon: Users, value: '∞', label: 'Connections Made', emoji: '🤝' },
+                  { icon: Award, value: '∞', label: 'Certificates Earned', emoji: '🏆' },
+                ].map((s, i) => (
+                  <div key={i} className="flex flex-col items-center text-center group hover:scale-110 transition-transform duration-300">
+                    <span className="text-3xl mb-2 group-hover:animate-bounce">{s.emoji}</span>
+                    <p className="text-white font-black text-2xl lg:text-3xl">{s.value}</p>
+                    <p className="text-white/60 text-[11px] uppercase tracking-wider mt-1">{s.label}</p>
                   </div>
-                </div>
+                ))}
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8 border-t border-gray-700">
-                  {[
-                    { value: "Free", label: "Forever plan available", icon: "💎" },
-                    { value: "24/7", label: "Community support", icon: "🌍" },
-                    { value: "∞", label: "Lifetime access", icon: "🔓" }
-                  ].map((stat, idx) => (
-                    <div key={idx} className="text-center group hover:scale-110 transition-transform duration-300">
-                      <div className="text-2xl mb-2 group-hover:animate-bounce">{stat.icon}</div>
-                      <div className="text-3xl font-black text-[#00ADB5] mb-2">{stat.value}</div>
-                      <div className="text-sm text-gray-400">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
+              <div className="text-center mt-10">
+                <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 rounded-full bg-white text-gray-900 font-bold text-base hover:bg-white/90 transition-all duration-300 shadow-xl shadow-black/20 group/cta hover:scale-105">
+                  Start Your Journey — It's Free <ArrowRight className="w-5 h-5 group-hover/cta:translate-x-1 transition-transform" />
+                </Link>
+                <p className="text-white/50 text-sm mt-4">Join 150+ developers & growing</p>
               </div>
             </div>
-          </div> 
+          </div>
         </div>
       </section>
     </div>
