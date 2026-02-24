@@ -1206,19 +1206,161 @@ const HeroSection = memo(() => {
 HeroSection.displayName = 'HeroSection';
 
 export default function HomePage() {
+  const [activeFaqCat, setActiveFaqCat] = useState("platform");
+
   const homeStructuredData = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "SkillUpX (SkillUp X) – Skill Up Your Coding | DSA Practice, Battles & Projects",
-    "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up X"],
-    "description": "SkillUpX (SkillUp) – Skill up your coding! Practice DSA questions, 1v1 coding battles in CodeArena, collaborate on real-world projects, interview preparation with curated roadmaps, and explore career paths.",
-    "url": "https://skillupx.online/",
-    "mainEntity": {
-      "@type": "EducationalOrganization",
-      "name": "SkillUpX",
-      "alternateName": ["SkillUp", "Skill Up", "SkillUp X"],
-      "url": "https://skillupx.online"
-    }
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://skillupx.online/#webpage",
+        "name": "SkillUpX – Free Developer Platform | CodeArena 1v1 Battles, DSA Practice, Project Collaboration & Learning Roadmaps",
+        "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up X", "Skill UpX", "skillupx", "skillup x", "skill up x", "skilupx"],
+        "description": "SkillUpX is the #1 free developer growth platform in India. Practice 3000+ DSA questions, battle 1v1 in CodeArena, collaborate on real-world projects in Creator Corner, follow curated learning roadmaps, connect with developers via Developer Connect, and read community tech reviews. Join 150+ developers!",
+        "url": "https://skillupx.online/",
+        "isPartOf": { "@id": "https://skillupx.online/#website" },
+        "about": { "@id": "https://skillupx.online/#organization" },
+        "primaryImageOfPage": {
+          "@type": "ImageObject",
+          "url": "https://res.cloudinary.com/dvwmbidka/image/upload/e_sharpen:150/skillupx-og-banner_re2t6u"
+        },
+        "datePublished": "2022-01-01",
+        "dateModified": "2026-02-20",
+        "inLanguage": "en",
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": ["h1", "h2", ".hero-description"]
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://skillupx.online/#website",
+        "name": "SkillUpX",
+        "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up X", "Skill UpX", "skillupx platform", "skillupx india", "skillup coding"],
+        "url": "https://skillupx.online",
+        "publisher": { "@id": "https://skillupx.online/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://skillupx.online/?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://skillupx.online/#organization",
+        "name": "SkillUpX",
+        "alternateName": ["SkillUp", "Skill Up", "SkillUp X", "Skill Up X", "Skill UpX", "skill upx", "skillup x", "skill up x", "skilupx"],
+        "url": "https://skillupx.online",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg",
+          "width": 512,
+          "height": 512
+        },
+        "image": "https://res.cloudinary.com/dvwmbidka/image/upload/e_sharpen:150/skillupx-og-banner_re2t6u",
+        "description": "SkillUpX is a free developer growth platform offering CodeArena 1v1 coding battles, real-world project collaboration, curated learning roadmaps, developer networking, and tech reviews.",
+        "email": "contact@SkillUpX.com",
+        "telephone": "+918756824350",
+        "address": { "@type": "PostalAddress", "addressCountry": "IN" },
+        "foundingDate": "2022",
+        "sameAs": ["https://www.instagram.com/skillupx1.0"],
+        "knowsAbout": ["Data Structures and Algorithms", "Competitive Programming", "Web Development", "React", "Node.js", "Full Stack Development", "System Design", "Interview Preparation", "Open Source", "Project Collaboration", "Developer Networking"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://skillupx.online/#app",
+        "name": "SkillUpX",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web Browser",
+        "url": "https://skillupx.online",
+        "description": "Free developer platform with CodeArena 1v1 coding battles, 3000+ DSA questions, real-world project collaboration, curated learning roadmaps, developer networking, and tech reviews.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "bestRating": "5",
+          "ratingCount": "150",
+          "reviewCount": "85"
+        },
+        "featureList": [
+          "CodeArena – Real-time 1v1 Coding Battles",
+          "3000+ DSA Practice Questions (Arrays, Trees, Graphs, DP)",
+          "Project Collaboration via Creator Corner",
+          "Learning Roadmaps – React, Node.js, Full Stack, DSA, System Design",
+          "Developer Connect – Networking Platform",
+          "Tech Reviews – Community Technology Reviews",
+          "Verified Certificates on Project Completion",
+          "Global Leaderboards & Coding Coins",
+          "Study Groups & Peer Learning",
+          "Sprint Management & Agile Tools",
+          "Project Bazaar – Browse & Join Projects",
+          "Endorsed Skills & Developer Profiles"
+        ]
+      },
+      {
+        "@type": "ItemList",
+        "name": "SkillUpX Platform Features",
+        "description": "Complete list of features available on the SkillUpX developer platform",
+        "numberOfItems": 8,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "CodeArena – 1v1 Coding Battles", "url": "https://skillupx.online/codearena", "description": "Real-time 1v1 coding battles with 3000+ DSA questions, global leaderboard, and coding coins rewards" },
+          { "@type": "ListItem", "position": 2, "name": "Learning Roadmaps", "url": "https://skillupx.online/roadmaps", "description": "Curated step-by-step learning paths for React, Node.js, Full Stack, DSA, System Design, and more" },
+          { "@type": "ListItem", "position": 3, "name": "Creator Corner – Project Collaboration", "url": "https://skillupx.online/creator-corner", "description": "Collaborate on real-world projects, join teams, use sprint management, earn verified certificates" },
+          { "@type": "ListItem", "position": 4, "name": "Developer Connect – Networking", "url": "https://skillupx.online/developer-connect", "description": "Connect with developers worldwide, endorse skills, join study groups, build professional network" },
+          { "@type": "ListItem", "position": 5, "name": "Tech Reviews & Updates", "url": "https://skillupx.online/TechUpdate", "description": "Community-driven tech reviews on languages, frameworks, tools with latest tech news and tutorials" },
+          { "@type": "ListItem", "position": 6, "name": "DSA Practice Questions", "url": "https://skillupx.online/codearena", "description": "3000+ Data Structures and Algorithms questions covering arrays, trees, graphs, dynamic programming, and more" },
+          { "@type": "ListItem", "position": 7, "name": "Project Bazaar", "url": "https://skillupx.online/creator-corner", "description": "Browse open-source and collaborative projects filtered by tech stack, difficulty level, and project type" },
+          { "@type": "ListItem", "position": 8, "name": "Study Groups", "url": "https://skillupx.online/developer-connect", "description": "Create or join topic-specific study groups for DSA, React, System Design with learning goals and progress tracking" }
+        ]
+      },
+      {
+        "@type": "HowTo",
+        "name": "How to Get Started on SkillUpX",
+        "description": "Step-by-step guide to start your developer journey on SkillUpX – from signup to landing your dream job",
+        "totalTime": "PT5M",
+        "step": [
+          { "@type": "HowToStep", "position": 1, "name": "Create Your Free Account", "text": "Sign up with email or Google account on SkillUpX. Get 1000 welcome coins instantly. No credit card required." },
+          { "@type": "HowToStep", "position": 2, "name": "Follow Learning Roadmaps", "text": "Choose curated learning paths for React, Node.js, Full Stack, DSA, System Design, or career-specific roadmaps." },
+          { "@type": "HowToStep", "position": 3, "name": "Practice in CodeArena", "text": "Solve 3000+ DSA questions and battle other developers in real-time 1v1 coding competitions." },
+          { "@type": "HowToStep", "position": 4, "name": "Connect & Collaborate", "text": "Join Developer Connect to network, find project collaborators, and join study groups." },
+          { "@type": "HowToStep", "position": 5, "name": "Build Real Projects", "text": "Join Creator Corner projects, collaborate with teams, use sprint management, and build portfolio-worthy applications." },
+          { "@type": "HowToStep", "position": 6, "name": "Earn Certificates & Get Hired", "text": "Complete 50 project tasks to earn verified certificates. Showcase your profile and portfolio to recruiters." }
+        ]
+      },
+      {
+        "@type": "Course",
+        "name": "Data Structures and Algorithms – Complete DSA Course",
+        "description": "Practice 3000+ DSA questions across arrays, strings, linked lists, trees, graphs, dynamic programming, recursion, backtracking, sorting, searching, and more on SkillUpX. Free for all developers.",
+        "provider": { "@type": "Organization", "name": "SkillUpX", "url": "https://skillupx.online" },
+        "url": "https://skillupx.online/codearena",
+        "isAccessibleForFree": true,
+        "courseCode": "DSA-001",
+        "numberOfCredits": 0,
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "Self-paced"
+        }
+      },
+      {
+        "@type": "Course",
+        "name": "Full Stack Web Development – React & Node.js",
+        "description": "Learn full stack web development with React, Node.js, TypeScript, MongoDB through curated roadmaps and real-world project collaboration on SkillUpX.",
+        "provider": { "@type": "Organization", "name": "SkillUpX", "url": "https://skillupx.online" },
+        "url": "https://skillupx.online/roadmaps",
+        "isAccessibleForFree": true,
+        "courseCode": "FS-001",
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "Self-paced"
+        }
+      }
+    ]
   };
 
   return (
@@ -1437,7 +1579,7 @@ export default function HomePage() {
             <p className="text-[#00ADB5] text-sm font-semibold tracking-widest uppercase mb-4">Your Developer Journey</p>
             <h2 className="text-4xl lg:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
               From <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-400 bg-clip-text text-transparent">Zero</span> to{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-rose-500 bg-clip-text text-transparent">Industry-Ready</span>
+              <span className="bg-gradient-to-r from-teal-600 to-teal-900 bg-clip-text text-transparent">Industry-Ready</span>
             </h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               Every great developer started exactly where you are. Here's how SkillUpX walks with you — step by step — from your first line of code to landing your dream role.
@@ -2320,262 +2462,281 @@ export default function HomePage() {
       <section className="relative py-16 lg:py-20 overflow-hidden bg-white dark:bg-black">
         {/* Ambient background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-[#00ADB5]/[0.04] dark:bg-purple-600/10 rounded-full blur-[180px]" />
-          <div className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-cyan-500/[0.05] dark:bg-cyan-500/10 rounded-full blur-[150px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/[0.03] dark:bg-indigo-500/5 rounded-full blur-[200px]" />
+          <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-[#00ADB5]/[0.04] dark:bg-[#00ADB5]/10 rounded-full blur-[180px]" />
+          <div className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-[#FF6B35]/[0.04] dark:bg-[#FF6B35]/8 rounded-full blur-[150px]" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
 
-          {/* Header */}
-          <div className="text-center mb-12 lg:mb-14">
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-yellow-500/20 bg-yellow-500/5 dark:bg-yellow-500/5 backdrop-blur-sm mb-6">
-              <Trophy className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
-              <span className="text-yellow-600 dark:text-yellow-400 text-xs font-black tracking-[0.2em] uppercase">Level Up Your Career</span>
+          {/* ── Centered Header ── */}
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-[#00ADB5]/20 bg-[#00ADB5]/5 backdrop-blur-sm mb-5">
+              <Trophy className="w-4 h-4 text-[#00ADB5]" />
+              <span className="text-[#00ADB5] text-xs font-black tracking-[0.2em] uppercase">Level Up Your Career</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-[3.5rem] font-black text-gray-900 dark:text-white mb-4 leading-[1.08] tracking-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-[3.5rem] font-black text-gray-900 dark:text-white mb-3 leading-[1.08] tracking-tight">
               Achievement{' '}
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500 bg-clip-text text-transparent">Center</span>
+              <span className="bg-gradient-to-r from-[#00ADB5] to-[#00C4CC] bg-clip-text text-transparent">Milestone</span>
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-base lg:text-lg leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-base lg:text-lg leading-relaxed">
               Complete challenges, earn certificates, unlock rewards, and watch your developer profile transform.
             </p>
           </div>
 
-          {/* ── Two-column layout: Milestones + Certificate ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+          {/* ── Milestone Cards — 3 columns ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+            {[
+              {
+                level: 1, icon: '💻', title: 'First Blood', task: 'Complete 5 Projects', reward: 'Gold Badge', xp: '+200 XP',
+                accentColor: '#00ADB5', borderHover: 'hover:border-[#00ADB5]/50', progress: 80,
+              },
+              {
+                level: 2, icon: '⚔️', title: 'Arena Warrior', task: 'Win 10 Code Battles', reward: '+500 Coins', xp: '+350 XP',
+                accentColor: '#FF6B35', borderHover: 'hover:border-[#FF6B35]/50', progress: 60,
+              },
+              {
+                level: 3, icon: '👥', title: 'Team Player', task: 'Join 3 Teams', reward: 'Collaborator Badge', xp: '+280 XP',
+                accentColor: '#00ADB5', borderHover: 'hover:border-[#00ADB5]/50', progress: 100,
+              },
+              {
+                level: 4, icon: '🏆', title: 'Scholar', task: 'Earn 3 Certificates', reward: 'Elite Status', xp: '+500 XP',
+                accentColor: '#FF6B35', borderHover: 'hover:border-[#FF6B35]/50', progress: 45,
+              },
+              {
+                level: 5, icon: '⭐', title: 'Rising Star', task: 'Reach 4.8+ Rating', reward: 'Star Developer', xp: '+420 XP',
+                accentColor: '#00ADB5', borderHover: 'hover:border-[#00ADB5]/50', progress: 92,
+              },
+              {
+                level: 6, icon: '🧠', title: 'Code Master', task: 'Solve 100+ DSA', reward: 'Legendary Badge', xp: '+600 XP',
+                accentColor: '#FF6B35', borderHover: 'hover:border-[#FF6B35]/50', progress: 30,
+              },
+            ].map((m, i) => (
+              <div
+                key={i}
+                className={`group relative rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] ${m.borderHover} p-5 overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl cursor-default`}
+              >
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: m.accentColor }} />
 
-            {/* LEFT: Milestone Cards — 3 cols on desktop */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  {
-                    level: 1, icon: '💻', title: 'First Blood', task: 'Complete 5 Projects', reward: 'Gold Badge', xp: '+200 XP',
-                    gradient: 'from-yellow-500 to-amber-600', borderColor: 'border-yellow-500/20 hover:border-yellow-400/50',
-                    bgAccent: 'from-yellow-500/10 via-amber-500/5 to-transparent', iconBg: 'bg-yellow-500/10',
-                    textColor: 'text-yellow-400', barColor: 'from-yellow-500 to-amber-500', progress: 80,
-                  },
-                  {
-                    level: 2, icon: '⚔️', title: 'Arena Warrior', task: 'Win 10 Code Battles', reward: '+500 Coins', xp: '+350 XP',
-                    gradient: 'from-red-500 to-orange-600', borderColor: 'border-red-500/20 hover:border-red-400/50',
-                    bgAccent: 'from-red-500/10 via-orange-500/5 to-transparent', iconBg: 'bg-red-500/10',
-                    textColor: 'text-red-400', barColor: 'from-red-500 to-orange-500', progress: 60,
-                  },
-                  {
-                    level: 3, icon: '👥', title: 'Team Player', task: 'Join 3 Teams', reward: 'Collaborator Badge', xp: '+280 XP',
-                    gradient: 'from-pink-500 to-rose-600', borderColor: 'border-pink-500/20 hover:border-pink-400/50',
-                    bgAccent: 'from-pink-500/10 via-rose-500/5 to-transparent', iconBg: 'bg-pink-500/10',
-                    textColor: 'text-pink-400', barColor: 'from-pink-500 to-rose-500', progress: 100,
-                  },
-                  {
-                    level: 4, icon: '🏆', title: 'Scholar', task: 'Earn 3 Certificates', reward: 'Elite Status', xp: '+500 XP',
-                    gradient: 'from-emerald-500 to-teal-600', borderColor: 'border-emerald-500/20 hover:border-emerald-400/50',
-                    bgAccent: 'from-emerald-500/10 via-teal-500/5 to-transparent', iconBg: 'bg-emerald-500/10',
-                    textColor: 'text-emerald-400', barColor: 'from-emerald-500 to-teal-500', progress: 45,
-                  },
-                  {
-                    level: 5, icon: '⭐', title: 'Rising Star', task: 'Reach 4.8+ Rating', reward: 'Star Developer', xp: '+420 XP',
-                    gradient: 'from-orange-500 to-yellow-600', borderColor: 'border-orange-500/20 hover:border-orange-400/50',
-                    bgAccent: 'from-orange-500/10 via-yellow-500/5 to-transparent', iconBg: 'bg-orange-500/10',
-                    textColor: 'text-orange-400', barColor: 'from-orange-500 to-yellow-500', progress: 92,
-                  },
-                  {
-                    level: 6, icon: '🧠', title: 'Code Master', task: 'Solve 100+ DSA', reward: 'Legendary Badge', xp: '+600 XP',
-                    gradient: 'from-violet-500 to-purple-600', borderColor: 'border-violet-500/20 hover:border-violet-400/50',
-                    bgAccent: 'from-violet-500/10 via-purple-500/5 to-transparent', iconBg: 'bg-violet-500/10',
-                    textColor: 'text-violet-400', barColor: 'from-violet-500 to-purple-500', progress: 30,
-                  },
-                ].map((m, i) => (
-                  <div
-                    key={i}
-                    className={`group relative rounded-2xl bg-gray-50 dark:bg-white/[0.04] border ${m.borderColor} p-5 overflow-hidden hover:bg-gray-100 dark:hover:bg-white/[0.07] transition-all duration-500 hover:-translate-y-1 cursor-default`}
-                  >
-                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${m.bgAccent} rounded-full blur-2xl opacity-30 dark:opacity-50 group-hover:opacity-60 dark:group-hover:opacity-90 transition-opacity duration-500`} />
+                {/* Glow on hover */}
+                <div className="absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500" style={{ background: m.accentColor }} />
 
-                    {/* Level badge */}
-                    <div className="absolute top-3 right-3">
-                      <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${m.gradient} text-white text-[9px] font-black tracking-wider shadow-lg`}>
-                        LVL {m.level}
-                      </div>
+                {/* Level badge */}
+                <div className="absolute top-4 right-4">
+                  <div className="px-2.5 py-1 rounded-lg text-white text-[10px] font-black tracking-wider shadow-lg" style={{ background: m.accentColor }}>
+                    LVL {m.level}
+                  </div>
+                </div>
+
+                <div className="relative pt-1">
+                  {/* Icon */}
+                  <div className="w-12 h-12 rounded-xl border border-gray-100 dark:border-white/[0.06] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform duration-300" style={{ background: `${m.accentColor}10` }}>
+                    {m.icon}
+                  </div>
+
+                  {/* Title + XP */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-sm font-black text-gray-900 dark:text-white">{m.title}</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.05]" style={{ color: m.accentColor }}>{m.xp}</span>
+                  </div>
+                  <p className="text-gray-500 dark:text-white/40 text-xs font-medium mb-4">{m.task}</p>
+
+                  {/* Progress bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between mb-1.5">
+                      <span className="text-gray-400 dark:text-white/25 text-[9px] font-bold uppercase tracking-wider">Progress</span>
+                      <span className="text-[10px] font-bold" style={{ color: m.accentColor }}>{m.progress}%</span>
                     </div>
-
-                    <div className="relative">
-                      <div className={`w-11 h-11 rounded-xl ${m.iconBg} border border-gray-200 dark:border-white/[0.06] flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                        {m.icon}
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="text-sm font-black text-gray-900 dark:text-white">{m.title}</h3>
-                        <span className={`text-[10px] font-bold ${m.textColor} bg-gray-100 dark:bg-white/[0.05] px-1.5 py-0.5 rounded-full`}>{m.xp}</span>
-                      </div>
-                      <p className="text-gray-500 dark:text-white/30 text-xs font-medium mb-3">{m.task}</p>
-
-                      {/* Progress bar */}
-                      <div className="mb-2.5">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-400 dark:text-white/20 text-[9px] font-bold uppercase tracking-wider">Progress</span>
-                          <span className={`${m.textColor} text-[10px] font-bold`}>{m.progress}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/[0.06] rounded-full overflow-hidden">
-                          <div className={`h-full bg-gradient-to-r ${m.barColor} rounded-full`} style={{ width: `${m.progress}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <Award className={`w-3 h-3 ${m.textColor}`} />
-                        <span className="text-gray-500 dark:text-white/35 text-[10px] font-medium">Reward:</span>
-                        <span className={`${m.textColor} text-[10px] font-bold`}>{m.reward}</span>
-                        {m.progress === 100 && (
-                          <span className="ml-auto text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded-full border border-emerald-400/20">✓ DONE</span>
-                        )}
-                      </div>
+                    <div className="w-full h-2 bg-gray-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${m.progress}%`, background: `linear-gradient(90deg, ${m.accentColor}, ${m.accentColor}cc)` }} />
                     </div>
                   </div>
-                ))}
+
+                  {/* Reward */}
+                  <div className="flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5" style={{ color: m.accentColor }} />
+                    <span className="text-gray-500 dark:text-white/35 text-[10px] font-medium">Reward:</span>
+                    <span className="text-[10px] font-bold" style={{ color: m.accentColor }}>{m.reward}</span>
+                    {m.progress === 100 && (
+                      <span className="ml-auto text-[9px] font-black text-[#00ADB5] bg-[#00ADB5]/10 px-2 py-0.5 rounded-full border border-[#00ADB5]/20">✓ DONE</span>
+                    )}
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
+
+          {/* ── Certificate + Stats Row ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+            {/* Certificate Preview — spans 3 */}
+            <div className="lg:col-span-3 relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#00ADB5]/20 via-[#00ADB5]/10 to-[#FF6B35]/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
+              <div className="relative rounded-2xl bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-2 border-[#00ADB5]/30 dark:border-[#00ADB5]/20 p-6 sm:p-8 shadow-2xl overflow-hidden">
+                {/* Corner decorations */}
+                <div className="absolute top-0 left-0 w-14 h-14 border-t-2 border-l-2 border-[#00ADB5]/40 rounded-tl-lg" />
+                <div className="absolute top-0 right-0 w-14 h-14 border-t-2 border-r-2 border-[#00ADB5]/40 rounded-tr-lg" />
+                <div className="absolute bottom-0 left-0 w-14 h-14 border-b-2 border-l-2 border-[#00ADB5]/40 rounded-bl-lg" />
+                <div className="absolute bottom-0 right-0 w-14 h-14 border-b-2 border-r-2 border-[#00ADB5]/40 rounded-br-lg" />
+
+                {/* Watermark */}
+                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] flex items-center justify-center">
+                  <span className="text-[120px] font-black text-[#00ADB5] select-none">SX</span>
+                </div>
+
+                <div className="relative text-center">
+                  {/* Logo */}
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <img
+                      src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
+                      alt="SkillUpX Logo"
+                      className="w-12 h-12 object-contain"
+                      loading="lazy"
+                    />
+                    <div className="text-left">
+                      <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#00C4CC]">SkillUpX</span>
+                      <p className="text-[9px] text-gray-400 font-medium -mt-0.5">Building Tomorrow's Developers</p>
+                    </div>
+                  </div>
+
+                  <h4 className="text-[10px] text-[#00ADB5] font-bold tracking-[0.25em] uppercase mb-2">Certificate of Achievement</h4>
+                  <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#00ADB5] to-transparent mx-auto mb-3" />
+
+                  <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">This is to certify that</p>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1 font-serif italic">John Doe</h3>
+                  <p className="text-xs text-[#00ADB5] font-medium mb-3">✉️ johndoe@example.com</p>
+
+                  <p className="text-gray-500 dark:text-gray-400 text-xs mb-3">has successfully completed</p>
+
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#00ADB5] to-[#00C4CC] text-white px-4 py-1.5 rounded-full font-bold text-xs mb-3">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>50 Verified Tasks</span>
+                  </div>
+
+                  <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">and is hereby recognized as a</p>
+                  <h4 className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-[#FF6B35] mb-3">
+                    Verified Collaborator
+                  </h4>
+
+                  <div className="w-20 h-px bg-gradient-to-r from-transparent via-[#00ADB5]/40 to-transparent mx-auto mb-3" />
+
+                  {/* Stats */}
+                  <div className="flex justify-center gap-8 mb-4">
+                    {[
+                      { val: '50', label: 'Tasks', color: 'text-[#00ADB5]' },
+                      { val: '8', label: 'Projects', color: 'text-[#FF6B35]' },
+                      { val: '5', label: 'Skills', color: 'text-[#00ADB5]' },
+                    ].map((s, i) => (
+                      <div key={i} className="text-center">
+                        <div className={`text-lg font-black ${s.color}`}>{s.val}</div>
+                        <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#00ADB5]/15">
+                    <div className="text-left">
+                      <p className="text-[8px] text-gray-400">Issue Date</p>
+                      <p className="text-[11px] font-bold text-gray-600 dark:text-gray-300">Dec 22, 2025</p>
+                    </div>
+                    <div className="w-11 h-11 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                      <div className="grid grid-cols-3 gap-px">
+                        {[...Array(9)].map((_, idx) => (
+                          <div key={idx} className={`w-2 h-2 ${[0, 2, 3, 5, 6, 8].includes(idx) ? 'bg-gray-700 dark:bg-gray-200' : 'bg-transparent'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[8px] text-gray-400">Certificate ID</p>
+                      <p className="text-[11px] font-bold text-gray-600 dark:text-gray-300 font-mono">SX-2025-XXXXX</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2">
+                    <div className="w-16 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-1" />
+                    <p className="text-[9px] text-gray-400">SkillUpX Team</p>
+                  </div>
+                </div>
+
+                {/* Seal */}
+                <div className="absolute -bottom-2 -right-2 sm:bottom-4 sm:right-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-[#00ADB5] to-[#00C4CC] rounded-full flex items-center justify-center shadow-xl border-2 border-[#00ADB5]/50">
+                    <Award className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+              </div>
+              <p className="text-center text-gray-400 dark:text-white/20 text-[11px] mt-3 font-medium">
+                📥 Earn certificates and share on LinkedIn
+              </p>
             </div>
 
-            {/* RIGHT: Certificate Preview + Stats — 2 cols on desktop */}
+            {/* Player Stats — spans 2 */}
             <div className="lg:col-span-2 flex flex-col gap-5">
-
-              {/* ── Certificate Card (from Creator Corner) ── */}
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
-                <div className="relative rounded-2xl bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-2 border-amber-400/60 dark:border-amber-600/40 p-5 sm:p-6 shadow-2xl overflow-hidden">
-                  {/* Corner decorations */}
-                  <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-500/60 rounded-tl-lg" />
-                  <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-500/60 rounded-tr-lg" />
-                  <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-500/60 rounded-bl-lg" />
-                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-500/60 rounded-br-lg" />
-
-                  {/* Watermark */}
-                  <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06] flex items-center justify-center">
-                    <span className="text-[100px] font-black text-amber-900 dark:text-amber-400 select-none">SX</span>
+              {/* XP Progress */}
+              <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] p-5 hover:border-[#00ADB5]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-[#00ADB5]/10 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-[#00ADB5]" />
                   </div>
-
-                  <div className="relative text-center">
-                    {/* Logo */}
-                    <div className="flex items-center justify-center gap-2.5 mb-2">
-                      <img
-                        src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg"
-                        alt="SkillUpX Logo"
-                        className="w-10 h-10 object-contain"
-                        loading="lazy"
-                      />
-                      <div className="text-left">
-                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00ADB5] to-cyan-600">SkillUpX</span>
-                        <p className="text-[8px] text-gray-400 font-medium -mt-0.5">Building Tomorrow's Developers</p>
-                      </div>
-                    </div>
-
-                    <h4 className="text-[9px] text-amber-600 dark:text-amber-400 font-bold tracking-[0.25em] uppercase mb-2">Certificate of Achievement</h4>
-                    <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-2" />
-
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-1">This is to certify that</p>
-                    <h3 className="text-lg font-black text-gray-900 dark:text-white mb-0.5 font-serif italic">John Doe</h3>
-                    <p className="text-[10px] text-[#00ADB5] font-medium mb-2">✉️ johndoe@example.com</p>
-
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-2">has successfully completed</p>
-
-                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full font-bold text-[10px] mb-2">
-                      <CheckCircle className="w-3 h-3" />
-                      <span>50 Verified Tasks</span>
-                    </div>
-
-                    <p className="text-gray-500 dark:text-gray-400 text-[10px] mb-1">and is hereby recognized as a</p>
-                    <h4 className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 mb-2">
-                      Verified Collaborator
-                    </h4>
-
-                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-2" />
-
-                    {/* Stats */}
-                    <div className="flex justify-center gap-5 mb-3">
-                      {[
-                        { val: '50', label: 'Tasks', color: 'text-[#00ADB5]' },
-                        { val: '8', label: 'Projects', color: 'text-purple-500' },
-                        { val: '5', label: 'Skills', color: 'text-pink-500' },
-                      ].map((s, i) => (
-                        <div key={i} className="text-center">
-                          <div className={`text-sm font-black ${s.color}`}>{s.val}</div>
-                          <div className="text-[8px] text-gray-400">{s.label}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-amber-200/60 dark:border-amber-800/40">
-                      <div className="text-left">
-                        <p className="text-[8px] text-gray-400">Issue Date</p>
-                        <p className="text-[10px] font-bold text-gray-600 dark:text-gray-300">Dec 22, 2025</p>
-                      </div>
-                      <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center border border-gray-200 dark:border-gray-600">
-                        <div className="grid grid-cols-3 gap-px">
-                          {[...Array(9)].map((_, idx) => (
-                            <div key={idx} className={`w-2 h-2 ${[0, 2, 3, 5, 6, 8].includes(idx) ? 'bg-gray-700 dark:bg-gray-200' : 'bg-transparent'}`} />
-                          ))}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[8px] text-gray-400">Certificate ID</p>
-                        <p className="text-[10px] font-bold text-gray-600 dark:text-gray-300 font-mono">SX-2025-XXXXX</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 pt-2">
-                      <div className="w-16 h-px bg-gray-300 dark:bg-gray-600 mx-auto mb-0.5" />
-                      <p className="text-[8px] text-gray-400">SkillUpX Team</p>
-                    </div>
-                  </div>
-
-                  {/* Gold seal */}
-                  <div className="absolute -bottom-2 -right-2 sm:bottom-3 sm:right-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-full flex items-center justify-center shadow-xl border-2 border-amber-300">
-                      <Award className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
+                  <span className="text-gray-700 dark:text-white/60 text-sm font-bold">Your Progress</span>
                 </div>
-
-                <p className="text-center text-gray-400 dark:text-white/20 text-[11px] mt-2.5 font-medium">
-                  📥 Earn certificates and share on LinkedIn
-                </p>
-              </div>
-
-              {/* ── Player Stats ── */}
-              <div className="rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-4 h-4 text-gray-400 dark:text-white/40" />
-                  <span className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-wider">Your Progress</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   {[
-                    { label: 'Total XP', value: '2,350', icon: <Zap className="w-4 h-4" />, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-                    { label: 'Badges', value: '12', icon: <Award className="w-4 h-4" />, color: 'text-pink-400', bg: 'bg-pink-500/10' },
-                    { label: 'Streak', value: '23d', icon: <TrendingUp className="w-4 h-4" />, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-                    { label: 'Rank', value: '#847', icon: <Trophy className="w-4 h-4" />, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+                    { label: 'Total XP', value: '2,350', icon: <Zap className="w-4 h-4" />, color: '#00ADB5' },
+                    { label: 'Badges', value: '12', icon: <Award className="w-4 h-4" />, color: '#FF6B35' },
+                    { label: 'Streak', value: '23d', icon: <TrendingUp className="w-4 h-4" />, color: '#00ADB5' },
+                    { label: 'Rank', value: '#847', icon: <Trophy className="w-4 h-4" />, color: '#FF6B35' },
                   ].map((stat, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg ${stat.bg} border border-gray-200 dark:border-white/[0.06] flex items-center justify-center ${stat.color}`}>
+                      <div className="w-10 h-10 rounded-xl border border-gray-100 dark:border-white/[0.06] flex items-center justify-center" style={{ background: `${stat.color}12`, color: stat.color }}>
                         {stat.icon}
                       </div>
                       <div>
-                        <p className={`${stat.color} font-black text-base leading-none`}>{stat.value}</p>
-                        <p className="text-gray-400 dark:text-white/25 text-[9px] font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
+                        <p className="font-black text-lg leading-none" style={{ color: stat.color }}>{stat.value}</p>
+                        <p className="text-gray-400 dark:text-white/25 text-[9px] font-bold uppercase tracking-wider mt-1">{stat.label}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* Quick milestones */}
+              <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] p-5 hover:border-[#FF6B35]/30 transition-colors">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[#FF6B35]/10 flex items-center justify-center">
+                    <Target className="w-4 h-4 text-[#FF6B35]" />
+                  </div>
+                  <span className="text-gray-700 dark:text-white/60 text-sm font-bold">Next Goals</span>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { task: 'Solve 5 more DSA problems', progress: 70, color: '#00ADB5' },
+                    { task: 'Win next CodeArena battle', progress: 40, color: '#FF6B35' },
+                    { task: 'Complete React Roadmap', progress: 85, color: '#00ADB5' },
+                  ].map((g, i) => (
+                    <div key={i}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-xs text-gray-600 dark:text-white/50 font-medium">{g.task}</span>
+                        <span className="text-[10px] font-bold" style={{ color: g.color }}>{g.progress}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${g.progress}%`, background: g.color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
+
           </div>
 
           {/* ── Bottom CTA ── */}
-          <div className="mt-10 text-center">
-            <p className="text-gray-400 dark:text-gray-500 text-sm mb-4 font-medium">Every task completed brings you closer to your next badge and certificate.</p>
+          <div className="mt-12 text-center">
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-5 font-medium">Every task completed brings you closer to your next badge and certificate.</p>
             <Link
               to="/login"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 text-white font-bold text-sm hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 hover:-translate-y-1 group/btn shadow-lg shadow-orange-500/15"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#00ADB5] to-[#FF6B35] text-white font-bold text-sm hover:shadow-2xl hover:shadow-[#00ADB5]/25 transition-all duration-300 hover:-translate-y-1 group/btn shadow-lg shadow-[#00ADB5]/15"
             >
               Start Earning Achievements <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
             </Link>
@@ -2700,55 +2861,395 @@ export default function HomePage() {
       </section>
 
 
-      {/* FAQ Section */}
-      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-white dark:bg-black">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
+      {/* FAQ Section — Visual Category-Based Design with SEO Rich Snippets */}
+      {(() => {
+        const faqCategories = [
+          {
+            id: "platform",
+            label: "Platform",
+            icon: Globe,
+            gradient: "from-[#00ADB5] to-cyan-600",
+            illustration: (
+              <div className="relative w-full h-full flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/20 to-cyan-600/10 rounded-3xl" />
+                <div className="relative z-10 text-center p-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                    <Globe className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black text-white mb-2">Platform Overview</h3>
+                  <p className="text-white/80 text-sm">Everything about SkillUpX — the all-in-one developer growth platform</p>
+                  <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                    {["Free Platform", "3000+ Questions", "1v1 Battles", "Certificates"].map(t => (
+                      <span key={t} className="px-3 py-1 bg-white/15 backdrop-blur rounded-full text-xs text-white font-medium">{t}</span>
+                    ))}
+                  </div>
+                </div>
+                {/* Decorative floating elements */}
+                <div className="absolute top-6 right-8 w-8 h-8 rounded-lg bg-white/10 animate-pulse" />
+                <div className="absolute bottom-10 left-6 w-6 h-6 rounded-full bg-white/15 animate-bounce" style={{ animationDelay: "0.5s" }} />
+                <div className="absolute top-1/3 left-10 w-4 h-4 rounded bg-white/10 animate-pulse" style={{ animationDelay: "1s" }} />
+              </div>
+            ),
+            faqs: [
+              { q: "What is SkillUpX and how does it help developers?", a: "SkillUpX is a free, all-in-one developer growth platform designed to help programmers skill up through CodeArena 1v1 coding battles, real-world project collaboration in Creator Corner, curated learning roadmaps for React, Node.js, Full Stack, DSA, and System Design, Developer Connect networking, and community-driven tech reviews. Whether you're a beginner learning to code or an experienced developer preparing for interviews, SkillUpX provides everything you need to grow — completely free." },
+              { q: "Is SkillUpX really free to use?", a: "Yes! SkillUpX is 100% free. You get full access to 3000+ DSA practice questions, CodeArena 1v1 coding battles, learning roadmaps, project collaboration, Developer Connect networking, tech reviews, study groups, and all platform features at no cost. You receive 1000 welcome coins on signup. Optional certificate verification is available for ₹299-₹499 after completing projects. No credit card required, no hidden fees." },
+              { q: "Is SkillUpX better than LeetCode, HackerRank, or CodeChef?", a: "SkillUpX offers a unique combination that sets it apart: while LeetCode, HackerRank, and CodeChef focus primarily on DSA practice, SkillUpX provides a complete developer growth ecosystem — 1v1 CodeArena battles, real-world project collaboration, curated learning roadmaps, developer networking, tech reviews, study groups, and coding coin rewards. Plus, SkillUpX is completely free with no premium paywalls for question access." },
+              { q: "Can I use SkillUpX on mobile devices?", a: "Yes! SkillUpX is fully responsive and works seamlessly on mobile phones, tablets, and desktops. Access DSA questions, learning roadmaps, Developer Connect, tech reviews, and community features from any device. For the best CodeArena 1v1 battle experience, we recommend a desktop or laptop with a full keyboard for competitive coding." },
+            ]
+          },
+          {
+            id: "codearena",
+            label: "CodeArena",
+            icon: Swords,
+            gradient: "from-orange-500 to-red-500",
+            illustration: (
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/10 rounded-3xl" />
+                <div className="relative z-10 text-center p-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                    <Swords className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black text-white mb-2">CodeArena Battles</h3>
+                  <p className="text-white/80 text-sm">1v1 competitive coding with 3000+ DSA questions</p>
+                  {/* Battle mockup */}
+                  <div className="mt-4 bg-white/10 backdrop-blur rounded-xl p-3 text-left">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-green-400/40" /><span className="text-xs text-white/90 font-bold">You</span></div>
+                      <span className="text-[10px] text-yellow-300 font-bold">VS</span>
+                      <div className="flex items-center gap-2"><span className="text-xs text-white/90 font-bold">Rival</span><div className="w-6 h-6 rounded-full bg-red-400/40" /></div>
+                    </div>
+                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full w-3/4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" /></div>
+                  </div>
+                </div>
+                <div className="absolute top-8 right-6 w-6 h-6 rounded bg-yellow-400/20 rotate-12 animate-pulse" />
+                <div className="absolute bottom-8 left-8 w-5 h-5 rounded-full bg-orange-400/20 animate-bounce" style={{ animationDelay: "0.3s" }} />
+              </div>
+            ),
+            faqs: [
+              { q: "What is CodeArena and how do 1v1 coding battles work?", a: "CodeArena is SkillUpX's flagship feature — a real-time 1v1 coding battle arena where you challenge other developers to solve DSA problems competitively. Both players receive the same problem, and the first to solve it wins coding coins. CodeArena also offers solo practice mode with 3000+ DSA questions across all difficulty levels (easy, medium, hard), covering arrays, trees, graphs, dynamic programming, and more. Supports JavaScript, Python, Java, C++, and other languages." },
+              { q: "What programming languages does CodeArena support?", a: "CodeArena supports multiple programming languages for DSA practice and 1v1 battles: JavaScript, Python, Java, C++, C, TypeScript, Go, and Rust. You can solve problems and compete in your preferred language with real-time code execution, automated test case validation, and instant results." },
+              { q: "What DSA topics are covered on SkillUpX?", a: "SkillUpX covers all major DSA topics: Arrays, Strings, Linked Lists, Stacks, Queues, Hash Maps, Trees (Binary, BST, AVL), Graphs (BFS, DFS, Dijkstra), Dynamic Programming, Recursion, Backtracking, Greedy Algorithms, Sorting (Quick, Merge, Heap), Binary Search, Two Pointers, Sliding Window, Tries, Heaps/Priority Queues, Union-Find, Segment Trees, and more. Questions range from easy to hard with editorial solutions." },
+              { q: "How do coding coins and the global leaderboard work?", a: "Coding coins are SkillUpX's reward currency. Earn coins by winning CodeArena battles, solving DSA questions, completing project tasks, daily login streaks, and community contributions. The global leaderboard ranks developers based on coins earned, battle wins, problems solved, and community score. Track your weekly and all-time ranking, compete with developers worldwide, and showcase achievements on your public profile." },
+            ]
+          },
+          {
+            id: "learning",
+            label: "Learning",
+            icon: Map,
+            gradient: "from-purple-500 to-indigo-600",
+            illustration: (
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-indigo-600/10 rounded-3xl" />
+                <div className="relative z-10 text-center p-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                    <Map className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black text-white mb-2">Learning & Growth</h3>
+                  <p className="text-white/80 text-sm">Roadmaps, projects, certificates & career prep</p>
+                  {/* Roadmap steps mockup */}
+                  <div className="mt-4 space-y-2">
+                    {["React Fundamentals", "Node.js Backend", "Full Stack MERN", "System Design"].map((step, i) => (
+                      <div key={step} className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-lg px-3 py-1.5">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${i < 2 ? "bg-green-400/40 text-white" : "bg-white/20 text-white/60"}`}>{i < 2 ? "✓" : i + 1}</div>
+                        <span className={`text-xs ${i < 2 ? "text-white font-semibold" : "text-white/60"}`}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="absolute top-6 left-8 w-7 h-7 rounded-full bg-purple-400/15 animate-pulse" />
+                <div className="absolute bottom-6 right-6 w-5 h-5 rounded bg-indigo-400/20 animate-bounce" style={{ animationDelay: "0.7s" }} />
+              </div>
+            ),
+            faqs: [
+              { q: "What skills and technologies can I learn on SkillUpX?", a: "SkillUpX covers a comprehensive range of technologies and skills: Data Structures & Algorithms (DSA), JavaScript, TypeScript, React, Node.js, Python, Java, C++, Full Stack Development (MERN Stack), System Design, Frontend Development, Backend Development, DevOps, Docker, Kubernetes, AI/Machine Learning basics, API Development, Database Design, Git & GitHub, and more. Each topic has curated learning roadmaps with step-by-step guides." },
+              { q: "How do Learning Roadmaps help with career growth?", a: "SkillUpX Learning Roadmaps are curated, step-by-step guides designed by industry professionals. Available roadmaps include: React Developer, Node.js Backend, Full Stack (MERN), DSA & Competitive Programming, System Design, Frontend Development, Backend Development, DevOps, and Interview Preparation. Each roadmap includes resources, milestone tracking, common interview questions for top tech companies (Google, Amazon, Microsoft, Meta), and career advice." },
+              { q: "How does project collaboration work on SkillUpX Creator Corner?", a: "Creator Corner is SkillUpX's project collaboration hub. You can submit your own project ideas, browse existing projects in Project Bazaar, join teams with other developers, and collaborate using built-in sprint management and agile tools. Projects cover real-world applications across various tech stacks. After completing 50 tasks on a project, you earn a verified certificate that can be shared on LinkedIn and added to your resume." },
+              { q: "Can I earn certificates on SkillUpX?", a: "Yes! SkillUpX offers verified certificates for project completion through Creator Corner. After contributing to a collaborative project and completing 50 tasks (code contributions, bug fixes, feature implementations, reviews), you receive a verified certificate that showcases your real-world development experience. Certificates can be shared on LinkedIn, added to your resume, and verified by employers." },
+              { q: "Does SkillUpX help with placement and job preparation?", a: "Absolutely! SkillUpX is designed for placement and interview preparation. Practice 3000+ DSA questions commonly asked in tech interviews at Google, Amazon, Microsoft, Meta, and other top companies. Follow interview-specific roadmaps, build real-world project experience, earn verified certificates, practice with CodeArena under time pressure, and build a comprehensive developer portfolio that impresses recruiters." },
+            ]
+          },
+          {
+            id: "community",
+            label: "Community",
+            icon: Users,
+            gradient: "from-emerald-500 to-teal-600",
+            illustration: (
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-600/10 rounded-3xl" />
+                <div className="relative z-10 text-center p-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                    <Users className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black text-white mb-2">Community & Connect</h3>
+                  <p className="text-white/80 text-sm">Developer networking, study groups & tech reviews</p>
+                  {/* Community avatars mockup */}
+                  <div className="mt-4 flex flex-col items-center gap-3">
+                    <div className="flex -space-x-3">
+                      {["bg-blue-400", "bg-purple-400", "bg-pink-400", "bg-yellow-400", "bg-green-400", "bg-red-400"].map((bg, i) => (
+                        <div key={i} className={`w-9 h-9 rounded-full ${bg} border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-white/70 text-xs">150+ active developers collaborating</span>
+                    <div className="flex gap-2">
+                      {["DSA", "React", "System Design"].map(g => (
+                        <span key={g} className="px-2 py-0.5 bg-white/15 backdrop-blur rounded text-[10px] text-white font-medium">{g}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-10 right-10 w-6 h-6 rounded-full bg-emerald-400/15 animate-bounce" />
+                <div className="absolute bottom-10 left-10 w-4 h-4 rounded bg-teal-400/20 animate-pulse" style={{ animationDelay: "0.4s" }} />
+              </div>
+            ),
+            faqs: [
+              { q: "What is Developer Connect on SkillUpX?", a: "Developer Connect is SkillUpX's networking feature that helps you build a professional developer network. Find and connect with developers worldwide, endorse each other's programming skills, discover project collaborators, join topic-specific study groups (DSA, React, System Design, etc.), share developer profiles, and get endorsed by peers. It's like LinkedIn, but built specifically for developers." },
+              { q: "How do Tech Reviews work on SkillUpX?", a: "Tech Reviews is a community-driven section where developers share honest reviews on programming languages, frameworks, libraries, tools, and technologies. Read real developer experiences with React, Node.js, Python, AWS, Docker, and more. Compare technologies side-by-side, discover new tools, and make informed decisions for your projects. Stay updated with the latest tech news and coding tutorials." },
+              { q: "Is SkillUpX suitable for beginners who are new to coding?", a: "Yes, SkillUpX is beginner-friendly! Start with easy-level DSA questions, follow step-by-step learning roadmaps designed for beginners, join beginner-friendly projects in Project Bazaar, and connect with supportive developers via Developer Connect. Study groups provide accountability and peer learning. Progress at your own pace — from basic programming concepts to advanced system design." },
+              { q: "How do I get started on SkillUpX?", a: "Getting started is quick and free: 1) Sign up with your email or Google account, 2) Receive 1000 welcome coins instantly, 3) Complete your developer profile, 4) Choose a learning roadmap that matches your goals, 5) Start solving DSA questions in CodeArena or join a project in Creator Corner. The entire process takes under 2 minutes. No credit card or payment required." },
+            ]
+          }
+        ];
+
+        const activeCat = faqCategories.find(c => c.id === activeFaqCat) || faqCategories[0];
+
+        return (
+          <section className="py-14 lg:py-20 px-6 lg:px-8 bg-white dark:bg-black" itemScope itemType="https://schema.org/FAQPage">
+            <div className="max-w-7xl mx-auto">
+              {/* Header */}
+              <div className="text-center mb-14">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/10 text-[#00ADB5] text-sm font-semibold mb-6">
+                  <MessageSquare className="w-4 h-4" /> Got Questions?
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
+                  Frequently Asked <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">Questions</span>
+                </h2>
+                <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                  Everything you need to know about SkillUpX — the free developer growth platform for coding battles, project collaboration, and career growth
+                </p>
+              </div>
+
+              {/* Category Tabs */}
+              <div className="flex flex-wrap justify-center gap-3 mb-12">
+                {faqCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveFaqCat(cat.id)}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${activeFaqCat === cat.id
+                      ? `bg-gradient-to-r ${cat.gradient} text-white shadow-lg shadow-[#00ADB5]/20 scale-105`
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    <cat.icon className="w-4 h-4" />
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Two-Column Layout: Illustration + FAQs */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                {/* Left — Visual Illustration Card */}
+                <div className="lg:col-span-2 lg:sticky lg:top-24">
+                  <div className={`relative rounded-3xl bg-gradient-to-br ${activeCat.gradient} p-1 shadow-2xl shadow-[#00ADB5]/10 overflow-hidden transition-all duration-500`}>
+                    <div className="rounded-[22px] bg-gradient-to-br from-black/40 to-black/60 min-h-[340px] lg:min-h-[420px] flex items-center justify-center">
+                      {activeCat.illustration}
+                    </div>
+                  </div>
+                  {/* Stats bar under illustration */}
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {[
+                      { n: "3000+", l: "DSA Questions" },
+                      { n: "150+", l: "Developers" },
+                      { n: "100%", l: "Free Access" },
+                    ].map(stat => (
+                      <div key={stat.l} className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div className="text-lg font-black bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">{stat.n}</div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-500 font-medium">{stat.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right — FAQ Accordion */}
+                <div className="lg:col-span-3 space-y-3">
+                  {activeCat.faqs.map((faq, idx) => (
+                    <details key={`${activeCat.id}-${idx}`} itemScope itemProp="mainEntity" itemType="https://schema.org/Question" className="group bg-white dark:bg-gray-900 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50 overflow-hidden">
+                      <summary className="flex items-center gap-4 p-5 cursor-pointer">
+                        <div className={`flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${activeCat.gradient} flex items-center justify-center text-white text-sm font-black shadow-sm`}>
+                          {idx + 1}
+                        </div>
+                        <span itemProp="name" className="flex-1 text-sm md:text-base font-bold text-gray-900 dark:text-white group-open:text-[#00ADB5] transition-colors pr-2">{faq.q}</span>
+                        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 group-open:bg-[#00ADB5] flex items-center justify-center transition-all duration-300">
+                          <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-open:text-white group-open:rotate-90 transition-all duration-300" />
+                        </div>
+                      </summary>
+                      <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer" className="px-5 pb-5 pt-0 ml-[52px]">
+                        <p itemProp="text" className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{faq.a}</p>
+                      </div>
+                    </details>
+                  ))}
+
+                  {/* Quick link at bottom of FAQs */}
+                  <div className="pt-4 flex items-center justify-center">
+                    <Link to="/contact" className="inline-flex items-center gap-2 text-sm font-bold text-[#00ADB5] hover:underline">
+                      Still have questions? Contact us <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* ═══════════  WHY SKILLUPX — SEO Content Section  ═══════════ */}
+      <section className="py-16 lg:py-20 px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50 dark:from-black dark:to-gray-950">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ADB5]/10 text-[#00ADB5] text-sm font-semibold mb-6">
+              <Sparkles className="w-4 h-4" /> Why Developers Choose Us
+            </div>
             <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6">
-              Frequently Asked Questions
+              Why <span className="bg-gradient-to-r from-[#00ADB5] to-cyan-600 bg-clip-text text-transparent">SkillUpX</span> Is the Best Free Developer Platform in 2026
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              Everything you need to know about SkillUpX
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              SkillUpX is more than just a coding platform — it's your complete developer growth ecosystem. From learning fundamentals to landing your dream tech job, here's why thousands of developers trust SkillUpX.
             </p>
           </div>
 
-          <div className="space-y-4">
-            {[
-              {
-                q: "Is SkillUpX really free?",
-                a: "Yes! All courses and learning resources are completely free. You only pay optional fees for certificate verification (₹299-₹499) after completing projects."
-              },
-              {
-                q: "What skills can I learn on SkillUpX?",
-                a: "You can learn Web Development (JavaScript, React, Node.js), Data Structures & Algorithms (DSA), AI/Machine Learning, Full Stack Development (MERN), and more."
-              },
-              {
-                q: "How do real projects work?",
-                a: "Browse open projects posted by developers, apply to join teams, collaborate with other students, and build actual applications that go live."
-              },
-              {
-                q: "Do I get certificates?",
-                a: "Yes! Complete projects and earn verified certificates. These certificates are endorsed by project creators and recognized by employers."
-              },
-              {
-                q: "Can I compete with other developers?",
-                a: "Absolutely! CodeArena allows you to battle other developers in real-time coding competitions. Climb the leaderboard and earn coins."
-              },
-              {
-                q: "How long does it take to get a job?",
-                a: "It varies based on your dedication. With consistent learning and project completion (3-6 months), you'll have a strong portfolio to land tech jobs."
-              }
-            ].map((faq, idx) => (
-              <details key={idx} className="group bg-white dark:bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 dark:border-gray-700 hover:border-[#00ADB5]/50">
-                <summary className="flex items-center justify-between p-6 cursor-pointer font-black text-gray-900 dark:text-white group-open:text-[#00ADB5]">
-                  <span className="text-sm md:text-base">{faq.q}</span>
-                  <span className="text-2xl group-open:rotate-180 transition-transform">+</span>
-                </summary>
-                <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700 pt-6">
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{faq.a}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
+            {/* CodeArena */}
+            <article className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:border-[#00ADB5]/30 transition-all duration-300 hover:shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00ADB5] to-cyan-600 flex items-center justify-center">
+                  <Swords className="w-5 h-5 text-white" />
                 </div>
-              </details>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">CodeArena — Real-Time 1v1 Coding Battles</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                CodeArena is the heart of SkillUpX — a real-time competitive coding arena where developers battle 1v1 to solve Data Structures and Algorithms problems under time pressure. Unlike traditional DSA practice platforms like LeetCode or HackerRank, CodeArena adds the thrill of head-to-head competition. Both players receive the same problem simultaneously, and the first to submit a correct solution wins coding coins and climbs the global leaderboard. With 3000+ problems spanning arrays, trees, graphs, dynamic programming, sorting algorithms, and more, CodeArena sharpens your problem-solving speed and coding skills. Whether you prefer solo practice mode or competitive duels, CodeArena supports JavaScript, Python, Java, C++, TypeScript, and more programming languages.
+              </p>
+            </article>
+
+            {/* Creator Corner */}
+            <article className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:border-[#FF6B35]/30 transition-all duration-300 hover:shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B35] to-orange-600 flex items-center justify-center">
+                  <Rocket className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">Creator Corner — Real-World Project Collaboration</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                Creator Corner is SkillUpX's project collaboration platform where developers build real-world applications together. Submit your own project ideas, browse Project Bazaar to discover exciting projects across MERN stack, React, Node.js, Python, and more, join teams of like-minded developers, and collaborate using built-in sprint management and agile tools. Creator Corner bridges the gap between learning and industry experience — gain hands-on practice with Git workflows, code reviews, team communication, and software development lifecycles. Complete 50 tasks (code contributions, bug fixes, feature implementations) and earn verified certificates recognized by employers. Build a portfolio that actually proves your real-world skills.
+              </p>
+            </article>
+
+            {/* Learning Roadmaps */}
+            <article className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:border-[#00ADB5]/30 transition-all duration-300 hover:shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00ADB5] to-teal-600 flex items-center justify-center">
+                  <Map className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">Curated Learning Roadmaps for Every Tech Career</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                Don't waste time figuring out what to learn next. SkillUpX's curated learning roadmaps provide step-by-step guides designed by industry professionals to help you master any technology or prepare for tech interviews. Available roadmaps include: React Developer Roadmap, Node.js Backend Roadmap, Full Stack (MERN) Roadmap, Data Structures & Algorithms Roadmap, System Design Roadmap, Frontend Development Roadmap, Backend Development Roadmap, DevOps Roadmap, and career-specific Interview Preparation roadmaps for top companies like Google, Amazon, Microsoft, Meta, and more. Each roadmap includes learning resources, milestone tracking, common interview questions, project ideas, and career advice to accelerate your development journey.
+              </p>
+            </article>
+
+            {/* Developer Connect */}
+            <article className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 hover:border-purple-500/30 transition-all duration-300 hover:shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">Developer Connect — Build Your Professional Network</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                Developer Connect is SkillUpX's professional networking platform built specifically for developers. Unlike generic networking sites, Developer Connect focuses on technical skills and developer collaboration. Find developers with complementary skills for your projects, endorse each other's programming abilities, join topic-specific study groups (DSA, React, System Design, Machine Learning, etc.), set learning goals together, and build a professional developer network that supports your career growth. Share your SkillUpX developer profile showcasing your CodeArena rankings, completed projects, verified certificates, endorsed skills, and contribution history. Developer Connect helps you find mentors, collaborators, and potential co-founders — all within a community that understands code.
+              </p>
+            </article>
+          </div>
+
+          {/* Additional SEO content block */}
+          <div className="bg-gradient-to-br from-[#00ADB5]/5 to-cyan-500/5 dark:from-[#00ADB5]/10 dark:to-cyan-500/10 rounded-3xl p-8 lg:p-12 border border-[#00ADB5]/20">
+            <h3 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-6">
+              The Complete Developer Growth Platform — Free for Everyone
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">For Students & Beginners</h4>
+                <p>
+                  SkillUpX is the perfect starting point for college students, coding bootcamp graduates, and self-taught developers. Start with beginner-friendly DSA questions, follow curated learning roadmaps for React, Node.js, and Full Stack development, join beginner-friendly projects in Project Bazaar, and build a portfolio of real-world projects that impress recruiters. Prepare for campus placements at top tech companies with 3000+ interview-focused coding questions and career roadmaps.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">For Experienced Developers</h4>
+                <p>
+                  Sharpen your competitive programming skills in CodeArena 1v1 battles, contribute to challenging open-source projects, mentor junior developers through Developer Connect, share your expertise through Tech Reviews, and stay updated with the latest technology trends. Lead project teams, participate in sprint management, and build your reputation as a top-ranked developer on the global leaderboard. SkillUpX helps experienced developers grow from good to industry-leading.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">For Interview Preparation</h4>
+                <p>
+                  Practice the exact DSA patterns asked at Google, Amazon, Microsoft, Meta, Apple, Netflix, and other FAANG companies. SkillUpX's CodeArena offers timed challenges that simulate real interview conditions, while learning roadmaps provide structured interview preparation guides. Cover all essential topics: arrays, strings, linked lists, trees, graphs, dynamic programming, system design, behavioral interviews, and more.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">Compare: SkillUpX vs Others</h4>
+                <p>
+                  Unlike LeetCode (paid premium for most features), HackerRank (limited collaboration), and CodeChef (competition-only focus), SkillUpX combines DSA practice, real-time battles, project collaboration, learning roadmaps, developer networking, and tech reviews in one free platform. No premium paywalls, no hidden costs. SkillUpX is the best free alternative to LeetCode, HackerRank, and CodeChef for Indian developers and students worldwide.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* ═══════════  EXPLORE SKILLUPX — Internal Links SEO Section  ═══════════ */}
+      <section className="py-14 lg:py-16 px-6 lg:px-8 bg-gray-50 dark:bg-gray-950">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-4">
+              Explore <span className="text-[#00ADB5]">SkillUpX</span> Platform
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Discover all the tools and resources to accelerate your developer career
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { to: "/codearena", icon: Swords, title: "CodeArena", desc: "1v1 coding battles, 3000+ DSA questions, global leaderboard, solo practice mode" },
+              { to: "/roadmaps", icon: Map, title: "Learning Roadmaps", desc: "Curated paths for React, Node.js, Full Stack, DSA, System Design & career growth" },
+              { to: "/about", icon: Users, title: "About SkillUpX", desc: "Our mission, team, and story behind the developer platform" },
+              { to: "/TechUpdate", icon: Zap, title: "Tech Updates & Reviews", desc: "Latest tech news, community reviews, coding tutorials & developer articles" },
+              { to: "/documentation", icon: BookOpen, title: "Documentation", desc: "Complete guide to all SkillUpX platform features and getting started" },
+              { to: "/contact", icon: MessageSquare, title: "Contact Us", desc: "Get in touch with the SkillUpX team for support or partnerships" },
+              { to: "/signup", icon: Rocket, title: "Sign Up — Free", desc: "Create your account, get 1000 coins, and start your developer journey" },
+              { to: "/login", icon: Globe, title: "Login", desc: "Access your CodeArena battles, projects, roadmaps, and developer profile" },
+              { to: "/privacy-policy", icon: Shield, title: "Privacy Policy", desc: "How SkillUpX protects your data and privacy" },
+            ].map((link, idx) => (
+              <Link key={idx} to={link.to} className="flex items-start gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-[#00ADB5] hover:shadow-md transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-lg bg-[#00ADB5]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#00ADB5]/20 transition-colors">
+                  <link.icon className="w-5 h-5 text-[#00ADB5]" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-[#00ADB5] transition-colors text-sm">{link.title}</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs mt-1 leading-relaxed">{link.desc}</p>
+                </div>
+              </Link>
             ))}
+          </div>
+
+          {/* SEO keyword paragraph */}
+          <div className="mt-12 text-center">
+            <p className="text-xs text-gray-400 dark:text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              SkillUpX is a free online coding platform designed for developers, students, and professionals in India and worldwide. Practice data structures and algorithms (DSA) with 3000+ coding questions, participate in real-time CodeArena 1v1 battles, collaborate on MERN stack and full stack projects, follow curated learning roadmaps, connect with developers through Developer Connect, and read community tech reviews. SkillUpX is the best free alternative to LeetCode, HackerRank, CodeChef, and Codeforces for 2026. Prepare for coding interviews at Google, Amazon, Microsoft, Meta, Apple, and other top tech companies. Start your developer journey today — 100% free, no credit card required.
+            </p>
           </div>
         </div>
       </section>

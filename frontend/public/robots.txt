@@ -27,6 +27,10 @@ Allow: /contact
 Allow: /TechUpdate
 Allow: /documentation
 Allow: /blog
+Allow: /codearena
+Allow: /roadmaps
+Allow: /creator-corner
+Allow: /developer-connect
 Allow: /privacy-policy
 Allow: /terms-and-conditions
 
