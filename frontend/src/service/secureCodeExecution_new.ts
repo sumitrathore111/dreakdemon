@@ -49,7 +49,7 @@ class SecureCodeExecutionService {
   private readonly BACKEND_URL = API_BASE_URL;
 
   // Execute code securely through backend proxy
-  async executeCode(code: string, language: string, input?: string): Promise<ExecutionResult> {
+  async executeCode(code: string, language: string, input?: string, problemTitle?: string): Promise<ExecutionResult> {
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
       throw new Error('Authentication required');
@@ -68,7 +68,8 @@ class SecureCodeExecutionService {
         body: JSON.stringify({
           source_code: validatedSubmission.code,
           language_id: this.getLanguageId(language),
-          stdin: input || ''
+          stdin: input || '',
+          problemTitle: problemTitle || ''
         })
       });
 

@@ -16,7 +16,7 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
     const { difficulty, category, search, limit = 50, page = 1 } = req.query;
 
     let query: any = {};
-    
+
     if (difficulty) query.difficulty = difficulty;
     if (category) query.category = category;
     if (search) {
@@ -322,7 +322,16 @@ router.post('/:challengeId/submit', authenticate, async (req: AuthRequest, res: 
 // Primary: Judge0 CE (free public, rate limited but reliable)
 // For 1000+ users, consider self-hosting Piston or Judge0
 
-const JUDGE0_URL = 'https://ce.judge0.com/submissions?base64_encoded=false&wait=true';
+const JUDGE0_URL = 'https://ce.judge0.com/submissions?base64_encoded=true&wait=true';
+
+// Base64 helpers
+function toBase64(str: string): string {
+  return Buffer.from(str, 'utf-8').toString('base64');
+}
+function fromBase64(str: string): string {
+  if (!str) return '';
+  return Buffer.from(str, 'base64').toString('utf-8');
+}
 
 // Language ID mappings for Judge0 CE API
 const LANG_ID_MAP: Record<string, number> = {
@@ -356,9 +365,9 @@ async function executeWithJudge0(
       const response = await axios.post(
         JUDGE0_URL,
         {
-          source_code: code,
+          source_code: toBase64(code),
           language_id: langId,
-          stdin: stdin
+          stdin: toBase64(stdin)
         },
         {
           headers: {
@@ -477,8 +486,8 @@ async function executeCodeAgainstTests(code: string, language: string, testCases
       const j0Response = await executeWithJudge0(code, language, stdin);
       const j0Result = j0Response.data;
 
-      const output = (j0Result.stdout || '').trim();
-      const stderr = j0Result.stderr || j0Result.compile_output || '';
+      const output = fromBase64(j0Result.stdout || '').trim();
+      const stderr = fromBase64(j0Result.stderr || '') || fromBase64(j0Result.compile_output || '');
       const execTime = parseFloat(j0Result.time) || 0;
 
       // Check for errors

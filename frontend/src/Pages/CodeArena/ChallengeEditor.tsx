@@ -836,7 +836,7 @@ ${(result.suggestions || result.codeQuality?.suggestions || ['No immediate fixes
 
     try {
       const input = showCustomInput ? customInput : (testCases[0]?.input || '');
-      const result = await secureCodeExecutionService.executeCode(code, language, input);
+      const result = await secureCodeExecutionService.executeCode(code, language, input, challenge?.title);
       setQuickRunResult(result);
     } catch (error) {
       let errorMessage = 'Failed to run code. Please try again.';
