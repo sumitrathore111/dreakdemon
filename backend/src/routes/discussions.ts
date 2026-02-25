@@ -102,7 +102,7 @@ router.post('/:challengeId', authenticate, async (req, res) => {
     const discussion = new Discussion({
       challengeId,
       author: user._id,
-      authorUsername: user.username,
+      authorUsername: user.name,
       title: title.trim(),
       content: content.trim(),
       votes: 0,
@@ -196,7 +196,7 @@ router.post('/:id/reply', authenticate, async (req, res) => {
 
     discussion.replies.push({
       author: user._id,
-      authorUsername: user.username,
+      authorUsername: user.name,
       content: content.trim(),
       createdAt: new Date()
     });
