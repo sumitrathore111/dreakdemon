@@ -14,7 +14,7 @@ const router = Router();
 // Get all developers (users who are available for connection)
 router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { search, skills, lookingFor, limit = 50, page = 1 } = req.query;
+    const { search, skills, lookingFor, limit = 0, page = 1 } = req.query;
 
     let query: any = {};
 
@@ -37,11 +37,14 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
       query.lookingFor = lookingFor;
     }
 
-    const users = await User.find(query)
+    const limitNum = Number(limit);
+    const usersQuery = User.find(query)
       .select('-password')
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit))
       .sort({ createdAt: -1 });
+    if (limitNum > 0) {
+      usersQuery.limit(limitNum).skip((Number(page) - 1) * limitNum);
+    }
+    const users = await usersQuery;
 
     // Transform users to developer profile format
     const developers = users.map((user: any) => ({
@@ -264,7 +267,6 @@ router.get('/init/page-data', authenticate, async (req: AuthRequest, res: Respon
       // Get all developers (including current user for ranking visibility)
       User.find({})
         .select('name email bio skills languages institute location avatar githubUsername createdAt marathon_rank challenges_solved yearOfStudy badges rating battlesWon battlesLost')
-        .limit(50)
         .sort({ createdAt: -1 }),
 
       // Get study groups
