@@ -14,19 +14,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Core React runtime - smallest possible vendor chunk
+          // Core React runtime + helmet (helmet uses React context, must be bundled together)
           if (id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/scheduler/')) {
+              id.includes('node_modules/scheduler/') ||
+              id.includes('react-helmet-async')) {
             return 'react-core';
           }
           // Router - loaded early but separate
           if (id.includes('react-router')) {
             return 'router';
-          }
-          // SEO helmet (small, shared across all pages)
-          if (id.includes('react-helmet-async')) {
-            return 'helmet';
           }
           // Animation library (~150KB) - defer loading
           if (id.includes('framer-motion') || id.includes('popmotion')) {
