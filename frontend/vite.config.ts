@@ -71,8 +71,8 @@ export default defineConfig({
     cssCodeSplit: true,
     // Use esbuild for faster minification
     minify: 'esbuild',
-    // Target modern browsers for smaller output
-    target: 'esnext',
+    // Target modern browsers for smaller output (es2020 prevents TDZ issues with react-helmet-async)
+    target: 'es2020',
     // Aggressive chunk size warning threshold
     chunkSizeWarningLimit: 500,
     // Enable CSS minification
