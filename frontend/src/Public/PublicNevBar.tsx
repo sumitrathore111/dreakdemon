@@ -14,7 +14,7 @@ const PublicNavBar = () => {
 
     useEffect(() => {
         const onScroll = () => setIsScrolled(window.scrollY > 50);
-        window.addEventListener("scroll", onScroll);
+        window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
@@ -43,7 +43,7 @@ const PublicNavBar = () => {
                     {/* Logo */}
                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
+                            <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="SkillUpX Logo" width={32} height={32} className="w-8 h-8" />
                         </div>
                         <span className="font-semibold text-lg text-gray-900 dark:text-white">SkillUpX</span>
                     </Link>
@@ -149,7 +149,7 @@ const PublicNavBar = () => {
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center space-x-1">
                                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="logo" />
+                                        <img src="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" alt="SkillUpX Logo" width={32} height={32} className="w-8 h-8" />
                                     </div>
                                     <span className="font-semibold text-lg dark:text-white">SkillUpX</span>
                                 </div>

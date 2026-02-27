@@ -2,19 +2,22 @@
 <html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Preconnect for faster loading (Core Web Vitals boost) -->
+    <!-- Critical: Preconnect to essential domains FIRST -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
-    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    
+    <!-- Favicon with fetchpriority -->
+    <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" fetchpriority="low" />
+    
+    <!-- DNS prefetch for non-critical domains -->
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-    <!-- Preload critical hero image for faster LCP -->
-    <link rel="preload" as="image" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" type="image/svg+xml" />
+    <!-- Preload critical logo for LCP -->
+    <link rel="preload" as="image" href="https://res.cloudinary.com/doytvgisa/image/upload/v1758623200/logo_evymhe.svg" type="image/svg+xml" fetchpriority="high" />
 
     <!-- Apply theme class BEFORE first paint to prevent flash -->
     <script>
@@ -23,23 +26,26 @@
 
     <!-- Critical CSS - Theme-aware for instant first paint (no flash in either theme) -->
     <style>
-      body{background:#ffffff;color:#111827;min-height:100vh}
-      #root{min-height:100vh}
-      .app-skeleton{display:flex;flex-direction:column;min-height:100vh;background:#ffffff}
+      /* Optimize for CLS - prevent layout shift */
+      *,*::before,*::after{box-sizing:border-box}
+      body{margin:0;background:#fff;color:#111827;min-height:100vh;font-family:system-ui,-apple-system,sans-serif}
+      #root{min-height:100vh;contain:layout style}
+      .app-skeleton{display:flex;flex-direction:column;min-height:100vh;background:#fff}
       .skeleton-nav{height:64px;background:#f3f4f6;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;padding:0 24px}
-      .skeleton-logo{width:120px;height:32px;background:#e5e7eb;border-radius:6px;animation:shimmer 1.5s infinite}
+      .skeleton-logo{width:120px;height:32px;background:#e5e7eb;border-radius:6px}
       .skeleton-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 20px}
-      .skeleton-title{width:min(500px,80%);height:40px;background:#f3f4f6;border-radius:8px;animation:shimmer 1.5s infinite}
-      .skeleton-text{width:min(600px,90%);height:20px;background:#f3f4f6;border-radius:6px;animation:shimmer 1.5s infinite;animation-delay:.2s}
-      .skeleton-btn{width:180px;height:44px;background:#00ADB5;border-radius:8px;opacity:.3;animation:shimmer 1.5s infinite;animation-delay:.4s}
-      /* Dark theme overrides */
+      .skeleton-title{width:min(500px,80%);height:40px;background:#f3f4f6;border-radius:8px}
+      .skeleton-text{width:min(600px,90%);height:20px;background:#f3f4f6;border-radius:6px}
+      .skeleton-btn{width:180px;height:44px;background:#00ADB5;border-radius:8px;opacity:.3}
+      /* Dark theme */
       .dark body,html.dark body{background:#111827;color:#f9fafb}
       .dark .app-skeleton,html.dark .app-skeleton{background:#111827}
       .dark .skeleton-nav,html.dark .skeleton-nav{background:#1f2937;border-bottom-color:#374151}
       .dark .skeleton-logo,html.dark .skeleton-logo{background:#374151}
-      .dark .skeleton-title,html.dark .skeleton-title,
-      .dark .skeleton-text,html.dark .skeleton-text{background:#1f2937}
-      @keyframes shimmer{0%{opacity:.4}50%{opacity:.7}100%{opacity:.4}}
+      .dark .skeleton-title,html.dark .skeleton-title,.dark .skeleton-text,html.dark .skeleton-text{background:#1f2937}
+      /* Animation only after load to improve FCP */
+      @media(prefers-reduced-motion:no-preference){.loaded .skeleton-logo,.loaded .skeleton-title,.loaded .skeleton-text,.loaded .skeleton-btn{animation:shimmer 1.5s infinite}}
+      @keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.7}}
     </style>
 
     <!-- Primary SEO Meta Tags -->
@@ -704,8 +710,9 @@
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
 
-      window.addEventListener('load', function() {
-        setTimeout(function() {
+      // Defer GA loading until after page is fully interactive (improved LCP/FID)
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function() {
           var s = document.createElement('script');
           s.src = 'https://www.googletagmanager.com/gtag/js?id=G-CSE31EYVW2';
           s.async = true;
@@ -714,8 +721,21 @@
             gtag('js', new Date());
             gtag('config', 'G-CSE31EYVW2', { send_page_view: true });
           };
-        }, 100);
-      });
+        }, { timeout: 3000 });
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            var s = document.createElement('script');
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=G-CSE31EYVW2';
+            s.async = true;
+            document.head.appendChild(s);
+            s.onload = function() {
+              gtag('js', new Date());
+              gtag('config', 'G-CSE31EYVW2', { send_page_view: true });
+            };
+          }, 2000);
+        });
+      }
     </script>
   </head>
   <body>
@@ -792,7 +812,7 @@
     </noscript>
     <div id="root">
       <!-- Loading skeleton - replaced by React on hydration -->
-      <div class="app-skeleton" aria-label="Loading SkillUpX">
+      <div class="app-skeleton" aria-label="Loading SkillUpX" aria-busy="true">
         <div class="skeleton-nav"><div class="skeleton-logo"></div></div>
         <div class="skeleton-main">
           <div class="skeleton-title"></div>
@@ -802,6 +822,10 @@
         </div>
       </div>
     </div>
+    <script>
+      // Add loaded class for animations after initial paint
+      requestAnimationFrame(function(){document.documentElement.classList.add('loaded')});
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

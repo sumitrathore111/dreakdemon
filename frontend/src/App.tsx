@@ -10,7 +10,6 @@ import { BattleGuardProvider } from "./Context/BattleGuardContext";
 import { ThemeProvider } from "./Context/ThemeContext";
 import { DataProvider } from "./Context/UserDataContext";
 
-import { AnimatePresence } from "framer-motion";
 import ConsentBanner from "./Component/ConsentBanner";
 import RematchNotification from "./Component/Global/RematchNotification";
 import ScrollToTop from "./Component/ScrollToTop";
@@ -278,7 +277,11 @@ function SignupRedirect() {
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="dark:bg-black bg-white min-h-screen flex items-center justify-center" aria-busy="true">
+      <div className="w-8 h-8 border-3 border-[#00ADB5] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
   return user ? (
     <>
       <RematchNotification />
@@ -296,9 +299,15 @@ const App: React.FC = () => {
             <ToastProvider />
             <ScrollToTop />
             <ConsentBanner />
-            <Suspense fallback={<div className="dark:bg-black dark:text-white min-h-screen flex items-center justify-center">Loading app...</div>}>
-              <AnimatePresence mode="wait" >
-                <Routes>
+            <Suspense fallback={
+              <div className="dark:bg-black bg-white min-h-screen flex items-center justify-center" aria-busy="true">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 border-4 border-[#00ADB5] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Loading...</span>
+                </div>
+              </div>
+            }>
+              <Routes>
                   {/* Public Routes */}
                   <Route path="/*" element={<PublicLayout />} />
 
@@ -351,7 +360,6 @@ const App: React.FC = () => {
                   <Route path="careers" element={<CareerInfoPage />} />
                 </Route>
               </Routes>
-            </AnimatePresence>
           </Suspense>
           </BattleGuardProvider>
         </DataProvider>

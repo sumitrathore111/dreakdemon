@@ -13,23 +13,53 @@ export default defineConfig({
     // Optimize chunk splitting for faster loading (Core Web Vitals)
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React runtime
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+        manualChunks: (id) => {
+          // Core React runtime - smallest possible vendor chunk
+          if (id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'react-core';
+          }
+          // Router - loaded early but separate
+          if (id.includes('react-router')) {
+            return 'router';
+          }
           // SEO helmet (small, shared across all pages)
-          helmet: ['react-helmet-async'],
-          // Animation library (~150KB)
-          'framer-motion': ['framer-motion'],
+          if (id.includes('react-helmet-async')) {
+            return 'helmet';
+          }
+          // Animation library (~150KB) - defer loading
+          if (id.includes('framer-motion') || id.includes('popmotion')) {
+            return 'framer-motion';
+          }
           // Monaco code editor (~1MB+ — only loaded on CodeArena)
-          monaco: ['@monaco-editor/react'],
+          if (id.includes('monaco') || id.includes('@monaco-editor')) {
+            return 'monaco';
+          }
           // Three.js 3D rendering (~600KB — only loaded where needed)
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
+          if (id.includes('three') || id.includes('@react-three')) {
+            return 'three';
+          }
           // PDF/Canvas export utilities (~250KB)
-          export: ['html2canvas', 'jspdf'],
+          if (id.includes('html2canvas') || id.includes('jspdf')) {
+            return 'export';
+          }
           // Real-time communication
-          socket: ['socket.io-client'],
-          // Icon library (~100KB tree-shaken)
-          icons: ['lucide-react'],
+          if (id.includes('socket.io')) {
+            return 'socket';
+          }
+          // Icon library - tree-shake properly
+          if (id.includes('lucide-react')) {
+            return 'icons';
+          }
+          // Date/time utilities
+          if (id.includes('date-fns') || id.includes('dayjs') || id.includes('moment')) {
+            return 'date-utils';
+          }
+          // Form handling
+          if (id.includes('react-hook-form') || id.includes('zod')) {
+            return 'forms';
+          }
         },
       },
     },
@@ -39,13 +69,32 @@ export default defineConfig({
     sourcemap: false,
     // Enable CSS code splitting for faster initial load
     cssCodeSplit: true,
-    // Minify with esbuild (faster than terser)
+    // Use esbuild for faster minification
     minify: 'esbuild',
     // Target modern browsers for smaller output
-    target: 'es2020',
+    target: 'esnext',
+    // Aggressive chunk size warning threshold
+    chunkSizeWarningLimit: 500,
+    // Enable CSS minification
+    cssMinify: 'esbuild',
   },
   // Optimize dependency pre-bundling
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
+    // Exclude heavy deps from pre-bundling
+    exclude: ['@monaco-editor/react', 'three'],
+  },
+  // Improve dev server performance
+  server: {
+    warmup: {
+      clientFiles: ['./src/main.tsx', './src/App.tsx', './src/Public/HomePage.tsx'],
+    },
+  },
+  // Enable experimental features for better performance
+  esbuild: {
+    // Remove console.log in production
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    // Legal comments to separate file
+    legalComments: 'none',
   },
 })

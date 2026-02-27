@@ -107,16 +107,19 @@ html.dark body {
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-float-delayed {
   animation: float-delayed 8s ease-in-out infinite;
   animation-delay: 1s;
+  will-change: transform;
 }
 
 .animate-float-slow {
   animation: float-slow 10s ease-in-out infinite;
   animation-delay: 2s;
+  will-change: transform;
 }
 
 .animate-slide-down {
